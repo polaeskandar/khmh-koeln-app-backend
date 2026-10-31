@@ -2,10 +2,30 @@ security:
     password_hashers:
         App\Context\Identity\Infrastructure\Security\SecurityUser: 'auto'
 
+    providers:
+        accounts:
+            id: App\Context\Identity\Infrastructure\Security\AccountProvider
+
     firewalls:
         dev:
             pattern: ^/(_profiler|_wdt)
             security: false
+        api:
+            pattern: ^/api
+            lazy: true
+            provider: accounts
+            json_login:
+                check_path: api_auth_sign_in
+                username_path: email
+                password_path: password
+            logout:
+                path: api_auth_sign_out
+
+    access_control:
+        - { path: ^/api/health, roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/sign-(in|out)$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/test/, roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: IS_AUTHENTICATED }
 
 when@test:
     security:

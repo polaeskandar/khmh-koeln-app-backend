@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Support;
 
 use Override;
+use SensitiveParameter;
 use stdClass;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -18,7 +19,7 @@ abstract class ApiTestCase extends WebTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        self::createClient();
+        self::createClient(server: ['HTTPS' => 'on']);
     }
 
     /**
@@ -50,7 +51,14 @@ abstract class ApiTestCase extends WebTestCase
     protected function startClient(array $options): void
     {
         self::ensureKernelShutdown();
-        self::createClient($options);
+        self::createClient($options, ['HTTPS' => 'on']);
+    }
+
+    protected function signInAs(string $email, #[SensitiveParameter] string $secret): void
+    {
+        $response = $this->jsonRequest('POST', '/api/auth/sign-in', ['email' => $email, 'password' => $secret]);
+
+        self::assertSame(Response::HTTP_NO_CONTENT, $response->getStatusCode(), (string) $response->getContent());
     }
 
     protected function browser(): KernelBrowser
@@ -117,11 +125,6 @@ abstract class ApiTestCase extends WebTestCase
 
     private static function serverName(string $header): string
     {
-        return 'HTTP_' . ($header |> strtoupper(...) |> self::underscored(...));
-    }
-
-    private static function underscored(string $name): string
-    {
-        return str_replace(search: '-', replace: '_', subject: $name);
+        return 'HTTP_' . strtr(strtoupper($header), from: '-', to: '_');
     }
 }

@@ -9,6 +9,7 @@ use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\Email;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineUserRepository implements UserRepositoryInterface
 {
@@ -22,6 +23,12 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
     {
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+    }
+
+    #[Override]
+    public function find(Uuid $id): ?User
+    {
+        return $this->entityManager->find(User::class, $id);
     }
 
     #[Override]
