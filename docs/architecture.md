@@ -23,7 +23,7 @@ flowchart LR
 
 | Repository | Contents | State |
 | --- | --- | --- |
-| `backend` (this one) | Symfony 8.1 API on PHP 8.4.1+, Doctrine ORM 3 and Migrations, PostgreSQL 18 (`compose.yaml` for local development) | Initialized, no features |
+| `backend` (this one) | Symfony 8.1 API on PHP 8.5, Doctrine ORM 3 and Migrations, PostgreSQL 18 (`compose.yaml` for local development) | Initialized, no features |
 | `frontend` | Next.js 16 web app as a static export, packaged as iOS and Android apps with Capacitor 8; shadcn/ui with preset `b3a10z1gt0` | Initialized, no features |
 | `ui` | The clickable prototype (`ui-prototype`) and its screenshots (`ui-mockups`) | Complete for the MVP screens |
 
@@ -34,13 +34,20 @@ in the frontend repository's `docs/architecture.md`.
 
 ## Decisions
 
+### Latest stable versions: PHP 8.5, Symfony 8.1, PostgreSQL 18
+
+We start on the latest stable release of each, as requested (Symfony below). PHP 8.5 has active support
+until the end of 2027 and security fixes until the end of 2029. PostgreSQL 18 is supported until November
+2030; 19 is due after launch and is a major upgrade (`pg_upgrade` or dump and restore), done as its own
+ticket.
+
 ### Symfony 8.1 instead of 7.4 LTS
 
-We start on the latest stable Symfony, 8.1, as requested. It needs PHP 8.4.1 or newer. 8.1 is a standard
-release with bug fixes until the end of January 2027; 8.2 follows in November 2026 and 8.4, the next LTS,
-in November 2027. Staying current therefore means a minor upgrade about every six months. Minor upgrades
-within 8.x are backward compatible, so each is small if deprecations are fixed as they appear. The
-alternative was 7.4 LTS (bug fixes until November 2028) on PHP 8.2+. If the team prefers fewer upgrades,
+Symfony 8.1 needs PHP 8.4 or newer. 8.1 is a standard release with bug fixes until the end of January
+2027; 8.2 follows in November 2026 and 8.4, the next LTS, in November 2027. Staying current therefore means
+a minor upgrade about every six months. Minor upgrades within 8.x are backward compatible, so each is small
+if deprecations are fixed as they appear. The alternative was 7.4 LTS (bug fixes until November 2028) on
+PHP 8.2+. If the team prefers fewer upgrades,
 switching to 7.4 now costs little, because the backend has no features yet.
 
 ### API style
@@ -50,20 +57,25 @@ switching to 7.4 now costs little, because the backend has no features yet.
   right now) and 422 (field errors keyed by field name). The prototype's mock layer already returns these
   shapes, so the screens' error handling carries over.
 - Every problem and every field error carries a stable code and its parameters, e.g.
-  `{"code": "services.hasHistory", "params": {"name": "Choir", "count": 12}}`, next to an English `detail`
-  for logs. The apps show the text for the code in the person's language. The prototype's message keys
-  under `errors.*` (in `ui-prototype/messages/en.json`) are the proposed codes.
+  `{"code": "services.hasHistory", "params": {"name": "Choir", "count": 12}}`.
+  The apps show the text for the code in the person's language. The prototype's message keys under
+  `errors.*` (in `ui-prototype/messages/en.json`) are the codes.
 - Calendar dates as `YYYY-MM-DD` in the church's time zone (Europe/Berlin), instants as RFC 3339 with an
   offset. See the [data model](data-model.md).
+- The full conventions, the auth contract and the code catalog are in the [API contract](api.md).
 
-### Clients call the API cross-origin
+### One origin, cookie session for the web, bearer tokens for the apps
 
-The frontend is a static build that runs in the browser and, bundled, inside the iOS and Android apps. Every
-request therefore comes from client-side code: from the web app's origin, from `capacitor://localhost` in the
-iOS app and from `https://localhost` in the Android app. The API needs a CORS allowlist with these origins and
-a sign-in method that works without third-party cookies. Bearer tokens work the same in all three; session
-cookies would need Capacitor's native HTTP in the apps. The sign-in ticket decides. The parked spike used a
-session cookie, which would need revisiting.
+https://app.khmk-koeln.com serves the static web app at `/` and the API at `/api` (D2), so the web app
+calls the API on its own origin. It signs in with an HttpOnly session cookie (D1): sessions are stored in
+PostgreSQL, the cookie is `__Host-khmk_session` (Secure, SameSite=Lax), JavaScript never sees it and nothing
+is kept in web storage. Unsafe requests from a foreign `Origin` are rejected. CORS is only needed for local
+development (`http://localhost:3000`).
+
+The iOS and Android apps run on `capacitor://localhost` and `https://localhost`, where the session cookie
+doesn't work. After the MVP they get opaque bearer tokens (`Authorization: Bearer`), stored as hashes and
+checked against the account on every request, so disabling an account revokes them (#83). The contract for
+both is in the [API contract](api.md#authentication).
 
 ### Accounts need an administrator's approval
 
@@ -78,7 +90,7 @@ everything the person entered. Accounts the office creates itself are approved a
 Sign-in answers "wrong email or password" without saying which, and "forgot password" always answers the
 same, so neither can be used to find out who has an account. Before an administrator sees a registration,
 the person should confirm their email address through a link (not in the prototype). Disabled accounts
-can't sign in and keep their history. The open question of tokens or cookies stays (see above).
+can't sign in and keep their history.
 
 ### Three languages, right to left included
 
@@ -89,7 +101,11 @@ frontend; the API sends codes and data, never sentences (see API style). Dates g
 
 ### Data protection (DSGVO)
 
-The app stores as little as the work needs: no photos, addresses, birthdays or grades. Because belonging
+The app stores as little as the work needs: names, groups, attendance, homework reports, and for members
+and accounts an optional birth date and postal address. No photos and no grades. Staff see a member's
+birth date and address only within their services (administrators everywhere), parents their own
+children's; an account's own are visible to the person and to administrators. The data protection adviser
+confirms the purpose of birth dates and addresses before launch. Because belonging
 to a church's groups reveals a religious affiliation, all of it is treated as special-category data
 (DSGVO Art. 9): it never leaves the church, every request is checked against the roles, and parents only
 ever see their own children.
@@ -140,14 +156,14 @@ rankings, and the wording stays gentle ("Was due yesterday", never "overdue").
 
 ## Open questions for tickets
 
-- Sign-in: bearer tokens or cookies (see above). Passwords are the proposal (the prototype has them); email
-  links remain an option for parents.
+- Sign-in: email links remain an option for parents besides passwords.
 - Email delivery: confirming the address after registration, password links, approval and erasure
   notices, in the person's language. Which provider (an EU one).
 - How the office verifies a parent before linking a child (in person after the liturgy is the prototype's
   suggestion), and who can make data protection requests for a child.
 - Data protection, with the church's adviser: the controller and the contact in the privacy notice; the
-  legal bases (Art. 9(2)(d) for members, consent for the parent portal?); how long members who left and
+  legal bases (Art. 9(2)(d) for members, consent for the parent portal?); the purpose of birth dates and
+  addresses; how long members who left and
   disabled accounts are kept; how long backups keep erased data; the data processing agreement with the
   host; whether a data protection impact assessment is needed.
-- Hosting, deployment, backups and monitoring; whether the web app is served from the API's domain.
+- Hosting, deployment, backups and monitoring.

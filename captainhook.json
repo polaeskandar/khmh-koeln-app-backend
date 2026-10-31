@@ -1,0 +1,21 @@
+{
+    "config": {
+        "run": {
+            "mode": "docker",
+            "exec": "docker compose run --rm --no-deps -T api",
+            "path": "vendor/bin/captainhook"
+        }
+    },
+    "commit-msg": {
+        "enabled": true,
+        "actions": [
+            {"action": "\\Ramsey\\CaptainHook\\ValidateConventionalCommit"}
+        ]
+    },
+    "pre-commit": {
+        "enabled": true,
+        "actions": [
+            {"action": "composer lint"}
+        ]
+    }
+}

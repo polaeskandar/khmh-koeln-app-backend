@@ -6,16 +6,18 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.4.1",
+        "php": ">=8.5",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "doctrine/doctrine-bundle": "^3.3",
         "doctrine/doctrine-migrations-bundle": "^4.0",
         "doctrine/orm": "^3.7",
         "symfony/console": "8.1.*",
+        "symfony/doctrine-messenger": "8.1.*",
         "symfony/dotenv": "8.1.*",
         "symfony/flex": "^2.11",
         "symfony/framework-bundle": "8.1.*",
+        "symfony/messenger": "8.1.*",
         "symfony/monolog-bundle": "^4.1",
         "symfony/runtime": "8.1.*",
         "symfony/yaml": "8.1.*"
@@ -24,12 +26,13 @@
         "allow-plugins": {
             "php-http/discovery": true,
             "symfony/flex": true,
-            "symfony/runtime": true
+            "symfony/runtime": true,
+            "captainhook/hook-installer": true
         },
         "bump-after-update": true,
         "sort-packages": true,
         "platform": {
-            "php": "8.4.1"
+            "php": "8.5.0"
         }
     },
     "autoload": {
@@ -82,10 +85,17 @@
             "allow-contrib": false,
             "require": "8.1.*",
             "docker": false
+        },
+        "captainhook": {
+            "only-enabled": true,
+            "force-install": true
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^13.4",
+        "captainhook/captainhook": "^5.29",
+        "captainhook/hook-installer": "^1.0",
+        "phpunit/phpunit": "^13.4.5",
+        "ramsey/conventional-commits": "^1.7",
         "symfony/browser-kit": "8.1.*",
         "symfony/css-selector": "8.1.*",
         "symfony/maker-bundle": "^1.68"

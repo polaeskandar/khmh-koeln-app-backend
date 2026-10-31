@@ -59,7 +59,7 @@ staff (administrators, service leaders, servants) and parents. Children never ha
 | --- | --- | --- |
 | `service` | A ministry, e.g. Sunday School or Youth Meeting. | Name unique, ignoring case and extra spaces. Archived, never deleted once it has history. |
 | `stage` | A group within a service, e.g. 3rd Class. `position` is the display order used everywhere. | Name unique within the service. Archived like services. |
-| `person` | Anyone who takes part. `display_name` is an everyday name ("Kiro" for Kirollos). | `status` active or inactive. |
+| `person` | Anyone who takes part. `display_name` is an everyday name ("Kiro" for Kirollos). Optional `birth_date` and postal address (`street`, `postal_code`, `city`). | `status` active or inactive. `birth_date` not in the future. The address is all three parts or none. Staff see birth date and address only within their services. |
 | `membership` | Puts a person on the roster of a stage, or of the service itself when `stage_id` is null. | `starts_on`, `ends_on` (inclusive). At most one open membership per person and stage, and per person and service-level roster. Stage and service must match. |
 
 ## Meetings and attendance
@@ -88,7 +88,7 @@ clock; it does not exist in the backend yet.
 
 | Table | Purpose | Key rules |
 | --- | --- | --- |
-| `app_user` | A sign-in account: email, display name, password hash, language (`en`, `de`, `ar`), optional link to a person. When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. `approved_at`/`approved_by` stay null until an administrator approves the account; until then it can't sign in. While waiting it keeps what the person wrote when registering (`registered_as` parent or servant, `registration_note`, `registration_service_id`); these are cleared once an administrator decides. Declining deletes the row. Disabled accounts (`disabled_at`) can't sign in and keep their history. |
+| `app_user` | A sign-in account: email, display name, password hash, language (`en`, `de`, `ar`), optional link to a person, optional `birth_date` and postal address (`street`, `postal_code`, `city`, all three or none; visible to the person and administrators). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. `approved_at`/`approved_by` stay null until an administrator approves the account; until then it can't sign in. While waiting it keeps what the person wrote when registering (`registered_as` parent or servant, `registration_note`, `registration_service_id`); these are cleared once an administrator decides. Declining deletes the row. Disabled accounts (`disabled_at`) can't sign in and keep their history. |
 | `role_assignment` | `administrator` (everything), `service_leader` (one service), `servant` (one service, optionally narrowed to one stage), `parent` (no service). | A stage-scoped role covers only that stage. Parents see only what their approved guardian links allow. |
 
 The backend checks every request against these roles. The frontend only uses them to hide actions a person
@@ -152,8 +152,8 @@ Three counters on `meeting_session` keep them: `erased_roster`, `erased_present`
 `erased_roster_present`, increased for every completed, active or past session the person was on the roster
 of or marked present at. The counts add them; the lists no longer show the person.
 
-The copy (`copy` requests and the download on the account page) is JSON with the member's record,
-memberships, attendance and homework reports, and the account's details, roles, linked children and the
+The copy (`copy` requests and the download on the account page) is JSON with the member's record
+(birth date and address included), memberships, attendance and homework reports, and the account's details (birth date and address included), roles, linked children and the
 reports it made. Password hashes and other people's contact details are never part of it.
 
 Retention is an open question for the church (see the architecture's open questions): how long members

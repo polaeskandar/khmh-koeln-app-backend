@@ -1,18 +1,44 @@
-# Local infrastructure for development. The API runs natively (see README.md);
-# only PostgreSQL is containerized.
 name: khmk-koeln
 
 services:
+  api:
+    build: .
+    image: khmk-koeln-api
+    command: ["sh", "-c", "composer install --no-interaction && bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration && exec frankenphp run --config /etc/frankenphp/Caddyfile"]
+    environment:
+      DATABASE_URL: "postgresql://khmk:khmk@database:5432/khmk?serverVersion=18&charset=utf8"
+      SERVER_NAME: ":80"
+    ports:
+      - "127.0.0.1:8000:80"
+    volumes:
+      - .:/app
+    depends_on:
+      database:
+        condition: service_healthy
+
+  worker:
+    image: khmk-koeln-api
+    command: ["php", "bin/console", "messenger:consume", "async", "-vv"]
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    environment:
+      DATABASE_URL: "postgresql://khmk:khmk@database:5432/khmk?serverVersion=18&charset=utf8"
+    volumes:
+      - .:/app
+    depends_on:
+      api:
+        condition: service_healthy
+
   database:
     image: postgres:18-alpine
     environment:
       POSTGRES_DB: khmk
       POSTGRES_USER: khmk
-      # Local development only. Real credentials never live in this file.
       POSTGRES_PASSWORD: khmk
       TZ: Europe/Berlin
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:5436:5432"
     volumes:
       - database_data:/var/lib/postgresql
     healthcheck:
