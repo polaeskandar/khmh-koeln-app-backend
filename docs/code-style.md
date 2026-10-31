@@ -114,6 +114,9 @@ collection whose role isn't obvious (`new Readiness(status: …, checks: […])`
 meaning is clear from the method name stay positional (`new Problem($status, $code)`, `Text::format($pattern, …)`). Mago analyzer at the strictest level,
 `literal-named-argument`, PHP Insights `DisallowMixedTypeHint`.
 
+Enums are backed (`enum Language: string`), so every case has a stable value for the database, JSON and
+logs. `tests/Architecture/EnumsAreBackedTest` fails on a pure enum in `src`.
+
 ## 7. Names instead of comments
 
 No comments that explain code: rename or extract until the code says it. What stays are type docblocks and

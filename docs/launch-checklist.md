@@ -17,7 +17,7 @@ before anyone tests. Full German and Arabic screen QA is frontend#89.
 
 | Step | Expected result |
 | --- | --- |
-| On the server, create the first administrator: `bin/console app:user:create qa-admin@example.org "QA Admin" --admin` and type a password twice | The command prints that the approved account exists with the administrator role; the password is not echoed |
+| On the server, create the first administrator: `bin/console app:user:create qa-admin@example.org "QA Admin" --role=Administrator` and type a password twice | The command prints that the approved account exists with the administrator role; the password is not echoed |
 | Note the date, the weekday and the time | Needed for journey 4: the schedule uses today's weekday |
 
 ## Runs and the matrix

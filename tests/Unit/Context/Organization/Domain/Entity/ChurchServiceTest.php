@@ -19,7 +19,7 @@ final class ChurchServiceTest extends TestCase
         $service = new ChurchService('  Youth   Meeting ', description: '  Fridays ');
 
         self::assertSame('Youth Meeting', $service->name()->value);
-        self::assertSame('youth meeting', $service->name()->key);
+        self::assertSame('youth_meeting', $service->name()->key);
         self::assertSame('Fridays', $service->description()->value);
         self::assertSame(7, $service->id()->toRfc4122() |> self::uuidVersion(...));
         self::assertFalse($service->isArchived());

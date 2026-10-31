@@ -15,6 +15,7 @@ final readonly class CreateUserCommand
         public Language $language,
         #[SensitiveParameter]
         public ?string $password,
+        public ?string $role,
     ) {
     }
 }

@@ -12,7 +12,7 @@ final class NameKeyTest extends TestCase
     public function testCaseAndExtraSpacesDoNotMakeANameDifferent(): void
     {
         self::assertSame(NameKey::of('3rd Class'), NameKey::of('  3rd  class'));
-        self::assertSame('3rd class', NameKey::of("\t3rd\n Class "));
+        self::assertSame('3rd_class', NameKey::of("\t3rd\n Class "));
     }
 
     public function testNoBreakSpacesCollapseLikeOrdinaryOnes(): void
@@ -22,11 +22,11 @@ final class NameKeyTest extends TestCase
 
     public function testUmlautsAreLowered(): void
     {
-        self::assertSame('ältere jugend', NameKey::of(' ÄLTERE   Jugend '));
+        self::assertSame('ältere_jugend', NameKey::of(' ÄLTERE   Jugend '));
     }
 
     public function testArabicIsLeftAsItIs(): void
     {
-        self::assertSame('مدارس الأحد', NameKey::of('مدارس  الأحد'));
+        self::assertSame('مدارس_الأحد', NameKey::of('مدارس  الأحد'));
     }
 }
