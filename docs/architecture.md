@@ -213,4 +213,4 @@ rankings, and the wording stays gentle ("Was due yesterday", never "overdue").
   addresses; how long members who left and
   disabled accounts are kept; how long backups keep erased data; the data processing agreement with the
   host; whether a data protection impact assessment is needed.
-- Hosting, deployment, backups and monitoring.
+- Hosting, deployment, backups and monitoring: requirements and shortlist in [Operations](operations.md).
