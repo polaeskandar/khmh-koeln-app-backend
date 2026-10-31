@@ -2,3 +2,5 @@ framework:
     serializer:
         default_context:
             allow_extra_attributes: false
+            datetime_format: 'Y-m-d\TH:i:sP'
+            datetime_timezone: '%app.time_zone%'
