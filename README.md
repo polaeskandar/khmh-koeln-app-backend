@@ -24,6 +24,13 @@ docker compose down --volumes && docker compose up -d   # start over with an emp
 Local overrides go in `.env.local` (git-ignored), never in `.env`. The variables are listed in
 [Operations](docs/operations.md#configuration).
 
+## CI
+
+`.github/workflows/ci.yml` runs `composer ci` on every pull request and on pushes to `main`, against
+PostgreSQL 18 in UTC (the local database runs in Europe/Berlin, so time-zone assumptions fail in one of the
+two). The job `composer ci` is a required status check on `main`. Dependabot proposes Composer and GitHub
+Actions updates weekly; actions are pinned by commit SHA.
+
 ## Docs
 
 - [Architecture](docs/architecture.md)

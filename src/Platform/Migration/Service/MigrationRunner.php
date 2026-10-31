@@ -11,6 +11,7 @@ use Doctrine\Migrations\DependencyFactory;
 use Doctrine\Migrations\Provider\SchemaProvider;
 use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
 use Doctrine\Migrations\Tools\Console\Command\DoctrineCommand;
+use Doctrine\Migrations\Tools\Console\Command\GenerateCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -32,6 +33,15 @@ final readonly class MigrationRunner
         );
     }
 
+    public function generate(MigrationSet $set, OutputInterface $output): int
+    {
+        return $this->run(
+            new GenerateCommand($this->dependencyFactory($set)),
+            parameters: ['--namespace' => $set->namespace],
+            output: $output,
+        );
+    }
+
     public function diff(MigrationSet $set, OutputInterface $output): int
     {
         $command = new DiffCommand($this->dependencyFactory($set));
@@ -41,6 +51,19 @@ final readonly class MigrationRunner
             parameters: ['--namespace' => $set->namespace, '--formatted' => true],
             output: $output,
         );
+    }
+
+    public function isInSync(MigrationSet $set): bool
+    {
+        $connection = $this->entityManager->getConnection();
+        $schemaManager = $connection->createSchemaManager();
+
+        $changes = $schemaManager->createComparator()->compareSchemas(
+            $schemaManager->introspectSchema(),
+            new ContextSchemaProvider($this->entityManager, schema: $set->schema)->createSchema(),
+        );
+
+        return $connection->getDatabasePlatform()->getAlterSchemaSQL($changes) === [];
     }
 
     private function dependencyFactory(MigrationSet $set): DependencyFactory

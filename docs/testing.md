@@ -1,6 +1,7 @@
 # Testing
 
-`composer test` creates and migrates the test database `khmk_test` (every context's schema), then runs the
+`composer test` creates and migrates the test database `khmk_test` (every context's schema), checks with
+`app:migrations:check` that every context's database matches its mapping, then runs the
 `Unit`, `Functional` and `Architecture` suites. Every test runs in a
 transaction that is rolled back afterwards (DAMA), schema changes included, so tests can run in any order.
 
