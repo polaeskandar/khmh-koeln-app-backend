@@ -329,6 +329,7 @@ There is no `type`, `title` or `detail`. RFC 9457 makes them optional, and an ab
 - `params` and extension members can contain personal data. They are never logged (D6); logs keep the
   code.
 - `params` may carry more members than a text uses (validation constraints add `limit` next to `max`).
+- In development (`APP_DEBUG=1`) a 500 adds `debug: {class, message}`; production never does.
 
 409 with params:
 

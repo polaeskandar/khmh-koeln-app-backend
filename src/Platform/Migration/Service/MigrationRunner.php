@@ -27,8 +27,8 @@ final readonly class MigrationRunner
     {
         return $this->run(
             new MigrateCommand($this->dependencyFactory($set)),
-            ['--allow-no-migration' => true],
-            $output,
+            parameters: ['--allow-no-migration' => true],
+            output: $output,
         );
     }
 
@@ -36,7 +36,11 @@ final readonly class MigrationRunner
     {
         $command = new DiffCommand($this->dependencyFactory($set));
 
-        return $this->run($command, ['--namespace' => $set->namespace, '--formatted' => true], $output);
+        return $this->run(
+            $command,
+            parameters: ['--namespace' => $set->namespace, '--formatted' => true],
+            output: $output,
+        );
     }
 
     private function dependencyFactory(MigrationSet $set): DependencyFactory
@@ -49,7 +53,10 @@ final readonly class MigrationRunner
             'organize_migrations' => 'none',
             'custom_template' => __DIR__ . '/migration.tpl',
         ]), new ExistingEntityManager($this->entityManager));
-        $factory->setService(SchemaProvider::class, new ContextSchemaProvider($this->entityManager, $set->schema));
+        $factory->setService(
+            SchemaProvider::class,
+            new ContextSchemaProvider($this->entityManager, schema: $set->schema),
+        );
 
         return $factory;
     }

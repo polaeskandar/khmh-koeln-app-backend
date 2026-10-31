@@ -69,18 +69,17 @@ final class TestLayoutTest extends TestCase
      */
     private static function helperFolders(): array
     {
-        $folders = [];
-        foreach (self::MIRRORED_HELPERS as $helper) {
-            foreach (self::entriesBelow('tests/' . $helper) as $relative => $entry) {
-                if (!$entry->isDir()) {
-                    continue;
-                }
+        return array_merge(...array_map(self::foldersBelow(...), self::MIRRORED_HELPERS));
+    }
 
-                $folders[] = $relative;
-            }
-        }
+    /**
+     * @return list<string>
+     */
+    private static function foldersBelow(string $helper): array
+    {
+        $entries = iterator_to_array(self::entriesBelow('tests/' . $helper));
 
-        return $folders;
+        return array_keys(array_filter($entries, static fn (SplFileInfo $entry): bool => $entry->isDir()));
     }
 
     private static function subjectFolder(string $folder): string

@@ -16,6 +16,11 @@ final readonly class Type
         return new self($value);
     }
 
+    public function toScalarOrNull(): string|int|float|bool|null
+    {
+        return is_scalar($this->value) ? $this->value : null;
+    }
+
     public function toStringOrNull(): ?string
     {
         return is_string($this->value) ? $this->value : null;

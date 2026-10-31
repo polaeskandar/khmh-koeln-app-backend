@@ -41,7 +41,7 @@ namespaces:
 | --- | --- |
 | `App\Context` | The bounded contexts: `Identity`, `Organization`, `People`, `Meetings`, `Attendance`, `Learning`. Each has `Domain` (entities, value objects, enums, repository interfaces, exceptions, domain services) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations). |
 | `App\Interface` | Everything that serves a caller. `Application/<Area>/UseCase/Command/<Name>/` (writes) and `Application/<Area>/UseCase/Query/<Name>/` (reads) hold the use cases: each folder has exactly `<Name>Command` or `<Name>Query` and a `<Name>Handler` whose `__invoke()` takes it. Read models live in `Application/<Area>/Model/`. Use cases may combine several contexts and decide what crosses a context boundary. `Api/<Area>/…Controller` and `Console/<Area>/…Command` are the entry points that call them. The parent portal is `Api/ParentPortal` with its queries in `Application/ParentPortal`. |
-| `App\Library` | Business-agnostic packages, each split into `Client`, `Model` and `Exception`: `Strings` (`Text`, used instead of PHP's string functions), `Types` (`Type`, narrows `mixed` values), `Console` (`HiddenPrompt` for passwords). Copied from `bisort-console`. Packages never use each other (`mago guard`); a package keeps only the methods something uses, and missing ones are copied over with their first caller. |
+| `App\Library` | Business-agnostic packages, each split into `Client`, `Model` and `Exception`; they wrap PHP's native functions once for the rest of the application (see [Code style](code-style.md)): `Strings` (`Text`), `Types` (`Type`), `Collections` (`Collections`, next to Doctrine's collections), `Files` (`Path`), `Console` (`HiddenPrompt`), `Problem` (the coded exceptions). Packages never use each other (`mago guard`); a package keeps only the methods something uses, and missing ones are added with their first caller. |
 | `App\Platform` | The runtime: `Kernel`, `Migration`, `Health`, `Http`. Each module splits into `Contract` (interfaces the rest may use), `Service`, `Model` and `Command`. |
 
 Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
@@ -54,6 +54,7 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
 - Commands, queries, handlers and read models are `final readonly`; a handler never calls another handler. Repositories are interfaces named `*RepositoryInterface`,
   exceptions `*Exception`, enums live in `Enum`.
 - Every application route lives under `/api` (class-level `#[Route]`).
+- Code follows [Code style](code-style.md).
 
 Persistence (ADR 0004 of `bisort-console`):
 
@@ -68,6 +69,25 @@ Persistence (ADR 0004 of `bisort-console`):
 - A context's diff compares the database with a target made of the context's mapping plus every table the
   database already holds outside the context. Other contexts therefore never show up in the diff, and DBAL
   derives every schema from real tables.
+
+Errors (the contract is in [API contract](api.md#problems)):
+
+- Code raises `App\Library\Problem\Exception\RuleViolation(code, params, extensions)` for a broken business
+  rule (409), `NotFound::of('service')` for a missing record (404 `notFound.service`) and
+  `InvalidInput([field => {code, params}])` for field errors found by a service (422). Exception messages hold
+  only the code; params and extensions never reach the logs.
+- `Platform/Problem` turns every exception on an `/api` path into a problem: request payload errors,
+  `AccessDeniedHttpException('<code>')`, a `NotFoundHttpException('<code>')` from `#[MapEntity(message:)]`,
+  unique violations (409 `conflict`), and anything else as 500 `internal`, with `debug: {class, message}`
+  only when `kernel.debug` is on.
+  The exception that was thrown wins over the ones it wraps: translators try the chain outermost first, and
+  the HTTP status of the outermost HTTP exception is the fallback.
+- Request DTOs bound with `#[MapRequestPayload]` have nullable properties with defaults, so a missing field
+  reaches its constraint; every constraint message is a code (`#[Assert\NotBlank(message:
+  'services.nameRequired')]`). `ConstraintMessagesAreCodesTest` fails for a message that is not in the code
+  catalog.
+- Adding a code: add it to its module in the code catalog of `docs/api.md`, and its en/de/ar texts as
+  `errors.<code>` in the frontend.
 
 Naming and Doctrine rules:
 

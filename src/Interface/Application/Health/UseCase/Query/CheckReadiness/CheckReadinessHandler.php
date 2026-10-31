@@ -18,6 +18,6 @@ final readonly class CheckReadinessHandler
     {
         $database = $this->database->isAvailable($query->timeoutSeconds) ? Readiness::OK : Readiness::UNAVAILABLE;
 
-        return new Readiness($database, ['database' => $database]);
+        return new Readiness(status: $database, checks: ['database' => $database]);
     }
 }

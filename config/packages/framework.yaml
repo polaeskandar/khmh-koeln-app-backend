@@ -1,4 +1,9 @@
 framework:
+    exceptions:
+        App\Library\Problem\Exception\RuleViolation: { log_level: info }
+        App\Library\Problem\Exception\NotFound: { log_level: info }
+        App\Library\Problem\Exception\InvalidInput: { log_level: info }
+        Doctrine\DBAL\Exception\UniqueConstraintViolationException: { log_level: info }
     secret: '%env(APP_SECRET)%'
 
     session: true

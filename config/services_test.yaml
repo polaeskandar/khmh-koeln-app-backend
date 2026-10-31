@@ -1,0 +1,7 @@
+services:
+    _defaults:
+        autowire: true
+
+    App\Tests\Support\Platform\Problem\:
+        resource: '../tests/Support/Platform/Problem/*ProbeController.php'
+        tags: [controller.service_arguments]

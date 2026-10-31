@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Platform\Migration\Model;
 
+use App\Library\Files\Model\Path;
 use App\Library\Strings\Model\Text;
+use Doctrine\Common\Collections\ArrayCollection;
 use InvalidArgumentException;
 
 final readonly class MigrationSet
@@ -18,24 +20,25 @@ final readonly class MigrationSet
     }
 
     /**
-     * @return list<self>
+     * @return ArrayCollection<int, self>
      */
-    public static function all(string $projectDir): array
+    public static function all(string $projectDir): ArrayCollection
     {
-        $directories = glob($projectDir . '/src/Context/*/Infrastructure/Persistence/Migrations', GLOB_ONLYDIR);
-
-        return array_map(self::fromDirectory(...), $directories === false ? [] : $directories);
+        return Path::of($projectDir)->directories('src/Context/*/Infrastructure/Persistence/Migrations')->map(
+            self::fromDirectory(...),
+        );
     }
 
     public static function named(string $name, string $projectDir): self
     {
-        foreach (self::all($projectDir) as $set) {
-            if ($set->schema === $name) {
-                return $set;
-            }
+        $set = self::all($projectDir)
+            ->filter(static fn (self $set): bool => $set->schema === $name)
+            ->first();
+        if ($set === false) {
+            throw new InvalidArgumentException(Text::format('Unknown context "%s".', $name)->toString());
         }
 
-        throw new InvalidArgumentException(Text::format('Unknown context "%s".', $name)->toString());
+        return $set;
     }
 
     public function versionTable(): string
@@ -43,15 +46,15 @@ final readonly class MigrationSet
         return $this->schema . '_migration_versions';
     }
 
-    private static function fromDirectory(string $directory): self
+    private static function fromDirectory(Path $directory): self
     {
-        $context = basename(dirname($directory, levels: 3));
+        $context = $directory->parent(levels: 3)->name();
 
         return new self(
-            $context,
-            Text::of($context)->lower()->toString(),
-            Text::format('App\\Context\\%s\\Infrastructure\\Persistence\\Migrations', $context)->toString(),
-            $directory,
+            context: $context,
+            schema: Text::of($context)->lower()->toString(),
+            namespace: Text::format('App\\Context\\%s\\Infrastructure\\Persistence\\Migrations', $context)->toString(),
+            directory: $directory->toString(),
         );
     }
 }

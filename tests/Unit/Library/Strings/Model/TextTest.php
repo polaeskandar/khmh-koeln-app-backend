@@ -35,4 +35,25 @@ final class TextTest extends TestCase
         self::assertTrue(Text::of('/api/health')->startsWith('/api/'));
         self::assertFalse(Text::of('/apiary')->startsWith('/api/'));
     }
+
+    public function testReplaceMatchesRewritesEveryMatch(): void
+    {
+        self::assertSame(
+            'materials.2.url',
+            Text::of('materials[2].url')->replaceMatches('/\[(\d+)]/', '.$1')->toString(),
+        );
+    }
+
+    public function testMatchesTestsThePattern(): void
+    {
+        self::assertTrue(Text::of('notFound.service')->matches('/^[a-z][a-zA-Z.]*$/'));
+        self::assertFalse(Text::of('Access Denied.')->matches('/^[a-z][a-zA-Z.]*$/'));
+    }
+
+    public function testIsDigitsAcceptsOnlyARunOfDigits(): void
+    {
+        self::assertTrue(Text::of('120')->isDigits());
+        self::assertFalse(Text::of('12a')->isDigits());
+        self::assertFalse(Text::of('')->isDigits());
+    }
 }
