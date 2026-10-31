@@ -24,6 +24,7 @@ final readonly class ProblemTranslation
     public function of(Throwable $exception): ?Problem
     {
         $chain = new ArrayCollection(self::outermostFirst($exception));
+
         $problem = $chain
             ->map($this->translated(...))
             ->filter(self::isProblem(...))

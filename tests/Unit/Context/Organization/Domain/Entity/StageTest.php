@@ -35,6 +35,7 @@ final class StageTest extends TestCase
     public function testANameLongerThan80CharactersIsRejected(): void
     {
         Structure::stage(Structure::service(), name: str_repeat('a', times: 80));
+
         self::assertSame(
             ['name' => ['code' => 'validation.tooLong', 'params' => ['max' => 80]]],
             ThrownFieldErrors::of(static fn (): Stage => Structure::stage(Structure::service(), name: str_repeat(

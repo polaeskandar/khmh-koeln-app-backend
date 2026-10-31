@@ -22,6 +22,7 @@ final readonly class LocalTime implements JsonSerializable
     public static function of(string $value): self
     {
         $clock = self::parsed($value);
+
         if ($clock?->format(self::FORMAT) !== $value) {
             throw new InvalidLocalTime($value);
         }

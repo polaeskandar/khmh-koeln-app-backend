@@ -32,6 +32,7 @@ final readonly class DoctrineChurchServiceRepository implements ChurchServiceRep
         $stored = new ArrayCollection($this->entityManager->getRepository(ChurchService::class)->findAll())->map(
             self::toneOf(...),
         );
+
         $pending = Collections::mapPresent(
             new ArrayCollection($this->entityManager->getUnitOfWork()->getScheduledEntityInsertions()),
             self::pendingToneOf(...),

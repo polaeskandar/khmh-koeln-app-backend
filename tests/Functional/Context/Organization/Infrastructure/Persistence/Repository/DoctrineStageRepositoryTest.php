@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Context\Organization\Infrastructure\Persistence\Repository;
 
 use App\Context\Organization\Infrastructure\Persistence\Repository\DoctrineStageRepository;
-use App\Tests\Support\Context\Organization\Domain\Entity\OrganizationDatabase;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
+use App\Tests\Support\Database;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Uid\Uuid;
 
@@ -14,7 +14,7 @@ final class DoctrineStageRepositoryTest extends KernelTestCase
 {
     public function testAStageBelongsOnlyToItsOwnService(): void
     {
-        $database = new OrganizationDatabase(self::getContainer());
+        $database = new Database(self::getContainer());
         $repository = new DoctrineStageRepository($database->entityManager());
         $sundaySchool = Structure::service(name: 'Sunday School');
         $youth = Structure::service(name: 'Youth Meeting');

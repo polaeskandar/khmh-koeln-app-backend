@@ -16,6 +16,7 @@ final class MigrateCommandTest extends KernelTestCase
         $tester = new CommandTester(new Application(self::bootKernel())->find('app:migrations:migrate'));
 
         self::assertSame(Command::SUCCESS, $tester->execute([]));
+
         foreach (['identity', 'organization', 'people', 'meetings', 'attendance', 'learning'] as $schema) {
             self::assertStringContainsString(sprintf('(schema "%s")', $schema), $tester->getDisplay());
         }

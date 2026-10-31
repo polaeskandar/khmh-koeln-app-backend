@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Context\Organization\Infrastructure\Persistence\Listener;
 
-use App\Tests\Support\Context\Organization\Domain\Entity\OrganizationDatabase;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
+use App\Tests\Support\Database;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 final class ToneListenerTest extends KernelTestCase
 {
     public function testEveryNewServiceTakesTheNextFreeToneWhenItIsSaved(): void
     {
-        $database = new OrganizationDatabase(self::getContainer());
+        $database = new Database(self::getContainer());
+
         $services = [
             Structure::service(name: 'Sunday School'),
             Structure::service(name: 'Youth'),
@@ -28,7 +29,7 @@ final class ToneListenerTest extends KernelTestCase
 
     public function testServicesPersistedBeforeOneFlushTakeSuccessiveTones(): void
     {
-        $database = new OrganizationDatabase(self::getContainer());
+        $database = new Database(self::getContainer());
         $sundaySchool = Structure::service(name: 'Sunday School');
         $youth = Structure::service(name: 'Youth');
         $choir = Structure::service(name: 'Choir');
@@ -42,7 +43,7 @@ final class ToneListenerTest extends KernelTestCase
 
     public function testPendingAndStoredServicesBothCount(): void
     {
-        $database = new OrganizationDatabase(self::getContainer());
+        $database = new Database(self::getContainer());
         $database->persisted(Structure::service(name: 'Sunday School'));
         $entityManager = $database->entityManager();
         $youth = Structure::service(name: 'Youth');

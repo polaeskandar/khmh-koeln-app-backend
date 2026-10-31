@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Unit\Context\Identity\Domain\ValueObject;
+
+use App\Context\Identity\Domain\ValueObject\AccountStatus;
+use DateTimeImmutable;
+use PHPUnit\Framework\TestCase;
+
+final class AccountStatusTest extends TestCase
+{
+    public function testAnApprovedAccountIsActive(): void
+    {
+        self::assertTrue(AccountStatus::approvedAt(new DateTimeImmutable('2026-11-08T12:00:00+01:00'))->isActive());
+    }
+}

@@ -20,6 +20,7 @@ final class LocalTimeTypeTest extends KernelTestCase
         $type = new LocalTimeType();
         $platform = $connection->getDatabasePlatform();
         $connection->executeStatement(sprintf("SET LOCAL TIME ZONE '%s'", $zone));
+
         $connection->executeStatement(sprintf('CREATE TEMPORARY TABLE local_time_probe (value %s)', $type->getSQLDeclaration(
             [],
             $platform,

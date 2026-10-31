@@ -35,6 +35,7 @@ final readonly class ProblemListener
 
         $exception = $event->getThrowable();
         $problem = $this->translation->of($exception) ?? $this->internal($exception);
+
         $response = new JsonResponse($problem->toArray(), status: $problem->status, headers: [
             'Content-Type' => 'application/problem+json',
         ]);
@@ -51,6 +52,7 @@ final readonly class ProblemListener
     private function internal(Throwable $exception): Problem
     {
         $extensions = new ArrayCollection();
+
         if ($this->debug) {
             $extensions->set('debug', (object) ['class' => $exception::class, 'message' => $exception->getMessage()]);
         }

@@ -20,11 +20,12 @@ final readonly class Description
 
     public static function of(?string $value, int $max): self
     {
-        $clean = InputText::of($value ?? '')->trimmed();
+        $clean = InputText::of($value)->trimmed();
+
         if ($clean->length() > $max) {
-            throw new InvalidInput(['description' => ['code' => 'validation.tooLong', 'params' => ['max' => $max]]]);
+            throw InvalidInput::tooLong('description', $max);
         }
 
-        return new self($clean->isEmpty() ? null : $clean->toString());
+        return new self($clean->toStringOrNull());
     }
 }

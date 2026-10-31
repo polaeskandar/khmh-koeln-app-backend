@@ -21,6 +21,11 @@ final readonly class Calendar
     ) {
     }
 
+    public function now(): CarbonImmutable
+    {
+        return CarbonImmutable::instance($this->clock->now())->setTimezone($this->timeZone);
+    }
+
     public function today(): LocalDate
     {
         return $this->localDateOf($this->clock->now());

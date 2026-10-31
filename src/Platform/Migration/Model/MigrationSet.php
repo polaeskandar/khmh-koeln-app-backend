@@ -34,6 +34,7 @@ final readonly class MigrationSet
         $set = self::all($projectDir)
             ->filter(static fn (self $set): bool => $set->schema === $name)
             ->first();
+
         if ($set === false) {
             throw new InvalidArgumentException(Text::format('Unknown context "%s".', $name)->toString());
         }

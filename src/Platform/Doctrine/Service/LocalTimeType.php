@@ -28,11 +28,13 @@ final class LocalTimeType extends Type
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?LocalTime
     {
         $stored = Value::of($value)->toStringOrNull();
+
         if ($stored === null) {
             return null;
         }
 
         $instant = CarbonImmutable::createFromFormat('!' . $platform->getTimeFormatString(), $stored, 'UTC');
+
         if ($instant === null) {
             throw InvalidFormat::new($stored, self::class, $platform->getTimeFormatString());
         }

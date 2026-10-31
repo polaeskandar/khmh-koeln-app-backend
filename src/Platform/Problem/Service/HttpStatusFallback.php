@@ -26,6 +26,7 @@ final readonly class HttpStatusFallback
         $exception = $chain
             ->filter(static fn (Throwable $cause): bool => $cause instanceof HttpExceptionInterface)
             ->first();
+
         if (!$exception instanceof HttpExceptionInterface) {
             return null;
         }

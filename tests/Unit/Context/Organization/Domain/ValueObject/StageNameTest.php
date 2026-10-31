@@ -29,6 +29,7 @@ final class StageNameTest extends TestCase
     public function testANameIsMeasuredAfterCleaning(): void
     {
         self::assertSame(80, StageName::of(' ' . str_repeat('a', times: 80) . '  ')->value |> mb_strlen(...));
+
         self::assertSame(
             ['name' => ['code' => 'validation.tooLong', 'params' => ['max' => 80]]],
             ThrownFieldErrors::of(static fn (): StageName => StageName::of(str_repeat('a', times: 81))),

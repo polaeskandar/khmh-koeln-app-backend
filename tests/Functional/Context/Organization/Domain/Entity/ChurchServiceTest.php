@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Context\Organization\Domain\Entity;
 
-use App\Tests\Support\Context\Organization\Domain\Entity\OrganizationDatabase;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
+use App\Tests\Support\Database;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -52,10 +52,7 @@ final class ChurchServiceTest extends KernelTestCase
     {
         $this->database()->persisted(Structure::service());
 
-        $this->database()->assertRefused(
-            OrganizationDatabase::CHECK_VIOLATION,
-            'UPDATE organization.service SET ' . $set,
-        );
+        $this->database()->assertRefused(Database::CHECK_VIOLATION, 'UPDATE organization.service SET ' . $set);
     }
 
     /**
@@ -74,11 +71,11 @@ final class ChurchServiceTest extends KernelTestCase
         $service = Structure::service();
         $this->database()->persisted($service, Structure::stage($service));
 
-        $this->database()->assertRefused(OrganizationDatabase::RESTRICT_VIOLATION, 'DELETE FROM organization.service');
+        $this->database()->assertRefused(Database::RESTRICT_VIOLATION, 'DELETE FROM organization.service');
     }
 
-    private function database(): OrganizationDatabase
+    private function database(): Database
     {
-        return new OrganizationDatabase(self::getContainer());
+        return new Database(self::getContainer());
     }
 }

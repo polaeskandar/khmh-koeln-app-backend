@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Context\Organization\Domain\Entity;
 
-use App\Tests\Support\Context\Organization\Domain\Entity\OrganizationDatabase;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
+use App\Tests\Support\Database;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -59,10 +59,7 @@ final class StageTest extends KernelTestCase
         $stage = Structure::stage(Structure::service());
         $this->database()->persisted($stage->service(), $stage);
 
-        $this->database()->assertRefused(
-            OrganizationDatabase::CHECK_VIOLATION,
-            'UPDATE organization.stage SET ' . $set,
-        );
+        $this->database()->assertRefused(Database::CHECK_VIOLATION, 'UPDATE organization.stage SET ' . $set);
     }
 
     /**
@@ -75,8 +72,8 @@ final class StageTest extends KernelTestCase
         yield 'description of 501 characters' => ["description = repeat('a', 501)"];
     }
 
-    private function database(): OrganizationDatabase
+    private function database(): Database
     {
-        return new OrganizationDatabase(self::getContainer());
+        return new Database(self::getContainer());
     }
 }

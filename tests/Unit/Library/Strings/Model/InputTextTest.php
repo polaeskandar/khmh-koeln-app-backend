@@ -20,6 +20,7 @@ final class InputTextTest extends TestCase
             'Youth Meeting',
             InputText::of("Youth\u{00A0}\u{2003}\t Meeting\u{3000}")->collapsed()->toString(),
         );
+
         self::assertSame('3rd Class', InputText::of('  3rd  Class ')->collapsed()->toString());
     }
 
@@ -31,8 +32,16 @@ final class InputTextTest extends TestCase
 
     public function testOnlyNoTextIsEmpty(): void
     {
+        self::assertTrue(InputText::of(null)->isEmpty());
+        self::assertNull(InputText::of(' ')->trimmed()->toStringOrNull());
+        self::assertSame('x', InputText::of('x')->toStringOrNull());
         self::assertTrue(InputText::of('')->isEmpty());
         self::assertTrue(InputText::of(' ')->collapsed()->isEmpty());
         self::assertFalse(InputText::of(' ')->isEmpty());
+    }
+
+    public function testLoweringHandlesUmlauts(): void
+    {
+        self::assertSame('ältere', InputText::of('ÄLTERE')->lowered()->toString());
     }
 }

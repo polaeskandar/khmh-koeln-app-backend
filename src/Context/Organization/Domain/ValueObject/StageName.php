@@ -26,14 +26,13 @@ final readonly class StageName
     public static function of(string $value): self
     {
         $clean = InputText::of($value)->collapsed();
+
         if ($clean->isEmpty()) {
-            throw new InvalidInput(['name' => ['code' => 'stages.nameRequired']]);
+            throw InvalidInput::field('name', 'stages.nameRequired');
         }
 
         if ($clean->length() > self::MAX_LENGTH) {
-            throw new InvalidInput([
-                'name' => ['code' => 'validation.tooLong', 'params' => ['max' => self::MAX_LENGTH]],
-            ]);
+            throw InvalidInput::tooLong('name', self::MAX_LENGTH);
         }
 
         return new self($clean->toString(), NameKey::of($clean->toString()));

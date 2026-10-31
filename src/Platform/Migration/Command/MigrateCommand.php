@@ -29,6 +29,7 @@ final readonly class MigrateCommand
             $io->section(Text::format('Context "%s" (schema "%s")', $set->context, $set->schema)->toString());
 
             $status = $this->runner->migrate($set, $output);
+
             if ($status !== Command::SUCCESS) {
                 return $status;
             }

@@ -8,6 +8,6 @@ final readonly class NameKey
 {
     public static function of(string $name): string
     {
-        return InputText::of($name)->collapsed()->toString() |> mb_strtolower(...);
+        return InputText::of($name)->collapsed()->lowered()->toString();
     }
 }
