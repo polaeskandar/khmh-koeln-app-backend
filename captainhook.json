@@ -2,7 +2,7 @@
     "config": {
         "run": {
             "mode": "docker",
-            "exec": "docker compose run --rm --no-deps -T api",
+            "exec": "docker compose run --rm -T api",
             "path": "vendor/bin/captainhook"
         }
     },
