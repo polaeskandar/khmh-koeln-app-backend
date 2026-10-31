@@ -1,7 +1,7 @@
 php-version = "8.5"
 
 [source]
-paths = ["bin", "config", "public", "src", "tests"]
+paths = ["bin", "config", "public", "src", "tests", "tools"]
 includes = ["vendor"]
 excludes = ["config/reference.php"]
 
@@ -253,5 +253,5 @@ reason = "Platform console commands are named *Command."
 [[guard.perimeter.restrictions]]
 dependency = "**"
 kinds = ["function"]
-allow-from = ["App\\Library\\**", "App\\Tests\\**", "@global"]
+allow-from = ["App\\Library\\**", "App\\Tests\\**", "App\\Tools\\**", "@global"]
 reason = "PHP native functions are wrapped once in a Library model; the rest of the application calls the model."

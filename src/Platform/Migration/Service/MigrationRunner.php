@@ -53,6 +53,7 @@ final readonly class MigrationRunner
             'organize_migrations' => 'none',
             'custom_template' => __DIR__ . '/migration.tpl',
         ]), new ExistingEntityManager($this->entityManager));
+
         $factory->setService(
             SchemaProvider::class,
             new ContextSchemaProvider($this->entityManager, schema: $set->schema),

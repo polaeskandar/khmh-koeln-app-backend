@@ -22,6 +22,7 @@ final class ApiRoutesTest extends KernelTestCase
             }
 
             $path = $route->getPath();
+
             self::assertTrue(
                 $path === '/api' || str_starts_with($path, '/api/'),
                 sprintf('Route "%s" (%s) is outside /api.', $name, $path),

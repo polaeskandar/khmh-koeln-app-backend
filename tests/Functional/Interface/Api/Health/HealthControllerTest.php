@@ -38,6 +38,7 @@ final class HealthControllerTest extends ApiTestCase
     public function testReadinessFailsWhenTheDatabaseIsUnavailable(): void
     {
         $this->browser();
+
         self::getContainer()->set(DatabaseProbe::class, new class implements DatabaseProbe {
             #[Override]
             public function isAvailable(int $timeoutSeconds): bool

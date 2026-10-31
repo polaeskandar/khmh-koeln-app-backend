@@ -20,6 +20,7 @@ final readonly class LocalDate implements JsonSerializable
     public static function of(string $value): self
     {
         $midnight = self::parsed($value);
+
         if ($midnight?->toDateString() !== $value) {
             throw new InvalidLocalDate($value);
         }

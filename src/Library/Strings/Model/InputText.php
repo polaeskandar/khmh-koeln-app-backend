@@ -13,9 +13,9 @@ final readonly class InputText
     ) {
     }
 
-    public static function of(string $value): self
+    public static function of(?string $value): self
     {
-        return new self($value);
+        return new self($value ?? '');
     }
 
     public function trimmed(): self
@@ -26,6 +26,11 @@ final readonly class InputText
     public function collapsed(): self
     {
         return $this->replaced('/\s+/u', ' ')->trimmed();
+    }
+
+    public function lowered(): self
+    {
+        return new self(mb_strtolower($this->value));
     }
 
     public function length(): int
@@ -41,6 +46,11 @@ final readonly class InputText
     public function toString(): string
     {
         return $this->value;
+    }
+
+    public function toStringOrNull(): ?string
+    {
+        return $this->isEmpty() ? null : $this->value;
     }
 
     private function replaced(string $pattern, string $replacement): self

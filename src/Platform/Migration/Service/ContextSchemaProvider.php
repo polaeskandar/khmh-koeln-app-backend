@@ -28,6 +28,7 @@ final readonly class ContextSchemaProvider implements SchemaProvider
         $mapped = new SchemaTool($this->entityManager)->getSchemaFromMetadata(
             $this->entityManager->getMetadataFactory()->getAllMetadata(),
         );
+
         $schemaManager = $this->entityManager->getConnection()->createSchemaManager();
         $database = $schemaManager->introspectSchema();
 

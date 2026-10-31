@@ -58,6 +58,42 @@ short ternaries, no boolean flag parameters: a flag that changes behaviour becom
 Mago: `no-else-clause`, `no-redundant-else`, `prefer-early-return`, `no-nested-ternary`,
 `no-shorthand-ternary`, `no-boolean-flag-parameter`, `excessive-nesting`.
 
+## 4a. Blank lines set blocks apart
+
+One blank line separates a block from the statements around it, so a method reads as a sequence of steps:
+
+- a control structure (`if`, `foreach`, `for`, `while`, `do`, `switch`, `try`) has a blank line before and after it;
+- `return`, `throw`, `break`, `continue` and `yield` have a blank line before them;
+- a statement that spans several lines has a blank line before and after it;
+
+except where the statement opens or closes its block. Consecutive one-line statements stay together, and two
+blank lines never follow each other.
+
+```php
+$email = Email::of($command->email);
+$displayName = DisplayName::of($command->displayName);
+
+if ($this->users->findByEmail($email->value) !== null) {
+    throw InvalidInput::field('email', 'accounts.emailTaken');
+}
+
+$user = User::approved(
+    new Profile($email, $displayName, $command->language),
+    passwordHash: $this->passwordHash($command->password),
+    approvedAt: $this->calendar->now(),
+);
+
+$this->users->save($user);
+
+return $user->id();
+```
+
+`composer format` adds missing blank lines (`phpcbf`) and `composer check` fails on them (`phpcs`), in `src`,
+`tests` and `tools`, with the ruleset `tools/CodingStandard/ruleset.xml`: Slevomat's
+`BlockControlStructureSpacingSniff` and `JumpStatementsSpacingSniff`, and the repo's own
+`MultiLineStatementSpacingSniff`. Dev-only tooling like this sniff
+lives in `tools/` (`App\Tools`), its tests in `tests/Unit/Tools/`.
+
 ## 5. Small, final, immutable classes
 
 Every class is `final` (or `abstract` when designed for inheritance) and `readonly` unless it must hold

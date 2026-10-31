@@ -24,10 +24,12 @@ final readonly class Logs
     public function containing(string $needle): array
     {
         $formatter = new NormalizerFormatter();
+
         $encode = static fn (LogRecord $record): string => json_encode(
             $formatter->format($record),
             JSON_THROW_ON_ERROR,
         );
+
         $lines = array_map($encode, $this->handler()->getRecords());
 
         return array_values(array_filter($lines, static fn (string $line): bool => str_contains($line, $needle)));

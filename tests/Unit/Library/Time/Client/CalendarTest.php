@@ -39,6 +39,7 @@ final class CalendarTest extends TestCase
             '2026-11-07T23:05:00Z' => '2026-11-08',
             '2027-06-05T22:05:00Z' => '2027-06-06',
         ];
+
         foreach ($cases as $now => $today) {
             foreach (self::DEFAULT_ZONES as $zone) {
                 yield $now . ' in ' . $zone => [$now, $today, $zone];
@@ -46,9 +47,12 @@ final class CalendarTest extends TestCase
         }
     }
 
-    public function testTomorrowFollowsToday(): void
+    public function testNowAndTomorrowFollowTheClockInBerlin(): void
     {
-        self::assertSame('2026-11-09', self::calendarAt('2026-11-07T23:05:00Z')->tomorrow()->toString());
+        $calendar = self::calendarAt('2026-11-07T23:05:00Z');
+
+        self::assertSame('2026-11-08T00:05:00+01:00', $calendar->now()->toRfc3339String());
+        self::assertSame('2026-11-09', $calendar->tomorrow()->toString());
     }
 
     #[DataProvider('instants')]

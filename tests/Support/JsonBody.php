@@ -28,6 +28,7 @@ final readonly class JsonBody
         }
 
         $object = self::asArray($node, sprintf('"%s"', $path));
+
         if (!array_key_exists($keys[0], $object)) {
             Assert::fail(sprintf('The response has no "%s".', $path));
         }

@@ -534,6 +534,8 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `validation.invalidType` | – | **New.** Field error: the value has the wrong JSON type (a string where a number is expected). |
 | `validation.unexpectedField` | – | **New.** Field error: the body has a member the endpoint does not accept. |
 | `validation.invalidRange` | `max` | **New.** Field error: the end is before the start, or the range is longer than `max` days. |
+| `validation.birthDateInFuture` | – | **New.** Field error on `birthDate`: the date is after today. |
+| `validation.addressIncomplete` | – | **New.** Field error on `address`: give street, postal code and city, or none of them. |
 
 ### `services`
 
@@ -709,6 +711,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | --- | --- | --- |
 | `accounts.firstNameRequired` | – | Enter your first name. |
 | `accounts.lastNameRequired` | – | Enter your last name. |
+| `accounts.nameRequired` | – | **New.** Field error on `displayName`: enter the name to show for the account. |
 | `accounts.emailRequired` | – | Enter your email address. |
 | `accounts.emailInvalid` | – | Enter an email address like name@example.org. |
 | `accounts.emailTaken` | – | There is already an account with this email address. Sign in, or reset the password if you forgot it. |

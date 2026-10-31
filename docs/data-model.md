@@ -111,8 +111,21 @@ clock; it does not exist in the backend yet.
 
 | Table | Purpose | Key rules |
 | --- | --- | --- |
-| `app_user` | A sign-in account: email, display name, password hash, language (`en`, `de`, `ar`), optional link to a person, optional `birth_date` and postal address (`street`, `postal_code`, `city`, all three or none; visible to the person and administrators). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. `approved_at`/`approved_by` stay null until an administrator approves the account; until then it can't sign in. While waiting it keeps what the person wrote when registering (`registered_as` parent or servant, `registration_note`, `registration_service_id`); these are cleared once an administrator decides. Declining deletes the row. Disabled accounts (`disabled_at`) can't sign in and keep their history. |
+| `app_user` | A sign-in account: email, display name, password hash, language (`en`, `de`, `ar`), optional link to a person, optional `birth_date` and postal address (`street`, `postal_code`, `city`, all three or none; visible to the person and administrators). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. `approved_at`/`approved_by` stay null until an administrator approves the account; until then it can't sign in. While waiting it keeps what the person wrote when registering (`registered_as` parent or servant, `registration_note`, and for servants the services they serve in, `organization.registration_service`); these are cleared once an administrator decides. Declining deletes the row. Disabled accounts (`disabled_at`) can't sign in and keep their history. |
 | `role_assignment` | `administrator` (everything), `service_leader` (one service), `servant` (one service, optionally narrowed to one stage), `parent` (no service). | A stage-scoped role covers only that stage. Parents see only what their approved guardian links allow. |
+
+`app_user` lives in the `identity` schema. The email is stored trimmed and in lower case (CHECK `email =
+lower(btrim(email))`, UNIQUE), so lookups normalize the typed address the same way. CHECKs keep `language` to
+`en`, `de`, `ar` and `registered_as` to `parent`, `servant`; the
+registration fields are empty once `approved_at` is set; the address is all three parts or none (street ≤120,
+postal code ≤10, city ≤80, cleaned, blank → null). A servant who registers names every service they serve in. Those rows live with
+the services: `organization.registration_service (account_id, service_id)`, primary key over both, `service_id`
+references `service` with `ON DELETE CASCADE`, `account_id` is a plain id of an Identity account. The registration
+use case writes them only for a pending servant, and the use cases that approve, decline or erase an account
+delete them. A birth date is never after today: the application checks it against the
+church calendar, because a CHECK can't read the date. `approved_by` references `app_user` with `ON DELETE SET
+NULL`. Operators create approved accounts with `bin/console app:user:create <email> <name>`, typing the
+password twice, piping it with `--password-stdin` or leaving it for a password link with `--no-password`.
 
 The backend checks every request against these roles. The frontend only uses them to hide actions a person
 can't take.

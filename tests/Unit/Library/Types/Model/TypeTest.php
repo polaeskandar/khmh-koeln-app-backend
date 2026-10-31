@@ -23,4 +23,18 @@ final class TypeTest extends TestCase
         self::assertNull(Type::of(['a'])->toScalarOrNull());
         self::assertNull(Type::of(null)->toScalarOrNull());
     }
+
+    public function testAStringIsRequiredWhereOneMustBe(): void
+    {
+        self::assertSame('de', Type::of('de')->toString());
+
+        $this->expectException(\UnexpectedValueException::class);
+        Type::of(1)->toString();
+    }
+
+    public function testAnIntegerIsReturnedOnlyForAnInteger(): void
+    {
+        self::assertSame(7, Type::of(7)->toIntOrNull());
+        self::assertNull(Type::of('7')->toIntOrNull());
+    }
 }

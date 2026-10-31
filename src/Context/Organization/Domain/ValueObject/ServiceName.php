@@ -26,14 +26,13 @@ final readonly class ServiceName
     public static function of(string $value): self
     {
         $clean = InputText::of($value)->collapsed();
+
         if ($clean->isEmpty()) {
-            throw new InvalidInput(['name' => ['code' => 'services.nameRequired']]);
+            throw InvalidInput::field('name', 'services.nameRequired');
         }
 
         if ($clean->length() > self::MAX_LENGTH) {
-            throw new InvalidInput([
-                'name' => ['code' => 'validation.tooLong', 'params' => ['max' => self::MAX_LENGTH]],
-            ]);
+            throw InvalidInput::tooLong('name', self::MAX_LENGTH);
         }
 
         return new self($clean->toString(), NameKey::of($clean->toString()));

@@ -33,6 +33,7 @@ abstract class ApiTestCase extends WebTestCase
         ];
 
         $content = null;
+
         if (!in_array(strtoupper($method), self::SAFE_METHODS, strict: true)) {
             $server['CONTENT_TYPE'] = 'application/json';
             $content = json_encode($body === [] ? new stdClass() : $body, JSON_THROW_ON_ERROR);
@@ -90,6 +91,7 @@ abstract class ApiTestCase extends WebTestCase
         $body = $this->responseJson();
         self::assertSame($status, $body['status'] ?? null);
         self::assertSame($code, $body['code'] ?? null);
+
         self::assertSame(
             JsonBody::sorted($params),
             JsonBody::sorted(JsonBody::asArray($body['params'] ?? null, '"params"')),
@@ -105,6 +107,7 @@ abstract class ApiTestCase extends WebTestCase
         $error = JsonBody::asArray($fieldErrors[$field] ?? null, $field);
 
         self::assertSame($code, $error['code'] ?? null, $field);
+
         self::assertSame(
             JsonBody::sorted($params),
             JsonBody::sorted(JsonBody::asArray($error['params'] ?? null, $field)),

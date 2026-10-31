@@ -60,6 +60,7 @@ final class ConstraintMessagesAreCodesTest extends TestCase
     private static function messageArguments(ReflectionAttribute $attribute): array
     {
         $texts = array_filter($attribute->getArguments(), is_string(...));
+
         $messages = array_filter(
             $texts,
             static fn (int|string $name): bool => self::isMessage((string) $name),

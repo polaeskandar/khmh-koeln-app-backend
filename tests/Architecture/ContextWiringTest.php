@@ -35,10 +35,12 @@ final class ContextWiringTest extends KernelTestCase
         $set = MigrationSet::named(strtolower($context), self::projectDir());
 
         self::assertSame($context, $set->context);
+
         self::assertSame(
             sprintf('App\\Context\\%s\\Infrastructure\\Persistence\\Migrations', $context),
             $set->namespace,
         );
+
         self::assertSame(strtolower($context) . '_migration_versions', $set->versionTable());
     }
 

@@ -29,6 +29,7 @@ final class ServiceNameTest extends TestCase
     public function testANameIsMeasuredAfterCleaning(): void
     {
         self::assertSame(120, ServiceName::of(' ' . str_repeat('a', times: 120) . '  ')->value |> mb_strlen(...));
+
         self::assertSame(
             ['name' => ['code' => 'validation.tooLong', 'params' => ['max' => 120]]],
             ThrownFieldErrors::of(static fn (): ServiceName => ServiceName::of(str_repeat('a', times: 121))),

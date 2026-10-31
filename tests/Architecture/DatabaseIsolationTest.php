@@ -35,6 +35,7 @@ final class DatabaseIsolationTest extends KernelTestCase
                 'id' => 2,
                 'name' => 'first',
             ]));
+
         $missingName =
             static fn () => $connection->transactional(static fn (Connection $c): int|string => $c->insert('isolation_probe', [
                 'id' => 3,

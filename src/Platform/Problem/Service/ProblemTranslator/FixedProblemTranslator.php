@@ -31,6 +31,7 @@ final readonly class FixedProblemTranslator implements ProblemTranslator
     public function translate(Throwable $exception): Problem
     {
         $problem = $this->problemFor($exception);
+
         if ($problem === null) {
             throw new LogicException('translate() is only called for an exception that supports() accepted.');
         }

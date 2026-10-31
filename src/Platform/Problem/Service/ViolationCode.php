@@ -13,6 +13,7 @@ final readonly class ViolationCode
     public static function of(ConstraintViolationInterface $violation): string
     {
         $template = $violation->getMessageTemplate();
+
         if ($violation->getConstraint() !== null) {
             return $template;
         }

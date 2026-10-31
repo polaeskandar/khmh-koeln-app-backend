@@ -16,4 +16,17 @@ final class InvalidInput extends RuntimeException
     ) {
         parent::__construct('checkFields');
     }
+
+    /**
+     * @param array<string, string|int|float|bool|null> $params
+     */
+    public static function field(string $field, string $code, array $params = []): self
+    {
+        return new self([$field => $params === [] ? ['code' => $code] : ['code' => $code, 'params' => $params]]);
+    }
+
+    public static function tooLong(string $field, int $max): self
+    {
+        return self::field($field, 'validation.tooLong', ['max' => $max]);
+    }
 }

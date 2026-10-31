@@ -21,6 +21,7 @@ final class TestLayoutTest extends TestCase
     public function testEveryTestSitsAtThePathOfTheClassItCovers(string $suite, string $relative): void
     {
         $path = $suite . '/' . $relative;
+
         self::assertStringEndsWith(
             'Test.php',
             $path,
@@ -31,10 +32,12 @@ final class TestLayoutTest extends TestCase
         self::assertDirectoryExists($subjectFolder, sprintf('%s mirrors no folder.', $path));
 
         $testedName = basename($path, suffix: 'Test.php');
+
         $covered = array_filter(self::classNamesIn($subjectFolder), static fn (string $class): bool => str_starts_with(
             $testedName,
             $class,
         ));
+
         self::assertNotEmpty($covered, sprintf('The name of %s starts with no class of its folder.', $path));
     }
 
@@ -86,9 +89,11 @@ final class TestLayoutTest extends TestCase
     {
         $topFolder = explode('/', $folder, limit: 2)[0];
 
-        return in_array($topFolder, self::MIRRORED_HELPERS, strict: true)
-            ? self::root() . '/tests/' . $folder
-            : self::root() . '/src/' . $folder;
+        return match (true) {
+            in_array($topFolder, self::MIRRORED_HELPERS, strict: true) => self::root() . '/tests/' . $folder,
+            $topFolder === 'Tools' => self::root() . '/tools/' . substr($folder, offset: 6),
+            default => self::root() . '/src/' . $folder,
+        };
     }
 
     /**
@@ -97,6 +102,7 @@ final class TestLayoutTest extends TestCase
     private static function entriesBelow(string $path): iterable
     {
         $root = self::root() . '/' . $path;
+
         $entries = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::SELF_FIRST,

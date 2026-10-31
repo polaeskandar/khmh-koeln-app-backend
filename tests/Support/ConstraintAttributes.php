@@ -22,6 +22,7 @@ final readonly class ConstraintAttributes
         foreach (self::classes() as $class) {
             foreach (new ReflectionClass($class)->getProperties() as $property) {
                 $attributes = $property->getAttributes(Constraint::class, ReflectionAttribute::IS_INSTANCEOF);
+
                 foreach ($attributes as $index => $attribute) {
                     yield $class . '::$' . $property->getName() . ' #' . $index => $attribute;
                 }
@@ -39,8 +40,10 @@ final readonly class ConstraintAttributes
                 ->files()
                 ->name('*.php')
                 ->in(dirname(__DIR__, levels: 2) . '/' . $folder);
+
             foreach ($files as $file) {
                 $class = $namespace . self::relativeClassName($file);
+
                 if (class_exists($class)) {
                     yield $class;
                 }

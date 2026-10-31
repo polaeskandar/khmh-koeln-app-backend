@@ -66,6 +66,7 @@ final class SqlReadsNoDatabaseClockTest extends TestCase
     private static function stringsInSrc(): iterable
     {
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(dirname(__DIR__, levels: 2) . '/src'));
+
         foreach ($files as $file) {
             if (!$file instanceof SplFileInfo || $file->getExtension() !== 'php') {
                 continue;
