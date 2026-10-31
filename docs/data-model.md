@@ -102,9 +102,21 @@ service-level roster; `(service_id, stage_id)` is indexed for rosters. Ending a 
 | Table | Purpose | Key rules |
 | --- | --- | --- |
 | `meeting_schedule` | A meeting that repeats: weekly (every n weeks on chosen weekdays) or monthly (the nth or last weekday). Start and end time, place, roster mode. | `roster_mode` is `expected` (the stage or service roster is expected) or `open` (no roster; anyone can be marked present). Inactive schedules stop creating sessions. |
-| `meeting_session` | One meeting on one date. Created from a schedule, or by hand as a one-off (`schedule_id` null). | Unique `(schedule_id, occurrence_date)`. `occurrence_date` is the schedule date the session stands for and never changes, even when the session is moved, so the generator can't create it twice. `overridden` marks sessions changed by hand; later schedule edits leave them alone. |
+| `meeting_session` | One meeting on one date. Created from a schedule, or by hand as a one-off (`schedule_id` null). | Unique `(schedule_id, occurrence_date)`. `occurrence_date` is the schedule date the session stands for and never changes, even when the session is moved, so the generator can't create it twice. |
 | `session_event` | The session's history: opened, closed, reopened, canceled, moved, edited, with who and an optional note. | Append-only. |
 | `attendance` | A "present" mark. | At most one current mark per session and person (`removed_at` null). A correction sets `removed_at`, `removed_by` and a reason. There are no absence rows: not marked present is not the same as absent. |
+
+The meeting tables live in the `meetings` schema. A schedule's `Recurrence` is `frequency` (`weekly` or
+`monthly`), `interval` (1–52 weeks), `weekdays` (a bitmask of ISO weekdays, Monday = 1 … Sunday = 64, so 1–127),
+`month_week` (1–4 or -1 for the last; set exactly when monthly, and then with exactly one weekday) and
+`starts_on`/`ends_on` (`ends_on >= starts_on`). CHECKs also keep names and titles non-blank, `end_time >
+start_time`, `ends_at > starts_at`, `cancel_reason` only on canceled sessions, `closed_at` exactly on
+completed ones and `opened_at` on active and completed ones. `session_event` is append-only:
+`by_generator` marks the generator's actor-less `created` events and `previous_starts_at` is set exactly on
+`moved` events. Foreign keys inside Meetings are `RESTRICT`: a schedule with sessions and a session with
+history can't be deleted. `service_id`, `stage_id` and the actor columns (`opened_by`, `closed_by`,
+`actor_id`) are plain ids without foreign keys; the use cases check them, and the erasure process (#82)
+nulls the actor columns. Indexes: `meeting_session (starts_at)`, `session_event (session_id, occurred_at)`.
 
 Session status: `scheduled` → `active` (attendance open) → `completed` (attendance closed). A service leader
 can reopen a completed session for corrections. A scheduled session can be `canceled` with a reason; a

@@ -94,7 +94,7 @@ Errors (the contract is in [API contract](api.md#problems)):
 
 Naming and Doctrine rules:
 
-- `Service` (Organization) is the table `service` and `serviceId` in JSON; `MeetingSession`; `User` is the
+- `Service` (Organization) is the table `service` and `serviceId` in JSON; `Schedule` and `Session` (Meetings) are the tables `meeting_schedule` and `meeting_session`; `User` is the
   table `app_user`. Classes in a `Service` folder are services in the Symfony sense; the entity is the only class named
   `Service`.
 - Entities create their UUIDv7 id in the constructor. Instants (`*_at`) are `datetimetz_immutable`.
