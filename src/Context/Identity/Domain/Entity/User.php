@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Domain\Entity;
 
+use App\Context\Identity\Domain\Enum\Action;
+use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\ValueObject\AccountStatus;
 use App\Context\Identity\Domain\ValueObject\PersonalDetails;
 use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Identity\Domain\ValueObject\Registration;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
@@ -42,6 +46,15 @@ final class User extends CreatedAtEntity
     #[ORM\JoinColumn(name: 'approved_by', nullable: true, onDelete: 'SET NULL')]
     private ?self $approvedBy = null;
 
+    /**
+     * @var Collection<int, Role>
+     */
+    #[ORM\ManyToMany(targetEntity: Role::class)]
+    #[ORM\JoinTable(name: 'user_role', schema: 'identity')]
+    #[ORM\JoinColumn(name: 'user_id', onDelete: 'CASCADE')]
+    #[ORM\InverseJoinColumn(name: 'role_id', onDelete: 'CASCADE')]
+    private Collection $roles;
+
     private function __construct(Profile $profile, string $passwordHash, AccountStatus $status)
     {
         $this->id = Uuid::v7();
@@ -50,11 +63,22 @@ final class User extends CreatedAtEntity
         $this->registration = Registration::none();
         $this->personalDetails = PersonalDetails::none();
         $this->status = $status;
+        $this->roles = new ArrayCollection();
     }
 
-    public static function approved(Profile $profile, string $passwordHash, DateTimeImmutable $approvedAt): self
-    {
-        return new self($profile, $passwordHash, AccountStatus::approvedAt($approvedAt));
+    /**
+     * @param list<Role> $roles
+     */
+    public static function approved(
+        Profile $profile,
+        string $passwordHash,
+        DateTimeImmutable $approvedAt,
+        array $roles = [],
+    ): self {
+        $user = new self($profile, $passwordHash, AccountStatus::approvedAt($approvedAt));
+        $user->roles = new ArrayCollection($roles);
+
+        return $user;
     }
 
     public function id(): Uuid
@@ -90,5 +114,10 @@ final class User extends CreatedAtEntity
     public function approvedBy(): ?self
     {
         return $this->approvedBy;
+    }
+
+    public function can(Action $action, Resource $resource): bool
+    {
+        return !$this->roles->filter(static fn (Role $role): bool => $role->allows($action, $resource))->isEmpty();
     }
 }

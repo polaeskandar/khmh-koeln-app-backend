@@ -41,22 +41,10 @@ final class UserCreateCommand extends Command
         $this
             ->addArgument('email', InputArgument::REQUIRED, 'Email address, compared in lower case')
             ->addArgument('name', InputArgument::REQUIRED, 'Display name')
-            ->addOption(
-                'no-password',
-                mode: InputOption::VALUE_NONE,
-                description: 'Set the password later through a password link',
-            )
-            ->addOption(
-                'password-stdin',
-                mode: InputOption::VALUE_NONE,
-                description: 'Read the password from the first line of standard input',
-            )
-            ->addOption(
-                'language',
-                mode: InputOption::VALUE_REQUIRED,
-                description: 'Language: en, de or ar',
-                default: 'de',
-            );
+            ->addOption('no-password', mode: InputOption::VALUE_NONE, description: 'Set the password later by link')
+            ->addOption('password-stdin', mode: InputOption::VALUE_NONE, description: 'Read the password from stdin')
+            ->addOption('role', mode: InputOption::VALUE_REQUIRED, description: 'Assign this role everywhere')
+            ->addOption('language', mode: InputOption::VALUE_REQUIRED, description: 'en, de or ar', default: 'de');
     }
 
     #[Override]
@@ -98,6 +86,7 @@ final class UserCreateCommand extends Command
             displayName: Type::of($input->getArgument('name'))->toString(),
             language: Language::tryFrom($language) ?? throw new InvalidOption('language', choices: 'en, de, ar'),
             password: $password,
+            role: Type::of($input->getOption('role'))->toStringOrNull(),
         );
     }
 

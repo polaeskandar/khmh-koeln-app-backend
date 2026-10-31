@@ -1,0 +1,23 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Support\Context\Identity\Domain\Entity;
+
+use App\Context\Identity\Domain\Entity\Permission;
+use App\Context\Identity\Domain\Entity\Role;
+use App\Context\Identity\Domain\ValueObject\RoleName;
+
+final readonly class Roles
+{
+    public static function named(string $name, Permission ...$permissions): Role
+    {
+        $role = new Role(RoleName::of($name));
+
+        foreach ($permissions as $permission) {
+            $role->grant($permission);
+        }
+
+        return $role;
+    }
+}

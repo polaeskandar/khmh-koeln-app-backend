@@ -68,8 +68,8 @@ staff (administrators, service leaders, servants) and parents. Children never ha
 `service` and `stage` live in the `organization` schema:
 
 - **Names** are the embeddables `ServiceName` and `StageName` (`name`, `name_key`): runs of Unicode whitespace (no-break spaces
-  included) become one space, and the ends are trimmed. `name_key` is the cleaned name in lower case
-  (`NameKey::of()`), so "  3rd  class" and "3rd Class" share the key `3rd class`; Arabic has no case and is
+  included) become one space, and the ends are trimmed. `name_key` is the cleaned name in lower case with underscores for spaces
+  (`NameKey::of()`), so "  3rd  class" and "3rd Class" share the key `3rd_class`; Arabic has no case and is
   kept as it is. A service name has at most 120 characters (`varchar(120)`), a stage name 80
   (`varchar(80)`). **Descriptions** are the embeddable `Description`: trimmed, at most 2000 and 500
   characters, and blank is stored as null. `description` is `text` with a CHECK on its length, because
@@ -112,7 +112,8 @@ clock; it does not exist in the backend yet.
 | Table | Purpose | Key rules |
 | --- | --- | --- |
 | `app_user` | A sign-in account: email, display name, password hash, language (`en`, `de`, `ar`), optional link to a person, optional `birth_date` and postal address (`street`, `postal_code`, `city`, all three or none; visible to the person and administrators). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. `approved_at`/`approved_by` stay null until an administrator approves the account; until then it can't sign in. While waiting it keeps what the person wrote when registering (`registered_as` parent or servant, `registration_note`, and for servants the services they serve in, `organization.registration_service`); these are cleared once an administrator decides. Declining deletes the row. Disabled accounts (`disabled_at`) can't sign in and keep their history. |
-| `role_assignment` | `administrator` (everything), `service_leader` (one service), `servant` (one service, optionally narrowed to one stage), `parent` (no service). | A stage-scoped role covers only that stage. Parents see only what their approved guardian links allow. |
+| `role` | A named set of permissions. Administrators create, rename and delete roles and choose their permissions from the catalog; the defaults are Administrator, Service leader, Servant and Parent. | Name unique, ignoring case and extra spaces. |
+| `permission` | One action (`create`, `read`, `update`, `delete`) on one resource (`users`, `roles`, `services`, `stages`, `sessions`, `attendance`, `members`, `lessons`, `homework`, `parentPortal`). | One row per action and resource; seeded. |
 
 `app_user` lives in the `identity` schema. The email is stored trimmed and in lower case (CHECK `email =
 lower(btrim(email))`, UNIQUE), so lookups normalize the typed address the same way. CHECKs keep `language` to
@@ -127,12 +128,21 @@ church calendar, because a CHECK can't read the date. `approved_by` references `
 NULL`. Operators create approved accounts with `bin/console app:user:create <email> <name>`, typing the
 password twice, piping it with `--password-stdin` or leaving it for a password link with `--no-password`.
 
+Roles are dynamic (RBAC), in the `identity` schema: a user has roles (`user_role`), a role has permissions
+(`role_permission`), and a permission is an action on a resource, `{"action": "update", "resource": "sessions"}`.
+`permission` holds the catalog, one row per action and resource (UNIQUE), with CHECKs against the enums in code
+(`Action`, `Resource`). `role` has a name (≤80, cleaned, unique by `name_key`). Deleting a user or a role removes
+its links (`ON DELETE CASCADE`); deleting a role keeps the permissions. `User::can($action, $resource)` is true when
+any of the user's roles has that permission. The catalog and the defaults Administrator (everything but the
+parent portal), Service leader, Servant and Parent (`parentPortal:read`) are seeded by a migration; the roles
+are ordinary roles. `app:user:create --role=<name>` writes the account with that role in one transaction.
+
 The backend checks every request against these roles. The frontend only uses them to hide actions a person
 can't take.
 
 Account states: registered (waiting) → approved → disabled. Approving a parent creates approved
-`guardian_relationship` rows for the children the administrator chose; approving a servant creates their
-`role_assignment`. A parent account without any approved child sees an empty portal.
+`guardian_relationship` rows for the children the administrator chose; approving a servant gives them their
+roles. A parent account without any approved child sees an empty portal.
 
 ## Lessons, homework and parent access
 

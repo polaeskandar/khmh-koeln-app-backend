@@ -8,6 +8,11 @@ final readonly class NameKey
 {
     public static function of(string $name): string
     {
-        return InputText::of($name)->collapsed()->lowered()->toString();
+        return InputText::of($name)->collapsed()->lowered()->toString() |> self::joined(...);
+    }
+
+    private static function joined(string $words): string
+    {
+        return str_replace(search: ' ', replace: '_', subject: $words);
     }
 }
