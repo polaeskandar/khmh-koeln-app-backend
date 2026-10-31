@@ -92,7 +92,7 @@ Each native operation is wrapped once in a Library model, and the rest of the ap
 
 | Need | Model |
 | --- | --- |
-| Strings (`sprintf`, `strtolower`, `str_starts_with`, `preg_*`, `ctype_digit`) | `Strings\Model\Text` |
+| Strings (`sprintf`, `strtolower`, `str_starts_with`, `preg_*`, `ctype_digit`) | `Strings\Model\Text`; user input (`trim`, `mb_strlen`, whitespace) `Strings\Model\InputText`; name comparison `Strings\Model\NameKey` |
 | Narrowing `mixed` (`is_string`, `is_scalar`) | `Types\Model\Type` |
 | Lists and maps (`array_*`, `in_array`, `iterator_to_array`) | Doctrine `ArrayCollection`, plus `Collections\Model\Collections` for what Doctrine lacks (`of`, `firstPerKey`, `rekeyed`, `mapPresent`, `withoutKeys`) |
 | Paths (`glob`, `dirname`, `basename`) | `Files\Model\Path` |
@@ -110,6 +110,8 @@ global entry points (`bin/console`, `public/index.php`, `config/`) may call func
 - Today and instants come from `Time\Client\Calendar` (on Symfony's clock, `MockClock` in tests), never from
   `new DateTimeImmutable()`, `Carbon::now()` or the database clock (`CURRENT_DATE`, `now()`, `::date`;
   `tests/Architecture/SqlReadsNoDatabaseClockTest`). Calendar days are `LocalDate`, times of day `LocalTime`.
+- `created_at` and `updated_at` are set by Doctrine lifecycle callbacks of `CreatedAtEntity` and
+  `TimestampedEntity`, never by hand (see [Architecture](architecture.md#code-layout)).
 - Request data enters through `#[MapRequestPayload]` DTOs with nullable properties and code messages.
 - Library packages don't use each other; contexts don't use each other. `mago guard`.
 

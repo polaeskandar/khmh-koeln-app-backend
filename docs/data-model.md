@@ -65,6 +65,26 @@ staff (administrators, service leaders, servants) and parents. Children never ha
 | `person` | Anyone who takes part. `display_name` is an everyday name ("Kiro" for Kirollos). Optional `birth_date` and postal address (`street`, `postal_code`, `city`). | `status` active or inactive. `birth_date` not in the future. The address is all three parts or none. Staff see birth date and address only within their services. |
 | `membership` | Puts a person on the roster of a stage, or of the service itself when `stage_id` is null. | `starts_on`, `ends_on` (inclusive). At most one open membership per person and stage, and per person and service-level roster. Stage and service must match. |
 
+`service` and `stage` live in the `organization` schema:
+
+- **Names** are the embeddables `ServiceName` and `StageName` (`name`, `name_key`): runs of Unicode whitespace (no-break spaces
+  included) become one space, and the ends are trimmed. `name_key` is the cleaned name in lower case
+  (`NameKey::of()`), so "  3rd  class" and "3rd Class" share the key `3rd class`; Arabic has no case and is
+  kept as it is. A service name has at most 120 characters (`varchar(120)`), a stage name 80
+  (`varchar(80)`). **Descriptions** are the embeddable `Description`: trimmed, at most 2000 and 500
+  characters, and blank is stored as null. `description` is `text` with a CHECK on its length, because
+  one embeddable serves both tables.
+- **Tone** is the embeddable `Tone` (`tone`), the colour slot (1–8) the apps draw a service in. A
+  `prePersist` entity listener (`ToneListener`) gives a new service the slot the fewest services use,
+  archived ones included, the lowest slot on a tie. It never changes afterwards.
+- **Constraints**: UNIQUE `service(name_key)` and `stage(service_id, name_key)`, archived rows included,
+  so an archived name is restored instead of created again; UNIQUE `stage(id, service_id)`; CHECK
+  `tone` 1–8, non-blank names, description lengths and `position >= 0`; `stage.service_id` references `service` with
+  `ON DELETE RESTRICT`; an index on `stage(service_id, position)`. Positions are not unique: writes that
+  reorder stages lock the service row instead.
+- Other contexts store `service_id` and `stage_id` without foreign keys. The use cases that write them
+  check through `StageRepositoryInterface::belongsTo()` that the stage belongs to the service.
+
 ## Meetings and attendance
 
 | Table | Purpose | Key rules |

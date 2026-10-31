@@ -26,7 +26,7 @@ no-redundant-variable = { enabled = true }
 no-unused-closure-capture = { enabled = true }
 no-parameter-shadowing = { enabled = true }
 no-assign-in-argument = { enabled = true }
-no-service-state-mutation = { enabled = true }
+no-service-state-mutation = { enabled = true, exclude-namespaces = ["App\\Context\\Attendance\\Domain\\Entity\\", "App\\Context\\Identity\\Domain\\Entity\\", "App\\Context\\Learning\\Domain\\Entity\\", "App\\Context\\Meetings\\Domain\\Entity\\", "App\\Context\\Organization\\Domain\\Entity\\", "App\\Context\\People\\Domain\\Entity\\", "App\\Library\\Persistence\\Mapping\\"] }
 prefer-self-return-type = { enabled = true }
 variable-name = { enabled = true }
 method-name = { enabled = true }
@@ -108,37 +108,42 @@ reason = "Only the context's own Infrastructure uses its Infrastructure; the res
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Collections\\**"
-deny-from = ["App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Console\\**"
-deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Files\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Files\\**"
-deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
+reason = "Library packages are independent of each other."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Library\\Persistence\\**"
+deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Problem\\**"
-deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Strings\\**"
-deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Problem\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Time\\**"
-deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Types\\**"
-deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**"]
+deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
@@ -172,6 +177,13 @@ on = "App\\Context\\*\\Domain\\Exception\\**"
 target = "class"
 must-be-named = "*Exception"
 reason = "Exceptions live in the context whose rule they express and carry the Exception suffix."
+
+[[guard.structural.rules]]
+on = "App\\Context\\*\\Domain\\ValueObject\\**"
+target = "class"
+must-be-final = true
+must-be-readonly = true
+reason = "A value object is immutable."
 
 [[guard.structural.rules]]
 on = "App\\Context\\*\\Domain\\Enum\\**"
@@ -212,6 +224,12 @@ target = "class"
 must-be-final = true
 must-be-readonly = true
 reason = "A library model is an immutable value."
+
+[[guard.structural.rules]]
+on = "App\\Library\\*\\Mapping\\**"
+target = "class"
+must-be-abstract = true
+reason = "A library mapping is a Doctrine mapped superclass that entities extend."
 
 [[guard.structural.rules]]
 on = "App\\Library\\*\\Client\\**"

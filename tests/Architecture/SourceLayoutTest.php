@@ -15,7 +15,7 @@ final class SourceLayoutTest extends TestCase
 
     private const array CONTEXT_LAYERS = ['Domain', 'Infrastructure'];
 
-    private const array LIBRARY_KINDS = ['Client', 'Exception', 'Model'];
+    private const array LIBRARY_KINDS = ['Client', 'Exception', 'Mapping', 'Model'];
 
     public function testSrcHoldsOnlyTheFourTopLevelNamespaces(): void
     {

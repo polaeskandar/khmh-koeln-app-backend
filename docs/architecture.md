@@ -39,9 +39,9 @@ namespaces:
 
 | Namespace | Holds |
 | --- | --- |
-| `App\Context` | The bounded contexts: `Identity`, `Organization`, `People`, `Meetings`, `Attendance`, `Learning`. Each has `Domain` (entities, value objects, enums, repository interfaces, exceptions, domain services) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations). |
+| `App\Context` | The bounded contexts: `Identity`, `Organization`, `People`, `Meetings`, `Attendance`, `Learning`. Each has `Domain` (`Entity`, `ValueObject`, `Enum`, `Repository` interfaces, `Exception`, domain services) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations). |
 | `App\Interface` | Everything that serves a caller. `Application/<Area>/UseCase/Command/<Name>/` (writes) and `Application/<Area>/UseCase/Query/<Name>/` (reads) hold the use cases: each folder has exactly `<Name>Command` or `<Name>Query` and a `<Name>Handler` whose `__invoke()` takes it. Read models live in `Application/<Area>/Model/`. Use cases may combine several contexts and decide what crosses a context boundary. `Api/<Area>/…Controller` and `Console/<Area>/…Command` are the entry points that call them. The parent portal is `Api/ParentPortal` with its queries in `Application/ParentPortal`. |
-| `App\Library` | Business-agnostic packages, each split into `Client`, `Model` and `Exception`; they wrap PHP's native functions once for the rest of the application (see [Code style](code-style.md)): `Strings` (`Text`), `Types` (`Type`), `Collections` (`Collections`, next to Doctrine's collections), `Files` (`Path`), `Console` (`HiddenPrompt`), `Problem` (the coded exceptions), `Time` (`LocalDate`, `LocalTime`, `Calendar`, on Carbon). Packages never use each other (`mago guard`); a package keeps only the methods something uses, and missing ones are added with their first caller. |
+| `App\Library` | Business-agnostic packages, each split into `Client`, `Model` and `Exception` (and `Mapping` for Doctrine mapped superclasses that entities extend); they wrap PHP's native functions once for the rest of the application (see [Code style](code-style.md)): `Strings` (`Text`, `InputText`, `NameKey`), `Types` (`Type`), `Collections` (`Collections`, next to Doctrine's collections), `Files` (`Path`), `Console` (`HiddenPrompt`), `Problem` (the coded exceptions), `Time` (`LocalDate`, `LocalTime`, `Calendar`, on Carbon), `Persistence` (the `CreatedAtEntity` and `TimestampedEntity` mapped superclasses). Packages never use each other (`mago guard`); a package keeps only the methods something uses, and missing ones are added with their first caller. |
 | `App\Platform` | The runtime: `Kernel`, `Migration`, `Health`, `Http`. Each module splits into `Contract` (interfaces the rest may use), `Service`, `Model` and `Command`. |
 
 Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
@@ -52,7 +52,7 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
 - Nothing depends on `Interface`. `Domain` and `Library` don't depend on `Platform`; outside `Platform`, code
   uses only `Platform/*/Contract`.
 - Commands, queries, handlers and read models are `final readonly`; a handler never calls another handler. Repositories are interfaces named `*RepositoryInterface`,
-  exceptions `*Exception`, enums live in `Enum`.
+  exceptions `*Exception`, enums live in `Enum`, final readonly value objects in `ValueObject`.
 - Every application route lives under `/api` (class-level `#[Route]`).
 - Code follows [Code style](code-style.md).
 
@@ -94,6 +94,11 @@ Naming and Doctrine rules:
 - `ChurchService` is the table `service` and `serviceId` in JSON; `MeetingSession`; `User` is the table
   `app_user`. No other class is called `*Service`.
 - Entities create their UUIDv7 id in the constructor. Instants (`*_at`) are `datetimetz_immutable`.
+- `created_at` and `updated_at` come only from the mapped superclasses in `App\Library\Persistence\Mapping`: an
+  entity with `created_at` extends `CreatedAtEntity`, one with both extends `TimestampedEntity`. Their
+  lifecycle callbacks stamp the fields on `PrePersist` (and `PreUpdate` for `updated_at`) from Symfony's
+  clock, the one `Calendar` uses. Constructors and use cases never set them
+  (`tests/Architecture/TimestampsComeFromLifecycleCallbacksTest`).
   References to an acting account are nullable: `ON DELETE SET NULL` inside Identity, set to null by the
   erasure process in the other contexts. Embeddables live in `Domain`.
 - CHECK constraints and partial indexes are added to the generated migration by hand, written in the

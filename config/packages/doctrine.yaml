@@ -15,6 +15,11 @@ doctrine:
             Doctrine\DBAL\Platforms\PostgreSQLPlatform: identity
         auto_mapping: false
         mappings:
+            Persistence:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Library/Persistence/Mapping'
+                prefix: 'App\Library\Persistence\Mapping'
             Identity:
                 type: attribute
                 is_bundle: false
