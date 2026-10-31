@@ -1,0 +1,24 @@
+php-version = "8.5"
+
+[source]
+paths = ["bin", "config", "migrations", "public", "src", "tests"]
+includes = ["vendor"]
+excludes = ["config/reference.php"]
+
+[formatter]
+print-width = 120
+
+[linter]
+integrations = ["symfony", "doctrine", "phpunit"]
+
+[linter.rules]
+assertion-style = { style = "self" }
+
+[analyzer]
+minimum-fail-level = "Note"
+find-unused-parameters = true
+check-missing-type-hints = true
+check-missing-override = true
+check-property-initialization = true
+strict-list-index-checks = true
+strict-array-index-existence = true

@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace <namespace>;
+
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Migrations\AbstractMigration;
+use Override;
+
+final class <className> extends AbstractMigration
+{
+    #[Override]
+    public function getDescription(): string
+    {
+        return '';
+    }
+
+    #[Override]
+    public function up(Schema $schema): void
+    {
+<up>
+    }
+
+    #[Override]
+    public function down(Schema $schema): void
+    {
+<down>
+    }<override>
+}
