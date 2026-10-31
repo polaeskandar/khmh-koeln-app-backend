@@ -27,6 +27,7 @@ Local overrides go in `.env.local` (git-ignored), never in `.env`.
 - [Data model](docs/data-model.md)
 - [API contract](docs/api.md)
 - [Testing](docs/testing.md)
+- [Operations](docs/operations.md)
 
 Commits follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat: …`, `fix: …`).
 Git hooks are installed on `docker compose up`: `commit-msg` checks the message, `pre-commit` runs
