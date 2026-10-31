@@ -784,3 +784,31 @@ New codes: list them, and add them to the code catalog.
 Endpoint issues add their sections here, one heading per module: Health, Auth and accounts, Services and
 stages, Members, Meetings, Attendance, Lessons, Homework, Parent portal, Guardians, Data protection. The auth
 endpoints are under [Authentication](#authentication).
+
+### Health
+
+For the platform's probes. Public, no session needed, and the only answers that are not problems.
+
+#### `GET /api/health`
+
+Liveness. Never touches the database.
+
+```json
+{"status": "ok"}
+```
+
+#### `GET /api/health/ready`
+
+Readiness: runs `SELECT 1` with a 2-second connect and statement timeout.
+
+200:
+
+```json
+{"status": "ok", "checks": {"database": "ok"}}
+```
+
+503 when the database does not answer in time:
+
+```json
+{"status": "unavailable", "checks": {"database": "unavailable"}}
+```

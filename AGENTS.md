@@ -24,6 +24,13 @@ generate its config. Don't hand-edit `config/bundles.php` or hand-write a bundle
 base config; that's what the recipe is for. Don't skip a good-fit component just
 because it isn't installed yet; installing it is one command.
 
+## Layout
+
+Follow `docs/architecture.md` § Code layout: bounded contexts in `src/Context/<Context>/{Domain,Infrastructure}`,
+use cases in `src/Interface/Application/<Area>/UseCase/{Command,Query}/<Name>/` (`<Name>Command|<Name>Query` + `<Name>Handler`), read models in `src/Interface/Application/<Area>/Model/`, entry points in
+`src/Interface/{Api,Console}`, runtime in `src/Platform`. `composer check` enforces the boundaries
+(`mago guard`). Schema changes go through `bin/console app:migrations:diff <context>`.
+
 ## Conventions
 
 Follow https://symfony.com/doc/current/best_practices.html to write idiomatic
@@ -69,9 +76,8 @@ Three specifics worth spelling out, because they are easy to get wrong:
   passed up front and `--no-interaction` where supported: makers prompt on a
   terminal by default, which hangs a non-interactive shell. If a maker still
   needs interactive input, hand-write the code instead.
-- If Doctrine ORM is installed, schema changes go through migrations
-  (`bin/console make:migration`, then `doctrine:migrations:migrate`), never
-  `doctrine:schema:update` or hand-written SQL.
+- Schema changes go through `bin/console app:migrations:diff <context>`, then
+  `app:migrations:migrate`, never `doctrine:schema:update` or hand-written SQL.
 - `.env` is committed and holds defaults only. Real secrets belong in `.env.local`
   (git-ignored) or the secrets vault (`bin/console secrets:set`), read via
   `%env(...)%`.

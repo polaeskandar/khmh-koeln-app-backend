@@ -1,14 +1,19 @@
 php-version = "8.5"
 
 [source]
-paths = ["bin", "config", "migrations", "public", "src", "tests"]
+paths = ["bin", "config", "public", "src", "tests"]
 includes = ["vendor"]
 excludes = ["config/reference.php"]
 
 [formatter]
 print-width = 120
+inline-empty-constructor-braces = false
+inline-empty-method-braces = false
+inline-empty-function-braces = false
+space-before-arrow-function-parameter-list-parenthesis = true
 
 [linter]
+minimum-fail-level = "note"
 integrations = ["symfony", "doctrine", "phpunit"]
 
 [linter.rules]
@@ -20,5 +25,176 @@ find-unused-parameters = true
 check-missing-type-hints = true
 check-missing-override = true
 check-property-initialization = true
+class-initializers = ["setContainer"]
 strict-list-index-checks = true
 strict-array-index-existence = true
+
+
+[guard]
+minimum-fail-level = "note"
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Identity\\**"
+allow-from = ["App\\Context\\Identity\\**", "App\\Interface\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; Interface combines them."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Identity\\Infrastructure\\**"
+allow-from = ["App\\Context\\Identity\\Infrastructure\\**", "App\\Tests\\**"]
+reason = "Only the context's own Infrastructure uses its Infrastructure; the rest goes through Domain contracts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Organization\\**"
+allow-from = ["App\\Context\\Organization\\**", "App\\Interface\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; Interface combines them."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Organization\\Infrastructure\\**"
+allow-from = ["App\\Context\\Organization\\Infrastructure\\**", "App\\Tests\\**"]
+reason = "Only the context's own Infrastructure uses its Infrastructure; the rest goes through Domain contracts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\People\\**"
+allow-from = ["App\\Context\\People\\**", "App\\Interface\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; Interface combines them."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\People\\Infrastructure\\**"
+allow-from = ["App\\Context\\People\\Infrastructure\\**", "App\\Tests\\**"]
+reason = "Only the context's own Infrastructure uses its Infrastructure; the rest goes through Domain contracts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Meetings\\**"
+allow-from = ["App\\Context\\Meetings\\**", "App\\Interface\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; Interface combines them."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Meetings\\Infrastructure\\**"
+allow-from = ["App\\Context\\Meetings\\Infrastructure\\**", "App\\Tests\\**"]
+reason = "Only the context's own Infrastructure uses its Infrastructure; the rest goes through Domain contracts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Attendance\\**"
+allow-from = ["App\\Context\\Attendance\\**", "App\\Interface\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; Interface combines them."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Attendance\\Infrastructure\\**"
+allow-from = ["App\\Context\\Attendance\\Infrastructure\\**", "App\\Tests\\**"]
+reason = "Only the context's own Infrastructure uses its Infrastructure; the rest goes through Domain contracts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Learning\\**"
+allow-from = ["App\\Context\\Learning\\**", "App\\Interface\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; Interface combines them."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Learning\\Infrastructure\\**"
+allow-from = ["App\\Context\\Learning\\Infrastructure\\**", "App\\Tests\\**"]
+reason = "Only the context's own Infrastructure uses its Infrastructure; the rest goes through Domain contracts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Library\\Console\\**"
+deny-from = ["App\\Library\\Strings\\**", "App\\Library\\Types\\**"]
+reason = "Library packages are independent of each other."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Library\\Strings\\**"
+deny-from = ["App\\Library\\Console\\**", "App\\Library\\Types\\**"]
+reason = "Library packages are independent of each other."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Library\\Types\\**"
+deny-from = ["App\\Library\\Console\\**", "App\\Library\\Strings\\**"]
+reason = "Library packages are independent of each other."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Interface\\**"
+allow-from = ["App\\Interface\\**", "App\\Tests\\**"]
+reason = "Interface holds entry points, use cases and queries; nothing depends on it."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Platform\\**"
+deny-from = ["App\\Context\\*\\Domain\\**", "App\\Library\\**"]
+reason = "The domain model is independent of the runtime; library code is reusable outside this application."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Platform\\*\\Service\\**"
+allow-from = ["App\\Platform\\**", "App\\Tests\\**", "@global"]
+reason = "Outside the platform, code relies on platform contracts, not on how they are implemented."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Platform\\*\\Command\\**"
+allow-from = ["App\\Platform\\**", "App\\Tests\\**"]
+reason = "Platform commands are entry points, not dependencies."
+
+[[guard.structural.rules]]
+on = "App\\Context\\*\\Domain\\Repository\\**"
+must-be = ["interface"]
+must-be-named = "*RepositoryInterface"
+reason = "A repository is a contract that infrastructure implements."
+
+[[guard.structural.rules]]
+on = "App\\Context\\*\\Domain\\Exception\\**"
+target = "class"
+must-be-named = "*Exception"
+reason = "Exceptions live in the context whose rule they express and carry the Exception suffix."
+
+[[guard.structural.rules]]
+on = "App\\Context\\*\\Domain\\Enum\\**"
+must-be = ["enum"]
+reason = "The Enum folder holds only enums."
+
+[[guard.structural.rules]]
+on = "App\\Interface\\Api\\**"
+target = "class"
+must-be-named = "*Controller"
+must-be-final = true
+reason = "API entry points are controllers."
+
+[[guard.structural.rules]]
+on = "App\\Interface\\Console\\**"
+target = "class"
+must-be-named = "*Command"
+must-be-final = true
+reason = "Console entry points are commands."
+
+[[guard.structural.rules]]
+on = "App\\Interface\\Application\\*\\UseCase\\**"
+target = "class"
+must-be-final = true
+must-be-readonly = true
+reason = "A command or query is an immutable request and its handler holds only injected collaborators."
+
+[[guard.structural.rules]]
+on = "App\\Interface\\Application\\*\\Model\\**"
+target = "class"
+must-be-final = true
+must-be-readonly = true
+reason = "A read model is an immutable value."
+
+[[guard.structural.rules]]
+on = "App\\Library\\*\\Model\\**"
+target = "class"
+must-be-final = true
+must-be-readonly = true
+reason = "A library model is an immutable value."
+
+[[guard.structural.rules]]
+on = "App\\Library\\*\\Client\\**"
+target = "class"
+must-be-final = true
+must-be-readonly = true
+reason = "A library client holds only its injected collaborators."
+
+[[guard.structural.rules]]
+on = "App\\Platform\\*\\Contract\\**"
+must-be = ["interface"]
+reason = "A platform contract is an interface the rest of the application may use."
+
+[[guard.structural.rules]]
+on = "App\\Platform\\*\\Command\\**"
+target = "class"
+must-be-named = "*Command"
+must-be-final = true
+reason = "Platform console commands are named *Command."

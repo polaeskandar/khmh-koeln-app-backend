@@ -7,7 +7,7 @@ use PHP_CodeSniffer\Standards\Generic\Sniffs\Formatting\SpaceAfterNotSniff;
 
 return [
     'preset' => 'symfony',
-    'exclude' => ['config/reference.php', 'migrations', 'public/bundles', 'var'],
+    'exclude' => ['config/reference.php', 'Infrastructure/Persistence/Migrations', 'public/bundles', 'var'],
     'remove' => [SpaceAfterNotSniff::class],
     'config' => [
         LineLengthSniff::class => ['lineLimit' => 120, 'absoluteLineLimit' => 120],

@@ -32,6 +32,53 @@ layer behaves like this API should. Features are built in `frontend` and here th
 prototype can be reused where it fits, but nothing is copied over wholesale. Frontend-specific decisions are
 in the frontend repository's `docs/architecture.md`.
 
+## Code layout
+
+A modular monolith with bounded contexts, based on `bisort-console`. `src/` holds exactly four top-level
+namespaces:
+
+| Namespace | Holds |
+| --- | --- |
+| `App\Context` | The bounded contexts: `Identity`, `Organization`, `People`, `Meetings`, `Attendance`, `Learning`. Each has `Domain` (entities, value objects, enums, repository interfaces, exceptions, domain services) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations). |
+| `App\Interface` | Everything that serves a caller. `Application/<Area>/UseCase/Command/<Name>/` (writes) and `Application/<Area>/UseCase/Query/<Name>/` (reads) hold the use cases: each folder has exactly `<Name>Command` or `<Name>Query` and a `<Name>Handler` whose `__invoke()` takes it. Read models live in `Application/<Area>/Model/`. Use cases may combine several contexts and decide what crosses a context boundary. `Api/<Area>/…Controller` and `Console/<Area>/…Command` are the entry points that call them. The parent portal is `Api/ParentPortal` with its queries in `Application/ParentPortal`. |
+| `App\Library` | Business-agnostic packages, each split into `Client`, `Model` and `Exception`: `Strings` (`Text`, used instead of PHP's string functions), `Types` (`Type`, narrows `mixed` values), `Console` (`HiddenPrompt` for passwords). Copied from `bisort-console`. Packages never use each other (`mago guard`); a package keeps only the methods something uses, and missing ones are copied over with their first caller. |
+| `App\Platform` | The runtime: `Kernel`, `Migration`, `Health`, `Http`. Each module splits into `Contract` (interfaces the rest may use), `Service`, `Model` and `Command`. |
+
+Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
+
+- A context never uses another context; only `Interface` combines contexts.
+- Only a context's own `Infrastructure` uses its `Infrastructure`; `Domain` never does, and `Interface` works
+  with the `Domain` repository interfaces.
+- Nothing depends on `Interface`. `Domain` and `Library` don't depend on `Platform`; outside `Platform`, code
+  uses only `Platform/*/Contract`.
+- Commands, queries, handlers and read models are `final readonly`; a handler never calls another handler. Repositories are interfaces named `*RepositoryInterface`,
+  exceptions `*Exception`, enums live in `Enum`.
+- Every application route lives under `/api` (class-level `#[Route]`).
+
+Persistence (ADR 0004 of `bisort-console`):
+
+- Each context owns one PostgreSQL schema (`identity`, `organization`, `people`, `meetings`, `attendance`,
+  `learning`) and its own migration history (`<context>_migration_versions`). Its migrations live in
+  `src/Context/<Context>/Infrastructure/Persistence/Migrations`.
+- Every folder `src/Context/<Context>` is a context; its schema is the lower-case name. Migrations are
+  created by `bin/console app:migrations:diff <context>` and applied by `app:migrations:migrate`, which
+  migrates every context.
+- A context stores only the id of another context's record. No foreign keys cross schemas; the use case in
+  `Interface` checks references across contexts before it writes.
+- A context's diff compares the database with a target made of the context's mapping plus every table the
+  database already holds outside the context. Other contexts therefore never show up in the diff, and DBAL
+  derives every schema from real tables.
+
+Naming and Doctrine rules:
+
+- `ChurchService` is the table `service` and `serviceId` in JSON; `MeetingSession`; `User` is the table
+  `app_user`. No other class is called `*Service`.
+- Entities create their UUIDv7 id in the constructor. Instants (`*_at`) are `datetimetz_immutable`.
+  References to an acting account are nullable: `ON DELETE SET NULL` inside Identity, set to null by the
+  erasure process in the other contexts. Embeddables live in `Domain`.
+- CHECK constraints and partial indexes are added to the generated migration by hand, written in the
+  canonical form PostgreSQL prints back, so `app:migrations:diff` stays empty.
+
 ## Decisions
 
 ### Latest stable versions: PHP 8.5, Symfony 8.1, PostgreSQL 18
