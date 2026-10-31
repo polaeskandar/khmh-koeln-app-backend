@@ -18,7 +18,7 @@ final class StageTest extends TestCase
 
         self::assertSame($service, $stage->service());
         self::assertSame('3rd Class', $stage->name()->value);
-        self::assertSame('3rd class', $stage->name()->key);
+        self::assertSame('3rd_class', $stage->name()->key);
         self::assertSame('Ages 8 to 9', $stage->description()->value);
         self::assertSame(2, $stage->position());
         self::assertFalse($stage->isArchived());

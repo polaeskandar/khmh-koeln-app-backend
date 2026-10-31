@@ -15,7 +15,7 @@ final class StageNameTest extends TestCase
         $name = StageName::of("  3rd \u{00A0} Class ");
 
         self::assertSame('3rd Class', $name->value);
-        self::assertSame('3rd class', $name->key);
+        self::assertSame('3rd_class', $name->key);
     }
 
     public function testANameOfOnlySpacesIsMissing(): void

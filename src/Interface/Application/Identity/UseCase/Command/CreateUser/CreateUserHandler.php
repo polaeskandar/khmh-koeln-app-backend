@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Interface\Application\Identity\UseCase\Command\CreateUser;
 
+use App\Context\Identity\Domain\Entity\Role;
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\Service\PasswordHasherInterface;
 use App\Context\Identity\Domain\ValueObject\DisplayName;
@@ -22,6 +24,7 @@ final readonly class CreateUserHandler
         private UserRepositoryInterface $users,
         private PasswordHasherInterface $hasher,
         private Calendar $calendar,
+        private RoleRepositoryInterface $roles,
     ) {
     }
 
@@ -38,11 +41,24 @@ final readonly class CreateUserHandler
             new Profile($email, $displayName, $command->language),
             passwordHash: $this->passwordHash($command->password),
             approvedAt: $this->calendar->now(),
+            roles: $this->rolesNamed($command->role),
         );
 
         $this->users->save($user);
 
         return $user->id();
+    }
+
+    /**
+     * @return list<Role>
+     */
+    private function rolesNamed(?string $roleName): array
+    {
+        if ($roleName === null) {
+            return [];
+        }
+
+        return [$this->roles->findByName($roleName) ?? throw InvalidInput::field('role', 'roles.unknown')];
     }
 
     private function passwordHash(#[SensitiveParameter] ?string $password): string

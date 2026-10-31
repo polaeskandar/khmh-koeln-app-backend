@@ -645,6 +645,8 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `roles.ownAdminRole` | – | You cannot remove your own administrator role. Ask another administrator. |
 | `roles.stageOnlyForServants` | – | **New.** Field error on `stageId`: only servant roles can be narrowed to a stage. |
 | `roles.lastAdministrator` | – | **New.** 409: the last active administrator keeps the role. |
+| `roles.nameRequired` | – | **New.** Field error on `name`: enter a name for the role. |
+| `roles.unknown` | – | **New.** Field error on `role`: no role has this name. |
 
 ### `materials`
 
