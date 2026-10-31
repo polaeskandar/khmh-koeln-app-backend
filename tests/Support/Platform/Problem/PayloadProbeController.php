@@ -16,4 +16,10 @@ final readonly class PayloadProbeController
     {
         return new JsonResponse(['name' => $payload->name]);
     }
+
+    #[Route('/schedule', methods: ['POST'])]
+    public function schedule(#[MapRequestPayload] ProbeSchedule $schedule): JsonResponse
+    {
+        return new JsonResponse(['date' => $schedule->date, 'time' => $schedule->time]);
+    }
 }

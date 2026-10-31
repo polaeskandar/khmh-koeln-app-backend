@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Platform\Problem\Service\ProblemTranslator;
 
 use App\Tests\Support\ApiTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class ValidationFailedTranslatorTest extends ApiTestCase
 {
@@ -52,5 +53,35 @@ final class ValidationFailedTranslatorTest extends ApiTestCase
         $this->jsonRequest('POST', '/api/test/problems/payload', ['name' => 'Choir', 'capacity' => 'many']);
 
         $this->assertFieldError('capacity', 'validation.invalidType');
+    }
+
+    #[DataProvider('schedules')]
+    public function testADateAndTimeGetTheCalendarCodes(
+        string $date,
+        string $time,
+        string $dateCode,
+        string $timeCode,
+    ): void {
+        $this->jsonRequest('POST', '/api/test/problems/schedule', ['date' => $date, 'time' => $time]);
+
+        $this->assertFieldError('date', $dateCode);
+        $this->assertFieldError('time', $timeCode);
+    }
+
+    /**
+     * @return iterable<string, array{string, string, string, string}>
+     */
+    public static function schedules(): iterable
+    {
+        yield 'empty' => ['', '', 'validation.chooseDate', 'validation.chooseTime'];
+        yield 'not on the calendar' => ['2026-02-30', '24:00', 'validation.invalidDate', 'validation.invalidTime'];
+        yield 'unpadded' => ['2026-2-3', '7:5', 'validation.invalidDate', 'validation.invalidTime'];
+    }
+
+    public function testAValidDateAndTimeAreAccepted(): void
+    {
+        $this->jsonRequest('POST', '/api/test/problems/schedule', ['date' => '2026-11-08', 'time' => '18:30']);
+
+        self::assertResponseIsSuccessful();
     }
 }

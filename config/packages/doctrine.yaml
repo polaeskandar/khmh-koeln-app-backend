@@ -5,6 +5,9 @@ doctrine:
             !php/const PDO::ATTR_TIMEOUT: 2
 
         profiling_collect_backtrace: '%kernel.debug%'
+        types:
+            local_date: App\Platform\Doctrine\Service\LocalDateType
+            local_time: App\Platform\Doctrine\Service\LocalTimeType
     orm:
         validate_xml_mapping: true
         naming_strategy: doctrine.orm.naming_strategy.underscore
