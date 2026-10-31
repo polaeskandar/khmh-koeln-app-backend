@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Unit\Library\Strings\Model;
+
+use App\Library\Strings\Model\NameKey;
+use PHPUnit\Framework\TestCase;
+
+final class NameKeyTest extends TestCase
+{
+    public function testCaseAndExtraSpacesDoNotMakeANameDifferent(): void
+    {
+        self::assertSame(NameKey::of('3rd Class'), NameKey::of('  3rd  class'));
+        self::assertSame('3rd class', NameKey::of("\t3rd\n Class "));
+    }
+
+    public function testNoBreakSpacesCollapseLikeOrdinaryOnes(): void
+    {
+        self::assertSame(NameKey::of('Youth Meeting'), NameKey::of("Youth\u{00A0}\u{2003}Meeting\u{3000}"));
+    }
+
+    public function testUmlautsAreLowered(): void
+    {
+        self::assertSame('ältere jugend', NameKey::of(' ÄLTERE   Jugend '));
+    }
+
+    public function testArabicIsLeftAsItIs(): void
+    {
+        self::assertSame('مدارس الأحد', NameKey::of('مدارس  الأحد'));
+    }
+}

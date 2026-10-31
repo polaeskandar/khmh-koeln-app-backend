@@ -13,4 +13,5 @@ services:
         exclude:
             - '../src/Platform/Kernel/Service/Kernel.php'
             - '../src/Context/*/Domain/Entity/'
+            - '../src/Context/*/Domain/ValueObject/'
             - '../src/Context/*/Infrastructure/Persistence/Migrations/'
