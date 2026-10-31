@@ -19,9 +19,9 @@ final class RegistrationService
     #[ORM\Id]
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'service_id', nullable: false, onDelete: 'CASCADE')]
-    private readonly ChurchService $service;
+    private readonly Service $service;
 
-    public function __construct(Uuid $accountId, ChurchService $service)
+    public function __construct(Uuid $accountId, Service $service)
     {
         $this->accountId = $accountId;
         $this->service = $service;
@@ -32,7 +32,7 @@ final class RegistrationService
         return $this->accountId;
     }
 
-    public function service(): ChurchService
+    public function service(): Service
     {
         return $this->service;
     }

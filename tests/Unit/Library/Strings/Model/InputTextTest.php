@@ -40,8 +40,9 @@ final class InputTextTest extends TestCase
         self::assertFalse(InputText::of(' ')->isEmpty());
     }
 
-    public function testLoweringHandlesUmlauts(): void
+    public function testFoldingDropsCaseAccentsAndArabicVowelMarks(): void
     {
-        self::assertSame('ältere', InputText::of('ÄLTERE')->lowered()->toString());
+        self::assertSame('monika hanna', InputText::of(' Mönika   Ḥanna ')->folded()->toString());
+        self::assertSame('مينا', InputText::of('مِينَا')->folded()->toString());
     }
 }

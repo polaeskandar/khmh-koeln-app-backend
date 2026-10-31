@@ -94,8 +94,9 @@ Errors (the contract is in [API contract](api.md#problems)):
 
 Naming and Doctrine rules:
 
-- `ChurchService` is the table `service` and `serviceId` in JSON; `MeetingSession`; `User` is the table
-  `app_user`. No other class is called `*Service`.
+- `Service` (Organization) is the table `service` and `serviceId` in JSON; `MeetingSession`; `User` is the
+  table `app_user`. Classes in a `Service` folder are services in the Symfony sense; the entity is the only class named
+  `Service`.
 - Entities create their UUIDv7 id in the constructor. Instants (`*_at`) are `datetimetz_immutable`.
 - `created_at` and `updated_at` come only from the mapped superclasses in `App\Library\Persistence\Mapping`: an
   entity with `created_at` extends `CreatedAtEntity`, one with both extends `TimestampedEntity`. Their

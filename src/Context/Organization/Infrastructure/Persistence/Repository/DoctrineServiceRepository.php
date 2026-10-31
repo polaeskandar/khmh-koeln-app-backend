@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Context\Organization\Infrastructure\Persistence\Repository;
 
-use App\Context\Organization\Domain\Entity\ChurchService;
-use App\Context\Organization\Domain\Repository\ChurchServiceRepositoryInterface;
+use App\Context\Organization\Domain\Entity\Service;
+use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 
-final readonly class DoctrineChurchServiceRepository implements ChurchServiceRepositoryInterface
+final readonly class DoctrineServiceRepository implements ServiceRepositoryInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -20,7 +20,7 @@ final readonly class DoctrineChurchServiceRepository implements ChurchServiceRep
     }
 
     #[Override]
-    public function save(ChurchService $service): void
+    public function save(Service $service): void
     {
         $this->entityManager->persist($service);
         $this->entityManager->flush();
@@ -29,7 +29,7 @@ final readonly class DoctrineChurchServiceRepository implements ChurchServiceRep
     #[Override]
     public function tonesInUse(): ReadableCollection
     {
-        $stored = new ArrayCollection($this->entityManager->getRepository(ChurchService::class)->findAll())->map(
+        $stored = new ArrayCollection($this->entityManager->getRepository(Service::class)->findAll())->map(
             self::toneOf(...),
         );
 
@@ -43,10 +43,10 @@ final readonly class DoctrineChurchServiceRepository implements ChurchServiceRep
 
     private static function pendingToneOf(object $entity): ?int
     {
-        return $entity instanceof ChurchService ? self::toneOf($entity) : null;
+        return $entity instanceof Service ? self::toneOf($entity) : null;
     }
 
-    private static function toneOf(ChurchService $service): int
+    private static function toneOf(Service $service): int
     {
         return $service->tone()->value;
     }

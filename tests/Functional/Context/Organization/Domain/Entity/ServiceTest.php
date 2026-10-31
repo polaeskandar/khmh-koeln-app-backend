@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 
-final class ChurchServiceTest extends KernelTestCase
+final class ServiceTest extends KernelTestCase
 {
     use ClockSensitiveTrait;
 
