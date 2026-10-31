@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Library\Strings\Model;
 
 use InvalidArgumentException;
+use Normalizer;
 
 final readonly class InputText
 {
@@ -26,6 +27,15 @@ final readonly class InputText
     public function collapsed(): self
     {
         return $this->replaced('/\s+/u', ' ')->trimmed();
+    }
+
+    public function folded(): self
+    {
+        $decomposed = Normalizer::normalize($this->collapsed()->value, Normalizer::FORM_D);
+
+        return new self($decomposed === false ? $this->value : $decomposed)
+            ->replaced('/\p{Mn}+/u', replacement: '')
+            ->lowered();
     }
 
     public function lowered(): self

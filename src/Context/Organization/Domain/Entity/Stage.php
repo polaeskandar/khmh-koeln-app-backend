@@ -26,7 +26,7 @@ final class Stage extends CreatedAtEntity
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'service_id', nullable: false, onDelete: 'RESTRICT')]
-    private readonly ChurchService $service;
+    private readonly Service $service;
 
     #[ORM\Embedded(StageName::class, columnPrefix: false)]
     private StageName $name;
@@ -40,7 +40,7 @@ final class Stage extends CreatedAtEntity
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $archivedAt = null;
 
-    public function __construct(ChurchService $service, string $name, ?string $description, int $position)
+    public function __construct(Service $service, string $name, ?string $description, int $position)
     {
         $this->id = Uuid::v7();
         $this->service = $service;
@@ -54,7 +54,7 @@ final class Stage extends CreatedAtEntity
         return $this->id;
     }
 
-    public function service(): ChurchService
+    public function service(): Service
     {
         return $this->service;
     }

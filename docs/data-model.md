@@ -85,6 +85,18 @@ staff (administrators, service leaders, servants) and parents. Children never ha
 - Other contexts store `service_id` and `stage_id` without foreign keys. The use cases that write them
   check through `StageRepositoryInterface::belongsTo()` that the stage belongs to the service.
 
+`person` and `membership` live in the `people` schema. A person's names are cleaned like service names; `name_key`
+is "first_last" in lower case (indexed, for duplicate checks) and `search_text` is first, last and display
+name folded: lower case, without accents or Arabic vowel marks (`InputText::folded()`, ext-intl), so "Mönika
+Ḥanna" is found as "monika hanna". First and last name ≤80 characters, display name ≤120 (blank → null);
+CHECKs keep `status` to `active`/`inactive`, the names non-blank and the address all three parts or none, and
+the application keeps the birth date out of the future. `membership.person_id` references `person` with `ON
+DELETE RESTRICT`; `service_id` and `stage_id` are plain ids of Organization records, and the use case that
+writes a membership checks that the stage belongs to the service. CHECK `ends_on >= starts_on`; partial
+UNIQUE indexes allow one open membership (`ends_on IS NULL`) per person and stage, and per person and
+service-level roster; `(service_id, stage_id)` is indexed for rosters. Ending a membership from today sets
+`ends_on` to yesterday; one that started today is deleted instead, the only delete besides erasure.
+
 ## Meetings and attendance
 
 | Table | Purpose | Key rules |

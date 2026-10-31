@@ -9,6 +9,7 @@
         "php": ">=8.5",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "ext-intl": "*",
         "doctrine/doctrine-bundle": "^3.3",
         "doctrine/migrations": "^3.9",
         "doctrine/orm": "^3.7",

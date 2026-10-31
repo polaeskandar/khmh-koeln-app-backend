@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Context\Organization\Domain\Entity;
 
-use App\Context\Organization\Domain\Entity\ChurchService;
+use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\ValueObject\Tone;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Library\Problem\Exception\ThrownFieldErrors;
@@ -12,11 +12,11 @@ use Doctrine\Common\Collections\ArrayCollection;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 
-final class ChurchServiceTest extends TestCase
+final class ServiceTest extends TestCase
 {
     public function testANewServiceKeepsItsCleanedNameAndDescription(): void
     {
-        $service = new ChurchService('  Youth   Meeting ', description: '  Fridays ');
+        $service = new Service('  Youth   Meeting ', description: '  Fridays ');
 
         self::assertSame('Youth Meeting', $service->name()->value);
         self::assertSame('youth_meeting', $service->name()->key);
@@ -27,14 +27,14 @@ final class ChurchServiceTest extends TestCase
 
     public function testABlankDescriptionIsNoDescription(): void
     {
-        self::assertNull(new ChurchService('Choir', description: '   ')->description()->value);
+        self::assertNull(new Service('Choir', description: '   ')->description()->value);
     }
 
     public function testABlankNameIsRejected(): void
     {
         self::assertSame(
             ['name' => ['code' => 'services.nameRequired']],
-            ThrownFieldErrors::of(static fn (): ChurchService => Structure::service(name: " \u{00A0} ")),
+            ThrownFieldErrors::of(static fn (): Service => Structure::service(name: " \u{00A0} ")),
         );
     }
 
@@ -44,7 +44,7 @@ final class ChurchServiceTest extends TestCase
 
         self::assertSame(
             ['name' => ['code' => 'validation.tooLong', 'params' => ['max' => 120]]],
-            ThrownFieldErrors::of(static fn (): ChurchService => Structure::service(name: str_repeat('a', times: 121))),
+            ThrownFieldErrors::of(static fn (): Service => Structure::service(name: str_repeat('a', times: 121))),
         );
     }
 
@@ -53,7 +53,7 @@ final class ChurchServiceTest extends TestCase
         self::assertSame(
             ['description' => ['code' => 'validation.tooLong', 'params' => ['max' => 2000]]],
             ThrownFieldErrors::of(
-                static fn (): ChurchService => new ChurchService('Choir', description: str_repeat('a', times: 2001)),
+                static fn (): Service => new Service('Choir', description: str_repeat('a', times: 2001)),
             ),
         );
     }

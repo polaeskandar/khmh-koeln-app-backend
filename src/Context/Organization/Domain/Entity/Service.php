@@ -18,7 +18,7 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Entity]
 #[ORM\Table(name: 'service', schema: 'organization')]
 #[ORM\UniqueConstraint(name: 'service_name_key_unique', columns: ['name_key'])]
-final class ChurchService extends TimestampedEntity
+final class Service extends TimestampedEntity
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
