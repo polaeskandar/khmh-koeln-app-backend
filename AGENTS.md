@@ -77,7 +77,9 @@ Three specifics worth spelling out, because they are easy to get wrong:
   terminal by default, which hangs a non-interactive shell. If a maker still
   needs interactive input, hand-write the code instead.
 - Schema changes go through `bin/console app:migrations:diff <context>`, then
-  `app:migrations:migrate`, never `doctrine:schema:update` or hand-written SQL.
+  `app:migrations:migrate`, never `doctrine:schema:update`. Migration files are only created by a command:
+  `app:migrations:diff <context>`, or `app:migrations:generate <context>` for an empty migration with SQL the
+  mapping can't express. Edit a generated file only to add CHECK constraints and complete `down()`.
 - `.env` is committed and holds defaults only. Real secrets belong in `.env.local`
   (git-ignored) or the secrets vault (`bin/console secrets:set`), read via
   `%env(...)%`.

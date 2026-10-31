@@ -62,8 +62,11 @@ Persistence (ADR 0004 of `bisort-console`):
   `learning`) and its own migration history (`<context>_migration_versions`). Its migrations live in
   `src/Context/<Context>/Infrastructure/Persistence/Migrations`.
 - Every folder `src/Context/<Context>` is a context; its schema is the lower-case name. Migrations are
-  created by `bin/console app:migrations:diff <context>` and applied by `app:migrations:migrate`, which
-  migrates every context.
+  applied by `app:migrations:migrate`, which migrates every context.
+- Migration files are only ever created by a command, never by hand: `bin/console app:migrations:diff
+  <context>` for a change to the mapping, `app:migrations:generate <context>` for an empty migration that
+  holds SQL the mapping can't express (a table Doctrine doesn't map, a data change). The generated file is
+  then edited only to add what the diff can't produce (CHECK constraints) and to complete `down()`.
 - A context stores only the id of another context's record. No foreign keys cross schemas; the use case in
   `Interface` checks references across contexts before it writes.
 - A context's diff compares the database with a target made of the context's mapping plus every table the

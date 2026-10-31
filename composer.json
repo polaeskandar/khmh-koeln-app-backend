@@ -82,6 +82,7 @@
         ],
         "test": [
             "@test:prepare @no_additional_args",
+            "@php bin/console app:migrations:check --env=test @no_additional_args",
             "@php bin/phpunit"
         ],
         "lint": [
