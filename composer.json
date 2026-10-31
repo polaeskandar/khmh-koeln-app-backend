@@ -70,6 +70,8 @@
             "@auto-scripts"
         ],
         "test": [
+            "@php bin/console doctrine:database:create --env=test --if-not-exists --quiet",
+            "@php bin/console doctrine:migrations:migrate --env=test --no-interaction --allow-no-migration --quiet",
             "@php bin/phpunit"
         ],
         "lint": [
@@ -86,7 +88,8 @@
             "mago lint",
             "mago analyze",
             "phpinsights analyse --no-interaction",
-            "@lint"
+            "@lint",
+            "@test"
         ]
     },
     "conflict": {
@@ -107,6 +110,7 @@
         "captainhook/captainhook": "^5.29",
         "captainhook/hook-installer": "^1.0",
         "carthage-software/mago": "^1.59",
+        "dama/doctrine-test-bundle": "^8.7",
         "nunomaduro/phpinsights": "^2.15",
         "phpunit/phpunit": "^13.4.5",
         "ramsey/conventional-commits": "^1.7",
