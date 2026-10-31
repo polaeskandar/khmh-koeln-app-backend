@@ -30,9 +30,18 @@ final readonly class Type
             : throw new UnexpectedValueException('The value is not a string.');
     }
 
-    public function toIntOrNull(): ?int
+    /**
+     * @template T of object
+     *
+     * @param class-string<T> $class
+     *
+     * @return T
+     */
+    public function toInstanceOf(string $class): object
     {
-        return is_int($this->value) ? $this->value : null;
+        return $this->value instanceof $class
+            ? $this->value
+            : throw new UnexpectedValueException('The value is not an instance of the expected class.');
     }
 
     public function toStringOrNull(): ?string

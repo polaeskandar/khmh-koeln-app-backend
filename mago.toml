@@ -26,7 +26,7 @@ no-redundant-variable = { enabled = true }
 no-unused-closure-capture = { enabled = true }
 no-parameter-shadowing = { enabled = true }
 no-assign-in-argument = { enabled = true }
-no-service-state-mutation = { enabled = true, exclude-namespaces = ["App\\Context\\Attendance\\Domain\\Entity\\", "App\\Context\\Identity\\Domain\\Entity\\", "App\\Context\\Learning\\Domain\\Entity\\", "App\\Context\\Meetings\\Domain\\Entity\\", "App\\Context\\Organization\\Domain\\Entity\\", "App\\Context\\People\\Domain\\Entity\\", "App\\Library\\Persistence\\Mapping\\"] }
+no-service-state-mutation = { enabled = true, exclude-namespaces = ["App\\Context\\Attendance\\Domain\\Entity\\", "App\\Context\\Identity\\Domain\\Entity\\", "App\\Context\\Learning\\Domain\\Entity\\", "App\\Context\\Meetings\\Domain\\Entity\\", "App\\Context\\Organization\\Domain\\Entity\\", "App\\Context\\People\\Domain\\Entity\\", "App\\Library\\Persistence\\Mapping\\", "App\\Tests\\"] }
 prefer-self-return-type = { enabled = true }
 variable-name = { enabled = true }
 method-name = { enabled = true }
@@ -107,43 +107,48 @@ allow-from = ["App\\Context\\Learning\\Infrastructure\\**", "App\\Tests\\**"]
 reason = "Only the context's own Infrastructure uses its Infrastructure; the rest goes through Domain contracts."
 
 [[guard.perimeter.restrictions]]
+dependency = "App\\Library\\Checksum\\**"
+deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
+reason = "Library packages are independent of each other."
+
+[[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Collections\\**"
-deny-from = ["App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Checksum\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Console\\**"
-deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Checksum\\**", "App\\Library\\Collections\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Files\\**"
-deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Checksum\\**", "App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Persistence\\**"
-deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Checksum\\**", "App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Problem\\**"
-deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Checksum\\**", "App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Strings\\**"
-deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Checksum\\**", "App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Time\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Time\\**"
-deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Checksum\\**", "App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Types\\**"
-deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**"]
+deny-from = ["App\\Library\\Checksum\\**", "App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Persistence\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Time\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]

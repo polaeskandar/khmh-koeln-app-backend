@@ -137,6 +137,11 @@ any of the user's roles has that permission. The catalog and the defaults Admini
 parent portal), Service leader, Servant and Parent (`parentPortal:read`) are seeded by a migration; the roles
 are ordinary roles. `app:user:create --role=<name>` writes the account with that role in one transaction.
 
+Sign-in sessions live in `public.sessions` (Symfony's `PdoSessionHandler` table, created by an Identity
+migration from `app:migrations:generate identity` and outside every context's schema, so no context's diff touches it). A session holds
+only the account id, a crc32c fingerprint of the password hash and the approval and disabled times; it ends
+when either changes.
+
 The backend checks every request against these roles. The frontend only uses them to hide actions a person
 can't take.
 

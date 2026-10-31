@@ -32,9 +32,13 @@ final class TypeTest extends TestCase
         Type::of(1)->toString();
     }
 
-    public function testAnIntegerIsReturnedOnlyForAnInteger(): void
+    public function testAnInstanceIsRequiredWhereOneMustBe(): void
     {
-        self::assertSame(7, Type::of(7)->toIntOrNull());
-        self::assertNull(Type::of('7')->toIntOrNull());
+        $date = new \DateTimeImmutable('2026-11-08');
+
+        self::assertSame($date, Type::of($date)->toInstanceOf(\DateTimeImmutable::class));
+
+        $this->expectException(\UnexpectedValueException::class);
+        Type::of('2026-11-08')->toInstanceOf(\DateTimeImmutable::class);
     }
 }
