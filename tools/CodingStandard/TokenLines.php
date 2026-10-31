@@ -16,7 +16,7 @@ final readonly class TokenLines
 
     public function line(int $position): int
     {
-        return Type::of($this->file->getTokens()[$position]['line'] ?? null)->toIntOrNull() ?? 0;
+        return (int) Type::of($this->file->getTokens()[$position]['line'] ?? null)->toScalarOrNull();
     }
 
     public function code(int $position): string|int|float|bool|null

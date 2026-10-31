@@ -26,6 +26,28 @@ final readonly class AccountStatus
 
     public function isActive(): bool
     {
-        return $this->approvedAt !== null && $this->disabledAt === null;
+        return !$this->isPending() && !$this->isDisabled();
+    }
+
+    public function isPending(): bool
+    {
+        return $this->approvedAt === null;
+    }
+
+    public function isDisabled(): bool
+    {
+        return $this->disabledAt !== null;
+    }
+
+    public function equals(self $other): bool
+    {
+        $sameApproval = self::sameInstant($this->approvedAt, $other->approvedAt);
+
+        return $sameApproval && self::sameInstant($this->disabledAt, $other->disabledAt);
+    }
+
+    private static function sameInstant(?DateTimeImmutable $one, ?DateTimeImmutable $other): bool
+    {
+        return $one?->getTimestamp() === $other?->getTimestamp();
     }
 }

@@ -6,7 +6,24 @@ framework:
         Doctrine\DBAL\Exception\UniqueConstraintViolationException: { log_level: info }
     secret: '%env(APP_SECRET)%'
 
-    session: true
+    session:
+        handler_id: '%env(DATABASE_URL)%'
+        name: khmk_session
+        cookie_secure: true
+        cookie_httponly: true
+        cookie_samesite: lax
+        cookie_lifetime: '%env(int:SESSION_LIFETIME)%'
+        gc_maxlifetime: '%env(int:SESSION_LIFETIME)%'
+
+when@dev:
+    framework:
+        session:
+            cookie_secure: auto
+
+when@prod:
+    framework:
+        session:
+            name: __Host-khmk_session
 
 when@test:
     framework:
