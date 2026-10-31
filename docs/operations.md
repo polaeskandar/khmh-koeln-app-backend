@@ -133,6 +133,22 @@ Sources: [Ubicloud on Hetzner](https://ubicloud.com/blog/open-and-portable-manag
 [DigitalOcean PostgreSQL versions](https://docs.digitalocean.com/products/databases/postgresql/how-to/create/),
 [DigitalOcean DPA (January 2026)](https://www.digitalocean.com/legal/data-processing-agreement-january-2026).
 
+## Configuration
+
+The variables the application reads. `.env` holds the development defaults; production sets real values in the
+environment (#41).
+
+| Variable | Example | Secret | Purpose |
+| --- | --- | --- | --- |
+| `APP_ENV` | `prod` | No | Symfony environment: `dev`, `test` or `prod` |
+| `APP_SECRET` | 32 random hex bytes | Yes | Signs CSRF tokens and other Symfony secrets |
+| `APP_SHARE_DIR` | `var/share` | No | Directory for data shared across deploys |
+| `DEFAULT_URI` | `https://app.khmk-koeln.com` | No | Base URL for links generated outside a request (console) |
+| `DATABASE_URL` | `postgresql://app:…@db:5432/khmk?serverVersion=18&charset=utf8` | Yes | PostgreSQL connection |
+| `MESSENGER_TRANSPORT_DSN` | `doctrine://default` | No | Queue of the Messenger worker |
+
+Later issues add their variables here.
+
 ## Decision checklist for Tue 3 Nov
 
 | Decision | Owner |

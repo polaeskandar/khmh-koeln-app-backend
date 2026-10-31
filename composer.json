@@ -77,8 +77,7 @@
             "@auto-scripts"
         ],
         "test": [
-            "@php bin/console doctrine:database:create --env=test --if-not-exists --quiet",
-            "@php bin/console app:migrations:migrate --env=test --no-interaction --quiet",
+            "@test:prepare @no_additional_args",
             "@php bin/phpunit"
         ],
         "lint": [
@@ -98,6 +97,21 @@
             "phpinsights analyse --no-interaction",
             "@lint",
             "@test"
+        ],
+        "db:test:reset": [
+            "@php bin/console doctrine:database:drop --env=test --force --if-exists --quiet",
+            "@php bin/console doctrine:database:create --env=test --quiet",
+            "@php bin/console app:migrations:migrate --env=test --no-interaction --quiet"
+        ],
+        "ci": [
+            "@composer validate --strict",
+            "@composer audit",
+            "@db:test:reset",
+            "@check"
+        ],
+        "test:prepare": [
+            "@php bin/console doctrine:database:create --env=test --if-not-exists --quiet",
+            "@php bin/console app:migrations:migrate --env=test --no-interaction --quiet"
         ]
     },
     "conflict": {
