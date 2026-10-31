@@ -8,45 +8,41 @@ use PHPUnit\Framework\TestCase;
 
 final class UseCaseLayoutTest extends TestCase
 {
-    private const array REQUEST_SUFFIXES = ['Command' => 'Command', 'Query' => 'Query'];
+    private const array KINDS = ['Command', 'Query'];
 
     public function testEveryUseCaseFolderHoldsItsRequestAndItsHandlerOnly(): void
     {
-        $misplaced = [];
-        foreach (self::REQUEST_SUFFIXES as $kind => $suffix) {
-            foreach (self::useCaseFolders($kind) as $folder) {
-                $name = basename($folder);
-                $expected = [$name . $suffix . '.php', $name . 'Handler.php'];
-                $files = array_map(basename(...), self::paths($folder . '/*'));
-                sort($expected);
-                sort($files);
-                if ($files !== $expected) {
-                    $misplaced[] = sprintf('%s holds %s', $folder, implode(', ', $files));
-                }
-            }
-        }
+        $misplaced = array_filter(array_map(
+            self::misplacement(...),
+            self::paths(self::root() . '/src/Interface/Application/*/UseCase/*/*'),
+        ));
 
         self::assertSame(
             [],
-            $misplaced,
+            array_values($misplaced),
             'A use case folder holds exactly <Name>Command|<Name>Query and <Name>Handler.',
         );
     }
 
     public function testUseCasesAreEitherCommandsOrQueries(): void
     {
-        $folders = self::paths(self::root() . '/src/Interface/Application/*/UseCase/*');
-        $kinds = array_unique(array_map(basename(...), $folders));
+        $kinds = array_unique(array_map(
+            basename(...),
+            self::paths(self::root() . '/src/Interface/Application/*/UseCase/*'),
+        ));
 
-        self::assertSame([], array_values(array_diff($kinds, array_keys(self::REQUEST_SUFFIXES))));
+        self::assertSame([], array_values(array_diff($kinds, self::KINDS)));
     }
 
-    /**
-     * @return list<string>
-     */
-    private static function useCaseFolders(string $kind): array
+    private static function misplacement(string $folder): ?string
     {
-        return self::paths(self::root() . '/src/Interface/Application/*/UseCase/' . $kind . '/*');
+        $name = basename($folder);
+        $expected = [$name . 'Handler.php', $name . basename(dirname($folder)) . '.php'];
+        $files = array_map(basename(...), self::paths($folder . '/*'));
+        sort($expected);
+        sort($files);
+
+        return $files === $expected ? null : sprintf('%s holds %s', $folder, implode(', ', $files));
     }
 
     /**

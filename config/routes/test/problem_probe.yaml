@@ -1,0 +1,3 @@
+problem_probes:
+    resource: '../../../tests/Support/Platform/Problem/'
+    type: attribute

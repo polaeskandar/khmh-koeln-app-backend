@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Support;
 
+use Override;
 use stdClass;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -13,7 +14,12 @@ abstract class ApiTestCase extends WebTestCase
 {
     private const array SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS'];
 
-    private ?KernelBrowser $browser = null;
+    #[Override]
+    protected function setUp(): void
+    {
+        parent::setUp();
+        self::createClient();
+    }
 
     /**
      * @param array<array-key, mixed> $body
@@ -21,10 +27,10 @@ abstract class ApiTestCase extends WebTestCase
      */
     protected function jsonRequest(string $method, string $uri, array $body = [], array $headers = []): Response
     {
-        $server = ['HTTP_ACCEPT' => 'application/json'];
-        foreach ($headers as $name => $value) {
-            $server['HTTP_' . strtoupper(str_replace(search: '-', replace: '_', subject: $name))] = $value;
-        }
+        $server = [
+            'HTTP_ACCEPT' => 'application/json',
+            ...array_combine(array_map(self::serverName(...), array_keys($headers)), $headers),
+        ];
 
         $content = null;
         if (!in_array(strtoupper($method), self::SAFE_METHODS, strict: true)) {
@@ -32,10 +38,26 @@ abstract class ApiTestCase extends WebTestCase
             $content = json_encode($body === [] ? new stdClass() : $body, JSON_THROW_ON_ERROR);
         }
 
-        $browser = $this->browser();
-        $browser->request($method, $uri, server: $server, content: $content);
+        $this->browser()->request($method, $uri, server: $server, content: $content);
 
-        return $browser->getResponse();
+        return $this->browser()->getResponse();
+    }
+
+    /**
+     * @param array<string, bool|int|string> $options
+     */
+    protected function startClient(array $options): void
+    {
+        self::ensureKernelShutdown();
+        self::createClient($options);
+    }
+
+    protected function browser(): KernelBrowser
+    {
+        $browser = self::getClient();
+        self::assertInstanceOf(KernelBrowser::class, $browser);
+
+        return $browser;
     }
 
     /**
@@ -45,43 +67,58 @@ abstract class ApiTestCase extends WebTestCase
     {
         $content = (string) $this->browser()->getResponse()->getContent();
 
-        return self::asArray(json_decode($content, associative: true, flags: JSON_THROW_ON_ERROR), 'The response body');
+        return JsonBody::asArray(
+            json_decode($content, associative: true, flags: JSON_THROW_ON_ERROR),
+            'The response body',
+        );
     }
 
     protected function assertJsonPath(string $path, mixed $expected): void
     {
-        self::assertSame($expected, self::valueAt($this->responseJson(), explode('.', $path), $path));
+        self::assertSame($expected, JsonBody::valueAt($this->responseJson(), explode('.', $path), $path));
     }
 
     /**
-     * @param list<string> $keys
+     * @param array<string, string|int|float|bool|null> $params
      */
-    private static function valueAt(mixed $node, array $keys, string $path): mixed
+    protected function assertProblem(int $status, string $code, array $params = []): void
     {
-        if ($keys === []) {
-            return $node;
-        }
+        $response = $this->browser()->getResponse();
+        self::assertSame($status, $response->getStatusCode());
+        self::assertSame('application/problem+json', $response->headers->get('Content-Type'));
 
-        $object = self::asArray($node, sprintf('"%s"', $path));
-        if (!array_key_exists($keys[0], $object)) {
-            self::fail(sprintf('The response has no "%s".', $path));
-        }
-
-        return self::valueAt($object[$keys[0]], array_slice($keys, offset: 1), $path);
+        $body = $this->responseJson();
+        self::assertSame($status, $body['status'] ?? null);
+        self::assertSame($code, $body['code'] ?? null);
+        self::assertSame(
+            JsonBody::sorted($params),
+            JsonBody::sorted(JsonBody::asArray($body['params'] ?? null, '"params"')),
+        );
     }
 
     /**
-     * @return array<array-key, mixed>
+     * @param array<string, string|int|float|bool|null> $params
      */
-    private static function asArray(mixed $value, string $what): array
+    protected function assertFieldError(string $field, string $code, array $params = []): void
     {
-        self::assertIsArray($value, sprintf('%s is not a JSON object or array.', $what));
+        $fieldErrors = JsonBody::asArray($this->responseJson()['fieldErrors'] ?? null, '"fieldErrors"');
+        $error = JsonBody::asArray($fieldErrors[$field] ?? null, $field);
 
-        return $value;
+        self::assertSame($code, $error['code'] ?? null, $field);
+        self::assertSame(
+            JsonBody::sorted($params),
+            JsonBody::sorted(JsonBody::asArray($error['params'] ?? null, $field)),
+            $field,
+        );
     }
 
-    protected function browser(): KernelBrowser
+    private static function serverName(string $header): string
     {
-        return $this->browser ??= self::createClient();
+        return 'HTTP_' . ($header |> strtoupper(...) |> self::underscored(...));
+    }
+
+    private static function underscored(string $name): string
+    {
+        return str_replace(search: '-', replace: '_', subject: $name);
     }
 }

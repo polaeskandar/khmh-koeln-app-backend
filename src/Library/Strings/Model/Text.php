@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Library\Strings\Model;
 
+use InvalidArgumentException;
 use Override;
 use Stringable;
 
@@ -33,6 +34,25 @@ final readonly class Text implements Stringable
     public function lower(): self
     {
         return new self(mb_strtolower($this->value));
+    }
+
+    public function replaceMatches(string $pattern, string $replacement): self
+    {
+        return new self(
+            preg_replace($pattern, $replacement, $this->value) ?? throw new InvalidArgumentException(
+                'The pattern could not be applied.',
+            ),
+        );
+    }
+
+    public function matches(string $pattern): bool
+    {
+        return preg_match($pattern, $this->value) === 1;
+    }
+
+    public function isDigits(): bool
+    {
+        return ctype_digit($this->value);
     }
 
     public function startsWith(string $prefix): bool

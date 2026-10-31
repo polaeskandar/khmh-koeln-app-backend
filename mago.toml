@@ -18,6 +18,19 @@ integrations = ["symfony", "doctrine", "phpunit"]
 
 [linter.rules]
 assertion-style = { style = "self" }
+no-array-accumulation-in-loop = { enabled = true }
+prefer-early-return = { enabled = true }
+no-redundant-else = { enabled = true }
+no-dead-store = { enabled = true }
+no-redundant-variable = { enabled = true }
+no-unused-closure-capture = { enabled = true }
+no-parameter-shadowing = { enabled = true }
+no-assign-in-argument = { enabled = true }
+no-service-state-mutation = { enabled = true }
+prefer-self-return-type = { enabled = true }
+variable-name = { enabled = true }
+method-name = { enabled = true }
+property-name = { enabled = true }
 
 [analyzer]
 minimum-fail-level = "Note"
@@ -94,18 +107,33 @@ allow-from = ["App\\Context\\Learning\\Infrastructure\\**", "App\\Tests\\**"]
 reason = "Only the context's own Infrastructure uses its Infrastructure; the rest goes through Domain contracts."
 
 [[guard.perimeter.restrictions]]
+dependency = "App\\Library\\Collections\\**"
+deny-from = ["App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Types\\**"]
+reason = "Library packages are independent of each other."
+
+[[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Console\\**"
-deny-from = ["App\\Library\\Strings\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Files\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Types\\**"]
+reason = "Library packages are independent of each other."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Library\\Files\\**"
+deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**", "App\\Library\\Types\\**"]
+reason = "Library packages are independent of each other."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Library\\Problem\\**"
+deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Strings\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Strings\\**"
-deny-from = ["App\\Library\\Console\\**", "App\\Library\\Types\\**"]
+deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Problem\\**", "App\\Library\\Types\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Types\\**"
-deny-from = ["App\\Library\\Console\\**", "App\\Library\\Strings\\**"]
+deny-from = ["App\\Library\\Collections\\**", "App\\Library\\Console\\**", "App\\Library\\Files\\**", "App\\Library\\Problem\\**", "App\\Library\\Strings\\**"]
 reason = "Library packages are independent of each other."
 
 [[guard.perimeter.restrictions]]
@@ -198,3 +226,9 @@ target = "class"
 must-be-named = "*Command"
 must-be-final = true
 reason = "Platform console commands are named *Command."
+
+[[guard.perimeter.restrictions]]
+dependency = "**"
+kinds = ["function"]
+allow-from = ["App\\Library\\**", "App\\Tests\\**", "@global"]
+reason = "PHP native functions are wrapped once in a Library model; the rest of the application calls the model."

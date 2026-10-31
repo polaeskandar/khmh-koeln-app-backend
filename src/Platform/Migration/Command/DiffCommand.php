@@ -35,7 +35,7 @@ final readonly class DiffCommand
         string $context,
     ): int {
         try {
-            return $this->runner->diff(MigrationSet::named($context, $this->projectDir), $output);
+            return $this->runner->diff(MigrationSet::named($context, projectDir: $this->projectDir), $output);
         } catch (NoChangesDetected) {
             $io->success(Text::format('The "%s" context needs no migration.', $context)->toString());
 

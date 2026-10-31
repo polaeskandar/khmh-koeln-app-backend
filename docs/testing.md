@@ -13,7 +13,8 @@ transaction that is rolled back afterwards (DAMA), schema changes included, so t
 - `tests/Architecture` checks the layout of `src` and `tests` and the context wiring.
 - API tests extend `App\Tests\Support\ApiTestCase`: `jsonRequest()` sends JSON like the frontend (`{}` when
   an unsafe request has no body), `responseJson()` decodes the answer, `assertJsonPath('fieldErrors.name.code', …)`
-  checks one value.
+  checks one value, `assertProblem(status, code, params)` and `assertFieldError(field, code, params)` check a
+  problem body. `tests/Support/Platform/Problem` holds test-only probe controllers under `/api/test/…`.
 - Test data comes from plain builders, no Foundry.
 - Dates and times come from `MockClock` (`ClockSensitiveTrait`), never from the real clock.
 - Races are proven with database constraints and lock tests, not with threads.

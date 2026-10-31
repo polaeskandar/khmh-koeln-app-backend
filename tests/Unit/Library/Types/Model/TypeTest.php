@@ -15,4 +15,12 @@ final class TypeTest extends TestCase
         self::assertNull(Type::of(1)->toStringOrNull());
         self::assertNull(Type::of(null)->toStringOrNull());
     }
+
+    public function testScalarIsReturnedOnlyForAScalar(): void
+    {
+        self::assertSame(120, Type::of(120)->toScalarOrNull());
+        self::assertFalse(Type::of(false)->toScalarOrNull());
+        self::assertNull(Type::of(['a'])->toScalarOrNull());
+        self::assertNull(Type::of(null)->toScalarOrNull());
+    }
 }

@@ -16,7 +16,7 @@ final class Kernel extends BaseKernel
      */
     public static function fromRuntimeContext(array $context): self
     {
-        return new self($context['APP_ENV'], (bool) $context['APP_DEBUG']);
+        return new self(environment: $context['APP_ENV'], debug: (bool) $context['APP_DEBUG']);
     }
 
     /**

@@ -29,6 +29,7 @@ Local overrides go in `.env.local` (git-ignored), never in `.env`. The variables
 - [Architecture](docs/architecture.md)
 - [Data model](docs/data-model.md)
 - [API contract](docs/api.md)
+- [Code style](docs/code-style.md)
 - [Testing](docs/testing.md)
 - [Operations](docs/operations.md)
 - [Launch checklist](docs/launch-checklist.md)

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Platform\Http\Service;
 
-use App\Library\Strings\Model\Text;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
@@ -13,8 +12,7 @@ final class ApiResponseHeaders
 {
     public function __invoke(ResponseEvent $event): void
     {
-        $path = Text::of($event->getRequest()->getPathInfo());
-        if ($path->toString() !== '/api' && !$path->startsWith('/api/')) {
+        if (!ApiRequest::is($event->getRequest())) {
             return;
         }
 

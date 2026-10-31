@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Platform\Migration\Service;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Schema\AbstractNamedObject;
 use Doctrine\DBAL\Schema\Name;
 use Doctrine\DBAL\Schema\Name\OptionallyQualifiedName;
@@ -32,12 +33,12 @@ final readonly class ContextSchemaProvider implements SchemaProvider
 
         return new Schema(
             [
-                ...array_filter($mapped->getTables(), $this->isInTheContext(...)),
-                ...array_filter($database->getTables(), $this->isOutsideTheContext(...)),
+                ...new ArrayCollection($mapped->getTables())->filter($this->isInTheContext(...)),
+                ...new ArrayCollection($database->getTables())->filter($this->isOutsideTheContext(...)),
             ],
             [
-                ...array_filter($mapped->getSequences(), $this->isInTheContext(...)),
-                ...array_filter($database->getSequences(), $this->isOutsideTheContext(...)),
+                ...new ArrayCollection($mapped->getSequences())->filter($this->isInTheContext(...)),
+                ...new ArrayCollection($database->getSequences())->filter($this->isOutsideTheContext(...)),
             ],
             $schemaManager->createSchemaConfig(),
         );

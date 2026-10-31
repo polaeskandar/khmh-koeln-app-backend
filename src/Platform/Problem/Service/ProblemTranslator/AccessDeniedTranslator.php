@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Platform\Problem\Service\ProblemTranslator;
+
+use App\Platform\Problem\Model\Problem;
+use Override;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Throwable;
+
+/**
+ * @implements ProblemTranslator<AccessDeniedHttpException>
+ */
+final readonly class AccessDeniedTranslator implements ProblemTranslator
+{
+    #[Override]
+    public function supports(Throwable $exception): bool
+    {
+        return $exception instanceof AccessDeniedHttpException;
+    }
+
+    /**
+     * @param AccessDeniedHttpException $exception
+     */
+    #[Override]
+    public function translate(Throwable $exception): Problem
+    {
+        $message = $exception->getMessage();
+
+        return new Problem(Response::HTTP_FORBIDDEN, Problem::isCode($message) ? $message : 'forbidden');
+    }
+}
