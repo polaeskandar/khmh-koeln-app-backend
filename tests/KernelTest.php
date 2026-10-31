@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests;
 
+use App\Kernel;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-/**
- * Smoke test for the project setup: the kernel boots in the test environment
- * and Doctrine is configured for PostgreSQL. It does not need a running database.
- */
 final class KernelTest extends KernelTestCase
 {
     public function testTheApplicationBootsWithAPostgreSqlConnection(): void
@@ -22,5 +19,14 @@ final class KernelTest extends KernelTestCase
 
         self::assertInstanceOf(Connection::class, $connection);
         self::assertInstanceOf(PostgreSQLPlatform::class, $connection->getDatabasePlatform());
+    }
+
+    public function testItIsBuiltFromTheRuntimeContext(): void
+    {
+        $kernel = Kernel::fromContext(['APP_ENV' => 'test', 'APP_DEBUG' => '1']);
+
+        self::assertSame('test', $kernel->getEnvironment());
+        self::assertTrue($kernel->isDebug());
+        self::assertFalse(Kernel::fromContext(['APP_ENV' => 'prod', 'APP_DEBUG' => '0'])->isDebug());
     }
 }

@@ -15,7 +15,7 @@
     "pre-commit": {
         "enabled": true,
         "actions": [
-            {"action": "composer lint"}
+            {"action": "composer check"}
         ]
     }
 }

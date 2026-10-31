@@ -86,9 +86,9 @@ a controller or a service call for a service, not just "it didn't throw."
 
 ## Code style
 
-Symfony's coding standard, the `@Symfony` php-cs-fixer ruleset (a PSR-12-derived
-superset). Run `vendor/bin/php-cs-fixer fix` if `friendsofphp/php-cs-fixer` is
-installed; it isn't part of the skeleton by default.
+Mago formats, lints and analyses (`mago.toml`); PHP Insights checks quality, complexity and architecture
+(`phpinsights.php`). Run `composer format` to fix formatting and `composer check` before committing; the
+`pre-commit` hook runs `composer check` too. Fix findings instead of suppressing them.
 
 ## Discover, don't guess
 

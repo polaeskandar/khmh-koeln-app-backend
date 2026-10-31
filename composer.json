@@ -27,7 +27,8 @@
             "php-http/discovery": true,
             "symfony/flex": true,
             "symfony/runtime": true,
-            "captainhook/hook-installer": true
+            "captainhook/hook-installer": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
         },
         "bump-after-update": true,
         "sort-packages": true,
@@ -75,6 +76,17 @@
             "@php bin/console lint:container",
             "@php bin/console lint:yaml config --parse-tags",
             "@php bin/console doctrine:schema:validate --skip-sync"
+        ],
+        "format": [
+            "mago format",
+            "mago lint --fix"
+        ],
+        "check": [
+            "mago format --check",
+            "mago lint",
+            "mago analyze",
+            "phpinsights analyse --no-interaction",
+            "@lint"
         ]
     },
     "conflict": {
@@ -94,6 +106,8 @@
     "require-dev": {
         "captainhook/captainhook": "^5.29",
         "captainhook/hook-installer": "^1.0",
+        "carthage-software/mago": "^1.59",
+        "nunomaduro/phpinsights": "^2.15",
         "phpunit/phpunit": "^13.4.5",
         "ramsey/conventional-commits": "^1.7",
         "symfony/browser-kit": "8.1.*",
