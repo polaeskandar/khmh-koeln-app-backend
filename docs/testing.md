@@ -1,15 +1,20 @@
 # Testing
 
-`composer test` creates and migrates the test database `khmk_test`, then runs PHPUnit. Every test runs in a
+`composer test` creates and migrates the test database `khmk_test` (every context's schema), then runs the
+`Unit`, `Functional` and `Architecture` suites. Every test runs in a
 transaction that is rolled back afterwards (DAMA), schema changes included, so tests can run in any order.
 
 ## Conventions
 
-- Tests mirror the modules: `tests/<Module>/…`.
-- API tests extend `App\Tests\ApiTestCase`: `jsonRequest()` sends JSON like the frontend (`{}` when an unsafe
-  request has no body), `responseJson()` decodes the answer, `assertJsonPath('fieldErrors.name.code', …)`
+- Tests mirror `src`: `tests/Unit/<src path>/<Class>Test.php` for tests without the kernel,
+  `tests/Functional/<src path>/<Class>Test.php` for tests with it. The name starts with the class it covers.
+- Helpers mirror `src` in `tests/Support/<src path>/`; generic ones (`ApiTestCase`) sit at its root. Fixtures
+  live in `tests/Fixtures/Context/<Context>/`. Tests of helpers sit under `tests/Functional/Support/`.
+- `tests/Architecture` checks the layout of `src` and `tests` and the context wiring.
+- API tests extend `App\Tests\Support\ApiTestCase`: `jsonRequest()` sends JSON like the frontend (`{}` when
+  an unsafe request has no body), `responseJson()` decodes the answer, `assertJsonPath('fieldErrors.name.code', …)`
   checks one value.
-- Test data comes from plain builders in `tests/Factory`, no Foundry.
+- Test data comes from plain builders, no Foundry.
 - Dates and times come from `MockClock` (`ClockSensitiveTrait`), never from the real clock.
 - Races are proven with database constraints and lock tests, not with threads.
 

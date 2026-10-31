@@ -21,6 +21,9 @@ Doctrine on Symfony 7.4. It has no lessons, homework or parent access.
   them. Only drafts that nobody else saw can be deleted. The exception is erasure on a person's request
   (DSGVO Art. 17), which deletes their personal data for good; see [Data protection](#data-protection).
 - **JSON names** in the API are camelCase. Columns are snake_case.
+- **Contexts own their tables.** Each context has its own PostgreSQL schema. A reference to another
+  context's record is its id without a foreign key, checked by the use case that writes it; the foreign keys
+  in the tables below hold within a context only (see [Code layout](architecture.md#code-layout)).
 
 ## Overview
 

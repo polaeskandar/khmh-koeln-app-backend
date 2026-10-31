@@ -4,7 +4,7 @@ services:
   api:
     build: .
     image: khmk-koeln-api
-    command: ["sh", "-c", "composer install --no-interaction && bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration && exec frankenphp run --config /etc/frankenphp/Caddyfile"]
+    command: ["sh", "-c", "composer install --no-interaction && bin/console app:migrations:migrate --no-interaction && exec frankenphp run --config /etc/frankenphp/Caddyfile"]
     environment:
       DATABASE_URL: "postgresql://khmk:khmk@database:5432/khmk?serverVersion=18&charset=utf8"
       SERVER_NAME: ":80"

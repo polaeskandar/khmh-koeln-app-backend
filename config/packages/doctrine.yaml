@@ -1,6 +1,8 @@
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
+        options:
+            !php/const PDO::ATTR_TIMEOUT: 2
 
         profiling_collect_backtrace: '%kernel.debug%'
     orm:
@@ -8,13 +10,38 @@ doctrine:
         naming_strategy: doctrine.orm.naming_strategy.underscore
         identity_generation_preferences:
             Doctrine\DBAL\Platforms\PostgreSQLPlatform: identity
-        auto_mapping: true
+        auto_mapping: false
         mappings:
-            App:
+            Identity:
                 type: attribute
                 is_bundle: false
-                dir: '%kernel.project_dir%/src/Entity'
-                prefix: 'App\Entity'
+                dir: '%kernel.project_dir%/src/Context/Identity/Domain'
+                prefix: 'App\Context\Identity\Domain'
+            Organization:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Context/Organization/Domain'
+                prefix: 'App\Context\Organization\Domain'
+            People:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Context/People/Domain'
+                prefix: 'App\Context\People\Domain'
+            Meetings:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Context/Meetings/Domain'
+                prefix: 'App\Context\Meetings\Domain'
+            Attendance:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Context/Attendance/Domain'
+                prefix: 'App\Context\Attendance\Domain'
+            Learning:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Context/Learning/Domain'
+                prefix: 'App\Context\Learning\Domain'
 
 when@test:
     doctrine:

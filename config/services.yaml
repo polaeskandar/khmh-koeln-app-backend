@@ -1,7 +1,5 @@
 # yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
 
-parameters:
-
 services:
     _defaults:
         autowire: true
@@ -9,4 +7,7 @@ services:
 
     App\:
         resource: '../src/'
-
+        exclude:
+            - '../src/Platform/Kernel/Service/Kernel.php'
+            - '../src/Context/*/Domain/Entity/'
+            - '../src/Context/*/Infrastructure/Persistence/Migrations/'

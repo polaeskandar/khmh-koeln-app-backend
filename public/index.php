@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Kernel;
+use App\Platform\Kernel\Service\Kernel;
 
 require_once dirname(__DIR__) . '/vendor/autoload_runtime.php';
 
-return Kernel::fromContext(...);
+return Kernel::fromRuntimeContext(...);
