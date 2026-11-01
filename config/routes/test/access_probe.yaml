@@ -1,0 +1,3 @@
+access_probes:
+    resource: '../../../tests/Support/Interface/Application/Security/Service/'
+    type: attribute
