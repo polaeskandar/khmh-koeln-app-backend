@@ -14,6 +14,8 @@ security:
             pattern: ^/api
             lazy: true
             provider: accounts
+            login_throttling:
+                limiter: App\Context\Identity\Infrastructure\Security\SignInRateLimiter
             json_login:
                 check_path: api_auth_sign_in
                 username_path: email

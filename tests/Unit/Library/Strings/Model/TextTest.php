@@ -56,4 +56,10 @@ final class TextTest extends TestCase
         self::assertFalse(Text::of('12a')->isDigits());
         self::assertFalse(Text::of('')->isDigits());
     }
+
+    public function testSplitCutsAtEverySeparator(): void
+    {
+        self::assertSame(['a', ' b', ''], Text::of('a, b,')->split(','));
+        self::assertSame([''], Text::of('')->split(','));
+    }
 }

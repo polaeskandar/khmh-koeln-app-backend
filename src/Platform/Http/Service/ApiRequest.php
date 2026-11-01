@@ -15,4 +15,9 @@ final readonly class ApiRequest
 
         return $path->toString() === '/api' || $path->startsWith('/api/');
     }
+
+    public static function isUnsafe(Request $request): bool
+    {
+        return !$request->isMethodSafe() && self::is($request);
+    }
 }

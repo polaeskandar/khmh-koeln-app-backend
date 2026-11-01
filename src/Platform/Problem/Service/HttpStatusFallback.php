@@ -32,6 +32,12 @@ final readonly class HttpStatusFallback
         }
 
         $status = $exception->getStatusCode();
+        $message = $exception->getMessage();
+
+        if (Problem::isCode($message)) {
+            return new Problem($status, $message);
+        }
+
         $fallback = $status >= Response::HTTP_INTERNAL_SERVER_ERROR ? 'internal' : 'invalidRequest';
 
         return new Problem($status, self::CODES[$status] ?? $fallback);

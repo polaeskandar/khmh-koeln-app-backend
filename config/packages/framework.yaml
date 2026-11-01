@@ -5,6 +5,8 @@ framework:
         App\Library\Problem\Exception\InvalidInput: { log_level: info }
         Doctrine\DBAL\Exception\UniqueConstraintViolationException: { log_level: info }
     secret: '%env(APP_SECRET)%'
+    trusted_proxies: '%env(TRUSTED_PROXIES)%'
+    trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port']
 
     session:
         handler_id: '%env(DATABASE_URL)%'
