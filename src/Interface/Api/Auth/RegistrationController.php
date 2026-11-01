@@ -1,0 +1,57 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Interface\Api\Auth;
+
+use App\Interface\Application\Identity\UseCase\Command\RegisterAccount\RegisterAccountCommand;
+use App\Interface\Application\Identity\UseCase\Command\RegisterAccount\RegisterAccountHandler;
+use App\Interface\Application\Identity\UseCase\Query\ListRegistrationServices\ListRegistrationServicesHandler;
+use App\Interface\Application\Identity\UseCase\Query\ListRegistrationServices\ListRegistrationServicesQuery;
+use App\Library\Time\Client\Calendar;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
+use Symfony\Component\Routing\Attribute\Route;
+
+#[Route('/api/auth/register')]
+final class RegistrationController extends AbstractController
+{
+    public function __construct(
+        #[Autowire(service: 'limiter.registration')]
+        private readonly RateLimiterFactoryInterface $registrations,
+        private readonly Calendar $calendar,
+    ) {
+    }
+
+    #[Route('', name: 'api_auth_register', methods: ['POST'])]
+    public function register(
+        Request $request,
+        #[MapRequestPayload]
+        RegisterAccountCommand $command,
+        RegisterAccountHandler $registerAccount,
+    ): JsonResponse {
+        $limit = $this->registrations->create($request->getClientIp() ?? '')->consume();
+
+        if (!$limit->isAccepted()) {
+            $seconds = $limit->getRetryAfter()->getTimestamp() - $this->calendar->now()->getTimestamp();
+
+            throw new TooManyRequestsHttpException($seconds, 'auth.tooManyAttempts');
+        }
+
+        $registerAccount($command);
+
+        return $this->json(['status' => 'received'], status: Response::HTTP_ACCEPTED);
+    }
+
+    #[Route('/services', name: 'api_auth_register_services', methods: ['GET'])]
+    public function services(ListRegistrationServicesHandler $listRegistrationServices): JsonResponse
+    {
+        return $this->json(['items' => $listRegistrationServices(new ListRegistrationServicesQuery())]);
+    }
+}

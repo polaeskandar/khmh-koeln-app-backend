@@ -24,6 +24,15 @@ final readonly class Registration
     ) {
     }
 
+    public static function of(
+        RegisteredAs $registeredAs,
+        string $note,
+        DateTimeImmutable $privacyAcceptedAt,
+        string $privacyVersion,
+    ): self {
+        return new self($registeredAs, $note, $privacyAcceptedAt, $privacyVersion);
+    }
+
     public static function none(): self
     {
         return new self(registeredAs: null, note: null, privacyAcceptedAt: null, privacyVersion: null);

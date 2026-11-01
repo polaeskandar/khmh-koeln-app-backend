@@ -41,6 +41,14 @@ final readonly class DoctrineServiceRepository implements ServiceRepositoryInter
         return new ArrayCollection([...$stored->toArray(), ...$pending->toArray()]);
     }
 
+    #[Override]
+    public function active(): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager->getRepository(Service::class)->findBy(['archivedAt' => null], [
+            'name.value' => 'ASC',
+        ]));
+    }
+
     private static function pendingToneOf(object $entity): ?int
     {
         return $entity instanceof Service ? self::toneOf($entity) : null;

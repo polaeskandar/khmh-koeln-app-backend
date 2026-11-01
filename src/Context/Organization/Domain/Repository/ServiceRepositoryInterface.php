@@ -15,4 +15,9 @@ interface ServiceRepositoryInterface
      * @return ReadableCollection<int, int>
      */
     public function tonesInUse(): ReadableCollection;
+
+    /**
+     * @return ReadableCollection<int, Service>
+     */
+    public function active(): ReadableCollection;
 }

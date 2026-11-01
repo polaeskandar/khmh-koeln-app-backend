@@ -25,7 +25,7 @@ security:
 
     access_control:
         - { path: ^/api/health, roles: PUBLIC_ACCESS }
-        - { path: ^/api/auth/sign-(in|out)$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/, roles: PUBLIC_ACCESS }
         - { path: ^/api/test/, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED }
 

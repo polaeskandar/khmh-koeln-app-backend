@@ -17,6 +17,8 @@ final class SpyPasswordHasherFactory implements PasswordHasherFactoryInterface
      */
     private array $verifiedHashes = [];
 
+    private int $hashCount = 0;
+
     public function __construct(
         private readonly PasswordHasherFactoryInterface $inner,
     ) {
@@ -25,7 +27,11 @@ final class SpyPasswordHasherFactory implements PasswordHasherFactoryInterface
     #[Override]
     public function getPasswordHasher(string|PasswordAuthenticatedUserInterface|PasswordHasherAwareInterface $user): PasswordHasherInterface
     {
-        return new SpyPasswordHasher($this->inner->getPasswordHasher($user), $this->recordVerification(...));
+        return new SpyPasswordHasher(
+            $this->inner->getPasswordHasher($user),
+            $this->recordVerification(...),
+            $this->recordHash(...),
+        );
     }
 
     public function recordVerification(string $hash): void
@@ -39,5 +45,15 @@ final class SpyPasswordHasherFactory implements PasswordHasherFactoryInterface
     public function verifiedHashes(): array
     {
         return $this->verifiedHashes;
+    }
+
+    public function recordHash(): void
+    {
+        $this->hashCount++;
+    }
+
+    public function hashCount(): int
+    {
+        return $this->hashCount;
     }
 }
