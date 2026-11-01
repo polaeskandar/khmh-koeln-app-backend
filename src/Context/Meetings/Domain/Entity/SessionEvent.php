@@ -6,7 +6,6 @@ namespace App\Context\Meetings\Domain\Entity;
 
 use App\Context\Meetings\Domain\Enum\SessionEventType;
 use App\Context\Meetings\Domain\ValueObject\Actor;
-use App\Context\Meetings\Domain\ValueObject\EventNote;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -35,15 +34,15 @@ final class SessionEvent
     #[ORM\Embedded(Actor::class, columnPrefix: false)]
     private readonly Actor $actor;
 
-    #[ORM\Embedded(EventNote::class, columnPrefix: false)]
-    private readonly EventNote $note;
+    #[ORM\Column(length: 200, nullable: true)]
+    private readonly ?string $note;
 
     public function __construct(
         Session $session,
         SessionEventType $type,
         DateTimeImmutable $occurredAt,
         Actor $actor,
-        EventNote $note,
+        ?string $note,
     ) {
         $this->id = Uuid::v7();
         $this->session = $session;
@@ -78,7 +77,7 @@ final class SessionEvent
         return $this->actor;
     }
 
-    public function note(): EventNote
+    public function note(): ?string
     {
         return $this->note;
     }

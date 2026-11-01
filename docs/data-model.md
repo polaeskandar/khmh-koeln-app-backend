@@ -43,7 +43,6 @@ erDiagram
     APP_USER ||--o{ ROLE_ASSIGNMENT : "holds"
     STAGE ||--o{ LESSON : "is taught"
     MEETING_SCHEDULE |o--o{ LESSON : "at schedule and date"
-    MEETING_SESSION |o--o{ LESSON : "at one-off session"
     LESSON ||--o{ HOMEWORK_ASSIGNMENT : "gives"
     HOMEWORK_ASSIGNMENT ||--o{ HOMEWORK_COMPLETION : "reported done"
     PERSON ||--o{ HOMEWORK_COMPLETION : "child"
@@ -102,33 +101,33 @@ service-level roster; `(service_id, stage_id)` is indexed for rosters. Ending a 
 | Table | Purpose | Key rules |
 | --- | --- | --- |
 | `meeting_schedule` | A meeting that repeats: weekly (every n weeks on chosen weekdays) or monthly (the nth or last weekday). Start and end time, place, roster mode. | `roster_mode` is `expected` (the stage or service roster is expected) or `open` (no roster; anyone can be marked present). Inactive schedules stop creating sessions. |
-| `meeting_session` | One meeting on one date. Created from a schedule, or by hand as a one-off (`schedule_id` null). | Unique `(schedule_id, occurrence_date)`. `occurrence_date` is the schedule date the session stands for and never changes, even when the session is moved, so the generator can't create it twice. |
-| `session_event` | The session's history: opened, closed, reopened, canceled, moved, edited, with who and an optional note. | Append-only. |
+| `meeting_session` | One meeting of a schedule on one date; its time, title, place and roster are the schedule's. | Unique `(schedule_id, occurrence_date)`, so the generator can't create it twice. |
+| `session_event` | The session's history: created, opened, closed, reopened, canceled, edited, with who and an optional note. | Append-only. |
 | `attendance` | A "present" mark. | At most one current mark per session and person (`removed_at` null). A correction sets `removed_at`, `removed_by` and a reason. There are no absence rows: not marked present is not the same as absent. |
 
 The meeting tables live in the `meetings` schema. A schedule's `Recurrence` is `frequency` (`weekly` or
 `monthly`), `interval` (1–52 weeks), `weekdays` (a bitmask of ISO weekdays, Monday = 1 … Sunday = 64, so 1–127),
 `month_week` (1–4 or -1 for the last; set exactly when monthly, and then with exactly one weekday) and
-`starts_on`/`ends_on` (`ends_on >= starts_on`). CHECKs also keep names and titles non-blank, `end_time >
-start_time`, `ends_at > starts_at`, `cancel_reason` only on canceled sessions, `closed_at` exactly on
+`starts_on`/`ends_on` (`ends_on >= starts_on`). CHECKs also keep names non-blank, `end_time >
+start_time`, `cancel_reason` only on canceled sessions, `closed_at` exactly on
 completed ones and `opened_at` on active and completed ones. `session_event` is append-only:
-`by_generator` marks the generator's actor-less `created` events and `previous_starts_at` is set exactly on
-`moved` events. Foreign keys inside Meetings are `RESTRICT`: a schedule with sessions and a session with
-history can't be deleted. `service_id`, `stage_id` and the actor columns (`opened_by`, `closed_by`,
+`by_generator` marks the generator's actor-less `created` events. Foreign keys inside Meetings are
+`RESTRICT`: a schedule with sessions and a session with history can't be deleted. `service_id`, `stage_id` (on the schedule) and the actor columns (`opened_by`, `closed_by`,
 `actor_id`) are plain ids without foreign keys; the use cases check them, and the erasure process (#82)
-nulls the actor columns. Indexes: `meeting_session (starts_at)`, `session_event (session_id, occurred_at)`.
+nulls the actor columns. Indexes: `meeting_session (occurrence_date)`, `session_event (session_id, occurred_at)`. For the MVP every
+session belongs to a schedule: there are no one-off sessions and sessions are not moved.
 
 Session status: `scheduled` → `active` (attendance open) → `completed` (attendance closed). A service leader
 can reopen a completed session for corrections. A scheduled session can be `canceled` with a reason; a
-planned date without a session yet can be canceled or moved ahead of time, which creates its session right
-away so the generator skips that date.
+planned date without a session yet can be canceled ahead of time, which creates its session right away so
+the generator skips that date.
 
 ### Session generation (backend job, not built yet)
 
 A scheduled console command runs every hour at minute 5. It creates the sessions of active schedules on the
 calendar day before they take place, and covers today as well in case a run was missed. It is idempotent:
 the unique `(schedule_id, occurrence_date)` key makes a second run a no-op, and a date that already has a
-session (moved or canceled included) is never touched again. The prototype simulates this job on its demo
+session (canceled included) is never touched again. The prototype simulates this job on its demo
 clock; it does not exist in the backend yet.
 
 ## Accounts and roles
@@ -177,7 +176,7 @@ roles. A parent account without any approved child sees an empty portal.
 
 | Table | Purpose | Key rules |
 | --- | --- | --- |
-| `lesson` | What is taught at one meeting of a stage: title, summary, passage, memory verse, objectives, teaching points, activities, materials, notes for the servants. A responsible servant and helpers (`lesson_collaborator`). | Linked to its meeting by `(schedule_id, teaching_date)`, the same key as the session, so it can be prepared weeks before the session exists and survives the session being moved. One-off sessions are linked by `session_id`. At most one non-archived lesson per meeting. |
+| `lesson` | What is taught at one meeting of a stage: title, summary, passage, memory verse, objectives, teaching points, activities, materials, notes for the servants. A responsible servant and helpers (`lesson_collaborator`). | Linked to its meeting by `(schedule_id, teaching_date)`, the same key as the session, so it can be prepared weeks before the session exists. At most one non-archived lesson per meeting. |
 | `homework_assignment` | A small task for the children of the lesson's stage: title, instructions for parents, optional due date, resources. | `stage_id` is the lesson's stage. The due date can't be before the lesson. `published_at` stays set once it was published. |
 | `homework_completion` | A parent's report that one child did one task. | At most one current report per task and child (`undone_at` null). Reporting twice keeps the first report. Undo sets `undone_at` and `undone_by`. Only an approved guardian of the child can report, and only while the task is published. |
 | `guardian_relationship` | Links a parent account to a child: `parent` or `guardian`. | `pending` → `approved` → `revoked`. Only administrators approve or create links. At most one non-revoked link per account and child. |

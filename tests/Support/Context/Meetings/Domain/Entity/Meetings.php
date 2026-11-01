@@ -8,15 +8,12 @@ use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Enum\RosterMode;
 use App\Context\Meetings\Domain\ValueObject\DateSpan;
-use App\Context\Meetings\Domain\ValueObject\Heading;
 use App\Context\Meetings\Domain\ValueObject\MeetingDetails;
 use App\Context\Meetings\Domain\ValueObject\Recurrence;
 use App\Context\Meetings\Domain\ValueObject\Roster;
 use App\Context\Meetings\Domain\ValueObject\TimeSlot;
-use App\Context\Meetings\Domain\ValueObject\Timing;
 use App\Library\Time\Model\LocalDate;
 use App\Library\Time\Model\LocalTime;
-use DateTimeImmutable;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class Meetings
@@ -42,24 +39,6 @@ final readonly class Meetings
 
     public static function session(Schedule $schedule, string $date = '2026-11-08'): Session
     {
-        return Session::ofSchedule($schedule, LocalDate::of($date), self::timing($date));
-    }
-
-    public static function oneOff(string $date = '2026-11-08'): Session
-    {
-        return Session::oneOff(
-            self::roster(),
-            LocalDate::of($date),
-            new Heading('Trip', location: null),
-            self::timing($date),
-        );
-    }
-
-    private static function timing(string $date): Timing
-    {
-        return new Timing(
-            new DateTimeImmutable($date . 'T12:00:00+01:00'),
-            new DateTimeImmutable($date . 'T13:30:00+01:00'),
-        );
+        return new Session($schedule, LocalDate::of($date));
     }
 }
