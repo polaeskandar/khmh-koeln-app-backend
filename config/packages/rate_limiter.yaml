@@ -1,0 +1,18 @@
+framework:
+    rate_limiter:
+        sign_in_account:
+            policy: fixed_window
+            limit: 5
+            interval: '15 minutes'
+        sign_in_client:
+            policy: fixed_window
+            limit: 25
+            interval: '15 minutes'
+
+when@test:
+    framework:
+        rate_limiter:
+            sign_in_account:
+                storage_service: app.test.rate_limits
+            sign_in_client:
+                storage_service: app.test.rate_limits

@@ -60,6 +60,16 @@ final readonly class Text implements Stringable
         return str_starts_with($this->value, $prefix);
     }
 
+    /**
+     * @param non-empty-string $separator
+     *
+     * @return list<string>
+     */
+    public function split(string $separator): array
+    {
+        return explode($separator, $this->value);
+    }
+
     public function toString(): string
     {
         return $this->value;

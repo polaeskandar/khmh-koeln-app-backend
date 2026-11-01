@@ -147,6 +147,14 @@ environment (#41).
 | `DATABASE_URL` | `postgresql://app:…@db:5432/khmk?serverVersion=18&charset=utf8` | Yes | PostgreSQL connection |
 | `MESSENGER_TRANSPORT_DSN` | `doctrine://default` | No | Queue of the Messenger worker |
 | `SESSION_LIFETIME` | `2592000` | No | Seconds a sign-in session lasts (30 days); also the PostgreSQL session garbage-collection age |
+| `FRONTEND_URL` | `https://app.khmk-koeln.com` | No | The web app's URL; its origin is the one origin allowed to send unsafe requests |
+| `CORS_ALLOW_ORIGIN` | empty (production), `http://localhost:3000` (`.env.dev`) | No | Comma-separated extra origins for local development: they may send unsafe requests and get credentialed CORS. Each entry is an exact `scheme://host[:port]`; `*` or anything else stops the application. Empty in production. |
+| `TRUSTED_PROXIES` | `10.0.0.0/8` or `REMOTE_ADDR` | No | Proxies whose `X-Forwarded-For`, `-Proto` and `-Port` are trusted, so sign-in limits count the real client (#41). Empty: forwarded headers are ignored. |
+
+Sign-in limits (5 attempts per email and client, 25 per client, per 15 minutes) are kept in the
+`cache.rate_limiter` pool, which is the application cache on the local filesystem. That is right for one API
+instance. A second instance needs a shared pool (Redis, or the database through `cache.adapter.doctrine_dbal`),
+or each instance counts on its own.
 
 Later issues add their variables here.
 

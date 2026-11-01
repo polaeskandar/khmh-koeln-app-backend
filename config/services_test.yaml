@@ -16,3 +16,6 @@ services:
         decorates: security.password_hasher_factory
         arguments: ['@.inner']
         public: true
+
+    app.test.rate_limits:
+        class: Symfony\Component\RateLimiter\Storage\InMemoryStorage
