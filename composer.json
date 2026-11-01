@@ -24,6 +24,8 @@
         "symfony/flex": "^2.11",
         "symfony/framework-bundle": "8.1.*",
         "symfony/lock": "8.1.*",
+        "symfony/mailer": "8.1.*",
+        "symfony/mailgun-mailer": "8.1.*",
         "symfony/messenger": "8.1.*",
         "symfony/monolog-bundle": "^4.1",
         "symfony/property-access": "8.1.*",
@@ -32,6 +34,8 @@
         "symfony/runtime": "8.1.*",
         "symfony/security-bundle": "8.1.*",
         "symfony/serializer": "8.1.*",
+        "symfony/translation": "8.1.*",
+        "symfony/twig-bundle": "8.1.*",
         "symfony/uid": "8.1.*",
         "symfony/validator": "8.1.*",
         "symfony/yaml": "8.1.*"

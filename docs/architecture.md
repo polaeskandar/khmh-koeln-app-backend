@@ -175,6 +175,13 @@ frontend; the API sends codes and data, never sentences (see API style). Dates g
 `YYYY-MM-DD` and instants with an offset, and the apps format them. Each account stores its language
 (`en`, `de` or `ar`), set when the person chooses one, so emails and notifications use it.
 
+
+Emails use the same rule: `AccountMailer::send($user, $template, $params)` renders `templates/emails/<template>`
+(HTML and text, one layout with `lang` and `dir="rtl"` for Arabic) with the texts of
+`translations/emails.{en,de,ar}.yaml` in the account's language. The only personal data in an email is the
+recipient's address and name. Mail is queued and sent after the response (`kernel.terminate`,
+`console.terminate`), so no request waits for the mail server; a failure is logged with the account id and
+template, never the address, and is not raised. There is no Messenger worker for mail.
 ### Data protection (DSGVO)
 
 The app stores as little as the work needs: names, groups, attendance, homework reports, and for members
