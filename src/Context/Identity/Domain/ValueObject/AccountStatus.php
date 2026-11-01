@@ -19,6 +19,11 @@ final readonly class AccountStatus
     ) {
     }
 
+    public static function pending(): self
+    {
+        return new self(approvedAt: null, disabledAt: null);
+    }
+
     public static function approvedAt(DateTimeImmutable $at): self
     {
         return new self(approvedAt: $at, disabledAt: null);

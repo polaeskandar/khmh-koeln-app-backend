@@ -2,6 +2,7 @@
 
 parameters:
     app.time_zone: 'Europe/Berlin'
+    app.privacy_notice_version: '2026-11'
 
 services:
     _defaults:

@@ -13,16 +13,20 @@ final readonly class SpyPasswordHasher implements PasswordHasherInterface
 {
     /**
      * @param Closure(string): void $recordVerification
+     * @param Closure(): void $recordHash
      */
     public function __construct(
         private PasswordHasherInterface $inner,
         private Closure $recordVerification,
+        private Closure $recordHash,
     ) {
     }
 
     #[Override]
     public function hash(#[SensitiveParameter] string $plainPassword): string
     {
+        ($this->recordHash)();
+
         return $this->inner->hash($plainPassword);
     }
 

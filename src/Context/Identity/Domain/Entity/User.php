@@ -83,6 +83,14 @@ final class User extends CreatedAtEntity
         return $user;
     }
 
+    public static function registered(Profile $profile, string $passwordHash, Registration $registration): self
+    {
+        $user = new self($profile, $passwordHash, AccountStatus::pending());
+        $user->registration = $registration;
+
+        return $user;
+    }
+
     public function id(): Uuid
     {
         return $this->id;

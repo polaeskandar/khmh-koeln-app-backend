@@ -178,6 +178,51 @@ Cache-Control: no-store
 Public. Body `{}`. Ends the session and expires the cookie. Answers 204, also without a session.
 `GET` → 405 `invalidRequest`, and the session stays.
 
+#### `POST /api/auth/register`
+
+Public. Creates an account that waits for an administrator's approval. Its roles come with the approval.
+
+```json
+{
+  "account": {
+    "firstName": "Mariam",
+    "lastName": "Hanna",
+    "email": "mariam.hanna@example.org",
+    "password": "correct horse battery",
+    "language": "ar"
+  },
+  "registration": {"registeredAs": "parent", "note": "Youssef, 3rd Class", "serviceIds": []},
+  "privacy": {"accepted": true, "version": "2026-11"}
+}
+```
+
+| Member | Rules (field error) |
+| --- | --- |
+| `account.firstName`, `account.lastName` | Required (`accounts.firstNameRequired`, `accounts.lastNameRequired`), ≤80 (`validation.tooLong`); spaces collapsed, stored as the display name "First Last" |
+| `account.email` | Required (`accounts.emailRequired`), valid (`accounts.emailInvalid`), ≤180; trimmed and lower-cased |
+| `account.password` | 10–200 characters (`accounts.passwordTooShort {min}`, `validation.tooLong`) |
+| `account.language` | `en`, `de` or `ar` (`accounts.chooseLanguage`) |
+| `registration.registeredAs` | `parent` or `servant` (`accounts.chooseRegisteredAs`) |
+| `registration.note` | Required (`accounts.childrenRequired` for parents, `accounts.serviceDetailsRequired` for servants), ≤1000 |
+| `registration.serviceIds` | Servants: at least one active service, each once (`accounts.chooseService`). Ignored for parents. |
+| `privacy.accepted` | `true` (`accounts.acceptPrivacy`) |
+| `privacy.version` | The current privacy notice version, `2026-11` |
+
+| Result | Answer |
+| --- | --- |
+| Valid, new email | 202 `{"status": "received"}`, a pending account |
+| Valid, the email already has an account (any case, any state) | The same 202, byte for byte; nothing changes |
+| A field fails | 422 `checkFields` with every failed field |
+| `privacy.version` is not the current one | 409 `accounts.privacyNoticeOutdated` |
+| More than 20 registrations from one client within an hour | 429 `auth.tooManyAttempts` + `Retry-After` |
+
+The password is hashed in both 202 cases, so the answer takes as long either way. Signing in before approval
+answers 403 `auth.pending`.
+
+#### `GET /api/auth/register/services`
+
+Public. The services a servant can name: `{"items": [{"id", "name"}]}`, active services by name, at most 200.
+
 #### `GET /api/me`
 
 Any signed-in account, parents included. 401 `auth.unauthenticated` without a valid session or token.
@@ -731,6 +776,8 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `accounts.stageNotInService` | – | This stage doesn’t belong to the chosen service. |
 | `accounts.privacyNoticeOutdated` | – | **New.** 409 on registration: the privacy notice version the app showed is not the current one. Reload. |
 | `accounts.currentPasswordWrong` | – | **New.** Field error on `currentPassword` (P1, #45). |
+| `accounts.chooseRegisteredAs` | – | **New.** Field error on `registration.registeredAs`: choose parent or servant. |
+| `accounts.chooseLanguage` | – | **New.** Field error on `account.language`: choose English, German or Arabic. |
 
 ### `privacy`
 
