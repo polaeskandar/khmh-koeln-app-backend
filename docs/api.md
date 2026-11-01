@@ -589,10 +589,6 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `meetings.reopenLeadersOnly` | – | Only service leaders and administrators can reopen a closed session. |
 | `meetings.onlyCompletedCanReopen` | – | Only a completed session can be reopened. |
 | `meetings.onlyScheduledCanCancel` | – | Only a session that has not started can be canceled. |
-| `meetings.sessionEndAfterStart` | – | The session has to end after it starts. |
-| `meetings.onlyScheduledCanMove` | – | Only a session that has not started can be moved. |
-| `meetings.chooseFutureTime` | – | Choose a time in the future. |
-| `meetings.titleRequired` | – | Enter a title. |
 | `meetings.noMeetingOnDate` | – | The schedule has no meeting on that date. |
 | `meetings.scheduleInactive` | – | This schedule is inactive. Activate it first. |
 | `meetings.dateInPast` | – | **New.** The date is before church-today. |

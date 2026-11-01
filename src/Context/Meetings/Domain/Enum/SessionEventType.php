@@ -11,6 +11,5 @@ enum SessionEventType: string
     case Closed = 'closed';
     case Reopened = 'reopened';
     case Canceled = 'canceled';
-    case Moved = 'moved';
     case Edited = 'edited';
 }

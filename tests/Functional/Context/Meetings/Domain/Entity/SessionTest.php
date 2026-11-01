@@ -21,17 +21,11 @@ final class SessionTest extends KernelTestCase
         $this->database()->persisted(Meetings::session($schedule));
     }
 
-    public function testTwoOneOffsOnTheSameDateCoexist(): void
-    {
-        $this->database()->persisted(Meetings::oneOff(), Meetings::oneOff());
-
-        self::assertSame(2, $this->database()->connection()->fetchOne('SELECT count(*) FROM meetings.meeting_session'));
-    }
-
     #[DataProvider('violations')]
     public function testEachCheckRefusesItsRow(string $set): void
     {
-        $this->database()->persisted(Meetings::oneOff());
+        $schedule = Meetings::schedule();
+        $this->database()->persisted($schedule, Meetings::session($schedule));
 
         $this->database()->assertRefused(Database::CHECK_VIOLATION, 'UPDATE meetings.meeting_session SET ' . $set);
     }
@@ -42,22 +36,26 @@ final class SessionTest extends KernelTestCase
     public static function violations(): iterable
     {
         yield 'unknown status' => ["status = 'skipped'"];
-        yield 'unknown roster mode' => ["roster_mode = 'closed'"];
-        yield 'blank title' => ["title = ''"];
-        yield 'ends when it starts' => ['ends_at = starts_at'];
         yield 'reason without cancellation' => ["cancel_reason = 'Rain'"];
-        yield 'completed without closing' => ["status = 'completed', opened_at = starts_at"];
-        yield 'closed but still active' => ["status = 'active', opened_at = starts_at, closed_at = ends_at"];
+        yield 'completed without closing' => ["status = 'completed', opened_at = created_at"];
+        yield 'closed but still active' => ["status = 'active', opened_at = created_at, closed_at = created_at"];
         yield 'active without opening' => ["status = 'active'"];
     }
 
-    public function testACompletedSessionWithItsTimesAndACanceledOneWithAReasonAreAccepted(): void
+    public function testACompletedSessionAndACanceledOneWithAReasonAreAccepted(): void
     {
-        $this->database()->persisted(Meetings::oneOff(), Meetings::oneOff('2026-11-15'));
+        $schedule = Meetings::schedule();
+
+        $this->database()->persisted(
+            $schedule,
+            Meetings::session($schedule),
+            Meetings::session($schedule, '2026-11-15'),
+        );
+
         $connection = $this->database()->connection();
 
         $connection->executeStatement(
-            "UPDATE meetings.meeting_session SET status = 'completed', opened_at = starts_at, closed_at = ends_at WHERE occurrence_date = '2026-11-08'",
+            "UPDATE meetings.meeting_session SET status = 'completed', opened_at = created_at, closed_at = created_at WHERE occurrence_date = '2026-11-08'",
         );
 
         $connection->executeStatement(
