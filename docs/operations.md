@@ -150,6 +150,8 @@ environment (#41).
 | `FRONTEND_URL` | `https://app.khmk-koeln.com` | No | The web app's URL; its origin is the one origin allowed to send unsafe requests |
 | `CORS_ALLOW_ORIGIN` | empty (production), `http://localhost:3000` (`.env.dev`) | No | Comma-separated extra origins for local development: they may send unsafe requests and get credentialed CORS. Each entry is an exact `scheme://host[:port]`; `*` or anything else stops the application. Empty in production. |
 | `TRUSTED_PROXIES` | `10.0.0.0/8` or `REMOTE_ADDR` | No | Proxies whose `X-Forwarded-For`, `-Proto` and `-Port` are trusted, so sign-in limits count the real client (#41). Empty: forwarded headers are ignored. |
+| `MAILER_DSN` | `mailgun+api://KEY:DOMAIN@default?region=eu` | Yes | Where email goes. Production: Mailgun's EU region (with a DPA, Art. 28) through `symfony/mailgun-mailer`. `.env` and tests use `null://null` (nothing is sent); `.env.dev` uses `log://default`, which writes each email (recipient, subject, text) to stderr instead of sending it. `bin/console app:mail:test <email>` checks the setting with a real account. |
+| `MAILER_FROM` | `KHMK Köln <no-reply@khmk-koeln.com>` | No | Sender of every email. The sending domain needs Mailgun's SPF and DKIM records. |
 
 Sign-in limits (5 attempts per email and client, 25 per client, per 15 minutes) are kept in the
 `cache.rate_limiter` pool, which is the application cache on the local filesystem. That is right for one API

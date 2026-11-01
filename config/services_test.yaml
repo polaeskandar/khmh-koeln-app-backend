@@ -9,6 +9,9 @@ services:
     App\Library\Time\Client\Calendar:
         public: true
 
+    App\Interface\Application\Identity\Service\AccountMailer:
+        public: true
+
     App\Tests\Support\Context\Identity\Infrastructure\Security\SessionProbeController:
         tags: [controller.service_arguments]
 
