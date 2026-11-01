@@ -11,6 +11,7 @@ use App\Context\Identity\Domain\ValueObject\PersonalDetails;
 use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Identity\Domain\ValueObject\Registration;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
+use App\Library\Problem\Exception\RuleViolation;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -123,6 +124,29 @@ final class User extends CreatedAtEntity
     public function roles(): ReadableCollection
     {
         return $this->roles;
+    }
+
+    public function assign(Role $role): void
+    {
+        if ($this->roles->contains($role)) {
+            throw new RuleViolation('roles.alreadyHasRole', ['name' => $this->profile->displayName->value]);
+        }
+
+        $this->roles->add($role);
+    }
+
+    public function unassign(Role $role): void
+    {
+        if (!$this->roles->removeElement($role)) {
+            throw new RuleViolation('roles.notHeld', ['name' => $this->profile->displayName->value]);
+        }
+    }
+
+    public function canWithout(Role $left, Action $action, Resource $resource): bool
+    {
+        return !$this->roles
+            ->filter(static fn (Role $role): bool => $role !== $left && $role->allows($action, $resource))
+            ->isEmpty();
     }
 
     public function can(Action $action, Resource $resource): bool
