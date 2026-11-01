@@ -159,6 +159,14 @@ its links (`ON DELETE CASCADE`); deleting a role keeps the permissions. `User::c
 any of the user's roles has that permission. The catalog and the defaults Administrator (everything but the
 parent portal), Service leader, Servant and Parent (`parentPortal:read`) are seeded by a migration; the roles
 are ordinary roles. `app:user:create --role=<name>` writes the account with that role in one transaction.
+`app:user:role:add <email> <role>` and `app:user:role:remove <email> <role>` give and take a role by its name
+(any case); both go through `RoleAssignments`, the one home of the rules: a role is held once
+(`roles.alreadyHasRole`), only a held role can be taken (`roles.notHeld`), a pending account gets roles when it
+is approved (`roles.accountPending`), and the last active account that can manage roles (`roles: update`)
+keeps that permission (`roles.lastAdministrator`, through `LastAdministrator`; pending and disabled accounts
+don't count). Taking a role holds the administration lock (`AdministrationLockInterface`, a PostgreSQL advisory
+lock through Symfony Lock on the Doctrine connection) from reading the account until it is saved, so two
+removals that run at the same time can't both see the other administrator and leave none.
 
 Sign-in sessions live in `public.sessions` (Symfony's `PdoSessionHandler` table, created by an Identity
 migration from `app:migrations:generate identity` and outside every context's schema, so no context's diff touches it). A session holds
