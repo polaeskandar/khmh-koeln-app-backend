@@ -12,6 +12,9 @@ services:
     App\Tests\Support\Context\Identity\Infrastructure\Security\SessionProbeController:
         tags: [controller.service_arguments]
 
+    App\Tests\Support\Interface\Application\Security\Service\AccessProbeController:
+        tags: [controller.service_arguments]
+
     App\Tests\Support\Context\Identity\Infrastructure\Security\SpyPasswordHasherFactory:
         decorates: security.password_hasher_factory
         arguments: ['@.inner']

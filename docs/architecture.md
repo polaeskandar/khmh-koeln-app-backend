@@ -160,7 +160,7 @@ and a note (their children's names and classes, or where they serve), after acce
 The account exists from then on but can't be used: signing in with the right password only shows that it
 is waiting. An administrator approves it in Settings › Account requests, and the approval is where access
 is decided: a parent's account is linked to the children the office has checked (approved guardian links),
-a servant gets a role in a service, optionally narrowed to a stage. Declining deletes the account and
+a servant gets the servant role. Declining deletes the account and
 everything the person entered. Accounts the office creates itself are approved at once.
 
 Sign-in answers "wrong email or password" without saying which, and "forgot password" always answers the
@@ -205,12 +205,29 @@ also has to confirm the legal bases and the retention periods (see open question
 
 ### Who may do what
 
-Roles are administrator, service leader, servant and parent. Leader and servant roles are scoped to one
-service, and a servant's role can be narrowed to one stage (Daniel serves Sunday School › 3rd Class).
-Parents have no service roles: they see only the children an administrator linked to their account. The
-API checks permissions on every request; the frontend only hides what a person can't do. Parents receive
-only what they need: published homework, the passage and memory verse, never lesson plans, notes,
-attendance or other families.
+Access is role-based and global (RBAC). A user has roles, a role has permissions, and a permission is one
+action (`create`, `read`, `update`, `delete`) on one resource. Roles are not tied to a service or a stage: a
+servant may record attendance in every service. Administrators manage roles and their permissions; the
+seeded defaults are:
+
+| Resource | Administrator | Service leader | Servant | Parent |
+| --- | --- | --- | --- | --- |
+| `users`, `roles` | create, read, update, delete | – | – | – |
+| `services` | create, read, update, delete | read, update | read | – |
+| `stages`, `sessions` | create, read, update, delete | create, read, update, delete | – | – |
+| `attendance`, `members`, `lessons`, `homework` | create, read, update, delete | create, read, update, delete | create, read, update, delete | – |
+| `parentPortal` | – | – | – | read |
+
+Parents see only the children an administrator linked to their account (#23), and receive only what they
+need: published homework, the passage and memory verse, never lesson plans, notes, attendance or other
+families. The frontend only hides what a person can't do; the API checks every request.
+
+An endpoint declares what it needs with `#[RequiresAccess(Action::Update, Resource::Services)]`
+(`Interface\Application\Security\Model`, repeatable,
+on the controller class or method). `AccessCheck` asks Symfony's authorization checker, and `AccessVoter`
+grants the `Access` when the account, reloaded on every request, is active and one of its roles has the
+permission; otherwise 403 `forbidden`. A role or permission change applies on the next request, without a new
+sign-in.
 
 ### Sessions are created the day before
 
