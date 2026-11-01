@@ -1,3 +1,0 @@
-session_probes:
-    resource: '../../../tests/Support/Context/Identity/Infrastructure/Security/'
-    type: attribute

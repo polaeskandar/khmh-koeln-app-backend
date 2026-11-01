@@ -99,6 +99,22 @@ storage.
 A request with `Authorization: Bearer …` is authenticated by the token alone: the API ignores any cookie on
 it and creates no session.
 
+### Who may call which routes
+
+`/api` is closed by default. Every route needs a signed-in account whose roles open its area, checked on every
+request against the account as it is now:
+
+| Routes | Who |
+| --- | --- |
+| `/api/health`, `/api/auth/sign-in`, `/api/auth/sign-out` | Anyone |
+| `/api/me` | Any signed-in account |
+| `/api/parent/…` | The parent portal: an active account with `parentPortal: read` |
+| Every other `/api/…` route | The staff area: an active account with a permission on any resource other than `parentPortal` |
+
+Without a session → 401 `auth.unauthenticated`; outside the account's areas → 403 `forbidden`. Inside the staff
+area each route also needs its own permission (403 `forbidden`). A parent-only account therefore reaches only
+`/api/me` and the parent portal, and an administrator without the parent role doesn't reach the portal.
+
 ### Cookie session (web)
 
 Sessions are stored in PostgreSQL and last `SESSION_LIFETIME` (30 days). The production cookie is

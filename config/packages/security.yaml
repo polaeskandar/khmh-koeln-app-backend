@@ -24,10 +24,12 @@ security:
                 path: api_auth_sign_out
 
     access_control:
-        - { path: ^/api/health, roles: PUBLIC_ACCESS }
+        - { path: ^/api/health(/|$), roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/sign-(in|out)$, roles: PUBLIC_ACCESS }
         - { path: ^/api/test/, roles: PUBLIC_ACCESS }
-        - { path: ^/api, roles: IS_AUTHENTICATED }
+        - { path: ^/api/me$, roles: IS_AUTHENTICATED }
+        - { path: ^/api/parent/, roles: PARENT_PORTAL }
+        - { path: ^/api, roles: STAFF_AREA }
 
 when@test:
     security:

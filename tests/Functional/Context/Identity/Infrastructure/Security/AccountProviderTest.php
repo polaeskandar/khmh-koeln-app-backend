@@ -24,7 +24,7 @@ final class AccountProviderTest extends ApiTestCase
             ->connection()
             ->update('identity.app_user', $change, ['id' => $id]);
 
-        $this->jsonRequest('GET', '/api/testing/session');
+        $this->jsonRequest('GET', '/api/me');
 
         self::assertResponseStatusCodeSame($status);
     }

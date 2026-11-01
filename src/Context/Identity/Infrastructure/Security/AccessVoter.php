@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Infrastructure\Security;
 
-use App\Context\Identity\Domain\Entity\User;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\Access;
 use App\Library\Strings\Model\Text;
 use Override;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
-use Symfony\Component\Uid\Uuid;
 
 /**
  * @extends Voter<string, Access>
@@ -20,7 +17,7 @@ use Symfony\Component\Uid\Uuid;
 final class AccessVoter extends Voter
 {
     public function __construct(
-        private readonly UserRepositoryInterface $users,
+        private readonly CurrentAccounts $accounts,
     ) {
     }
 
@@ -38,7 +35,7 @@ final class AccessVoter extends Voter
         TokenInterface $token,
         ?Vote $vote = null,
     ): bool {
-        $user = $this->accountOf($token);
+        $user = $this->accounts->of($token);
         $granted = $user !== null && $subject->isAllowedFor($user);
 
         if (!$granted) {
@@ -46,14 +43,5 @@ final class AccessVoter extends Voter
         }
 
         return $granted;
-    }
-
-    private function accountOf(#[\SensitiveParameter] TokenInterface $token): ?User
-    {
-        $account = $token->getUser();
-
-        return $account instanceof SecurityUser
-            ? $this->users->find(Uuid::fromString($account->getUserIdentifier()))
-            : null;
     }
 }

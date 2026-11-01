@@ -25,9 +25,9 @@ final class SessionControllerTest extends ApiTestCase
         self::assertTrue($cookie->isSecure());
         self::assertSame(Cookie::SAMESITE_LAX, $cookie->getSameSite());
 
-        $this->jsonRequest('GET', '/api/testing/session');
+        $this->jsonRequest('GET', '/api/me');
         self::assertResponseIsSuccessful();
-        $this->assertJsonPath('id', $id);
+        $this->assertJsonPath('account.id', $id);
 
         self::assertStringContainsString(
             'no-store',
@@ -48,7 +48,7 @@ final class SessionControllerTest extends ApiTestCase
 
     public function testWithoutASessionAProtectedRouteIsUnauthenticated(): void
     {
-        $this->jsonRequest('GET', '/api/testing/session');
+        $this->jsonRequest('GET', '/api/me');
 
         $this->assertProblem(401, 'auth.unauthenticated');
     }

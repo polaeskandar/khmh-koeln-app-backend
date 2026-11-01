@@ -17,7 +17,7 @@ final class SignOutListenerTest extends ApiTestCase
         $this->jsonRequest('POST', '/api/auth/sign-out');
         self::assertResponseStatusCodeSame(204);
 
-        $this->jsonRequest('GET', '/api/testing/session');
+        $this->jsonRequest('GET', '/api/me');
         $this->assertProblem(401, 'auth.unauthenticated');
     }
 
@@ -36,7 +36,7 @@ final class SignOutListenerTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/auth/sign-out');
         self::assertResponseStatusCodeSame(405);
 
-        $this->jsonRequest('GET', '/api/testing/session');
+        $this->jsonRequest('GET', '/api/me');
         self::assertResponseIsSuccessful();
     }
 }
