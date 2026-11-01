@@ -14,6 +14,7 @@ use App\Library\Persistence\Mapping\CreatedAtEntity;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
@@ -114,6 +115,14 @@ final class User extends CreatedAtEntity
     public function approvedBy(): ?self
     {
         return $this->approvedBy;
+    }
+
+    /**
+     * @return ReadableCollection<int, Role>
+     */
+    public function roles(): ReadableCollection
+    {
+        return $this->roles;
     }
 
     public function can(Action $action, Resource $resource): bool

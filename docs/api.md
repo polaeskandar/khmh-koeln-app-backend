@@ -184,36 +184,38 @@ Any signed-in account, parents included. 401 `auth.unauthenticated` without a va
 
 | Member | Type |
 | --- | --- |
-| `id` | id |
-| `email` | string |
-| `displayName` | string |
-| `language` | `en`, `de`, `ar`, or `null` until the person chooses one |
-| `roles` | `[{id, role, service: ServiceRef \| null, stage: StageRef \| null}]`, administrator first, then by service and stage name. `role` is `administrator`, `service_leader`, `servant` or `parent`. |
+| `account` | `{id, email, displayName, language}`; `language` is `en`, `de` or `ar` |
+| `roles` | `[{id, name}]`, by name |
+| `permissions` | `[{action, resource}]`, every permission the account's roles grant, once each, by resource and action in the order of the catalog |
 | `today` | date |
 
 Nothing else: no password hash, registration, approval or disabled data.
 
-Clients read the account's areas from `roles`, by the same rules the API enforces:
+Clients choose the account's areas and navigation from `permissions`, by the same rules the API enforces:
 
-- **Staff area:** at least one role other than `parent` (`administrator`, `service_leader`, `servant`).
-- **Parent portal:** a `parent` role. Administrators are not parents unless they also have it.
-- An account can be both. An approved account without roles has neither and sees the no-role view.
+- **Staff app:** a permission on any resource other than `parentPortal`.
+- **Parent portal:** `read` on `parentPortal`.
+- **Navigation:** for example the users and roles settings for `users: read`.
 
-A servant of Sunday School › 3rd Class:
+An account can have both areas; an approved account without roles has neither and sees the no-role view.
+
+A servant (its `members`, `lessons` and `homework` permissions left out):
 
 ```json
 {
-  "id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f01",
-  "email": "daniel.mikhail@example.org",
-  "displayName": "Daniel Mikhail",
-  "language": "de",
-  "roles": [
-    {
-      "id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f02",
-      "role": "servant",
-      "service": {"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f10", "name": "Sunday School", "tone": 1, "archived": false},
-      "stage": {"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f20", "name": "3rd Class", "position": 2, "archived": false}
-    }
+  "account": {
+    "id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f01",
+    "email": "daniel.mikhail@example.org",
+    "displayName": "Daniel Mikhail",
+    "language": "de"
+  },
+  "roles": [{"id": "019a3f00-0000-7000-8000-000000000003", "name": "Servant"}],
+  "permissions": [
+    {"action": "read", "resource": "services"},
+    {"action": "create", "resource": "attendance"},
+    {"action": "read", "resource": "attendance"},
+    {"action": "update", "resource": "attendance"},
+    {"action": "delete", "resource": "attendance"}
   ],
   "today": "2026-11-08"
 }
@@ -223,13 +225,14 @@ A parent:
 
 ```json
 {
-  "id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f03",
-  "email": "mariam.hanna@example.org",
-  "displayName": "Mariam Hanna",
-  "language": null,
-  "roles": [
-    {"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f04", "role": "parent", "service": null, "stage": null}
-  ],
+  "account": {
+    "id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f03",
+    "email": "mariam.hanna@example.org",
+    "displayName": "Mariam Hanna",
+    "language": "ar"
+  },
+  "roles": [{"id": "019a3f00-0000-7000-8000-000000000004", "name": "Parent"}],
+  "permissions": [{"action": "read", "resource": "parentPortal"}],
   "today": "2026-11-08"
 }
 ```
