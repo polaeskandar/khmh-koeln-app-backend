@@ -155,6 +155,42 @@ jobs:
             php bin/console app:user:create "$SMOKE_EMAIL" 'Smoke Test' --password-stdin --no-interaction > /dev/null
           SMOKE_WEB=0 BASE_URL=http://localhost:8080 deploy/smoke-test.sh
 
+      - name: Back up encrypted and restore into a scratch database
+        run: |
+          set -euo pipefail
+          docker build -q -t khmk-backup deploy/backup > /dev/null
+          backups="$RUNNER_TEMP/backups"
+          mkdir -m 777 -p "$backups"
+          python3 -m http.server 8099 --bind 127.0.0.1 > "$RUNNER_TEMP/heartbeat.log" 2>&1 &
+          $PSQL "INSERT INTO people.person (id, first_name, last_name, name_key, search_text, status, created_at)
+            VALUES (gen_random_uuid(), 'Fictionala', 'Restorova', 'fictionala_restorova', 'fictionala restorova', 'active', now())"
+          docker run --rm --entrypoint age-keygen khmk-backup > "$RUNNER_TEMP/key.txt" 2> /dev/null
+          recipient="$(docker run --rm -i --entrypoint age-keygen khmk-backup -y < "$RUNNER_TEMP/key.txt")"
+          backup=(docker run --rm --network host -v "$backups:/backups"
+            -e BACKUP_REMOTE=local:/backups -e RCLONE_CONFIG_LOCAL_TYPE=local
+            -e BACKUP_HEARTBEAT_URL=http://127.0.0.1:8099/heartbeat)
+          if "${backup[@]}" -e DATABASE_URL -e BACKUP_RECIPIENTS= khmk-backup; then exit 1; fi
+          if "${backup[@]}" -e DATABASE_URL=postgresql://khmk:wrong@127.0.0.1:5432/khmk -e BACKUP_RECIPIENTS="$recipient" khmk-backup; then exit 1; fi
+          test -z "$(ls -A "$backups")"
+          ! grep -q heartbeat "$RUNNER_TEMP/heartbeat.log"
+          "${backup[@]}" -e DATABASE_URL -e BACKUP_RECIPIENTS="$recipient" khmk-backup
+          test "$(grep -c 'GET /heartbeat' "$RUNNER_TEMP/heartbeat.log")" = 1
+          object="$(ls "$backups")"
+          test "$(head -c 21 "$backups/$object")" = 'age-encryption.org/v1'
+          ! grep -q Restorova "$backups/$object"
+          if docker run --rm -v "$backups:/backups" --entrypoint pg_restore khmk-backup --list "/backups/$object"; then exit 1; fi
+          $PSQL 'CREATE DATABASE khmk_restore'
+          restored="${DATABASE_URL/\/khmk?/\/khmk_restore?}"
+          "${backup[@]}" -i -e RESTORE_DATABASE_URL="$restored" --entrypoint restore.sh khmk-backup < "$RUNNER_TEMP/key.txt" > "$RUNNER_TEMP/restored.txt"
+          rm "$RUNNER_TEMP/key.txt"
+          rows="SELECT format('%I.%I', schemaname, relname) || ' ' || (xpath('/row/c/text()',
+            query_to_xml(format('SELECT count(*) AS c FROM %I.%I', schemaname, relname), false, true, '')))[1]::text
+            FROM pg_stat_user_tables ORDER BY 1"
+          diff <($PSQL "$rows") <(tail -n +2 "$RUNNER_TEMP/restored.txt")
+          grep -q '^people.person 1$' "$RUNNER_TEMP/restored.txt"
+          docker run --rm --network host -e APP_SECRET -e DATABASE_URL="$restored" "$IMAGE" php bin/console app:migrations:check
+          test -z "$(find "$backups" -type f ! -name '*.dump.age')"
+
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:

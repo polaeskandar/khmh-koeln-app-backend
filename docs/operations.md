@@ -111,18 +111,47 @@ Europe/Berlin) and exits. The host runs it every hour at minute 5 and once after
 
 ## Backups
 
-The database provider's backups are the first copy. The second is our encrypted daily dump. For now it stays
-on the server, under these conditions:
+The database provider's backups are the first copy. The second is our own encrypted daily dump in EU object
+storage, made by the provider-neutral image in `deploy/backup` (`postgres:18-alpine` pinned by digest, plus `age`
+and `rclone`). Children's data needs a tested restore and never an unencrypted copy.
 
-- **Encrypted before writing:** each dump is encrypted with a public key (`age` or `gpg`); the private key is
-  not on the server and is held by the two key custodians.
-- **Out of the containers' reach:** the dumps live on their own volume, mounted only into the backup job,
-  never into the API or the worker.
-- **Kept 30 days:** a cleanup step deletes older dumps after each run.
-- **Restore tested:** a restore into a scratch database is part of #42 and is repeated monthly.
-- **Temporary:** the dumps move to an EU object storage bucket (S3-compatible, lifecycle rule of 30 days)
-  before regular use after launch. Until then a lost or compromised server loses or exposes the second copy;
-  the data protection adviser has to accept this.
+### Making a backup
+
+`backup.sh` (the image's entry point) runs `pg_dump --format=custom | age --encrypt` into a temporary file,
+uploads it as `khmk-<UTC timestamp>.dump.age` only when the dump succeeded, then pings the heartbeat. It refuses
+to run without recipients, and it accepts the Doctrine-style `DATABASE_URL` (it drops the `serverVersion` and
+`charset` parameters libpq rejects).
+
+| Variable | Example | Purpose |
+| --- | --- | --- |
+| `DATABASE_URL` | `postgresql://backup:…@db:5432/khmk?serverVersion=18` | The database to dump (a read-only role is enough) |
+| `BACKUP_RECIPIENTS` | `age1…` (one per line) | The age public keys the dump is encrypted to |
+| `BACKUP_REMOTE` | `backups:khmk-koeln` | rclone remote and path |
+| `RCLONE_CONFIG_BACKUPS_TYPE` and the other `RCLONE_CONFIG_BACKUPS_*` | `s3`, provider, region, endpoint, keys | The remote, configured by environment only |
+| `BACKUP_HEARTBEAT_URL` | `https://hc-ping.com/…` | Pinged after a successful upload, so a missed backup alerts |
+
+- **The bucket** is in the EU, has a lifecycle rule deleting objects after 30 days, and the backup job's
+  credentials can write but not read or delete.
+- **The key pair** is made offline with `age-keygen`. Only the public key is in the job's configuration; the
+  private key is kept offline by two named people of the church, never on the server or in CI.
+
+### Restoring
+
+`restore.sh` (`docker run -i … --entrypoint restore.sh <image> [object] < private-key.txt`) streams `rclone cat |
+age --decrypt | pg_restore --no-owner` into the empty scratch database in `RESTORE_DATABASE_URL`, then prints the
+rows of every table. Without an object name it takes the newest. The private key comes on stdin and is passed to
+`age` through a pipe; neither the key nor a decrypted dump is written to disk. Then check the schema with the API
+image: `php bin/console app:migrations:check` against the scratch database.
+
+- **Restores happen only at the provider,** into a scratch database there; never on a laptop.
+- **RPO 24 h, RTO 2 h:** at most a day of changes is lost, and a restore takes at most two hours.
+- **Erasures:** after restoring, re-apply the erasures made since the backup (the data protection log lists
+  them), so erased people do not come back.
+
+CI builds the image and round-trips fictional data on PostgreSQL 18 on every pull request: the object starts with
+`age-encryption.org/v1`, `pg_restore --list` fails on it and a fictional name is not in it; the restored row
+counts match and the migrations are up to date; a run without recipients or with a failing `pg_dump` exits
+non-zero, uploads nothing and sends no heartbeat.
 
 ## Shortlisted hosts
 
