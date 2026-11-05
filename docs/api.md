@@ -2056,6 +2056,17 @@ report. `items: []` while the record is inactive.
 memoryVerse}}`. A draft, archived, other-stage or unknown task → 404 `homework.notAvailable`, byte-identical; a
 malformed id → 404. No lesson plan, objectives or notes for the servants.
 
+#### `PUT /api/member/homework/{homeworkId}/completion` and `DELETE …/completion`
+
+Body `{}`. The person is always the viewer's own record. In one transaction on the locked task row (the lock the
+parent portal and the lifecycle actions take; a `PUT` holds a share lock on the record first, as a parent's report
+does, so an erasure can't slip in): `PUT` → 201 when it creates the report, else 200 with the current
+report, `{done: true, completedAt, completedBy, completedByYou}`; `DELETE` → 204, also when nothing was reported.
+A parent's report for an older child and the child's own are the same current report: whoever reports first wins,
+either may undo, and servants see one report. Anything `GET /api/member/homework/{homeworkId}` doesn't show → 404
+`homework.notAvailable`, and nothing is stored; a member who left the stage can undo a report, after which the task
+is gone (`PUT` → 404).
+
 ### Your own data
 
 Any signed-in account, staff or parent; 401 `auth.unauthenticated` without a session. The `POST` follows the JSON

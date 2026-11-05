@@ -57,6 +57,18 @@ final readonly class MemberRecords
         });
     }
 
+    /**
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function whileKept(Uuid $personId, callable $work): mixed
+    {
+        return $this->people->withShareLock($personId, $work);
+    }
+
     private static function notFound(): InvalidInput
     {
         return InvalidInput::field('personId', 'accounts.personNotFound');

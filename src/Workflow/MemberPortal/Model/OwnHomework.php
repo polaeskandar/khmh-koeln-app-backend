@@ -56,6 +56,11 @@ final readonly class OwnHomework
     {
         $task = Uuid::isValid($homeworkId) ? $this->task(Uuid::fromString($homeworkId)) : null;
 
-        return $task ?? throw NotFound::coded('homework.notAvailable');
+        return $task ?? self::notAvailable();
+    }
+
+    public static function notAvailable(): never
+    {
+        throw NotFound::coded('homework.notAvailable');
     }
 }
