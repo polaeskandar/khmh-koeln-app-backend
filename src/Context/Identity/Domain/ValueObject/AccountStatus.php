@@ -26,9 +26,9 @@ final readonly class AccountStatus
         return new self(approvedAt: null, disabledAt: null);
     }
 
-    public static function approvedAt(DateTimeImmutable $at): self
+    public function approvedOn(DateTimeImmutable $at): self
     {
-        return new self(approvedAt: $at, disabledAt: null);
+        return new self($at, $this->disabledAt, $this->authVersion);
     }
 
     public function disabledAt(DateTimeImmutable $at): self

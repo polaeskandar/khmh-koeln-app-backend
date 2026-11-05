@@ -77,7 +77,7 @@ final class User extends CreatedAtEntity
         DateTimeImmutable $approvedAt,
         array $roles = [],
     ): self {
-        $user = new self($profile, $passwordHash, AccountStatus::approvedAt($approvedAt));
+        $user = new self($profile, $passwordHash, AccountStatus::pending()->approvedOn($approvedAt));
         $user->roles = new ArrayCollection($roles);
 
         return $user;
@@ -119,6 +119,13 @@ final class User extends CreatedAtEntity
     public function status(): AccountStatus
     {
         return $this->status;
+    }
+
+    public function approve(self $by, DateTimeImmutable $at): void
+    {
+        $this->status = $this->status->approvedOn($at);
+        $this->approvedBy = $by;
+        $this->registration = $this->registration->decided();
     }
 
     public function changePassword(string $passwordHash): void
@@ -165,15 +172,10 @@ final class User extends CreatedAtEntity
         }
     }
 
-    public function canWithout(Role $left, Action $action, Resource $resource): bool
+    public function can(Action $action, Resource $resource, ?Role $without = null): bool
     {
         return !$this->roles
-            ->filter(static fn (Role $role): bool => $role !== $left && $role->allows($action, $resource))
+            ->filter(static fn (Role $role): bool => $role !== $without && $role->allows($action, $resource))
             ->isEmpty();
-    }
-
-    public function can(Action $action, Resource $resource): bool
-    {
-        return !$this->roles->filter(static fn (Role $role): bool => $role->allows($action, $resource))->isEmpty();
     }
 }

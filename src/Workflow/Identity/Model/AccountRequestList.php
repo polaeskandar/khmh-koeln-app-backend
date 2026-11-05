@@ -8,9 +8,11 @@ final readonly class AccountRequestList
 {
     /**
      * @param list<AccountRequest> $items
+     * @param list<RoleSummary> $roles
      */
     public function __construct(
         public array $items,
+        public array $roles,
         public string $today,
     ) {
     }

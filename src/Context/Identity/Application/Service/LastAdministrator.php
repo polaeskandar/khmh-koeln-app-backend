@@ -28,7 +28,7 @@ final readonly class LastAdministrator
     public function wouldLoseIt(User $user, Role $role): bool
     {
         $roleAdministers = $role->allows(Action::Update, Resource::Roles);
-        $keepsIt = $user->canWithout($role, Action::Update, Resource::Roles);
+        $keepsIt = $user->can(Action::Update, Resource::Roles, without: $role);
 
         return $roleAdministers && !$keepsIt && $this->is($user);
     }

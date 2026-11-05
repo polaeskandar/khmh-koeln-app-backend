@@ -35,6 +35,17 @@ final readonly class Guardianship
         $this->links->save(GuardianRelationship::approved($accountId, $child, $kind, $this->calendar->now(), by: null));
     }
 
+    public function linkParent(Uuid $accountId, Person $child, string $approvedBy): void
+    {
+        $this->links->save(GuardianRelationship::approved(
+            $accountId,
+            $child,
+            GuardianKind::Parent,
+            $this->calendar->now(),
+            by: Uuid::fromString($approvedBy),
+        ));
+    }
+
     public function revoke(Uuid $accountId, Person $child): void
     {
         $link = $this->links->approvedFor($accountId, $child);

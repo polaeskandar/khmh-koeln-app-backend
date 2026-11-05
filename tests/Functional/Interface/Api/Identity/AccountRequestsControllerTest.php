@@ -48,6 +48,8 @@ final class AccountRequestsControllerTest extends ApiTestCase
         $this->assertJsonPath('items.1.registeredAt', '2026-11-08T11:00:00+01:00');
         $this->assertJsonPath('items.1.note', 'Youth, Thursdays');
         $this->assertJsonPath('items.1.services.0.name', 'Sunday School');
+        $this->assertJsonPath('roles.0.name', 'Administrator');
+        $this->assertJsonPath('roles.1.name', 'Parent');
         $this->assertJsonPath('today', '2026-11-08');
     }
 
