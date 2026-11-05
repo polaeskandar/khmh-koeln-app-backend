@@ -11,7 +11,6 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\PupilHomework;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\ParentChildren;
-use App\Library\Problem\Exception\NotFound;
 use App\Workflow\Learning\Model\HomeworkLessonView;
 use App\Workflow\Learning\Model\HomeworkTextView;
 use App\Workflow\ParentPortal\Model\ChildHomeworkDetail;
@@ -37,8 +36,8 @@ final readonly class ShowChildHomeworkWorkflow
 
         $viewer = Uuid::fromString($viewerId);
         $visible = VisibleHomework::lookedUpIn($this->accounts, $this->families, $this->homework, $viewer);
-        $child = $visible->of(Uuid::fromString($childId)) ?? throw NotFound::of('person');
-        $shown = $child->tasks->task(Uuid::fromString($homeworkId)) ?? throw NotFound::coded('homework.notAvailable');
+        $child = $visible->requireChild(Uuid::fromString($childId));
+        $shown = $visible->requireTask($child->child->id(), Uuid::fromString($homeworkId));
         $items = ParentHomeworkItems::lookedUpIn($this->structure, $this->accounts, [$shown], $viewer);
 
         return new ChildHomeworkDetail(

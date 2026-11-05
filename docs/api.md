@@ -1479,3 +1479,16 @@ memoryVerse}}`.
 A child the viewer is not linked to (another family, a revoked link, an unknown id) is always the same 404
 `notFound.person`; a task the child may not see (draft, archived, another stage, unknown) is always the same 404
 `homework.notAvailable`, so nothing about other families leaks. Malformed ids are 404 too.
+
+#### `PUT /api/parent/children/{childId}/homework/{homeworkId}/completion`
+
+Body `{}`. Reports a visible task done for the child, on the locked task row: 201 when this call created the
+report, else 200 with the report that is already there (a double tap, a retry or the other parent's report), both
+`{done: true, completedAt, completedBy, completedByYou}`. Only the first report counts; there is never a second
+current one. 404 `notFound.person` or `homework.notAvailable` as above; 403 `forbidden` without the parent role.
+
+#### `DELETE /api/parent/children/{childId}/homework/{homeworkId}/completion`
+
+Body `{}` → 204, also when nothing was reported. Either approved parent may undo; the report stays in the history
+with `undone_at`/`undone_by`, and a later `PUT` adds a new one. A child who left the stage can still be undone, but
+then the task is no longer visible.

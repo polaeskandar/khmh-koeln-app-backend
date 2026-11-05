@@ -14,6 +14,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\ParentChildren;
 use App\Context\People\Domain\Entity\Person;
+use App\Library\Problem\Exception\NotFound;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Learning\Domain\Entity\Reports;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
@@ -119,8 +120,10 @@ final class VisibleHomeworkTest extends KernelTestCase
         $visible = $this->visibleTo($parent, self::TODAY);
 
         self::assertNull($visible->of($theirs->id()));
-        self::assertNull($visible->task($mina->id(), Uuid::v7()));
-        self::assertNotNull($visible->task($mina->id(), $task->id()));
+        self::assertSame($task, $visible->requireTask($mina->id(), $task->id())->task);
+
+        $this->expectExceptionObject(NotFound::coded('homework.notAvailable'));
+        $visible->requireTask($mina->id(), Uuid::v7());
     }
 
     public function testMoreChildrenAndTasksCostNoMoreStatements(): void

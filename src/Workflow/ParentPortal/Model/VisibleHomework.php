@@ -7,13 +7,11 @@ namespace App\Workflow\ParentPortal\Model;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Learning\Application\Service\PupilHomework;
 use App\Context\Learning\Domain\ValueObject\Pupil;
-use App\Context\Learning\Domain\ValueObject\PupilTasks;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Context\People\Application\Service\ParentChildren;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
-use App\Context\People\Domain\ValueObject\Family;
-use App\Library\Collections\Model\Collections;
+use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -43,13 +41,9 @@ final readonly class VisibleHomework
         }
 
         $pupilOf = static fn (Person $child): Pupil => new Pupil($child->id(), $family->stageIdsOf($child));
+        $tasks = $homework->of(new ArrayCollection($family->children)->map($pupilOf)->getValues());
 
-        $tasks = Collections::firstPerKey(
-            new ArrayCollection($homework->of(new ArrayCollection($family->children)->map($pupilOf)->getValues())),
-            keyOf: self::pupilKey(...),
-        );
-
-        return new self($family->today, self::childrenOf($family, $tasks));
+        return new self($family->today, ChildHomeworks::of($family, $tasks));
     }
 
     public function of(Uuid $childId): ?ChildHomework
@@ -61,9 +55,21 @@ final readonly class VisibleHomework
         return $found === false ? null : $found;
     }
 
-    public function task(Uuid $childId, Uuid $homeworkId): ?VisibleTask
+    public function requireChild(Uuid $childId): ChildHomework
     {
-        return $this->of($childId)?->tasks->task($homeworkId);
+        return $this->of($childId) ?? throw NotFound::of('person');
+    }
+
+    public function requireTask(Uuid $childId, Uuid $homeworkId): VisibleTask
+    {
+        return $this->requireChild($childId)->tasks->task($homeworkId) ?? throw self::notAvailable();
+    }
+
+    public function missingTask(Uuid $childId): never
+    {
+        $this->requireChild($childId);
+
+        throw self::notAvailable();
     }
 
     /**
@@ -85,31 +91,8 @@ final readonly class VisibleHomework
         );
     }
 
-    /**
-     * @param ArrayCollection<string, PupilTasks> $tasks
-     *
-     * @return list<ChildHomework>
-     */
-    private static function childrenOf(Family $family, ArrayCollection $tasks): array
+    private static function notAvailable(): NotFound
     {
-        return Collections::mapPresent(
-            new ArrayCollection($family->children),
-            static fn (Person $child): ?ChildHomework => self::childOf($family, $child, $tasks),
-        )->getValues();
-    }
-
-    /**
-     * @param ArrayCollection<string, PupilTasks> $tasks
-     */
-    private static function childOf(Family $family, Person $child, ArrayCollection $tasks): ?ChildHomework
-    {
-        $own = $tasks->get($child->id()->toRfc4122());
-
-        return $own === null ? null : new ChildHomework($child, $family->membershipsOf($child), $own);
-    }
-
-    private static function pupilKey(PupilTasks $tasks): string
-    {
-        return $tasks->personId->toRfc4122();
+        return NotFound::coded('homework.notAvailable');
     }
 }
