@@ -13,6 +13,13 @@ interface StageRepositoryInterface
 {
     public function save(Stage $stage): void;
 
+    /**
+     * @param list<Uuid> $ids
+     *
+     * @return ReadableCollection<int, Stage>
+     */
+    public function findByIds(array $ids): ReadableCollection;
+
     public function find(Uuid $id): ?Stage;
 
     public function serviceIdOf(Uuid $stageId): ?Uuid;

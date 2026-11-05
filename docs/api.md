@@ -678,6 +678,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `people.alreadyIn` | `name`, `where` | {name} is already in {where}. |
 | `people.membershipOutsideServices` | – | You can only change memberships in the services and stages you serve in. |
 | `people.membershipEnded` | – | This membership has already ended. |
+| `people.searchTooShort` | `min` | **New.** Field error on `q`: type at least {min} letters. |
 | `people.moveOutsideStages` | – | You can only move people into stages you serve in. |
 
 ### `roles`
@@ -941,4 +942,19 @@ manageMembers}}`. Both flags are `false` on an archived service; `manageMembers`
 `stages: update`. Body `{name?, description?}`; a member left out keeps its value, `description: null` clears the
 description, and the position stays. Same rules as `POST`. The stage is read once its service is locked, so an
 edit that waited for another one works on the committed stage. 200 with the stage.
+
+### People directory
+
+#### `GET /api/people/directory?q=`
+
+`members: read`, so every staff role and no parent. A church-wide name search for pickers (a visitor on the
+attendance board, a child when approving a parent): it crosses services on purpose and returns only names and
+current groups, nothing else about the person (D7).
+
+`{items: [{id, firstName, lastName, displayName, groups: [{service: ServiceRef, stage: StageRef | null}]}]}`, at
+most 20, active people by last and first name. `groups` are the person's current memberships.
+
+`q` is folded (lower case, accents and Arabic harakat removed) and split into words; every word has to appear in
+the first, last or display name. Fewer than 2 letters → 422 field error `q`: `people.searchTooShort {min: 2}`.
+`%` and `_` match themselves.
 

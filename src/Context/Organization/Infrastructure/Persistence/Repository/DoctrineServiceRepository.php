@@ -45,6 +45,17 @@ final readonly class DoctrineServiceRepository implements ServiceRepositoryInter
         return new ArrayCollection([...$stored->toArray(), ...$pending->toArray()]);
     }
 
+    /**
+     * @param list<Uuid> $ids
+     */
+    #[Override]
+    public function findByIds(array $ids): ReadableCollection
+    {
+        return new ArrayCollection(
+            $ids === [] ? [] : $this->entityManager->getRepository(Service::class)->findBy(['id' => $ids]),
+        );
+    }
+
     #[Override]
     public function find(Uuid $id): ?Service
     {
