@@ -234,8 +234,8 @@ Public. Creates an account that waits for an administrator's approval. Its roles
 | `account.email` | Required (`accounts.emailRequired`), valid (`accounts.emailInvalid`), ≤180; trimmed and lower-cased |
 | `account.password` | 10–200 characters (`accounts.passwordTooShort {min}`, `validation.tooLong`) |
 | `account.language` | `en`, `de` or `ar` (`accounts.chooseLanguage`) |
-| `registration.registeredAs` | `parent` or `servant` (`accounts.chooseRegisteredAs`) |
-| `registration.note` | Required (`accounts.childrenRequired` for parents, `accounts.serviceDetailsRequired` for servants), ≤1000 |
+| `registration.registeredAs` | `parent`, `servant` or `member` (`accounts.chooseRegisteredAs`) |
+| `registration.note` | Required (`accounts.childrenRequired` for parents, `accounts.serviceDetailsRequired` for servants, `accounts.groupsRequired` for members: the groups they take part in), ≤1000 |
 | `registration.serviceIds` | Servants: at least one active service, each once (`accounts.chooseService`). Ignored for parents. |
 | `privacy.accepted` | `true` (`accounts.acceptPrivacy`) |
 | `privacy.version` | The current privacy notice version, `2026-11` |
@@ -935,7 +935,7 @@ label is its own label, and the 120-character limit applies only to a label that
 | `accounts.stageNotInService` | – | This stage doesn’t belong to the chosen service. |
 | `accounts.privacyNoticeOutdated` | – | **New.** 409 on registration: the privacy notice version the app showed is not the current one. Reload. |
 | `accounts.currentPasswordWrong` | – | **New.** Field error on `currentPassword` (P1, #45). |
-| `accounts.chooseRegisteredAs` | – | **New.** Field error on `registration.registeredAs`: choose parent or servant. |
+| `accounts.chooseRegisteredAs` | – | **New.** Field error on `registration.registeredAs`: choose parent, servant or member. |
 | `accounts.chooseLanguage` | – | **New.** Field error on `account.language`: choose English, German or Arabic. |
 | `accounts.passwordLinkUnavailable` | – | **New.** 409: password links are only for approved, enabled accounts. |
 | `accounts.groupsRequired` | – | **New.** Field error on `note` for a member: Write which groups you take part in, so the church office can link your account to your record. |
@@ -1049,7 +1049,7 @@ and every role by name for the approval dialog.
 | --- | --- |
 | `account` | `{id, email, displayName, language}` |
 | `registeredAt` | instant |
-| `registeredAs` | `parent` or `servant` |
+| `registeredAs` | `parent`, `servant` or `member` |
 | `note` | string or `null` |
 | `services` | `[ServiceRef]`, the services a servant named; empty for parents |
 
@@ -1058,24 +1058,41 @@ Nothing else: no password hash and no privacy fields.
 #### `POST /api/account-requests/{id}/approve`
 
 `users: update` and `roles: update` (it grants roles), else 403 `accounts.adminOnly`. Body `{as: "parent",
-childIds, roleIds}` or `{as: "servant", roleIds}`. Roles hold everywhere, so a servant gets roles and nothing
-else; children come from the people directory (`GET /api/people/directory?q=`). In one transaction, with the
-account locked: the roles are given (a parent also gets the Parent role), a parent gets approved guardian links
-to the children (`approved_by` = the administrator), the account is approved, and the registration's note, its
-`registeredAs` and the services the person named are deleted. Any failure stores nothing. 200
-`{id, email, displayName, language}`. The request is checked before the body, and every field error comes back
-at once. After the approval is stored, the account gets an `account_approved` email in its language with the
-sign-in link (`{FRONTEND_URL}/{language}/sign-in`); a failed email is logged and the approval stands. Declining
-sends nothing.
+childIds, roleIds}`, `{as: "servant", roleIds}` or `{as: "member", member: {personId, ageCheck,
+guardianConsentNote?}}`. Roles hold everywhere, so a servant gets roles and nothing else; children come from the
+people directory (`GET /api/people/directory?q=`), a member's record from `GET
+/api/account-requests/member-candidates?q=`. A member gets no role: the account is linked to its own record with
+the age check (`sixteenOrOlder`, or `guardianConsent` for under 16 with the parent's or guardian's agreement), and
+`guardianConsentNote` is kept only with `guardianConsent`. In one transaction, with the account locked: the roles
+are given (a parent also gets the Parent role), a parent gets approved guardian links to the children
+(`approved_by` = the administrator), a member's account is linked to its record, the account is approved, and the
+registration's note, its `registeredAs` and the services the person named are deleted. A member's approval holds a
+share lock on the record first, as `app:member:link` does, so an erasure can't remove it in between. Any failure
+stores nothing. 200 `{id, email, displayName, language}`. The request is checked before the body, and every field
+error comes back at once. After the approval is stored, the account gets an `account_approved` email in its
+language with the sign-in link (`{FRONTEND_URL}/{language}/sign-in`); a failed email is logged and the approval
+stands. Declining sends nothing.
 
 | Field | Codes |
 | --- | --- |
-| `as` | `validation.invalidChoice` (not `parent` or `servant`) |
+| `as` | `validation.invalidChoice` (not `parent`, `servant` or `member`) |
+| `member.personId` (members) | `accounts.choosePerson` (missing), `accounts.personNotFound` (unknown or inactive), `accounts.personHasAccount {name}` (another account has it, also when the unique index catches a race) |
+| `member.ageCheck` (members) | `accounts.chooseAge` (missing or not `sixteenOrOlder`/`guardianConsent`) |
+| `member.guardianConsentNote` (members) | `validation.tooLong {max: 200}` |
 | `roleIds` | `roles.chooseRole` (none), `roles.unknown` (an id no role has); duplicates are ignored, in any letter case |
 | `childIds` (parents) | `accounts.chooseChild` (none), `validation.tooMany {max: 20}`, `accounts.childNotFound` (unknown or inactive); duplicates are ignored, in any letter case |
 
 404 `notFound.user`, also for an id that is not a UUID; 409 `accounts.alreadyApproved`; 409
-`accounts.requestDisabled` for a disabled request, which can still be declined.
+`accounts.requestDisabled` for a disabled request, which can still be declined. A refused approval leaves the
+account pending.
+
+#### `GET /api/account-requests/member-candidates?q=`
+
+`users: read`, else 403 `accounts.adminOnly`. The approval dialog's search for a member's own record, with the
+people directory's rules (at most 20 active people by last and first name; `q` folded, fewer than 2 letters → 422
+`q` `people.searchTooShort {min: 2}`): `{items: [{id, firstName, lastName, displayName, groups, hasAccount}]}`.
+`groups` are the current memberships as in the directory; `hasAccount` says another account is linked to the
+record, so the dialog can grey it out without account data in the staff directory.
 
 #### `POST /api/account-requests/{id}/decline`
 

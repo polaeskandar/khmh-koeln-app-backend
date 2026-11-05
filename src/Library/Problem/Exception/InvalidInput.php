@@ -42,6 +42,16 @@ final class InvalidInput extends RuntimeException
         }
     }
 
+    public function nestedIn(string $parent): self
+    {
+        $fields = array_map(
+            static fn (string $field): string => $parent . '.' . $field,
+            array_keys($this->fieldErrors),
+        );
+
+        return new self(array_combine($fields, array_values($this->fieldErrors)));
+    }
+
     /**
      * @param callable(): (object|string|null) $check
      *

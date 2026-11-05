@@ -12,6 +12,7 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\RegistrationServices;
 use App\Context\People\Application\Service\ChildChoices;
 use App\Context\People\Application\Service\Guardianship;
+use App\Context\People\Domain\Entity\Person;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Workflow\Identity\Model\AccountSummary;
 use App\Workflow\Identity\Model\ApprovalChoice;
@@ -46,14 +47,26 @@ final readonly class ApproveAccountRequestWorkflow
         $roles = $chooseRoles();
         $children = $chooseChildren();
 
-        $this->approvals->approve($id, $actorId, $roles, function (User $user) use ($children, $actorId): void {
-            foreach ($children as $child) {
-                $this->guardianship->linkParent($user->id(), $child, approvedBy: $actorId);
-            }
+        $approved = $this->approvals->approve($id, $actorId, $roles, fn (User $user) => $this->settle(
+            $user,
+            $children,
+            $actorId,
+        ));
 
-            $this->registrations->forget($user->id());
-        });
+        $this->approvals->announce($approved);
 
-        return AccountSummary::of($this->approvals->account($id));
+        return AccountSummary::of($approved);
+    }
+
+    /**
+     * @param ReadableCollection<int, Person> $children
+     */
+    private function settle(User $user, ReadableCollection $children, string $actorId): void
+    {
+        foreach ($children as $child) {
+            $this->guardianship->linkParent($user->id(), $child, approvedBy: $actorId);
+        }
+
+        $this->registrations->forget($user->id());
     }
 }

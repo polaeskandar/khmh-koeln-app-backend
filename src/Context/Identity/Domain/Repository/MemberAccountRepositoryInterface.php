@@ -10,4 +10,11 @@ use Symfony\Component\Uid\Uuid;
 interface MemberAccountRepositoryInterface
 {
     public function holderOf(Uuid $personId): ?User;
+
+    /**
+     * @param list<Uuid> $personIds
+     *
+     * @return list<string> the ids of those records that an account is linked to
+     */
+    public function linkedAmong(array $personIds): array;
 }

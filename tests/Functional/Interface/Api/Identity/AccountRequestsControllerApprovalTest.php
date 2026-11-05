@@ -160,11 +160,11 @@ final class AccountRequestsControllerApprovalTest extends ApiTestCase
         $servant = ['as' => 'servant'];
 
         yield 'unknown kind' => [
-            ['as' => 'member', 'roleIds' => [self::PARENT_ROLE]],
+            ['as' => 'visitor', 'roleIds' => [self::PARENT_ROLE]],
             [],
             'as',
             'validation.invalidChoice',
-            ['choices' => '"parent", "servant"'],
+            ['choices' => '"parent", "servant", "member"'],
         ];
 
         yield 'no role' => [[...$servant, 'roleIds' => []], [], 'roleIds', 'roles.chooseRole'];
