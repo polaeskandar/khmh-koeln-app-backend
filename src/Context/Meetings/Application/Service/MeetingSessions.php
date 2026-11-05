@@ -7,6 +7,7 @@ namespace App\Context\Meetings\Application\Service;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Entity\SessionEvent;
+use App\Context\Meetings\Domain\Repository\RecentSessionRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\SessionListRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
@@ -23,6 +24,7 @@ final readonly class MeetingSessions
         private SessionRepositoryInterface $sessions,
         private ScheduleRepositoryInterface $schedules,
         private SessionListRepositoryInterface $lists,
+        private RecentSessionRepositoryInterface $recent,
     ) {
     }
 
@@ -60,6 +62,16 @@ final readonly class MeetingSessions
     public function byIds(array $ids): ReadableCollection
     {
         return $this->lists->byIds($ids);
+    }
+
+    /**
+     * @param positive-int $limit
+     *
+     * @return ReadableCollection<int, Session> oldest first
+     */
+    public function latestCompletedOfStage(Uuid $stageId, int $limit): ReadableCollection
+    {
+        return $this->recent->latestCompleted($this->schedules->listed(serviceId: null, stageId: $stageId), $limit);
     }
 
     /**
