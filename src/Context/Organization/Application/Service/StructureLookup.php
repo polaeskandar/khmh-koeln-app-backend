@@ -9,6 +9,7 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
+use App\Library\Problem\Exception\NotFound;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -38,6 +39,11 @@ final readonly class StructureLookup
     public function stages(array $ids): ReadableCollection
     {
         return $this->stages->findByIds($ids);
+    }
+
+    public function stage(string $id): Stage
+    {
+        return $this->stages->find(Uuid::fromString($id)) ?? throw NotFound::of('stage');
     }
 
     /**
