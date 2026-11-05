@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <ruleset name="CodingStandard">
-    <description>Blank lines that set blocks apart (docs/code-style.md).</description>
+    <description>Blank lines that set blocks apart, and no comments (docs/code-style.md).</description>
 
     <file>../../src</file>
     <file>../../tests</file>
@@ -13,4 +13,5 @@
     <rule ref="../../vendor/slevomat/coding-standard/SlevomatCodingStandard/Sniffs/ControlStructures/BlockControlStructureSpacingSniff.php"/>
     <rule ref="../../vendor/slevomat/coding-standard/SlevomatCodingStandard/Sniffs/ControlStructures/JumpStatementsSpacingSniff.php"/>
     <rule ref="./Sniffs/Spacing/MultiLineStatementSpacingSniff.php"/>
+    <rule ref="./Sniffs/Commenting/NoCommentsSniff.php"/>
 </ruleset>
