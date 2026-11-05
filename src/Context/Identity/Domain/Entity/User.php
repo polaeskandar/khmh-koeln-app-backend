@@ -27,7 +27,7 @@ final class User extends CreatedAtEntity
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
-    private readonly Uuid $id;
+    private Uuid $id;
 
     #[ORM\Embedded(Profile::class, columnPrefix: false)]
     private Profile $profile;

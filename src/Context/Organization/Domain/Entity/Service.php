@@ -22,7 +22,7 @@ final class Service extends TimestampedEntity
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
-    private readonly Uuid $id;
+    private Uuid $id;
 
     #[ORM\Embedded(ServiceName::class, columnPrefix: false)]
     private ServiceName $name;

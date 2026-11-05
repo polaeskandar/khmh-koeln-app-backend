@@ -22,7 +22,7 @@ final class Role extends TimestampedEntity
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
-    private readonly Uuid $id;
+    private Uuid $id;
 
     #[ORM\Embedded(RoleName::class, columnPrefix: false)]
     private RoleName $name;

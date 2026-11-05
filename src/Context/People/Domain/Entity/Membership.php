@@ -28,7 +28,7 @@ final class Membership
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
-    private readonly Uuid $id;
+    private Uuid $id;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'person_id', nullable: false, onDelete: 'RESTRICT')]

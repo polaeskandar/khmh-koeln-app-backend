@@ -19,7 +19,7 @@ final class SessionEvent
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
-    private readonly Uuid $id;
+    private Uuid $id;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'session_id', nullable: false, onDelete: 'RESTRICT')]

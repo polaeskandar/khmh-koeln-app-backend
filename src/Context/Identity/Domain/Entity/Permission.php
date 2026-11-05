@@ -19,7 +19,7 @@ final class Permission implements JsonSerializable
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
-    private readonly Uuid $id;
+    private Uuid $id;
 
     #[ORM\Column(length: 6, enumType: Action::class)]
     private readonly Action $action;

@@ -19,7 +19,7 @@ final class Person extends CreatedAtEntity
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
-    private readonly Uuid $id;
+    private Uuid $id;
 
     #[ORM\Embedded(PersonName::class, columnPrefix: false)]
     private PersonName $name;
