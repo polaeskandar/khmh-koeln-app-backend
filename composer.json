@@ -119,6 +119,9 @@
         "db:seed": [
             "@php bin/console app:demo:seed --no-interaction"
         ],
+        "members:import": [
+            "@php bin/console app:members:import"
+        ],
         "db:test:reset": [
             "@php bin/console doctrine:database:drop --env=test --force --if-exists --quiet",
             "@php bin/console doctrine:database:create --env=test --quiet",
