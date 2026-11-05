@@ -1681,8 +1681,9 @@ UUID; another `tab` → 422 `validation.invalidChoice`.
   archived and before today, newest first; `archived`: newest first.
 - `q` keeps the rows whose title or passage holds every word, ignoring case and accents. `tabs` counts each tab
   without `q`.
-- A `LessonRow` is `{id, title, passage, teachingDate, status, responsible: AccountRef | null, meeting:
-  MeetingView, homework: {total, published, drafts}}`. `responsible` is `null` once the account is gone; `homework`
+- A `LessonRow` is `{id, title, passage, teachingDate, status, responsible: AccountRef | null, collaborators:
+  AccountRef[], meeting: MeetingView, homework: {total, published, drafts}}`. `collaborators` are the helping
+  servants by name, loaded in one batch for the list. `responsible` is `null` once the account is gone; `homework`
   counts the lesson's tasks that are not archived.
 - `archived` is `true` when the stage or its service is archived; apps offer creating a lesson for `lessons:
   create` while it is `false` (`POST` answers 409 `lessons.stageArchived` otherwise). `servants` are the lesson
@@ -1728,9 +1729,13 @@ collapsed and the texts trimmed (empty → `null`); material rows with neither l
 Field errors: `details.title` `lessons.titleRequired`, `validation.tooLong {max: 160}`; `details.summary` 1000,
 `details.passage` 200, `details.memoryVerse` 500 and each `plan.*` text 4000 (`validation.tooLong`);
 `plan.materials.{i}.label`/`.url` as in `materials`; `meeting` as in "The meeting a lesson is for";
-`responsibleId` `lessons.chooseResponsible` when it is missing or not a lesson preparer; `status`
-`validation.invalidChoice`. Once the body is well-formed, the errors of the title, the materials, the meeting and the
-responsible are reported together. Two saves racing for one meeting → the loser gets `meeting`
+`responsibleId` `lessons.chooseResponsible` when it is missing or not a lesson preparer;
+`details.collaboratorIds` (optional, the helping servants; left out means none, so `PUT` replaces the whole set):
+repeated ids and the responsible are dropped, in whatever case the UUIDs are written; at most 20
+(`validation.tooMany {max: 20}`); a new id that is not a lesson preparer → `lessons.helpersInStage`, while ids
+already on the lesson stay accepted after the person lost the role; the set is replaced in the lesson's transaction
+with its row locked; `status` `validation.invalidChoice`. Once the body is well-formed, the errors of the title, the
+materials, the meeting, the responsible and the helpers are reported together. Two saves racing for one meeting → the loser gets `meeting`
 `lessons.meetingHasLesson {title}`. 404 `notFound.stage` also for an id that is not a UUID.
 
 #### `PUT /api/lessons/{id}`

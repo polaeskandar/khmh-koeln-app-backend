@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Learning\Model;
 
 use App\Context\Learning\Domain\Entity\Lesson;
+use App\Context\Learning\Domain\ValueObject\LessonHelpers;
 use App\Context\Learning\Domain\ValueObject\LessonListing;
 use App\Library\Collections\Model\Collections;
 use App\Workflow\Identity\Model\AccountReferences;
@@ -25,6 +26,7 @@ final readonly class LessonRows
         $rowOf = static fn (Lesson $lesson, int $index): LessonRow => new LessonRow(
             LessonSummary::of($lesson),
             $responsibles->referenceOf($lesson->responsibleId()),
+            $responsibles->byNameOf($listing->helpers->of($lesson)),
             $meetings[$index] ?? throw new LogicException('Every shown lesson needs its meeting view.'),
             LessonHomework::of($listing->homeworkOf($lesson)),
         );
@@ -37,10 +39,10 @@ final readonly class LessonRows
      *
      * @return list<Uuid>
      */
-    public static function responsibleIdsOf(ReadableCollection $lessons): array
+    public static function accountIdsOf(ReadableCollection $lessons, LessonHelpers $helpers): array
     {
         $responsibleOf = static fn (Lesson $lesson): ?Uuid => $lesson->responsibleId();
 
-        return Collections::mapPresent($lessons, $responsibleOf)->getValues();
+        return [...Collections::mapPresent($lessons, $responsibleOf)->getValues(), ...$helpers->accountIds()];
     }
 }

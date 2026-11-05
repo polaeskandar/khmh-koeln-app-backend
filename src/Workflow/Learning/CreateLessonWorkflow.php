@@ -12,15 +12,14 @@ use App\Context\Learning\Application\Service\LessonWrites;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\MeetingChoice;
 use App\Context\Learning\Domain\ValueObject\OfferedMeeting;
-use App\Context\Learning\Domain\ValueObject\ResponsibleChoice;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Workflow\Learning\Model\LessonChoice;
 use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Learning\Model\OfferedMeetings;
+use App\Workflow\Learning\Model\TeamChoices;
 use App\Workflow\Learning\Model\WrittenLesson;
-use Symfony\Component\Uid\Uuid;
 
 final readonly class CreateLessonWorkflow
 {
@@ -51,7 +50,7 @@ final readonly class CreateLessonWorkflow
                 $stage,
                 $draft,
                 $this->offeredFor($draft->meeting),
-                $this->responsibleOf($choice->responsibleId),
+                TeamChoices::of($choice, $this->accounts->activeAllowedTo(Action::Update, Resource::Lessons)),
             ),
         ));
     }
@@ -67,15 +66,5 @@ final readonly class CreateLessonWorkflow
             ),
             default => null,
         });
-    }
-
-    private function responsibleOf(?string $sent): ResponsibleChoice
-    {
-        $id = $sent !== null && Uuid::isValid($sent) ? Uuid::fromString($sent) : null;
-
-        return new ResponsibleChoice(
-            $id,
-            $id !== null && $this->accounts->isActiveAndAllowedTo($id, Action::Update, Resource::Lessons),
-        );
     }
 }

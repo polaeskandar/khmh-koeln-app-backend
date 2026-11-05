@@ -25,6 +25,7 @@ final readonly class LessonRowResponse implements JsonSerializable
      *     teachingDate: string,
      *     status: string,
      *     responsible: AccountReference|null,
+     *     collaborators: list<AccountReference>,
      *     meeting: MeetingViewResponse,
      *     homework: LessonHomework,
      * }
@@ -43,6 +44,7 @@ final readonly class LessonRowResponse implements JsonSerializable
      *     teachingDate: string,
      *     status: string,
      *     responsible: AccountReference|null,
+     *     collaborators: list<AccountReference>,
      *     meeting: MeetingViewResponse,
      * }
      */
@@ -57,6 +59,7 @@ final readonly class LessonRowResponse implements JsonSerializable
             'teachingDate' => $lesson->teachingDate,
             'status' => $lesson->status,
             'responsible' => $this->row->responsible,
+            'collaborators' => $this->row->collaborators,
             'meeting' => new MeetingViewResponse($this->row->meeting),
         ];
     }

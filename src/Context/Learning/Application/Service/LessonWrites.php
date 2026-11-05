@@ -9,13 +9,15 @@ use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\LessonDraft;
 use App\Context\Learning\Domain\ValueObject\LessonStage;
+use App\Context\Learning\Domain\ValueObject\LessonTeam;
 use App\Context\Learning\Domain\ValueObject\MeetingChoice;
 use App\Context\Learning\Domain\ValueObject\MeetingLink;
 use App\Context\Learning\Domain\ValueObject\OfferedMeeting;
-use App\Context\Learning\Domain\ValueObject\ResponsibleChoice;
+use App\Context\Learning\Domain\ValueObject\TeamChoice;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
+use App\Platform\Doctrine\Contract\Transactions;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class LessonWrites
@@ -23,6 +25,8 @@ final readonly class LessonWrites
     public function __construct(
         private LessonRepositoryInterface $lessons,
         private LessonMeetings $meetings,
+        private LessonTeams $teams,
+        private Transactions $transactions,
         private Calendar $calendar,
     ) {
     }
@@ -38,19 +42,16 @@ final readonly class LessonWrites
         return $lesson;
     }
 
-    public function create(
-        LessonStage $stage,
-        LessonDraft $draft,
-        ?OfferedMeeting $offered,
-        ResponsibleChoice $responsible,
-    ): Lesson {
+    public function create(LessonStage $stage, LessonDraft $draft, ?OfferedMeeting $offered, TeamChoice $team): Lesson
+    {
         $link = fn (): MeetingLink => $this->meetings->link($stage->id, $draft->meeting, $offered);
-        $responsibleId = static fn (): Uuid => $responsible->chosen(current: null);
-        $this->check($draft, $link, $responsibleId);
+        $chosen = fn (): LessonTeam => $this->teams->chosen($team, lesson: null);
+        $this->check($draft, $link, $chosen);
+        $lessonTeam = $chosen();
 
-        $lesson = new Lesson($stage->id, $link(), $draft->text->text(), $responsibleId());
+        $lesson = new Lesson($stage->id, $link(), $draft->text->text(), $lessonTeam->responsible);
 
-        return $this->described($lesson, $draft, unchanged: LessonStatus::Draft);
+        return $this->described($lesson, $draft, $lessonTeam, unchanged: LessonStatus::Draft);
     }
 
     public function edit(
@@ -58,7 +59,7 @@ final readonly class LessonWrites
         LessonStage $stage,
         LessonDraft $draft,
         ?OfferedMeeting $offered,
-        ResponsibleChoice $responsible,
+        TeamChoice $team,
     ): Lesson {
         $link = fn (): MeetingLink => $this->movable($lesson, $this->meetings->link(
             $stage->id,
@@ -67,26 +68,21 @@ final readonly class LessonWrites
             editing: $lesson,
         ));
 
-        $responsibleId = static fn (): Uuid => $responsible->chosen($lesson->responsibleId());
-        $this->check($draft, $link, $responsibleId);
-        $lesson->edit($draft->text->text(), $link(), $responsibleId());
+        $chosen = fn (): LessonTeam => $this->teams->chosen($team, $lesson);
+        $this->check($draft, $link, $chosen);
+        $lessonTeam = $chosen();
+        $lesson->edit($draft->text->text(), $link(), $lessonTeam->responsible);
 
-        return $this->described($lesson, $draft, unchanged: $lesson->state()->status);
+        return $this->described($lesson, $draft, $lessonTeam, unchanged: $lesson->state()->status);
     }
 
     /**
      * @param callable(): MeetingLink $link
-     * @param callable(): Uuid $responsibleId
+     * @param callable(): LessonTeam $team
      */
-    private function check(LessonDraft $draft, callable $link, callable $responsibleId): void
+    private function check(LessonDraft $draft, callable $link, callable $team): void
     {
-        InvalidInput::all(
-            $draft->text->text(...),
-            $draft->plan->plan(...),
-            $draft->plan->materials(...),
-            $link,
-            $responsibleId,
-        );
+        InvalidInput::all($draft->text->text(...), $draft->plan->plan(...), $draft->plan->materials(...), $link, $team);
     }
 
     private function movable(Lesson $lesson, MeetingLink $link): MeetingLink
@@ -96,13 +92,17 @@ final readonly class LessonWrites
             : $link;
     }
 
-    private function described(Lesson $lesson, LessonDraft $draft, LessonStatus $unchanged): Lesson
+    private function described(Lesson $lesson, LessonDraft $draft, LessonTeam $team, LessonStatus $unchanged): Lesson
     {
         $lesson->describe($draft->plan->plan(), $draft->plan->materials());
         $status = $draft->status === null ? $unchanged : LessonStatus::from($draft->status);
         $lesson->changeState($lesson->state()->withStatus($status, $this->calendar->now()));
-        $this->lessons->save($lesson);
 
-        return $lesson;
+        return $this->transactions->run(function () use ($lesson, $team): Lesson {
+            $this->lessons->save($lesson);
+            $this->teams->store($lesson, $team);
+
+            return $lesson;
+        });
     }
 }

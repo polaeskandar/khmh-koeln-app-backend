@@ -27,6 +27,7 @@ One row per table. "Who sees it" follows D7: roles are global; parents see only 
 | `meetings.session_event` | actor, note (may name children) | Session history | Staff with `attendance: read` for notes | Permanent | Actor set to null |
 | `meetings.attendance` | who was present, who recorded or removed the mark, removal reason (may name children) | Attendance | Staff (`attendance: read`) | Open (service leaders) | Deleted with the person; actors set to null |
 | `learning.lesson` | responsible servant, notes (may name children) | Lesson planning | Staff; notes only with `members: read` | Open (service leaders) | Responsible set to null |
+| `learning.lesson_collaborator` | which account helps with which lesson | Lesson planning | Staff | With the lesson | Deleted with the account or the lesson |
 | `learning.homework_assignment` | who created it | Homework | Staff; published tasks to the children's parents | Open (service leaders) | Creator set to null |
 | `learning.homework_completion` | which child did which task, who reported and undid it | Homework progress | Staff (`members: read`); the child's parents | Open (service leaders) | Deleted with the person; reporters set to null |
 | `privacy.data_request` | who it is about, who asked, channel, note, outcome | The office's request log | Administrators | Open (office and adviser) | Subject set to null and described in `erased_subject_*`; closer set to null |

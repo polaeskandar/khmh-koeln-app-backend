@@ -13,6 +13,7 @@ final readonly class LessonReading
         public Lesson $lesson,
         public HomeworkCounts $homework,
         public LocalDate $today,
+        public LessonHelpers $helpers,
     ) {
     }
 }

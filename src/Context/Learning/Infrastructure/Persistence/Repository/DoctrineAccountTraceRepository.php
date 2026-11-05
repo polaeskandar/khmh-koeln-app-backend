@@ -29,6 +29,7 @@ final readonly class DoctrineAccountTraceRepository implements AccountTraceRepos
     {
         $connection = $this->entityManager->getConnection();
         $id = $accountId->toRfc4122();
+        $connection->delete('learning.lesson_collaborator', ['user_id' => $id]);
 
         return new ArrayCollection(self::ACTOR_COLUMNS)->reduce(
             /**
