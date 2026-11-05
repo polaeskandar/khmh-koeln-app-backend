@@ -12,6 +12,7 @@ use App\Context\Privacy\Domain\ValueObject\RequestClosing;
 use App\Context\Privacy\Domain\ValueObject\RequestSubject;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
 use App\Library\Time\Model\LocalDate;
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -125,5 +126,15 @@ final class DataRequest extends CreatedAtEntity
     public function erasedSubject(): ErasedSubject
     {
         return $this->erasedSubject;
+    }
+
+    /**
+     * @param array<string, int> $outcome
+     */
+    public function complete(DateTimeImmutable $at, Uuid $by, array $outcome): void
+    {
+        $this->status = RequestStatus::Done;
+        $this->closing = new RequestClosing($at, $by);
+        $this->outcome = $outcome;
     }
 }

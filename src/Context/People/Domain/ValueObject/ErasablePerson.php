@@ -11,10 +11,12 @@ use Symfony\Component\Uid\Uuid;
 final readonly class ErasablePerson
 {
     /**
+     * @param list<string> $names
      * @param ReadableCollection<int, Membership> $memberships
      */
     public function __construct(
         public Uuid $id,
+        public array $names,
         public ReadableCollection $memberships,
     ) {
     }

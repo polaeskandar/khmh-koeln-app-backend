@@ -8,11 +8,13 @@ use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Context\People\Domain\Entity\Person;
+use App\Context\Privacy\Domain\Enum\RequestKind;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
+use App\Tests\Support\Interface\Api\Privacy\ErasureFixture;
 use App\Tests\Support\Workflow\Attendance\Model\SessionTallyLookups;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -123,6 +125,29 @@ final class PrivacyErasePersonCommandTest extends KernelTestCase
         $tester = new CommandTester(new Application(self::bootKernel())->find('app:privacy:erase-person'));
         self::assertSame(Command::FAILURE, $tester->execute(['person' => 'not-a-person']));
         self::assertStringContainsString('notFound.person', $tester->getDisplay());
+    }
+
+    public function testTheMembersRequestsKeepOnlyAnAnonymousSubject(): void
+    {
+        self::mockTime('2026-11-08T12:00:00+01:00');
+        [$mina] = $this->fixture();
+        new ErasureFixture(self::getContainer())->request(RequestKind::Erasure, $mina);
+
+        $this->erase('app:privacy:erase-person', $mina);
+
+        self::assertSame(
+            [[
+                'person_id' => null,
+                'erased_subject_kind' => 'member',
+                'erased_subject_group' => '3rd Class',
+                'status' => 'open',
+            ]],
+            new Database(self::getContainer())
+                ->connection()
+                ->fetchAllAssociative(
+                    'SELECT person_id, erased_subject_kind, erased_subject_group, status FROM privacy.data_request',
+                ),
+        );
     }
 
     private function erase(string $command, Person $person): int

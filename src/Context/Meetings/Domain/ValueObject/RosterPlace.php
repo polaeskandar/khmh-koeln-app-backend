@@ -20,4 +20,13 @@ final readonly class RosterPlace
 
         return $stage === $this->stageId?->toRfc4122() && $roster->serviceId->equals($this->serviceId);
     }
+
+    public function isCoveredBy(Roster $roster): bool
+    {
+        if (!$roster->serviceId->equals($this->serviceId)) {
+            return false;
+        }
+
+        return $roster->stageId === null || $this->holds($roster);
+    }
 }

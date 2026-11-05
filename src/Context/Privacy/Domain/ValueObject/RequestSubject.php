@@ -18,4 +18,14 @@ final readonly class RequestSubject
         public ?Uuid $accountId,
     ) {
     }
+
+    public function isGone(): bool
+    {
+        return $this->personId === null && $this->accountId === null;
+    }
+
+    public function isAccount(string $accountId): bool
+    {
+        return $this->accountId?->toRfc4122() === $accountId;
+    }
 }

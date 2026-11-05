@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Context\Identity\Infrastructure\Lock;
 
-use App\Context\Identity\Infrastructure\Lock\SymfonyAdministrationLock;
+use App\Context\Identity\Infrastructure\Lock\PostgresAdministrationLock;
 use App\Tests\Support\Context\Identity\Infrastructure\Lock\OtherSession;
 use App\Tests\Support\Database;
+use DAMA\DoctrineTestBundle\PHPUnit\SkipDatabaseRollback;
 use Override;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-final class SymfonyAdministrationLockTest extends KernelTestCase
+#[SkipDatabaseRollback]
+final class PostgresAdministrationLockTest extends KernelTestCase
 {
     private ?OtherSession $otherSession = null;
 
@@ -47,9 +49,22 @@ final class SymfonyAdministrationLockTest extends KernelTestCase
         self::assertTrue($this->otherSession()->acquiresAdministrationLock());
     }
 
-    private function lock(): SymfonyAdministrationLock
+    public function testAnOuterTransactionKeepsTheLockUntilItCommits(): void
     {
-        return new SymfonyAdministrationLock(new Database(self::getContainer())->connection());
+        $connection = new Database(self::getContainer())->connection();
+        $connection->beginTransaction();
+        $this->lock()->whileLocked(static function (): void {});
+
+        $heldUntilCommit = !$this->otherSession()->acquiresAdministrationLock();
+        $connection->commit();
+
+        self::assertTrue($heldUntilCommit);
+        self::assertTrue($this->otherSession()->acquiresAdministrationLock());
+    }
+
+    private function lock(): PostgresAdministrationLock
+    {
+        return new PostgresAdministrationLock(new Database(self::getContainer())->connection());
     }
 
     private function otherSession(): OtherSession

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Enum\RosterMode;
 use App\Context\Meetings\Domain\ValueObject\ErasedCounts;
@@ -34,19 +33,6 @@ final readonly class ErasedShares
         return Collections::firstPerKey($sessions, keyOf: self::idOf(...))->map(
             static fn (Session $session): ErasedCounts => self::shareOf($session, $rostered, $present),
         )->filter(static fn (ErasedCounts $share): bool => $share->roster > 0 || $share->present > 0);
-    }
-
-    /**
-     * @param ReadableCollection<int, Attendance> $marks
-     *
-     * @return list<Uuid>
-     */
-    public static function presentAt(ReadableCollection $marks): array
-    {
-        return $marks
-            ->filter(static fn (Attendance $mark): bool => $mark->isCurrent())
-            ->map(static fn (Attendance $mark): Uuid => $mark->session()->id())
-            ->getValues();
     }
 
     /**

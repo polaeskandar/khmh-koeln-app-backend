@@ -787,6 +787,10 @@ label is its own label, and the 120-character limit applies only to a label that
 | `privacy.chooseSubject` | – | **New.** Field error on `subject`: choose the member or the account the request is about. |
 | `privacy.requestedByRequired` | – | **New.** Field error: enter who made the request. |
 | `privacy.receivedInFuture` | – | **New.** Field error: the request can't have been received after today. |
+| `privacy.notOpen` | – | **New.** 409: the request is already closed. |
+| `privacy.notErasure` | – | **New.** 409: only erasure requests erase data. |
+| `privacy.subjectGone` | – | **New.** 409: neither the member nor the account still exists. |
+| `privacy.ownAccount` | – | **New.** 409: an administrator can't erase their own account. |
 
 ### `homework`
 
@@ -1606,4 +1610,33 @@ AccountRef | null, declineReason, outcome}`; `subjectName` is read from the memb
 
 `{today, request, member: {id, firstName, lastName, displayName, status, memberships} | null, account: {id, name,
 email, roles} | null}`; 404 `notFound.request`.
+
+#### `GET /api/data-requests/{id}/erasure`
+
+The review before an erasure: a dry run of `POST …/erase`, rolled back, with the request locked as for the
+erasure → 200 `{erase, keep, mentions}`:
+
+- `erase: {person, memberships, attendance, completions, guardianLinks, account, roles}`: rows that go (`person`
+  and `account` are 0 or 1).
+- `keep: {sessionTotals, accountRows}`: past sessions that keep the member as an anonymous count, and rows the
+  account recorded, reported or created that stay without it.
+- `mentions: [{id, where: cancelReason|sessionNote|removalReason|lessonNote, text, date, group}]`, oldest first:
+  notes that name the member's first or display name as a whole word (any case), in the meetings of the member's
+  stages and their services' meetings without a stage, other members' removal reasons there, and the lessons of
+  the member's stages. `group` is the meeting or the stage; `date` the session's or the lesson's date.
+
+A request that can't be erased answers with the erasure's own 409 (`privacy.notOpen`, `privacy.notErasure`,
+`privacy.subjectGone`, `privacy.ownAccount`, `roles.lastAdministrator`); a malformed or unknown id → 404
+`notFound.request`; 403 as above.
+
+#### `POST /api/data-requests/{id}/erase`
+
+Body `{clearNotes: boolean}` → 200 with the request's row (`status: done`, `closedBy` the viewer, `outcome` the
+review's counts plus `notes`, `subjectName: null`, `erasedSubject: {kind: member, group}` with the member's last
+stage, else its service, or `{kind: account, group: null}`). One transaction with the request locked: `clearNotes:
+true` first empties every mention, then the member and the account are erased as by `app:privacy:erase-person`
+and `app:privacy:erase-account`; any failure changes nothing. Every request about the erased member or account
+(copy requests too, and also after a console erasure) loses the link and keeps only `erasedSubject`. 409
+`privacy.notOpen`, `privacy.notErasure`, `privacy.subjectGone`, `privacy.ownAccount`, `roles.lastAdministrator`;
+`clearNotes` missing or not a boolean → 422 `validation.invalidType`; 403 and 404 as above.
 
