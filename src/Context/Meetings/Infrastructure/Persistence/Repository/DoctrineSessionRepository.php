@@ -20,6 +20,7 @@ use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Override;
+use Symfony\Component\Uid\Uuid;
 use Throwable;
 
 final readonly class DoctrineSessionRepository implements SessionRepositoryInterface
@@ -34,6 +35,20 @@ final readonly class DoctrineSessionRepository implements SessionRepositoryInter
         private EntityManagerInterface $entityManager,
         private ManagerRegistry $doctrine,
     ) {
+    }
+
+    #[Override]
+    public function find(Uuid $id): ?Session
+    {
+        return $this->entityManager->find(Session::class, $id);
+    }
+
+    #[Override]
+    public function historyOf(Session $session): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager->getRepository(SessionEvent::class)->findBy([
+            'session' => $session,
+        ], ['occurredAt' => 'ASC', 'id' => 'ASC']));
     }
 
     /**

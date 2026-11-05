@@ -9,6 +9,8 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\Email;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
@@ -31,6 +33,17 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
     public function find(Uuid $id): ?User
     {
         return $this->entityManager->find(User::class, $id);
+    }
+
+    /**
+     * @param list<Uuid> $ids
+     */
+    #[Override]
+    public function findByIds(array $ids): ReadableCollection
+    {
+        return new ArrayCollection(
+            $ids === [] ? [] : $this->entityManager->getRepository(User::class)->findBy(['id' => $ids]),
+        );
     }
 
     #[Override]
