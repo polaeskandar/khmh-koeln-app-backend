@@ -12,7 +12,6 @@ use App\Context\Learning\Application\Service\PupilHomework;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\ParentChildren;
-use App\Library\Problem\Exception\NotFound;
 use App\Workflow\ParentPortal\Model\ChildHomeworkList;
 use App\Workflow\ParentPortal\Model\ParentHomeworkItems;
 use App\Workflow\ParentPortal\Model\ParentHomeworkOrder;
@@ -36,8 +35,7 @@ final readonly class ListChildHomeworkWorkflow
 
         $viewer = Uuid::fromString($viewerId);
         $visible = $this->visibleTo($viewer);
-        $childUuid = self::idOf($childId);
-        $child = ($childUuid === null ? null : $visible->of($childUuid)) ?? throw NotFound::of('person');
+        $child = $visible->requireChild($childId);
         $shown = ParentHomeworkOrder::shown($child->tasks, $state);
 
         return new ChildHomeworkList($visible->today->toString(), $this->itemsOf($shown, $viewer)->listOf($shown));
@@ -62,10 +60,5 @@ final readonly class ListChildHomeworkWorkflow
             $this->accounts->accounts(ParentHomeworkItems::reporterIdsOf($tasks)),
             $viewer,
         );
-    }
-
-    private static function idOf(string $id): ?Uuid
-    {
-        return Uuid::isValid($id) ? Uuid::fromString($id) : null;
     }
 }
