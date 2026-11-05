@@ -14,10 +14,10 @@ final readonly class PlacementChoices
     ) {
     }
 
-    public function of(?string $serviceId, ?string $stageId): ChosenPlacement
+    public function of(?string $serviceId, ?string $stageId, string $fieldPrefix): ChosenPlacement
     {
-        $service = $this->services->of($serviceId);
+        $service = $this->services->of($serviceId, field: $fieldPrefix . 'serviceId');
 
-        return new ChosenPlacement($service, $this->stages->of($stageId, $service));
+        return new ChosenPlacement($service, $this->stages->of($stageId, $service, field: $fieldPrefix . 'stageId'));
     }
 }

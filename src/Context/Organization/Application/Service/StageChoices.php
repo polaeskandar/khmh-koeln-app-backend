@@ -12,14 +12,12 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class StageChoices
 {
-    private const string FIELD = 'placement.stageId';
-
     public function __construct(
         private StageRepositoryInterface $stages,
     ) {
     }
 
-    public function of(?string $stageId, Service $service): ?Stage
+    public function of(?string $stageId, Service $service, string $field): ?Stage
     {
         if ($stageId === null) {
             return null;
@@ -33,11 +31,11 @@ final readonly class StageChoices
             ->first();
 
         if (!$stage instanceof Stage) {
-            throw InvalidInput::field(self::FIELD, 'meetings.chooseStage');
+            throw InvalidInput::field($field, 'meetings.chooseStage');
         }
 
         if ($stage->isArchived()) {
-            throw InvalidInput::field(self::FIELD, 'meetings.stageArchived', ['name' => $stage->name()->value]);
+            throw InvalidInput::field($field, 'meetings.stageArchived', ['name' => $stage->name()->value]);
         }
 
         return $stage;
