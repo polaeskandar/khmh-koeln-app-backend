@@ -57,6 +57,9 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   (`mago guard`). Read models carry no permission flags: clients take what the viewer may do from the
   `permissions` of `GET /api/me`.
 - A context never uses another context. Only a context's own `Infrastructure` uses its `Infrastructure`.
+  When a rule of one context needs another context's facts, the workflow reads them and hands them over in
+  the receiving context's own value object: `OfferedMeetings` maps Meetings' `MeetingSlot` into Learning's
+  `OfferedMeeting`, and `ArchivedStructure` carries Organization's archived ids into Meetings.
 - `Domain` holds the model only (`SourceLayoutTest`), and business logic lives in `Application/Service`. Entities hold state and
   nothing else: the constructor assigns the value objects, entities and ids it is given (plus fixed starting
   values such as a new session's `scheduled` progress), getters return them or answer a question about that

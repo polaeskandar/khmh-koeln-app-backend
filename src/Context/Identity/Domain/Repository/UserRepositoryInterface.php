@@ -26,4 +26,9 @@ interface UserRepositoryInterface
      * @return ReadableCollection<int, User>
      */
     public function findByIds(array $ids): ReadableCollection;
+
+    /**
+     * @return ReadableCollection<int, User>
+     */
+    public function activeThatCan(Action $action, Resource $resource): ReadableCollection;
 }

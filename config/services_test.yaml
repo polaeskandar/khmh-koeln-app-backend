@@ -18,6 +18,12 @@ services:
     App\Workflow\Meetings\GenerateSessionsWorkflow:
         public: true
 
+    App\Context\Learning\Application\Service\LessonMeetings:
+        public: true
+
+    App\Context\Meetings\Application\Service\MeetingLookup:
+        public: true
+
     App\Tests\Support\Context\Identity\Infrastructure\Security\SessionProbeController:
         tags: [controller.service_arguments]
 
