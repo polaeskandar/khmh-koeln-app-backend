@@ -651,6 +651,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `notFound.lesson` | – | This lesson does not exist or was deleted. |
 | `notFound.homework` | – | This homework does not exist or was deleted. |
 | `notFound.user` | – | This account does not exist or was deleted. |
+| `notFound.role` | – | **New.** This role does not exist or was deleted. |
 | `notFound.guardian` | – | This parent link does not exist or was removed. |
 | `notFound.request` | – | This request does not exist or was deleted. |
 | `notFound.route` | – | **New.** 404: no such route under `/api`. |
@@ -1036,6 +1037,39 @@ Body `{}`. Deletes the account and everything the person entered, then answers 2
 register again. The account is locked (`SELECT … FOR UPDATE`) while the decision is made, so two
 administrators can't both decide. 404 `notFound.user`, also for an id that is not a UUID; 409 `accounts.alreadyApproved` for an approved
 account, which stays.
+
+### Staff accounts
+
+Settings for administrators: staff accounts, their roles and password links. Roles are global (D7), so an
+assignment is just the role.
+
+#### `GET /api/staff-accounts`
+
+`users: read`, else 403 `forbidden`. `{items: [{id, displayName, email, disabled, roles: [{id, name}]}], today}`:
+approved accounts with a staff role (one that grants a permission outside `parentPortal`) or with no role,
+disabled ones last, then by name, at most 500; roles by name. Parent-only and pending accounts are left out.
+
+#### `POST /api/accounts/{id}/roles`
+
+`roles: update`, else 403 `roles.adminOnly`. Body `{roleId}` → 201 `{role: {id, name}}`; the account has the
+role's permissions from its next request. 404 `notFound.user`; 422 `roles.chooseRole` (missing) or
+`roles.unknown` (no such role) on `roleId`; 409 `roles.alreadyHasRole {name}`, `roles.accountPending`. A refusal
+stores nothing.
+
+#### `DELETE /api/accounts/{id}/roles/{roleId}`
+
+`roles: update`, else 403 `roles.adminOnly`. Body `{}` → 204, effective on the account's next request. 404
+`notFound.user`, `notFound.role`; 409 `roles.notHeld {name}`, `roles.ownAdminRole` (the viewer would lose
+`roles: update` on their own account), `roles.lastAdministrator`. The administration lock that `app:user:disable`
+and the erasures take serialises every removal, so two administrators removing each other's role can't leave
+nobody to manage roles.
+
+#### `POST /api/accounts/{id}/password-link`
+
+`users: update`, else 403 `forbidden`. Body `{}` → 201 `{expiresAt}`: emails the account a one-time
+`password_link` valid for 24 hours (`created_by` = the viewer) that replaces any older unused link, as
+`app:user:password-link` does. The link itself is never returned, stored or logged. 404 `notFound.user`; 409
+`accounts.passwordLinkUnavailable` for a pending or disabled account.
 
 ### Services
 

@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Context\Identity\Application\Service;
+
+use App\Context\Identity\Domain\Entity\Role;
+use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Enum\Action;
+use App\Context\Identity\Domain\Enum\Resource;
+use App\Library\Problem\Exception\RuleViolation;
+use Symfony\Component\Uid\Uuid;
+
+final readonly class OwnAdministration
+{
+    public static function ensureKept(User $user, Role $role, Uuid $actorId): void
+    {
+        if (!$user->id()->equals($actorId) || !RolePermissions::roleAllows($role, Action::Update, Resource::Roles)) {
+            return;
+        }
+
+        if (!RolePermissions::accountHasWithout($user, $role, Action::Update, Resource::Roles)) {
+            throw new RuleViolation('roles.ownAdminRole');
+        }
+    }
+}
