@@ -12,12 +12,6 @@ services:
     App\Context\Identity\Application\Service\AccountMailer:
         public: true
 
-    App\Context\Meetings\Application\Service\SessionGenerator:
-        public: true
-
-    App\Workflow\Meetings\GenerateSessionsWorkflow:
-        public: true
-
     App\Context\Learning\Application\Service\LessonMeetings:
         public: true
 

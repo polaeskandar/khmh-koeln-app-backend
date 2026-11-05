@@ -82,11 +82,32 @@ The exact rules are in frontend#20; the proxy on the server applies them.
 | Requirement | Level | Needed by |
 | --- | --- | --- |
 | One-off commands from the image (migrations before each release) | Must | `app:migrations:migrate` (#43) |
-| The session generator every hour at minute 5, with an alert on failure; host cron or Symfony Scheduler in the worker, decided in #53 | Must | `app:sessions:generate` (#53) |
+| The session generator every hour at minute 5 from the host's scheduler (cron, a systemd timer or a Kubernetes CronJob), with an alert on a non-zero exit | Must | `app:sessions:generate` (#53) |
 | A daily backup at 02:15 Europe/Berlin, with an alert on failure | Must | #42 |
 | Secrets in the host's secret store, passed to the containers as environment variables, never in the image (the image never reads a `.env.local`) | Must | `APP_SECRET`, `DATABASE_URL`, `MAILER_DSN` (#41) |
 | Logs kept 14 days (to be confirmed by the data protection adviser by Tue 3 Nov) | Must | D6, #112 |
 | Uptime check on `GET /api/health/ready` from outside the server, with alerts | Must | Launch watch (#117) |
+
+### Session generator
+
+`bin/console app:sessions:generate` creates today's and tomorrow's sessions of the active schedules (church-today in
+Europe/Berlin) and exits. The host runs it every hour at minute 5 and once after each deploy:
+
+```cron
+5 * * * * php bin/console app:sessions:generate --no-interaction
+```
+
+- systemd: a `OnCalendar=*-*-* *:05:00` timer starting a oneshot service with the same command.
+- Kubernetes: a CronJob with `schedule: "5 * * * *"` and `concurrencyPolicy: Forbid` running the image with the same
+  command.
+- A run takes a non-blocking PostgreSQL advisory lock (`session-generator`, Symfony Lock on the Doctrine connection,
+  so it needs a session-mode connection). When another run holds it, the command logs that and exits 0.
+- Exit codes: 0 done or skipped, 1 a schedule failed (the others are created), 2 an invalid `--date`. Alert on
+  anything but 0.
+- Each run writes one JSON record to stderr on the `session_generator` channel, outside the error buffer: `today`,
+  `created`, `existing`, `failed`, `durationMs`, no personal data.
+- A missed day is backfilled with `--date=YYYY-MM-DD` (never after church-today); it creates that day's and the next
+  day's sessions.
 
 ## Backups
 
