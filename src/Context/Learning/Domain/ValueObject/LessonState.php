@@ -6,6 +6,7 @@ namespace App\Context\Learning\Domain\ValueObject;
 
 use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Library\Problem\Exception\RuleViolation;
+use App\Library\Time\Model\LocalDate;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -40,10 +41,17 @@ final readonly class LessonState
         }
     }
 
-    public function withStatus(LessonStatus $status): self
+    public function withStatus(LessonStatus $status, DateTimeImmutable $at): self
     {
-        $completedAt = $status === LessonStatus::Completed ? $this->completedAt : null;
+        return match (true) {
+            $status === $this->status => $this,
+            $status === LessonStatus::Completed => new self($status, $at, $this->archivedAt),
+            default => new self($status, completedAt: null, archivedAt: $this->archivedAt),
+        };
+    }
 
-        return new self($status, $completedAt, $this->archivedAt);
+    public function isCompletedAfter(LocalDate $teachingDate, LocalDate $today): bool
+    {
+        return $this->status === LessonStatus::Completed && $today->isBefore($teachingDate);
     }
 }

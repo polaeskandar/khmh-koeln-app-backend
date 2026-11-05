@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Domain\Entity;
 
-use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Context\Learning\Domain\ValueObject\LessonPlan;
 use App\Context\Learning\Domain\ValueObject\LessonState;
 use App\Context\Learning\Domain\ValueObject\LessonText;
@@ -128,8 +127,8 @@ final class Lesson extends TimestampedEntity
         $this->responsibleId = $responsibleId;
     }
 
-    public function prepare(LessonStatus $status): void
+    public function changeState(LessonState $state): void
     {
-        $this->state = $this->state->withStatus($status);
+        $this->state = $state;
     }
 }
