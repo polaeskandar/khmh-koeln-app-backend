@@ -35,13 +35,21 @@ Every account signs in with the password `khmk-demo-2026` (`DEMO_PASSWORD` in `.
 | `mariam@example.org` | Mariam Fahmy | Administrator |
 | `christine@example.org` | Christine Adel | Service leader |
 | `daniel@example.org` | Daniel Michael | Servant |
-| `hoda@example.org` | Hoda Farag | Parent |
+| `hoda@example.org` | Hoda Farag | Parent, and a member: linked to her own record in Bible Study and the Coptic course's Level 1 |
+| `irene@example.org` | Irene Wahba | Service leader (responsible for the Coptic course's Level 1 lessons) |
+| `nevine.boulos@example.org` | Nevine Boulos | none: a member account linked to her own record (16 or older) in Bible Study and Level 1 |
 | `nadia@example.org` | Nadia Mansour | none: a pending parent registration naming Sophia Mansour |
 
 - **Sunday School:** Kindergarten (12 children, with Sophia Mansour), 1st Class (11, with Mimi Gerges), 2nd Class
   (10), 3rd Class (14, with Mina Hanna), 4th Class (13), 5th & 6th Class (10). Each stage has a Sunday class at
   12:00–13:15; 3rd Class also practises Monday to Saturday at 17:00–18:00, so every day has a session to open.
-- **Youth Meeting:** no stages, 24 members with a second Mina Hanna, meeting on Fridays at 19:00–21:00.
+- **Youth Meeting:** no stages, 24 members with a second Mina Hanna, meeting on Fridays at 19:00–21:00. That Mina
+  is also in Deacons’ School › Advanced (Saturdays 10:00–11:30) and has no account.
+- **Bible Study** (Wednesdays 19:30–21:00) and **Coptic Language Course › Level 1** (Mondays 18:00–19:00), with
+  Nevine and Hoda in both. On Level 1, Irene responsible: "The Easter greeting" (taught two weeks ago) with "Say the
+  Easter greeting at home" reported by Nevine and Hoda; "The first eight letters" (taught last Monday) with "Write
+  the first eight letters" due next Monday and the resource "The Coptic alphabet (chart)"; "Reading short words"
+  (next Monday, ready) with the draft "Read five short words".
 - **Parent access:** Hoda is approved for Mina Hanna (3rd Class) and Mimi Gerges; Nadia, still pending, has none.
 - **3rd Class lessons**, Daniel responsible: last Sunday's "The Lost Sheep" (Luke 15:3–7) is taught, and next
   Sunday's "Zacchaeus Meets Jesus" (Luke 19:1–10) is ready. The Lost Sheep's homework "Read the story together" is

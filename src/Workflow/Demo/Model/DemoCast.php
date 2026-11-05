@@ -53,7 +53,7 @@ final readonly class DemoCast
         return $this->schedules[$group] ?? throw new LogicException('The demo has no schedules for ' . $group . '.');
     }
 
-    public function sundayClassOf(string $group): Schedule
+    public function classOf(string $group): Schedule
     {
         return $this->schedulesOf($group)[0] ?? throw new LogicException('The demo group ' . $group . ' has no class.');
     }

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
+use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Enum\AgeCheck;
 use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\Enum\RegisteredAs;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\ValueObject\MemberLink;
 use LogicException;
 use SensitiveParameter;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -15,10 +18,12 @@ use Symfony\Component\Uid\Uuid;
 final readonly class DemoAccounts
 {
     private const array APPROVED = [
-        ['mariam@example.org',    'Mariam Fahmy',   'administrator'],
-        ['christine@example.org', 'Christine Adel', 'service_leader'],
-        ['daniel@example.org',    'Daniel Michael', 'servant'],
-        ['hoda@example.org',      'Hoda Farag',     'parent'],
+        ['mariam@example.org',        'Mariam Fahmy',   'administrator'],
+        ['christine@example.org',     'Christine Adel', 'service_leader'],
+        ['daniel@example.org',        'Daniel Michael', 'servant'],
+        ['hoda@example.org',          'Hoda Farag',     'parent'],
+        ['irene@example.org',         'Irene Wahba',    'service_leader'],
+        ['nevine.boulos@example.org', 'Nevine Boulos',  null],
     ];
 
     public function __construct(
@@ -54,8 +59,18 @@ final readonly class DemoAccounts
 
     public function idOf(string $email): Uuid
     {
-        $account = $this->users->findByEmail($email) ?? throw new LogicException('The demo has no ' . $email . '.');
+        return $this->account($email)->id();
+    }
 
-        return $account->id();
+    public function linkMember(string $email, Uuid $personId): void
+    {
+        $account = $this->account($email);
+        $account->changeMember(MemberLink::of($personId, AgeCheck::SixteenOrOlder, note: null));
+        $this->users->save($account);
+    }
+
+    private function account(string $email): User
+    {
+        return $this->users->findByEmail($email) ?? throw new LogicException('The demo has no ' . $email . '.');
     }
 }

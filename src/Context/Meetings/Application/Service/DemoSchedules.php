@@ -26,6 +26,9 @@ final readonly class DemoSchedules
     private const array MEETINGS = [
         'Youth Meeting' => [['Youth meeting', [5], ['19:00', '21:00']]],
         '3rd Class' => [self::SUNDAY_CLASS, ['3rd Class practice', [1, 2, 3, 4, 5, 6], ['17:00', '18:00']]],
+        'Advanced' => [['Advanced class', [6], ['10:00', '11:30']]],
+        'Bible Study' => [['Bible Study evening', [3], ['19:30', '21:00']]],
+        'Level 1' => [['Level 1 class', [1], ['18:00', '19:00']]],
     ];
 
     public function __construct(

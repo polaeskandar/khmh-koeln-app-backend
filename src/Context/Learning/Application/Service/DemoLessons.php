@@ -24,6 +24,12 @@ final readonly class DemoLessons
 {
     private const string TOGETHER = 'Do it together at home and tell us on Sunday how it went.';
 
+    private const string PRACTISE = 'Practise at home and bring it to the next class.';
+
+    private const array ALPHABET = [
+        ['label' => 'The Coptic alphabet (chart)', 'url' => 'https://example.org/coptic-alphabet.pdf'],
+    ];
+
     public function __construct(
         private LessonRepositoryInterface $lessons,
         private HomeworkRepositoryInterface $homework,
@@ -57,6 +63,69 @@ final readonly class DemoLessons
         $this->homework->save($story);
         $this->reports->reportDone($story->id(), $childId, $this->at($sunday, '19:00'), $parentId);
         $this->homework->save($this->task($ready, 'Learn the memory verse', dueDate: null, servantId: $servantId));
+    }
+
+    /**
+     * @param list<array{Uuid, Uuid}> $selfReports the account and its own member record, for the Easter greeting
+     */
+    public function seedCourse(Uuid $stageId, Uuid $scheduleId, Uuid $teacherId, array $selfReports): void
+    {
+        $today = $this->calendar->today();
+        $lastMonday = $today->addDays(-((($today->isoWeekday() + 5) % 7) + 1));
+
+        $lessonIn = static fn (int $weeks, string $title): Lesson => new Lesson(
+            $stageId,
+            new MeetingLink($scheduleId, $lastMonday->addDays(7 * $weeks)),
+            new LessonText($title),
+            $teacherId,
+        );
+
+        $easter = $this->taught($lessonIn(-1, title: 'The Easter greeting'));
+        $letters = $this->taught($lessonIn(0, title: 'The first eight letters'));
+        $words = $lessonIn(1, title: 'Reading short words');
+        $words->changeStatus(LessonStatus::Ready, $today, $this->calendar->now());
+        $this->lessons->save($words);
+        $this->courseHomework($easter, $letters, $words, $selfReports);
+    }
+
+    /**
+     * @param list<array{Uuid, Uuid}> $selfReports
+     */
+    private function courseHomework(Lesson $easter, Lesson $letters, Lesson $words, array $selfReports): void
+    {
+        $greeting = $this->published($easter, 'Say the Easter greeting at home', Materials::none(), dueDate: null);
+        $alphabet = Materials::of(self::ALPHABET, 'resources');
+        $this->published($letters, 'Write the first eight letters', $alphabet, $words->link()->teachingDate);
+        $draft = HomeworkText::of('Read five short words', self::PRACTISE, dueDate: null);
+        $this->homework->save(HomeworkAssignment::draft($words, $draft, Materials::none(), $words->responsibleId()));
+        $reportedAt = $this->at($easter->link()->teachingDate->addDays(2), '18:00');
+
+        foreach ($selfReports as [$accountId, $personId]) {
+            $this->reports->reportDone($greeting->id(), $personId, $reportedAt, $accountId);
+        }
+    }
+
+    private function taught(Lesson $lesson): Lesson
+    {
+        $endedAt = $this->at($lesson->link()->teachingDate, '19:00');
+        $lesson->changeStatus(LessonStatus::Completed, $this->calendar->today(), $endedAt);
+        $this->lessons->save($lesson);
+
+        return $lesson;
+    }
+
+    private function published(
+        Lesson $lesson,
+        string $title,
+        Materials $resources,
+        ?LocalDate $dueDate,
+    ): HomeworkAssignment {
+        $text = HomeworkText::of($title, self::PRACTISE, $dueDate);
+        $task = HomeworkAssignment::draft($lesson, $text, $resources, $lesson->responsibleId());
+        $task->publish($this->at($lesson->link()->teachingDate, '19:15'));
+        $this->homework->save($task);
+
+        return $task;
     }
 
     private function task(Lesson $lesson, string $title, ?LocalDate $dueDate, Uuid $servantId): HomeworkAssignment

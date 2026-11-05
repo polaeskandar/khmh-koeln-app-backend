@@ -43,7 +43,7 @@ final class DemoSeedCommandTest extends KernelTestCase
         self::assertSame(Command::SUCCESS, $this->seed());
 
         self::assertSame($first, $this->counts());
-        self::assertSame([5, 4, 2, 6, 94, 94, 8, 8, 11, 2, 2, 2, 1, 19], $first);
+        self::assertSame([7, 5, 5, 8, 114, 117, 11, 9, 12, 2, 5, 5, 3, 19], $first);
         self::assertSame(4, $this->number('SELECT count(*) FROM identity.role'));
     }
 
@@ -53,11 +53,13 @@ final class DemoSeedCommandTest extends KernelTestCase
         $this->seed();
 
         self::assertSame([
-            ['christine@example.org', true,  'service_leader'],
-            ['daniel@example.org',    true,  'servant'],
-            ['hoda@example.org',      true,  'parent'],
-            ['mariam@example.org',    true,  'administrator'],
-            ['nadia@example.org',     false, null],
+            ['christine@example.org',     true,  'service_leader'],
+            ['daniel@example.org',        true,  'servant'],
+            ['hoda@example.org',          true,  'parent'],
+            ['irene@example.org',         true,  'service_leader'],
+            ['mariam@example.org',        true,  'administrator'],
+            ['nadia@example.org',         false, null],
+            ['nevine.boulos@example.org', true,  null],
         ], $this->rows(
             'SELECT u.email, u.approved_at IS NOT NULL, r.name_key FROM identity.app_user u '
             . 'LEFT JOIN identity.user_role ur ON ur.user_id = u.id LEFT JOIN identity.role r ON r.id = ur.role_id '
@@ -68,7 +70,7 @@ final class DemoSeedCommandTest extends KernelTestCase
 
         $secret = Type::of($_SERVER['DEMO_PASSWORD'] ?? null)->toString();
 
-        foreach (['christine', 'daniel', 'hoda', 'mariam', 'nadia'] as $name) {
+        foreach (['christine', 'daniel', 'hoda', 'irene', 'mariam', 'nadia', 'nevine.boulos'] as $name) {
             self::assertTrue($accounts->acceptsSecret($accounts->withEmail($name . '@example.org'), $secret));
         }
     }
@@ -91,6 +93,7 @@ final class DemoSeedCommandTest extends KernelTestCase
         self::assertSame([
             ['2026-11-01', 'Sunday class', '12:00:00'],
             ['2026-11-07', '3rd Class practice', '17:00:00'],
+            ['2026-11-07', 'Advanced class', '10:00:00'],
             ...array_fill(start_index: 0, count: 6, value: ['2026-11-08', 'Sunday class', '12:00:00']),
         ], $this->rows(
             'SELECT s.occurrence_date::text, sc.name, sc.start_time::text FROM meetings.meeting_session s '

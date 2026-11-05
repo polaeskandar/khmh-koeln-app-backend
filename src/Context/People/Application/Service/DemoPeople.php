@@ -26,6 +26,9 @@ final readonly class DemoPeople
         '4th Class' => [4, 13, ['Maria', 'Saad']],
         '5th & 6th Class' => [5, 10, ['Peter', 'Botros']],
         'Youth Meeting' => [6, 24, ['Mina', 'Hanna']],
+        'Advanced' => [7, 6, ['Peter', 'Botros']],
+        'Bible Study' => [8, 8, ['Hoda', 'Farag']],
+        'Level 1' => [9, 6, ['Nevine', 'Boulos']],
     ];
 
     private const array FIRST_NAMES = [
@@ -96,6 +99,12 @@ final readonly class DemoPeople
         }
 
         return $members;
+    }
+
+    public function alsoIn(Person $person, Uuid $serviceId, ?Uuid $stageId): void
+    {
+        $since = $this->calendar->today()->addDays(-self::MEMBERS_SINCE_DAYS);
+        $this->people->save($person, new Membership($person, $serviceId, $stageId, $since));
     }
 
     /**

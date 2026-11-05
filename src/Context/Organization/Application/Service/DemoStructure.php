@@ -40,9 +40,28 @@ final readonly class DemoStructure
             $groups[] = $stage;
         }
 
-        $groups[] = $this->service('Youth Meeting', 'The Friday evening meeting for young people.');
+        return [...$groups, ...$this->otherGroups()];
+    }
 
-        return $groups;
+    /**
+     * @return list<Service|Stage>
+     */
+    private function otherGroups(): array
+    {
+        return [
+            $this->service('Youth Meeting', 'The Friday evening meeting for young people.'),
+            $this->stageOf('Deacons’ School', 'Hymns and the service of the altar.', 'Advanced'),
+            $this->service('Bible Study', 'Wednesday evenings for adults.'),
+            $this->stageOf('Coptic Language Course', 'Reading and writing Coptic.', 'Level 1'),
+        ];
+    }
+
+    private function stageOf(string $service, string $description, string $stage): Stage
+    {
+        $level = new Stage($this->service($service, $description), $stage, description: null, position: 0);
+        $this->stages->save($level);
+
+        return $level;
     }
 
     private function service(string $name, string $description): Service
