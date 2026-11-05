@@ -41,6 +41,20 @@ final readonly class DoctrineSessionRepository implements SessionRepositoryInter
     ) {
     }
 
+    #[Override]
+    public function find(Uuid $id): ?Session
+    {
+        return $this->entityManager->find(Session::class, $id);
+    }
+
+    #[Override]
+    public function historyOf(Session $session): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager->getRepository(SessionEvent::class)->findBy([
+            'session' => $session,
+        ], ['occurredAt' => 'ASC', 'id' => 'ASC']));
+    }
+
     /**
      * @param callable(Schedule): list<LocalDate> $datesOf
      */

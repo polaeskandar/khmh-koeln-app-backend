@@ -1010,3 +1010,19 @@ returns only the schedules of that stage, not its service's service-wide schedul
 
 `services: read`. `{today, schedule: ScheduleSummary}`; 404 `notFound.schedule`, also for an id that is not a UUID.
 
+### Sessions
+
+A `SessionView`: `{id, scheduleId, occurrenceDate, title, service: ServiceRef, stage: StageRef | null, date,
+startTime, endTime, startsAt, endsAt, location, status, rosterMode, cancelReason, can: {manage, record,
+reopen}}`. Title, place, roster mode and times are the schedule's; `startsAt`/`endsAt` are the instants in
+Europe/Berlin with their offset (`+01:00` in winter, `+02:00` in summer). `cancelReason` is `null` unless the
+viewer may read attendance (`attendance: read`), because it may name children (D7). `manage` and `reopen` are
+`sessions: update`, `record` is `attendance: create`.
+
+#### `GET /api/sessions/{id}`
+
+`services: read`. `{today, session: SessionView, schedule: {id, name, recurrence, active}, history}`; 404
+`notFound.session`. `history` holds every event, oldest first, as `{type, at, actor: AccountRef, byGenerator,
+note}`. `actor: null` is the generator when `byGenerator`, otherwise a former account. `note` follows the same
+rule as `cancelReason`.
+
