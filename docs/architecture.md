@@ -261,7 +261,10 @@ seeded defaults are:
 
 Parents see only the children an administrator linked to their account (#23), and receive only what they
 need: published homework, the passage and memory verse, never lesson plans, notes, attendance or other
-families. The frontend only hides what a person can't do; the API checks every request.
+families. The frontend only hides what a person can't do; the API checks every request. People's
+`GuardianVoter` grants `ACT_FOR_CHILD` on a child to an account with an approved guardian link. It checks only
+the link, because a token always belongs to an active account: Identity refuses pending and disabled accounts at
+sign-in and ends their sessions on the next request.
 
 A workflow that needs a permission states it as its first step:
 `$this->access->require(Action::Update, Resource::Services)` (`Context\Identity\Application\Service\AccessCheck`).
