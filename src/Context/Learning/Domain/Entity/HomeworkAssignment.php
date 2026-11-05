@@ -8,6 +8,7 @@ use App\Context\Learning\Domain\ValueObject\HomeworkState;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Library\Persistence\Mapping\TimestampedEntity;
+use App\Library\Problem\Exception\RuleViolation;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -96,5 +97,18 @@ final class HomeworkAssignment extends TimestampedEntity
     public function createdBy(): ?Uuid
     {
         return $this->createdBy;
+    }
+
+    public function ensureEditable(): void
+    {
+        if ($this->state->archivedAt !== null) {
+            throw new RuleViolation('homework.archivedNoEdit');
+        }
+    }
+
+    public function edit(HomeworkText $text, Materials $resources): void
+    {
+        $this->text = $text;
+        $this->resources = $resources->toArray();
     }
 }
