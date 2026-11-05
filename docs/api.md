@@ -1479,6 +1479,28 @@ each a UUID, else `validation.invalidType` on `sessionIds.N`). `{items: [{sessio
 order, each id once; unknown sessions are left out. The counts follow the session's roster on its date and its
 current marks, as on the board, and cost the same number of statements whatever the number of sessions.
 
+#### `GET /api/stages/{id}/attendance-history`
+
+`members: read`, else 403 `forbidden`; 404 `notFound.stage`; archived stages stay readable. The stage's 8 latest
+completed sessions (of the meetings for that stage) against its members today:
+
+```json
+{
+  "today": "2026-11-08",
+  "sessions": [{"id": "…", "date": "2026-11-01", "startsAt": "2026-11-01T18:30:00+01:00", "present": 12}],
+  "rows": [{"person": {"id": "…", "firstName": "Mina", "lastName": "Hanna", "displayName": null}, "cells": ["present"], "presentCount": 1}]
+}
+```
+
+- `sessions` oldest first, by date and then the meeting's start time; scheduled, active and canceled sessions are
+  left out. `present` is the session's
+  present count, visitors and erased people included.
+- `rows` are today's roster of the stage, by last then first name. Each has one cell per session, in the same
+  order: `present` with a current mark (on that session's roster or not), `notMarked` on that session's roster
+  without a mark, else `notOnRoster` (for example, joined later). `notMarked` never means absent.
+  `presentCount` counts the `present` cells.
+- The number of SQL statements does not depend on the number of members or sessions.
+
 ### The meeting a lesson is for
 
 Lesson reads carry a `meeting`, one of:
