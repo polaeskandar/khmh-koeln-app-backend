@@ -32,16 +32,7 @@ final readonly class ServiceOverview
                 tone: $service->tone()->value,
                 archivedAt: $service->archivedAt(),
             ),
-            $stages->map(self::stageOf(...))->getValues(),
-        );
-    }
-
-    private static function stageOf(Stage $stage): StageSummary
-    {
-        return new StageSummary(
-            id: $stage->id()->toRfc4122(),
-            name: $stage->name()->value,
-            position: $stage->position(),
+            $stages->map(StageSummary::of(...))->getValues(),
         );
     }
 }
