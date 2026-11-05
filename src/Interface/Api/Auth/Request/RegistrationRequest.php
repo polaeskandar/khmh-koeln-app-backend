@@ -12,12 +12,14 @@ final readonly class RegistrationRequest
 {
     private const string SERVANT = 'servant';
 
+    private const string MEMBER = 'member';
+
     /**
      * @param list<string> $serviceIds
      */
     public function __construct(
         #[Assert\NotBlank(message: 'accounts.chooseRegisteredAs')]
-        #[Assert\Choice(choices: ['parent', self::SERVANT], message: 'accounts.chooseRegisteredAs')]
+        #[Assert\Choice(choices: ['parent', self::SERVANT, self::MEMBER], message: 'accounts.chooseRegisteredAs')]
         public ?string $registeredAs = null,
         #[Assert\Length(max: 1000, maxMessage: 'validation.tooLong')]
         public ?string $note = null,
@@ -34,7 +36,12 @@ final readonly class RegistrationRequest
             return;
         }
 
-        $code = $this->registeredAs === self::SERVANT ? 'accounts.serviceDetailsRequired' : 'accounts.childrenRequired';
+        $code = match ($this->registeredAs) {
+            self::SERVANT => 'accounts.serviceDetailsRequired',
+            self::MEMBER => 'accounts.groupsRequired',
+            default => 'accounts.childrenRequired',
+        };
+
         $context->buildViolation($code)->atPath('note')->addViolation();
     }
 }

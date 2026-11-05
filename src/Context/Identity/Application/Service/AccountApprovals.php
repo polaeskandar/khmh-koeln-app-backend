@@ -63,10 +63,12 @@ final readonly class AccountApprovals
             $alongside($user);
         });
 
-        $approved = $this->account($id);
-        $this->notices->send($approved);
+        return $this->account($id);
+    }
 
-        return $approved;
+    public function announce(User $approved): void
+    {
+        $this->notices->send($approved);
     }
 
     private function account(string $id): User

@@ -45,6 +45,8 @@ final readonly class ApproveAccountRequestWorkflow
             $this->registrations->forget($user->id());
         });
 
+        $this->approvals->announce($approved);
+
         return AccountSummary::of($approved);
     }
 }

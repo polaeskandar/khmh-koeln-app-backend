@@ -29,4 +29,14 @@ final class InvalidInput extends RuntimeException
     {
         return self::field($field, 'validation.tooLong', ['max' => $max]);
     }
+
+    public function nestedIn(string $parent): self
+    {
+        $fields = array_map(
+            static fn (string $field): string => $parent . '.' . $field,
+            array_keys($this->fieldErrors),
+        );
+
+        return new self(array_combine($fields, array_values($this->fieldErrors)));
+    }
 }

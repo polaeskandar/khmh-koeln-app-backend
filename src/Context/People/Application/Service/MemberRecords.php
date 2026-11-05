@@ -41,20 +41,24 @@ final readonly class MemberRecords
     }
 
     /**
-     * @param callable(Person): void $work
+     * @template T
+     *
+     * @param callable(Person): T $work
+     *
+     * @return T
      */
-    public function whileLinkable(string $personId, callable $work): void
+    public function whileLinkable(string $personId, callable $work): mixed
     {
         $id = Uuid::isValid($personId) ? Uuid::fromString($personId) : throw self::notFound();
 
-        $this->people->withShareLock($id, function () use ($id, $work): void {
+        return $this->people->withShareLock($id, function () use ($id, $work): mixed {
             $person = $this->people->find($id);
 
             if ($person?->status() !== PersonStatus::Active) {
                 throw self::notFound();
             }
 
-            $work($person);
+            return $work($person);
         });
     }
 
