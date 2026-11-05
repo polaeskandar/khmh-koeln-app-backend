@@ -9,6 +9,7 @@ use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Interface\AdministrationLockInterface;
 use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\ValueObject\RoleChange;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 
@@ -27,14 +28,7 @@ final readonly class RoleAssignments
         $user = $this->account($email);
         $role = $this->role($roleName);
 
-        if ($user->status()->isPending()) {
-            throw new RuleViolation('roles.accountPending');
-        }
-
-        if ($user->roles()->contains($role)) {
-            throw new RuleViolation('roles.alreadyHasRole', ['name' => $user->profile()->displayName->value]);
-        }
-
+        RoleChange::ensureGivable($user, $role);
         $user->assign($role);
         $this->users->save($user);
     }
@@ -49,10 +43,7 @@ final readonly class RoleAssignments
                 throw new RuleViolation('roles.lastAdministrator');
             }
 
-            if (!$user->roles()->contains($role)) {
-                throw new RuleViolation('roles.notHeld', ['name' => $user->profile()->displayName->value]);
-            }
-
+            RoleChange::ensureHeld($user, $role);
             $user->unassign($role);
             $this->users->save($user);
         });
