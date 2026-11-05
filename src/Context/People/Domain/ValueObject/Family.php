@@ -28,6 +28,14 @@ final readonly class Family
     /**
      * @return ReadableCollection<int, Membership>
      */
+    public function currentMemberships(): ReadableCollection
+    {
+        return $this->currentMemberships;
+    }
+
+    /**
+     * @return ReadableCollection<int, Membership>
+     */
     public function membershipsOf(Person $child): ReadableCollection
     {
         return $this->currentMemberships->filter(
