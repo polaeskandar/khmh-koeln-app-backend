@@ -7,6 +7,8 @@ namespace App\Context\Attendance\Infrastructure\Persistence\Repository;
 use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\Attendance\Domain\Repository\AttendanceRepositoryInterface;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Order;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
@@ -44,6 +46,15 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
         return new ArrayCollection($this->entityManager->getRepository(Attendance::class)->findBy([
             'sessionId' => $sessionId,
         ], ['recordedAt' => 'ASC']));
+    }
+
+    #[Override]
+    public function removedMarksOf(Uuid $sessionId): ReadableCollection
+    {
+        return $this->entityManager->getRepository(Attendance::class)->matching(Criteria::create()
+            ->where(Criteria::expr()->eq('sessionId', $sessionId))
+            ->andWhere(Criteria::expr()->neq('removal.at', null))
+            ->orderBy(['removal.at' => Order::Ascending]));
     }
 
     /**

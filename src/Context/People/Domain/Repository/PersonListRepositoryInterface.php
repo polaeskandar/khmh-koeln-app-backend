@@ -15,4 +15,11 @@ interface PersonListRepositoryInterface
     public function page(PersonFilter $filter, int $offset, int $limit): array;
 
     public function count(PersonFilter $filter): int;
+
+    /**
+     * @param list<Uuid> $ids
+     *
+     * @return list<Uuid>
+     */
+    public function byName(array $ids): array;
 }

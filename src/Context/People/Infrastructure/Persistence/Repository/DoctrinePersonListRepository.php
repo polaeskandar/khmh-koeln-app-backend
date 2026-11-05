@@ -10,6 +10,7 @@ use App\Library\Strings\Model\Text;
 use App\Library\Types\Model\Integers;
 use App\Library\Types\Model\Type;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
@@ -54,6 +55,37 @@ final readonly class DoctrinePersonListRepository implements PersonListRepositor
             ->getValues();
     }
 
+    /**
+     * @param list<Uuid> $ids
+     *
+     * @return list<Uuid>
+     */
+    #[Override]
+    public function byName(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $ordered = $this->entityManager
+            ->getConnection()
+            ->createQueryBuilder()
+            ->select('p.id')
+            ->from('people.person', 'p')
+            ->where('p.id IN (:ids)')
+            ->orderBy('p.last_name COLLATE "de-x-icu"')
+            ->addOrderBy('p.first_name COLLATE "de-x-icu"')
+            ->addOrderBy('p.id')
+            ->setParameter('ids', self::strings($ids), ArrayParameterType::STRING)
+            ->executeQuery()
+            ->fetchFirstColumn();
+
+        return new ArrayCollection($ordered)
+            ->map(Type::of(...))
+            ->map(static fn (Type $id): Uuid => Uuid::fromString($id->toString()))
+            ->getValues();
+    }
+
     #[Override]
     public function count(PersonFilter $filter): int
     {
@@ -81,5 +113,15 @@ final readonly class DoctrinePersonListRepository implements PersonListRepositor
         }
 
         return $query;
+    }
+
+    /**
+     * @param list<Uuid> $ids
+     *
+     * @return list<string>
+     */
+    private static function strings(array $ids): array
+    {
+        return new ArrayCollection($ids)->map(static fn (Uuid $id): string => $id->toRfc4122())->getValues();
     }
 }

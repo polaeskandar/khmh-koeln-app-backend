@@ -20,6 +20,11 @@ interface AttendanceRepositoryInterface
     public function marksOf(Uuid $sessionId): ReadableCollection;
 
     /**
+     * @return ReadableCollection<int, Attendance>
+     */
+    public function removedMarksOf(Uuid $sessionId): ReadableCollection;
+
+    /**
      * @param list<Uuid> $sessionIds
      *
      * @return ReadableCollection<int, Attendance>

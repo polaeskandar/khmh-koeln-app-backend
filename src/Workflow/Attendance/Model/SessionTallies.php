@@ -7,10 +7,10 @@ namespace App\Workflow\Attendance\Model;
 use App\Context\Attendance\Application\Service\AttendanceMarks;
 use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\Attendance\Domain\ValueObject\SessionCounts;
-use App\Context\Meetings\Application\Service\MeetingLookup;
+use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Enum\RosterMode;
-use App\Context\People\Application\Service\Rosters;
+use App\Context\People\Application\Service\Attendees;
 use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Collections\Model\Collections;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -35,20 +35,15 @@ final readonly class SessionTallies
      * @return ReadableCollection<non-empty-string, SessionTally>
      */
     public static function lookedUpIn(
-        MeetingLookup $meetings,
-        Rosters $rosters,
+        MeetingSessions $meetings,
+        Attendees $attendees,
         AttendanceMarks $marks,
         ReadableCollection $sessions,
     ): ReadableCollection {
-        $meetings->schedules(
-            Collections::firstPerKey(
-                $sessions->map(static fn (Session $session): Uuid => $session->schedule()->id()),
-                keyOf: static fn (Uuid $id): string => $id->toRfc4122(),
-            )->getValues(),
-        );
+        $meetings->loadSchedulesOf($sessions);
 
         $tallies = new self(
-            $rosters->on(
+            $attendees->rostersOn(
                 $sessions
                     ->filter(self::isExpected(...))
                     ->map(self::keyOf(...))
@@ -64,7 +59,7 @@ final readonly class SessionTallies
     {
         $presentIds = $this->marks
             ->filter(static fn (Attendance $mark): bool => $mark->sessionId()->equals($session->id()))
-            ->map(static fn (Attendance $mark): string => $mark->personId()->toRfc4122())
+            ->map(static fn (Attendance $mark): string => self::text($mark->personId()))
             ->getValues();
 
         if (!self::isExpected($session)) {
@@ -96,5 +91,13 @@ final readonly class SessionTallies
         $roster = $session->schedule()->roster();
 
         return new RosterKey($roster->serviceId, $roster->stageId, $session->occurrenceDate());
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private static function text(Uuid $id): string
+    {
+        return $id->toRfc4122();
     }
 }

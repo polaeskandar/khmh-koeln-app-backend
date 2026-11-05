@@ -6,9 +6,9 @@ namespace App\Tests\Functional\Workflow\Attendance\Model;
 
 use App\Context\Attendance\Application\Service\AttendanceMarks;
 use App\Context\Attendance\Domain\Entity\Attendance;
-use App\Context\Meetings\Application\Service\MeetingLookup;
+use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Domain\Entity\Session;
-use App\Context\People\Application\Service\Rosters as PeopleRosters;
+use App\Context\People\Application\Service\Attendees;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Repository\RosterRepositoryInterface;
 use App\Context\People\Domain\ValueObject\RosterKey;
@@ -168,16 +168,16 @@ final class SessionTalliesTest extends KernelTestCase
      */
     private function tallies(ArrayCollection $sessions): ReadableCollection
     {
-        $rosters = self::getContainer()->get(PeopleRosters::class);
-        self::assertInstanceOf(PeopleRosters::class, $rosters);
+        $attendees = self::getContainer()->get(Attendees::class);
+        self::assertInstanceOf(Attendees::class, $attendees);
 
         $marks = self::getContainer()->get(AttendanceMarks::class);
         self::assertInstanceOf(AttendanceMarks::class, $marks);
 
-        $meetings = self::getContainer()->get(MeetingLookup::class);
-        self::assertInstanceOf(MeetingLookup::class, $meetings);
+        $meetings = self::getContainer()->get(MeetingSessions::class);
+        self::assertInstanceOf(MeetingSessions::class, $meetings);
 
-        return SessionTallies::lookedUpIn($meetings, $rosters, $marks, $sessions);
+        return SessionTallies::lookedUpIn($meetings, $attendees, $marks, $sessions);
     }
 
     private function rosters(): RosterRepositoryInterface

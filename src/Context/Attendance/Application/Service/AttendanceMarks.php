@@ -7,6 +7,7 @@ namespace App\Context\Attendance\Application\Service;
 use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\Attendance\Domain\Repository\AttendanceRepositoryInterface;
 use App\Context\Attendance\Domain\ValueObject\RecordedMark;
+use App\Context\Attendance\Domain\ValueObject\SessionMarks;
 use App\Library\Strings\Model\InputText;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -28,6 +29,15 @@ final readonly class AttendanceMarks
     public function currentOf(array $sessionIds): ReadableCollection
     {
         return $this->attendance->currentMarksOf($sessionIds);
+    }
+
+    public function ofSession(Uuid $sessionId): SessionMarks
+    {
+        return new SessionMarks($this->attendance
+            ->marksOf($sessionId)
+            ->filter(
+                static fn (Attendance $mark): bool => $mark->isCurrent(),
+            ), $this->attendance->removedMarksOf($sessionId));
     }
 
     public function recordedAtOf(Attendance $mark): string
