@@ -9,6 +9,8 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
+use App\Context\People\Application\Service\Rosters;
+use App\Workflow\Organization\Model\MemberCounts;
 use App\Workflow\Organization\Model\ServiceOverview;
 
 final readonly class EditServiceWorkflow
@@ -17,6 +19,7 @@ final readonly class EditServiceWorkflow
         private AccessCheck $access,
         private ChurchServices $services,
         private ServiceStages $stages,
+        private Rosters $rosters,
     ) {
     }
 
@@ -26,6 +29,10 @@ final readonly class EditServiceWorkflow
 
         $service = $this->services->edit($id, $name, $description);
 
-        return ServiceOverview::of($service, $this->stages->activeOf($service));
+        return ServiceOverview::of(
+            $service,
+            $this->stages->activeOf($service),
+            MemberCounts::in($this->rosters->serviceMembersToday([$service->id()]), $service),
+        );
     }
 }

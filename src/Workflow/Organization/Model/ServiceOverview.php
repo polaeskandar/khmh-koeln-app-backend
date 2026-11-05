@@ -16,13 +16,14 @@ final readonly class ServiceOverview
     public function __construct(
         public ServiceSummary $service,
         public array $stages,
+        public MemberCounts $members,
     ) {
     }
 
     /**
      * @param ReadableCollection<int, Stage> $stages
      */
-    public static function of(Service $service, ReadableCollection $stages): self
+    public static function of(Service $service, ReadableCollection $stages, MemberCounts $members): self
     {
         return new self(
             new ServiceSummary(
@@ -33,6 +34,7 @@ final readonly class ServiceOverview
                 archivedAt: $service->archivedAt(),
             ),
             $stages->map(StageSummary::of(...))->getValues(),
+            $members,
         );
     }
 }
