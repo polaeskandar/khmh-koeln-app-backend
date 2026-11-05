@@ -8,6 +8,7 @@ use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
+use App\Tests\Support\Interface\Api\Auth\EmailedLinks;
 use App\Tests\Support\Interface\Api\Auth\Registrations;
 use App\Tests\Support\JsonBody;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
@@ -128,6 +129,9 @@ final class AccountRequestsControllerTest extends ApiTestCase
     {
         $this->jsonRequest('POST', '/api/auth/register', $body);
         self::assertResponseStatusCodeSame(202);
+        $token = new EmailedLinks(self::getContainer())->lastToken();
+        $this->jsonRequest('POST', '/api/auth/email-confirmations', ['token' => $token]);
+        self::assertResponseStatusCodeSame(204);
     }
 
     private function registerServant(): void

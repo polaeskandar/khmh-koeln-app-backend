@@ -1,0 +1,9 @@
+{% extends 'emails/layout.html.twig' %}
+
+{% block title %}{{ 'email_confirmation.subject'|trans({}, 'emails') }}{% endblock %}
+
+{% block body %}
+    <p>{{ 'email_confirmation.body'|trans({'%validUntil%': validUntil}, 'emails') }}</p>
+    <p><a href="{{ url }}">{{ 'email_confirmation.action'|trans({}, 'emails') }}</a></p>
+    <p>{{ 'email_confirmation.ignore'|trans({}, 'emails') }}</p>
+{% endblock %}

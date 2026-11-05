@@ -13,6 +13,7 @@ use App\Context\Identity\Domain\ValueObject\Email;
 use App\Context\Identity\Domain\ValueObject\PlainPassword;
 use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Identity\Domain\ValueObject\Registration;
+use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\InputText;
 use App\Library\Strings\Model\Text;
@@ -27,6 +28,7 @@ final readonly class AccountRegistration
         private UserRepositoryInterface $users,
         private PasswordHasherInterface $hasher,
         private Calendar $calendar,
+        private EmailConfirmations $confirmations,
         #[Autowire(param: 'app.privacy_notice_version')]
         private string $privacyNoticeVersion,
     ) {
@@ -57,7 +59,11 @@ final readonly class AccountRegistration
 
         $passwordHash = $this->hasher->hash(PlainPassword::of($password));
 
-        if ($this->users->findByEmail($profile->email->value) !== null) {
+        $existing = $this->users->findByEmail($profile->email->value);
+
+        if ($existing !== null) {
+            $this->confirmations->remind($existing);
+
             return null;
         }
 
@@ -72,5 +78,26 @@ final readonly class AccountRegistration
         $this->users->save($user);
 
         return $user->id();
+    }
+
+    public function sendConfirmation(?Uuid $registered): void
+    {
+        if ($registered === null) {
+            return;
+        }
+
+        $this->confirmations->send($this->account($registered));
+    }
+
+    public function markEmailConfirmed(Uuid $accountId): void
+    {
+        $user = $this->account($accountId);
+        $user->changeStatus($user->status()->emailConfirmedOn($user->createdAt()));
+        $this->users->save($user);
+    }
+
+    private function account(Uuid $accountId): User
+    {
+        return $this->users->find($accountId) ?? throw NotFound::of('user');
     }
 }

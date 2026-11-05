@@ -11,10 +11,11 @@ One row per table. "Who sees it" follows D7: roles are global; parents see only 
 
 | Table | Personal fields | Purpose | Who sees it | Retention | On erasure |
 | --- | --- | --- | --- | --- | --- |
-| `identity.app_user` | email, display name, language, password hash, birth date, address, registration note, privacy acceptance, approval and disable dates | Accounts for staff and parents | Administrators; the account itself | While the account is used; open (office) | `erase-account`: deleted |
+| `identity.app_user` | email, display name, language, password hash, birth date, address, registration note, privacy acceptance, email confirmation, approval and disable dates | Accounts for staff and parents | Administrators; the account itself | While the account is used; open (office) | `erase-account`: deleted |
 | `identity.user_role` | which account has which role | Access control | Administrators | With the account | Deleted with the account |
 | `identity.role`, `identity.permission`, `identity.role_permission` | none | Access rules | Administrators | Permanent | – |
 | `identity.api_token` | hashed token, its account, device name, created, last used, expiry and revocation | Signing in the iOS and Android apps | Nobody (hashes only) | 90 days (`API_TOKEN_LIFETIME`), or until revoked | Deleted with the account |
+| `identity.email_confirmation_token` | hashed one-time token, its account | Confirming a registration's address | Nobody (hashes only) | 7 days, then unusable; unconfirmed registrations are purged after 7 days once their newest link has expired (`app:user:purge-unconfirmed`) | Deleted with the account |
 | `identity.password_token` | hashed one-time token, its account, who created it | Password links | Nobody (hashes only) | 24 h, then unusable | Deleted with the account |
 | `organization.service`, `organization.stage` | none | Services and classes | Staff | Permanent | – |
 | `organization.registration_service` | which services a registering servant chose | Approving registrations | Administrators | Until the request is decided | Deleted with the account |

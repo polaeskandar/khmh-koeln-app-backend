@@ -12,6 +12,8 @@ use App\Context\Identity\Domain\ValueObject\Email;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Types\Model\ListOf;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Order;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
@@ -49,11 +51,14 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
     #[Override]
     public function pending(int $limit): ReadableCollection
     {
-        return new ArrayCollection($this->entityManager->getRepository(User::class)->findBy(
-            ['status.approvedAt' => null, 'status.disabledAt' => null],
-            ['createdAt' => 'ASC'],
-            $limit,
-        ));
+        $confirmed = Criteria::create()
+            ->where(Criteria::expr()->isNull('status.approvedAt'))
+            ->andWhere(Criteria::expr()->isNull('status.disabledAt'))
+            ->andWhere(Criteria::expr()->neq('status.emailConfirmedAt', null))
+            ->orderBy(['createdAt' => Order::Ascending])
+            ->setMaxResults($limit);
+
+        return new ArrayCollection($this->entityManager->getRepository(User::class)->matching($confirmed)->getValues());
     }
 
     #[Override]

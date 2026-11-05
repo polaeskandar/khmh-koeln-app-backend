@@ -13,6 +13,7 @@ use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
+use App\Tests\Support\Interface\Api\Auth\EmailedLinks;
 use App\Tests\Support\Interface\Api\Auth\Registrations;
 use App\Tests\Support\Interface\Api\Learning\ProgressRows;
 use App\Tests\Support\JsonBody;
@@ -74,6 +75,9 @@ final class HomeworkJourneyTest extends ApiTestCase
         ]));
 
         self::assertResponseStatusCodeSame(202);
+        $token = new EmailedLinks(self::getContainer())->lastToken();
+        $this->jsonRequest('POST', '/api/auth/email-confirmations', ['token' => $token]);
+        self::assertResponseStatusCodeSame(204);
         $this->signInWithRoles('mariam@example.org', 'administrator');
         $this->jsonRequest('GET', '/api/account-requests');
 
