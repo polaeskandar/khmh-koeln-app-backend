@@ -57,6 +57,8 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   - the attendance board and overview, a stage's attendance history, the agenda, which carries the board's
     counts for every opened session, and the staff dashboard, which joins the overview's cards and the agenda;
   - a member's personal data export;
+  - the service list, detail and edit, whose service rows carry the leaders, the next meeting and the attendance
+    trend;
   - the erasures and their review. Each context takes part through its `*Erasures` service: People's
     `PersonErasures`, Meetings' `MeetingErasures`, Attendance's `AttendanceErasures`, Learning's
     `LearningErasures`, Privacy's `RequestErasures`, and Identity's `AccountErasures`.

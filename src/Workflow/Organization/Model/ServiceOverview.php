@@ -19,6 +19,7 @@ final readonly class ServiceOverview
         public array $stages,
         public MemberCounts $members,
         public ServiceAbilities $can,
+        public ServiceInsight $insight,
     ) {
     }
 
@@ -30,6 +31,7 @@ final readonly class ServiceOverview
         ReadableCollection $stages,
         MemberCounts $members,
         ServiceAbilities $can,
+        ServiceInsight $insight,
     ): self {
         return new self(
             new ServiceSummary(
@@ -42,6 +44,7 @@ final readonly class ServiceOverview
             $stages->map(StageSummary::of(...))->getValues(),
             $members,
             $can,
+            $insight,
         );
     }
 }

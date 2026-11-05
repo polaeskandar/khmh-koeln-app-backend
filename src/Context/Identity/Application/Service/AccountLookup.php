@@ -7,6 +7,7 @@ namespace App\Context\Identity\Application\Service;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Identity\Domain\Repository\RoleHolderRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use Collator;
@@ -19,6 +20,7 @@ final readonly class AccountLookup
 
     public function __construct(
         private UserRepositoryInterface $users,
+        private RoleHolderRepositoryInterface $roleHolders,
     ) {
     }
 
@@ -43,6 +45,14 @@ final readonly class AccountLookup
     public function activeAllowedTo(Action $action, Resource $resource): array
     {
         return Collections::sortedBy($this->users->activeThatCan($action, $resource), keyOf: self::nameKeyOf(...));
+    }
+
+    /**
+     * @return list<User>
+     */
+    public function activeHoldersOf(string $roleNameKey): array
+    {
+        return Collections::sortedBy($this->roleHolders->activeHolders($roleNameKey), keyOf: self::nameKeyOf(...));
     }
 
     public function isActiveAndAllowedTo(Uuid $accountId, Action $action, Resource $resource): bool

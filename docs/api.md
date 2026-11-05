@@ -1101,12 +1101,28 @@ A service row:
   "stages": [
     {"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f20", "name": "3rd Class", "position": 2, "archived": false, "can": {"manageMembers": true}}
   ],
+  "leaders": [{"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f30", "name": "Christine Adel"}],
+  "next": {"date": "2026-11-15", "startTime": "10:00", "stage": {"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f20", "name": "3rd Class", "position": 2, "archived": false}, "status": "planned"},
+  "trend": {"sessions": 12, "rate": 0.73, "averagePresent": 18},
   "can": {"edit": false, "archive": false, "manageStructure": false, "manageSessions": false, "manageMembers": true}
 }
 ```
 
 `stages` are the active stages by position. `memberCount` counts the people on any roster of the service today
-(Europe/Berlin), each once; `serviceLevelMemberCount` only those on the service-level roster. The flags follow the viewer's permissions: `edit` is
+(Europe/Berlin), each once; `serviceLevelMemberCount` only those on the service-level roster.
+
+- `leaders`: `[AccountRef]`, the approved, enabled accounts with the Service leader role, by name. Roles are
+  global (D7), so every service lists the same leaders.
+- `next`: `{date, startTime, stage: StageRef | null, status: scheduled | active | planned} | null`, the earliest
+  scheduled or active session, or planned date of an active schedule, from today to today+21; canceled dates are
+  skipped. `null` when there is none and for archived services.
+- `trend`: `{sessions, rate, averagePresent}` over the completed sessions dated today−28 to yesterday. `rate` is
+  Σ `rosterPresent` / Σ `rosterSize` over expected-roster sessions (two decimals); `averagePresent` the rounded
+  mean `present` over open-roster sessions; each `null` without such sessions.
+- The list computes these in one batch for all rows, never per row. A service just created has no meetings yet, so
+  `POST /api/services` answers `next: null` and an empty trend.
+
+The flags follow the viewer's permissions: `edit` is
 `services: update`, `archive` `services: delete`, `manageStructure` `stages: update`, `manageSessions`
 `sessions: update`, `manageMembers` `members: update`.
 

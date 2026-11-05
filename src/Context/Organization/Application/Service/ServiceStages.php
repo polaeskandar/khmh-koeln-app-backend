@@ -11,7 +11,6 @@ use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
 use App\Context\Organization\Domain\ValueObject\DescriptionChange;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -22,24 +21,6 @@ final readonly class ServiceStages
         private ServiceRepositoryInterface $services,
         private StageNames $names,
     ) {
-    }
-
-    /**
-     * @param ReadableCollection<int, Service> $services
-     *
-     * @return ReadableCollection<int, Stage>
-     */
-    public function activeIn(ReadableCollection $services): ReadableCollection
-    {
-        return $this->stages->activeIn($services);
-    }
-
-    /**
-     * @return ReadableCollection<int, Stage>
-     */
-    public function activeOf(Service $service): ReadableCollection
-    {
-        return $this->stages->activeIn(new ArrayCollection([$service]));
     }
 
     /**

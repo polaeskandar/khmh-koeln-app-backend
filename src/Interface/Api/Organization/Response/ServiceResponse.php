@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Organization\Response;
 
+use App\Workflow\Identity\Model\AccountReference;
+use App\Workflow\Organization\Model\AttendanceTrend;
+use App\Workflow\Organization\Model\NextMeeting;
 use App\Workflow\Organization\Model\ServiceAbilities;
 use App\Workflow\Organization\Model\ServiceOverview;
 use App\Workflow\Organization\Model\StageSummary;
@@ -35,6 +38,9 @@ final readonly class ServiceResponse implements JsonSerializable
      *         archived: bool,
      *         can: array{manageMembers: bool},
      *     }>,
+     *     leaders: list<AccountReference>,
+     *     next: NextMeeting|null,
+     *     trend: AttendanceTrend,
      *     can: ServiceAbilities,
      * }
      */
@@ -53,6 +59,9 @@ final readonly class ServiceResponse implements JsonSerializable
             'memberCount' => $this->overview->members->members,
             'serviceLevelMemberCount' => $this->overview->members->serviceLevel,
             'stages' => new ArrayCollection($this->overview->stages)->map($this->stageOf(...))->getValues(),
+            'leaders' => $this->overview->insight->leaders,
+            'next' => $this->overview->insight->next,
+            'trend' => $this->overview->insight->trend,
             'can' => $this->overview->can,
         ];
     }

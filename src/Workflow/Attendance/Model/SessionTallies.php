@@ -11,6 +11,8 @@ use App\Context\Attendance\Domain\ValueObject\SessionCounts;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\People\Application\Service\Attendees;
+use App\Context\People\Application\Service\Rosters;
+use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Collections\Model\Collections;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -41,7 +43,7 @@ final readonly class SessionTallies
     ): ReadableCollection {
         $meetings->loadSchedulesOf($sessions);
 
-        return self::scheduled($attendees, $marks, $sessions);
+        return self::counted($attendees->rostersOn(self::rosterKeysOf($sessions)), $marks, $sessions);
     }
 
     /**
@@ -56,7 +58,20 @@ final readonly class SessionTallies
     ): ReadableCollection {
         $opened = $sessions->filter(static fn (Session $session): bool => $session->progress()->wasOpened());
 
-        return self::scheduled($attendees, $marks, $opened);
+        return self::counted($attendees->rostersOn(self::rosterKeysOf($opened)), $marks, $opened);
+    }
+
+    /**
+     * @param ReadableCollection<int, Session> $sessions
+     *
+     * @return ReadableCollection<non-empty-string, SessionTally>
+     */
+    public static function onRosters(
+        Rosters $rosters,
+        AttendanceMarks $marks,
+        ReadableCollection $sessions,
+    ): ReadableCollection {
+        return self::counted($rosters->rostersOn(self::rosterKeysOf($sessions)), $marks, $sessions);
     }
 
     private function tallyOf(Session $session): SessionTally
@@ -82,26 +97,35 @@ final readonly class SessionTallies
     }
 
     /**
+     * @param ReadableCollection<string, list<Uuid>> $rosters
      * @param ReadableCollection<int, Session> $sessions
      *
      * @return ReadableCollection<non-empty-string, SessionTally>
      */
-    private static function scheduled(
-        Attendees $attendees,
+    private static function counted(
+        ReadableCollection $rosters,
         AttendanceMarks $marks,
         ReadableCollection $sessions,
     ): ReadableCollection {
         $tallies = new self(
-            $attendees->rostersOn(
-                $sessions
-                    ->filter(SessionRoster::isExpected(...))
-                    ->map(SessionRoster::keyOf(...))
-                    ->getValues(),
-            ),
+            $rosters,
             $marks->currentOf($sessions->map(static fn (Session $session): Uuid => $session->id())->getValues()),
         );
 
         return Collections::firstPerKey($sessions, keyOf: self::idOf(...))->map($tallies->tallyOf(...));
+    }
+
+    /**
+     * @param ReadableCollection<int, Session> $sessions
+     *
+     * @return list<RosterKey>
+     */
+    private static function rosterKeysOf(ReadableCollection $sessions): array
+    {
+        return $sessions
+            ->filter(SessionRoster::isExpected(...))
+            ->map(SessionRoster::keyOf(...))
+            ->getValues();
     }
 
     private static function erasedOf(Session $session): ErasedAttendance

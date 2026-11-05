@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Context\People\Application\Service;
 
 use App\Context\People\Domain\Repository\RosterRepositoryInterface;
+use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -25,6 +26,16 @@ final readonly class Rosters
     public function serviceMembersToday(array $serviceIds): ReadableCollection
     {
         return $this->rosters->serviceMemberCounts($serviceIds, $this->calendar->today());
+    }
+
+    /**
+     * @param list<RosterKey> $keys
+     *
+     * @return ReadableCollection<string, list<Uuid>>
+     */
+    public function rostersOn(array $keys): ReadableCollection
+    {
+        return $this->rosters->rostersOn($keys);
     }
 
     /**

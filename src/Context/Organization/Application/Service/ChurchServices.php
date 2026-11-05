@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Context\Organization\Application\Service;
 
 use App\Context\Organization\Domain\Entity\Service;
+use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
+use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
 use App\Context\Organization\Domain\ValueObject\DescriptionChange;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\Uid\Uuid;
@@ -18,6 +21,8 @@ final readonly class ChurchServices
 {
     public function __construct(
         private ServiceRepositoryInterface $services,
+        private StageRepositoryInterface $stages,
+        private StructureLookup $structure,
     ) {
     }
 
@@ -29,6 +34,32 @@ final readonly class ChurchServices
         $filter = ServiceFilter::tryFrom($status) ?? throw InvalidInput::field('status', 'validation.invalidChoice');
 
         return $this->services->listed($filter);
+    }
+
+    /**
+     * @param ReadableCollection<int, Service> $services
+     *
+     * @return ReadableCollection<int, Stage>
+     */
+    public function activeStagesIn(ReadableCollection $services): ReadableCollection
+    {
+        return $this->stages->activeIn($services);
+    }
+
+    /**
+     * @return ReadableCollection<int, Stage>
+     */
+    public function activeStagesOf(Service $service): ReadableCollection
+    {
+        return $this->stages->activeIn(new ArrayCollection([$service]));
+    }
+
+    /**
+     * @return list<Uuid>
+     */
+    public function archivedIds(): array
+    {
+        return $this->structure->archivedIds();
     }
 
     public function find(string $id): Service
