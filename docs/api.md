@@ -1940,9 +1940,13 @@ that names children: `{today, service: ServiceRef, stage: StageRef, homework, le
 - `homework` is the stage list's item plus `instructions` and `resources`. `counts` is `null` for
   drafts; archived tasks keep counts and rows.
 - `rows` are `{person: PersonRef, inStage, done, completedAt, completedBy: AccountRef | null, completedAfterDueDate,
-  parentAccounts: AccountRef[]}` for everyone in "Who a task is for", by last name, then first name, in German
-  collation: alphabetical, never ranked. `completedBy` is `null` when not done or once the account is gone; an
-  undone report is not done.
+  parentAccounts: AccountRef[], ownAccount, reportedBySelf}` for everyone in "Who a task is for", by last name, then
+  first name, in German collation: alphabetical, never ranked. `completedBy` is `null` when not done or once the
+  account is gone; an undone report is not done. `ownAccount` says an approved, enabled account is linked to the
+  person's own record (a member); `reportedBySelf` says that account made the current report.
+- `counts` (also on the stage list's items) are `{assigned, completed, notCompleted, completedAfterDueDate,
+  withoutParentAccount, withoutAccount, reportedTotal}` as in "Who a task is for" in `docs/data-model.md`;
+  `withoutAccount` counts the in-stage people nobody can report for online.
 - No emails, guardian link ids, undo history or lesson notes.
 
 ### Parent portal

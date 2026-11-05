@@ -15,6 +15,7 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\StageRosters;
 use App\Context\People\Domain\ValueObject\RosterBook;
 use App\Context\People\Domain\ValueObject\RosterKey;
+use App\Workflow\Learning\Model\AudienceAccounts;
 use App\Workflow\Learning\Model\AudienceKeys;
 use App\Workflow\Learning\Model\AudienceSize;
 use App\Workflow\Learning\Model\HomeworkItems;
@@ -59,7 +60,12 @@ final readonly class ListHomeworkWorkflow
     {
         $reports = $homework->reports;
         $keys = new ArrayCollection([$stage->id()->toRfc4122() => $key]);
-        $accounts = $this->accounts->accounts(TaskAudiences::accountIdsOf($book, $reports));
+
+        $accounts = AudienceAccounts::of(
+            $book,
+            $this->accounts->accounts(TaskAudiences::accountIdsOf($book, $reports)),
+            $this->accounts->ownAccountsOf($book->personIds()),
+        );
 
         return TaskAudiences::of($reports, $keys, $book, $accounts);
     }
