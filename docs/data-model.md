@@ -355,8 +355,10 @@ fixed order) for `kind: member` or `kind: account`:
   `attendance` (meeting, date, `markedPresentAt`, `removedAt`, `removalNote`), `homeworkReports`
   (homework, `completedAt`, `undoneAt`) and `parentAccounts` (name and link status only).
 - **account:** `account` (email, name, language, `createdAt`, `approvedAt`, `disabledAt`,
-  `privacyNoticeAccepted {at, version}`, role names, the registration while pending), `children` (name and link
-  status) and the `homeworkReports` it made.
+  `privacyNoticeAccepted {at, version}`, role names, the registration while pending, `memberAgeCheck {result,
+  parentAgreed}` or `null`), `children` (name and link status) and the `homeworkReports` it made; an account linked
+  to its own member record also gets `memberRecord`, that record's member copy (a member's account and an
+  account's member record belong to the same request).
 - **Never:** password hashes, password-link tokens, session data, other people's email addresses (Art. 15(4)),
   notes by others that mention the person.
 
@@ -369,7 +371,10 @@ record's creation.
 For a **member** (`person`): the person row, their memberships, attendance marks (corrections included),
 homework reports about them and their guardian links. Notes written by others that may name them
 (cancel reasons, session notes, correction notes, lesson notes in their groups) are listed for the
-administrator, who can have them emptied in the same step. A linked account loses the link.
+administrator, who can have them emptied in the same step. A data request about the record also erases the
+account linked to it (and a request about an account its member record): they belong to the same request. Reports
+a member made for themselves are about them and go with the record. `app:privacy:erase-person` on its own only
+removes the account's link.
 
 `app:privacy:erase-person` runs `ErasePersonWorkflow` in one transaction; its `:dry-run` runs the same
 workflow inside a transaction that always rolls back:
@@ -387,8 +392,10 @@ workflow inside a transaction that always rolls back:
 
 An erasure request does the same from the app (`EraseRequestSubjectWorkflow`, through `EraseSubjectWorkflow`
 and the console's workflows), and its review (`ReviewRequestErasureWorkflow`) rehearses it in a transaction
-that is rolled back. The notes that name the member (`ListMentionsWorkflow`) are found by the member's first
-and display name as a whole word:
+that is rolled back. `EraseSubjectWorkflow` resolves the counterpart first: Identity's `AccountErasures` names
+the account linked to the requested record (`accountOfRecord`) or the record of the requested account
+(`recordOfAccount`), so a member's account and its record belong to the same request. The notes that name the
+member (`ListMentionsWorkflow`) are found by the member's first and display name as a whole word:
 
 - cancel reasons and session notes in the meetings of the member's stages, and in their services' meetings
   without a stage;
@@ -409,7 +416,9 @@ Writers that add data about a person hold a share lock on the person row before 
 homework task or the account: marking someone present, a parent reporting homework done, and linking an account
 to its member record. So none of these writes can slip in after the erasure has cleaned up.
 
-For an **account** (`app_user`): the account, its roles and guardian links. What the account did for the
+For an **account** (`app_user`): the account, its roles and guardian links, with its link to a member record, the
+age check and the agreement note. `app:privacy:erase-account` keeps the member record and the reports about it,
+with `completed_by` null. What the account did for the
 church stays, without saying who: attendance it recorded, sessions it closed, history entries, homework
 reports it made for a child (they are about the child), lessons and homework it prepared. The columns that
 point to the account become null (`recorded_by`, `removed_by`, `closed_by`, `actor_id`, `undone_by`,

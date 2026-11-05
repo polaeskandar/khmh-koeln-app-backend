@@ -9,4 +9,6 @@ use Symfony\Component\Uid\Uuid;
 interface PersonTraceRepositoryInterface
 {
     public function forget(Uuid $personId): int;
+
+    public function accountOf(Uuid $personId): ?Uuid;
 }

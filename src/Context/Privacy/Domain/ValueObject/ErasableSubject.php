@@ -15,6 +15,7 @@ final readonly class ErasableSubject
     private function __construct(
         public ?Uuid $personId,
         public ?Uuid $accountId,
+        private string $viewerId,
     ) {
     }
 
@@ -34,10 +35,15 @@ final readonly class ErasableSubject
             throw new RuleViolation('privacy.subjectGone');
         }
 
-        if ($subject->isAccount($viewerId)) {
-            throw new RuleViolation('privacy.ownAccount');
-        }
+        return new self($subject->personId, $subject->accountId, $viewerId);
+    }
 
-        return new self($subject->personId, $subject->accountId);
+    public function joined(?Uuid $record, ?Uuid $account): self
+    {
+        $joined = new self($this->personId ?? $record, $this->accountId ?? $account, $this->viewerId);
+
+        return $joined->accountId?->toRfc4122() === $this->viewerId
+            ? throw new RuleViolation('privacy.ownAccount')
+            : $joined;
     }
 }

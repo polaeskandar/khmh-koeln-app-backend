@@ -60,6 +60,7 @@ final class PrivacyExportCommandAccountTest extends KernelTestCase
                 'privacyNoticeAccepted',
                 'roles',
                 'registration',
+                'memberAgeCheck',
             ],
             array_keys($account),
         );

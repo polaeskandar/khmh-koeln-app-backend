@@ -22,9 +22,9 @@ final readonly class ExportMemberActivityWorkflow
     ) {
     }
 
-    public function __invoke(string $personId): ?MemberActivity
+    public function __invoke(?string $personId): ?MemberActivity
     {
-        $person = $this->people->person($personId);
+        $person = $personId === null ? null : $this->people->person($personId);
 
         if ($person === null) {
             return null;

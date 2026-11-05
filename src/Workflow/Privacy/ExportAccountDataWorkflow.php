@@ -11,6 +11,7 @@ use App\Library\Time\Client\Calendar;
 use App\Workflow\Privacy\Model\AccountData;
 use App\Workflow\Privacy\Model\AccountRecord;
 use App\Workflow\Privacy\Model\LinkRow;
+use App\Workflow\Privacy\Model\MemberLinkView;
 use App\Workflow\Privacy\Model\ReportByRow;
 use Symfony\Component\Uid\Uuid;
 
@@ -39,6 +40,7 @@ final readonly class ExportAccountDataWorkflow
             account: AccountRecord::of($user),
             children: LinkRow::childrenOf($this->people->linksOfAccount($user->id())),
             homeworkReports: ReportByRow::listOf($reports, $this->people->people(ReportByRow::childIdsOf($reports))),
+            member: MemberLinkView::of($user->member()),
         );
     }
 }
