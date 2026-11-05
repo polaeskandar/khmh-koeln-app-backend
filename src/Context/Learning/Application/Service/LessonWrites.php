@@ -91,9 +91,7 @@ final readonly class LessonWrites
 
     private function movable(Lesson $lesson, MeetingLink $link): MeetingLink
     {
-        $taught = $lesson->state()->status === LessonStatus::Completed;
-
-        return $taught && $this->calendar->today()->isBefore($link->teachingDate)
+        return $lesson->state()->isCompletedAfter($link->teachingDate, $this->calendar->today())
             ? throw MeetingChoice::refusal('lessons.taughtAfterDate')
             : $link;
     }
@@ -101,7 +99,8 @@ final readonly class LessonWrites
     private function described(Lesson $lesson, LessonDraft $draft, LessonStatus $unchanged): Lesson
     {
         $lesson->describe($draft->plan->plan(), $draft->plan->materials());
-        $lesson->prepare($draft->status === null ? $unchanged : LessonStatus::from($draft->status));
+        $status = $draft->status === null ? $unchanged : LessonStatus::from($draft->status);
+        $lesson->changeState($lesson->state()->withStatus($status, $this->calendar->now()));
         $this->lessons->save($lesson);
 
         return $lesson;
