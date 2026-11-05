@@ -238,6 +238,7 @@ the Symfony secrets vault is not used.
 | `MAILER_FROM` | `KHMK Köln <no-reply@khmk-koeln.com>` | No | Sender of every email. The sending domain needs Mailgun's SPF and DKIM records. |
 | `TRUSTED_HOSTS` | see below | No | Production only: a regular expression of the `Host` values the API answers; anything else gets 400. Add the platform's health-probe host, and keep `127.0.0.1`, which the image's own health check calls. Empty would turn the check off, so the image refuses to start without it. |
 | `DEFAULT_URI` | `https://app.khmk-koeln.com` | No | Base URL for links generated outside a request (console) |
+| `SENTRY_DSN` | empty, or `https://<key>@<host>/<project>` | Yes | Error tracking for 5xx responses (Sentry's EU region or a self-hosted GlitchTip). Empty, the default: no event is ever built. Set it only once the service's data processing agreement is signed. |
 | `TEST_TOKEN` | `1` | No | Test only: the PHPUnit runner's suffix for parallel test databases |
 | `DEMO_PASSWORD` | `khmk-demo-2026` (`.env.dev`, `.env.test`) | No | `dev`/`test` only: the password of every demo account. Never set it in production. |
 | `ALLOW_DEMO_SEED` | `0` | No | `dev`/`test` only: `1` lets `composer db:seed` (`app:demo:seed`) purge and load the demo data into a database that is not local. The command does not exist in `prod`. |
@@ -277,6 +278,20 @@ record at all:
   coded `RuleViolation`, `NotFound` and `InvalidInput` are logged at info; other exceptions with these statuses
   (such as Symfony's 401 for a missing sign-in) are logged at error level but still don't flush. 5xx errors
   stay critical and flush. The test environment mirrors these handler settings.
+
+Every request has an id: a valid `X-Request-Id` from the proxy (at most 64 characters of `A-Z`, `a-z`, `0-9` and
+`-`) is kept, anything else is replaced by a generated UUIDv7. Every response returns it as `X-Request-Id` and every
+log record of the request carries it as `extra.request_id`, so a user's or a probe's id finds all lines of that
+request (`jq 'select(.extra.request_id == "…")'` on the collected JSON). The id carries no account id, email or
+name.
+
+With `SENTRY_DSN` set, a 5xx answer also sends one event to the tracker: no personal data (`send_default_pii`
+off), no breadcrumbs, no user, no extra; the request is only its method and the route's path (`/api/people/{id}`),
+without query string, headers, cookies or body; every exception in the chain keeps its class but its message
+becomes `[redacted]`, since a message can name a person or carry a database key; stack frames keep file and line
+but no source lines or argument values. 4xx answers send nothing. The bundle comes from the `sentry/sentry-symfony`
+contrib recipe (`allow-contrib` is on for it); `config/packages/sentry.yaml` keeps the recipe's values and adds
+these privacy settings.
 
 Logs are kept 14 days unless the data protection adviser decides otherwise by Tue 3 Nov. Access logs of the
 reverse proxy leave out query strings (#27, #74).

@@ -17,6 +17,7 @@
         "nesbot/carbon": "^3.15",
         "phpdocumentor/type-resolver": "^2.1",
         "phpstan/phpdoc-parser": "^2.4",
+        "sentry/sentry-symfony": "^5.15",
         "symfony/clock": "8.1.*",
         "symfony/console": "8.1.*",
         "symfony/doctrine-messenger": "8.1.*",
@@ -144,7 +145,7 @@
     },
     "extra": {
         "symfony": {
-            "allow-contrib": false,
+            "allow-contrib": true,
             "require": "8.1.*",
             "docker": false
         },

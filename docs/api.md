@@ -20,6 +20,9 @@ language, and the API never sends sentences.
   decoded JSON. Examples here are pretty-printed; the wire form has no whitespace.
 - Every `/api` response carries `Cache-Control: no-store` and `X-Content-Type-Options: nosniff` (D6),
   errors included.
+- Every response carries `X-Request-Id`: the request's id in the logs. A client or proxy may send its own (at most
+  64 characters of letters, digits and `-`); anything else is replaced by a generated id. Quote it when reporting a
+  problem.
 - `null` is sent, not omitted: a documented member is always present.
 
 ### Values
