@@ -39,6 +39,11 @@ final readonly class LessonMeetings
         return $link;
     }
 
+    public function countForSchedule(Uuid $scheduleId): int
+    {
+        return $this->lessons->countForSchedule($scheduleId);
+    }
+
     private function ensureFree(MeetingLink $link, ?Lesson $editing): void
     {
         $holder = $link->scheduleId === null ? null : $this->lessons->currentAt($link->scheduleId, $link->teachingDate);

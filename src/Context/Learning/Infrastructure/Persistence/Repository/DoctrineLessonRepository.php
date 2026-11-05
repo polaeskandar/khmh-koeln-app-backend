@@ -8,6 +8,7 @@ use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\MeetingChoice;
 use App\Library\Time\Model\LocalDate;
+use App\Library\Types\Model\Integers;
 use App\Library\Types\Model\ListOf;
 use App\Library\Types\Model\Type;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -20,6 +21,8 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineLessonRepository implements LessonRepositoryInterface
 {
+    private const string COUNT_FOR_SCHEDULE = 'SELECT count(*) FROM learning.lesson WHERE schedule_id = ?';
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -38,6 +41,14 @@ final readonly class DoctrineLessonRepository implements LessonRepositoryInterfa
                 'title' => $this->titleAt($link->scheduleId, $link->teachingDate) ?? $lesson->text()->title,
             ]);
         }
+    }
+
+    #[Override]
+    public function countForSchedule(Uuid $scheduleId): int
+    {
+        $count = $this->entityManager->getConnection()->fetchOne(self::COUNT_FOR_SCHEDULE, [$scheduleId->toRfc4122()]);
+
+        return Integers::of($count);
     }
 
     #[Override]

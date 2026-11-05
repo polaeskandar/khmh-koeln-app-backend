@@ -89,6 +89,18 @@ final readonly class MeetingLookup
         return $this->sessions->ofSchedulesOn($schedules, $dates);
     }
 
+    /**
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function whileScheduleKept(?Uuid $scheduleId, callable $work): mixed
+    {
+        return $scheduleId === null ? $work() : $this->schedules->withShareLock($scheduleId, $work);
+    }
+
     private static function sessionKey(Session $session): string
     {
         return $session->id()->toRfc4122();
