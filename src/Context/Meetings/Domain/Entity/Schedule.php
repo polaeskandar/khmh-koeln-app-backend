@@ -37,6 +37,9 @@ final class Schedule extends TimestampedEntity
     #[ORM\Column]
     private bool $active = true;
 
+    #[ORM\Column(name: 'one_off', options: ['default' => false])]
+    private bool $oneOff = false;
+
     public function __construct(Roster $roster, MeetingDetails $details, Recurrence $recurrence, TimeSlot $timeSlot)
     {
         $this->id = Uuid::v7();
@@ -82,6 +85,16 @@ final class Schedule extends TimestampedEntity
     public function isActive(): bool
     {
         return $this->active;
+    }
+
+    public function isOneOff(): bool
+    {
+        return $this->oneOff;
+    }
+
+    public function markOneOff(): void
+    {
+        $this->oneOff = true;
     }
 
     public function activate(): void

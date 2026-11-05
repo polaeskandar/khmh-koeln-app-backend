@@ -144,8 +144,13 @@ completed ones and `opened_at` on active and completed ones. `session_event` is 
 `by_generator` marks the generator's actor-less `created` events. Foreign keys inside Meetings are
 `RESTRICT`: a schedule with sessions and a session with history can't be deleted. `service_id`, `stage_id` (on the schedule) and the actor columns (`opened_by`, `closed_by`,
 `actor_id`) are plain ids without foreign keys; the workflows check them, and the erasure process (#82)
-nulls the actor columns. Indexes: `meeting_session (occurrence_date)`, `session_event (session_id, occurred_at)`. For the MVP every
-session belongs to a schedule: there are no one-off sessions and sessions are not moved.
+nulls the actor columns. Indexes: `meeting_session (occurrence_date)`, `session_event (session_id, occurred_at)`. Every session belongs
+to a schedule and sessions are not moved. A one-off session (`CreateOneOffSessionWorkflow`) gets its own hidden
+schedule: `one_off = true`, inactive (`CHECK (NOT one_off OR NOT active)`) and recurring once on its date, so its
+roster, times and title live where every other session reads them. The generator skips it because it is inactive,
+the schedule list leaves it out, and the schedule routes answer 404 for it (`MeetingSchedules::find()` only finds
+recurring schedules). `PUT /api/sessions/{id}/details` (`RenameSessionWorkflow`) replaces the title and place in
+the session's own plan (`SessionPlan`), which every view, the data export and the mention review read.
 
 Session status: `scheduled` → `active` (attendance open) → `completed` (attendance closed). A service leader
 can reopen a completed session for corrections. A scheduled session can be `canceled` with a reason; a

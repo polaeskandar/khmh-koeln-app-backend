@@ -69,4 +69,11 @@ final readonly class Progress
             ? new self(SessionStatus::Canceled, $reason, $this->opened, $this->closed)
             : throw new RuleViolation('meetings.onlyScheduledCanCancel');
     }
+
+    public function ensureNotCanceled(): void
+    {
+        if ($this->status === SessionStatus::Canceled) {
+            throw new RuleViolation('meetings.sessionCanceled');
+        }
+    }
 }

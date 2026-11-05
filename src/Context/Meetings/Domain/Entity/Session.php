@@ -83,4 +83,9 @@ final class Session extends CreatedAtEntity
     {
         $this->progress = $progress;
     }
+
+    public function changePlan(SessionPlan $plan): void
+    {
+        $this->plan = $plan;
+    }
 }

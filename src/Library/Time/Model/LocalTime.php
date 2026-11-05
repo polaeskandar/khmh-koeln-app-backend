@@ -40,6 +40,11 @@ final readonly class LocalTime implements JsonSerializable
         return self::of('00:00');
     }
 
+    public function isAfter(self $other): bool
+    {
+        return $this->toString() > $other->toString();
+    }
+
     public function format(string $format): string
     {
         return $this->clock->format($format);

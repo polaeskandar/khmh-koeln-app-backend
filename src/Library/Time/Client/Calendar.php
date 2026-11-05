@@ -46,6 +46,11 @@ final readonly class Calendar
         return CarbonImmutable::instance($instant)->setTimezone($this->timeZone) |> LocalDate::ofInstant(...);
     }
 
+    public function localTimeOf(DateTimeInterface $instant): LocalTime
+    {
+        return CarbonImmutable::instance($instant)->setTimezone($this->timeZone) |> LocalTime::ofInstant(...);
+    }
+
     public function monthAfter(LocalDate $date): LocalDate
     {
         return LocalDate::of(CarbonImmutable::parse($date->toString(), 'UTC')->addMonthNoOverflow()->toDateString());

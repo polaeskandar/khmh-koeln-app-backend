@@ -6,8 +6,8 @@ namespace App\Context\Meetings\Application\Service;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
+use App\Context\Meetings\Domain\ValueObject\RecurringSchedule;
 use App\Library\Problem\Exception\InvalidInput;
-use App\Library\Problem\Exception\NotFound;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -29,6 +29,14 @@ final readonly class MeetingSchedules
     /**
      * @return ReadableCollection<int, Schedule>
      */
+    public function recurring(?string $serviceId, ?string $stageId): ReadableCollection
+    {
+        return $this->listed($serviceId, $stageId)->filter(RecurringSchedule::is(...));
+    }
+
+    /**
+     * @return ReadableCollection<int, Schedule>
+     */
     public function chosen(?string $scheduleId, ?string $serviceId, ?string $stageId): ReadableCollection
     {
         $id = self::idOf('scheduleId', $scheduleId);
@@ -40,7 +48,7 @@ final readonly class MeetingSchedules
     {
         $schedule = Uuid::isValid($id) ? $this->schedules->find(Uuid::fromString($id)) : null;
 
-        return $schedule ?? throw NotFound::of('schedule');
+        return RecurringSchedule::required($schedule);
     }
 
     private static function idOf(string $field, ?string $value): ?Uuid

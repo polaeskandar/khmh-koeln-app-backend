@@ -59,7 +59,7 @@ final readonly class ShowSessionWorkflow
             today: $this->calendar->today()->toString(),
             session: $this->viewOf($session, $progress),
             state: SessionState::of($session, $this->accounts->account($session->progress()->closed->by)),
-            schedule: ScheduleBrief::of($session->schedule()),
+            schedule: ScheduleBrief::ofRecurring($session->schedule()),
             history: $history->getValues(),
         );
     }
