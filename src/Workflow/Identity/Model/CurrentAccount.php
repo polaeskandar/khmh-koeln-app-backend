@@ -15,6 +15,7 @@ final readonly class CurrentAccount
         public array $roles,
         public array $permissions,
         public string $today,
+        public ?MemberSummary $member,
     ) {
     }
 }
