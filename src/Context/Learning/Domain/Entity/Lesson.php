@@ -54,6 +54,10 @@ final class Lesson extends TimestampedEntity
     #[ORM\Embedded(LessonState::class, columnPrefix: false)]
     private LessonState $state;
 
+    #[ORM\Version]
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
+    private int $version = 1;
+
     public function __construct(Uuid $stageId, MeetingLink $link, LessonText $text, ?Uuid $responsibleId)
     {
         $this->id = Uuid::v7();
@@ -110,6 +114,11 @@ final class Lesson extends TimestampedEntity
         $this->materials = $materials->toArray();
     }
 
+    public function version(): int
+    {
+        return $this->version;
+    }
+
     public function state(): LessonState
     {
         return $this->state;
@@ -125,6 +134,11 @@ final class Lesson extends TimestampedEntity
         $this->text = $text;
         $this->link = $link;
         $this->responsibleId = $responsibleId;
+    }
+
+    public function helpersChanged(): void
+    {
+        $this->touch();
     }
 
     public function changeState(LessonState $state): void

@@ -19,6 +19,7 @@ use App\Workflow\Learning\ShowLessonWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
@@ -59,8 +60,10 @@ final class LessonsController extends AbstractController
         #[MapRequestPayload]
         LessonRequest $lesson,
         EditLessonWorkflow $editLesson,
+        #[MapQueryParameter(validationFailedStatusCode: Response::HTTP_UNPROCESSABLE_ENTITY)]
+        ?int $version = null,
     ): JsonResponse {
-        return $this->json(WrittenLessonResponse::of($editLesson($id, $lesson->lesson())));
+        return $this->json(WrittenLessonResponse::of($editLesson($id, $lesson->lesson(), $version)));
     }
 
     #[Route('/api/lessons/{id}/status', name: 'api_lessons_status', methods: ['POST'])]

@@ -19,6 +19,7 @@ use App\Workflow\Learning\ShowHomeworkWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -58,8 +59,10 @@ final class HomeworkController extends AbstractController
         #[MapRequestPayload]
         HomeworkRequest $homework,
         EditHomeworkWorkflow $editHomework,
+        #[MapQueryParameter(validationFailedStatusCode: Response::HTTP_UNPROCESSABLE_ENTITY)]
+        ?int $version = null,
     ): JsonResponse {
-        return $this->json(WrittenHomeworkResponse::of($editHomework($id, $homework->choice())));
+        return $this->json(WrittenHomeworkResponse::of($editHomework($id, $homework->choice(), $version)));
     }
 
     #[Route('/api/homework/{id}/publish', name: 'api_homework_publish', methods: ['POST'])]

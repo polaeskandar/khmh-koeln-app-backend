@@ -14,11 +14,18 @@ final readonly class ChangedHomeworkResponse
         public string $status,
         public ?DateTimeImmutable $publishedAt,
         public ?DateTimeImmutable $archivedAt,
+        public int $version,
     ) {
     }
 
     public static function of(ChangedHomework $homework): self
     {
-        return new self($homework->id, $homework->status, $homework->publishedAt, $homework->archivedAt);
+        return new self(
+            $homework->id,
+            $homework->status,
+            $homework->publishedAt,
+            $homework->archivedAt,
+            $homework->version,
+        );
     }
 }

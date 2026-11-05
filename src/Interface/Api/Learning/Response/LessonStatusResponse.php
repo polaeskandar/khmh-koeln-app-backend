@@ -13,11 +13,12 @@ final readonly class LessonStatusResponse
         public string $id,
         public string $status,
         public ?DateTimeImmutable $completedAt,
+        public int $version,
     ) {
     }
 
     public static function of(LessonStatusView $lesson): self
     {
-        return new self($lesson->id, $lesson->status, $lesson->completedAt);
+        return new self($lesson->id, $lesson->status, $lesson->completedAt, $lesson->version);
     }
 }

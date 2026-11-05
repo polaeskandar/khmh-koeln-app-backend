@@ -23,13 +23,13 @@ final readonly class EditHomeworkWorkflow
     ) {
     }
 
-    public function __invoke(string $id, HomeworkChoice $choice): WrittenHomework
+    public function __invoke(string $id, HomeworkChoice $choice, ?int $version): WrittenHomework
     {
         $this->access->require(Action::Update, Resource::Homework, refusal: 'homework.changeStageOnly');
 
         $edit = fn (HomeworkAssignment $task): HomeworkAssignment => $this->edited($task, $choice);
 
-        return WrittenHomework::of($this->homework->whileEditable($id, $edit));
+        return WrittenHomework::of($this->homework->whileEditable($id, $version, $edit));
     }
 
     private function edited(HomeworkAssignment $task, HomeworkChoice $choice): HomeworkAssignment

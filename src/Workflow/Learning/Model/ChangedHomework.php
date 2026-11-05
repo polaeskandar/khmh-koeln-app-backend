@@ -14,6 +14,7 @@ final readonly class ChangedHomework
         public string $status,
         public ?DateTimeImmutable $publishedAt,
         public ?DateTimeImmutable $archivedAt,
+        public int $version,
     ) {
     }
 
@@ -26,6 +27,7 @@ final readonly class ChangedHomework
             status: $state->status->value,
             publishedAt: $state->publishedAt,
             archivedAt: $state->archivedAt,
+            version: $task->version(),
         );
     }
 }

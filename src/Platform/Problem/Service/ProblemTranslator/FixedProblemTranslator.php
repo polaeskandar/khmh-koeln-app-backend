@@ -7,6 +7,7 @@ namespace App\Platform\Problem\Service\ProblemTranslator;
 use App\Platform\Problem\Model\Problem;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\ORM\OptimisticLockException;
 use LogicException;
 use Override;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,6 +20,7 @@ final readonly class FixedProblemTranslator implements ProblemTranslator
 {
     private const array PROBLEMS = [
         UniqueConstraintViolationException::class => [Response::HTTP_CONFLICT, 'conflict'],
+        OptimisticLockException::class => [Response::HTTP_CONFLICT, 'conflict'],
     ];
 
     #[Override]
