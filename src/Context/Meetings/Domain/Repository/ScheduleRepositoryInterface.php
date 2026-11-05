@@ -6,6 +6,7 @@ namespace App\Context\Meetings\Domain\Repository;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
 use Doctrine\Common\Collections\ReadableCollection;
+use Symfony\Component\Uid\Uuid;
 
 interface ScheduleRepositoryInterface
 {
@@ -15,4 +16,11 @@ interface ScheduleRepositoryInterface
      * @return ReadableCollection<int, Schedule>
      */
     public function active(): ReadableCollection;
+
+    public function find(Uuid $id): ?Schedule;
+
+    /**
+     * @return ReadableCollection<int, Schedule>
+     */
+    public function listed(?Uuid $serviceId, ?Uuid $stageId): ReadableCollection;
 }

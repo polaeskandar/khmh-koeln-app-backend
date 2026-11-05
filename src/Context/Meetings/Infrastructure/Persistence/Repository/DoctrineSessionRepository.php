@@ -11,8 +11,12 @@ use App\Context\Meetings\Domain\Enum\SessionEventType;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\Actor;
 use App\Library\Time\Model\LocalDate;
+use App\Library\Types\Model\ListOf;
+use App\Library\Types\Model\Type;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\ReadableCollection;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Override;
@@ -21,6 +25,10 @@ use Throwable;
 final readonly class DoctrineSessionRepository implements SessionRepositoryInterface
 {
     private const string LOCK_SCHEDULE = 'SELECT id FROM meetings.meeting_schedule WHERE id = ? FOR UPDATE';
+
+    private const string COUNT_SESSIONS = <<<'SQL'
+        SELECT schedule_id, count(*) FROM meetings.meeting_session WHERE schedule_id IN (?) GROUP BY schedule_id
+        SQL;
 
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -43,6 +51,42 @@ final readonly class DoctrineSessionRepository implements SessionRepositoryInter
 
             throw $failure;
         }
+    }
+
+    #[Override]
+    public function ofSchedulesBetween(
+        ReadableCollection $schedules,
+        LocalDate $from,
+        LocalDate $to,
+    ): ReadableCollection {
+        $query = $this->entityManager
+            ->createQueryBuilder()
+            ->select('s')
+            ->from(Session::class, 's')
+            ->where('s.schedule IN (:schedules)')
+            ->andWhere('s.occurrenceDate BETWEEN :from AND :to')
+            ->setParameter('schedules', $schedules->toArray())
+            ->setParameter('from', $from, 'local_date')
+            ->setParameter('to', $to, 'local_date')
+            ->getQuery();
+
+        return new ArrayCollection(ListOf::instances($query->getResult(), Session::class));
+    }
+
+    #[Override]
+    public function countsBySchedule(ReadableCollection $schedules): ReadableCollection
+    {
+        $ids = $schedules->map(static fn (Schedule $schedule): string => $schedule->id()->toRfc4122())->getValues();
+
+        $rows = $this->entityManager->getConnection()->fetchAllKeyValue(
+            self::COUNT_SESSIONS,
+            [$ids],
+            [ArrayParameterType::STRING],
+        );
+
+        return new ArrayCollection($rows)->map(
+            static fn (mixed $count): int => (int) Type::of($count)->toScalarOrNull(),
+        );
     }
 
     /**

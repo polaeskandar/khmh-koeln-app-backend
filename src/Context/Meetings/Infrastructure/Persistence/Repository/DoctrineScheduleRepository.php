@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInterface
 {
@@ -29,5 +30,23 @@ final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInt
     public function active(): ReadableCollection
     {
         return new ArrayCollection($this->entityManager->getRepository(Schedule::class)->findBy(['active' => true]));
+    }
+
+    #[Override]
+    public function find(Uuid $id): ?Schedule
+    {
+        return $this->entityManager->find(Schedule::class, $id);
+    }
+
+    #[Override]
+    public function listed(?Uuid $serviceId, ?Uuid $stageId): ReadableCollection
+    {
+        $criteria = new ArrayCollection(['roster.serviceId' => $serviceId, 'roster.stageId' => $stageId])->filter(
+            static fn (?Uuid $id): bool => $id !== null,
+        );
+
+        return new ArrayCollection($this->entityManager->getRepository(Schedule::class)->findBy($criteria->toArray(), [
+            'details.name' => 'ASC',
+        ]));
     }
 }

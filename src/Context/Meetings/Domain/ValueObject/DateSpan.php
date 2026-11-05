@@ -24,4 +24,9 @@ final readonly class DateSpan
 
         return $started && ($this->endsOn === null || !$this->endsOn->isBefore($date));
     }
+
+    public function endsBefore(LocalDate $date): bool
+    {
+        return $this->endsOn?->isBefore($date) === true;
+    }
 }

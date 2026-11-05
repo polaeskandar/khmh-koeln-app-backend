@@ -978,3 +978,30 @@ most 20, active people by last and first name. `groups` are the person's current
 the first, last or display name. Fewer than 2 letters → 422 field error `q`: `people.searchTooShort {min: 2}`.
 `%` and `_` match themselves.
 
+### Schedules
+
+A `ScheduleSummary`:
+
+| Member | Type |
+| --- | --- |
+| `id`, `name`, `description`, `location` | the schedule's details |
+| `service`, `stage` | `ServiceRef`, `StageRef \| null` |
+| `recurrence` | `Recurrence` |
+| `startTime`, `endTime` | `HH:MM`, `endTime` may be `null` |
+| `rosterMode` | `expected` or `open` |
+| `active` | boolean |
+| `generating` | active, not past `endsOn`, and its service and stage are not archived |
+| `nextDates` | up to 3 `{date, startTime, status, sessionId}` from today (400-day horizon): sessions `scheduled` or `active` and planned dates without a session (`status: planned`, `sessionId: null`); canceled and completed dates are skipped; empty unless `generating` |
+| `sessionCount` | sessions of the schedule, every status |
+| `createdAt`, `updatedAt` | instants |
+| `can` | `{manage}`: `sessions: update` |
+
+#### `GET /api/schedules?serviceId=&stageId=`
+
+`services: read`. `{today, items: [ScheduleSummary]}`, active and inactive, by name. The filters take ids
+(`validation.invalidType` otherwise).
+
+#### `GET /api/schedules/{id}`
+
+`services: read`. `{today, schedule: ScheduleSummary}`; 404 `notFound.schedule`.
+
