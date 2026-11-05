@@ -17,4 +17,11 @@ final readonly class DateSpan
         public ?LocalDate $endsOn,
     ) {
     }
+
+    public function includes(LocalDate $date): bool
+    {
+        $started = !$date->isBefore($this->startsOn);
+
+        return $started && ($this->endsOn === null || !$this->endsOn->isBefore($date));
+    }
 }

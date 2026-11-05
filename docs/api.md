@@ -318,6 +318,7 @@ Read models embed these instead of repeating their own variants.
 | `PersonRef` | `{id, firstName, lastName, displayName}`; `displayName` is the everyday name or `null` |
 | `LessonRef` | `{id, title, teachingDate}` |
 | `Counts` | `{present, rosterSize, rosterPresent, notMarked, notOnRoster}` |
+| `Recurrence` | `{frequency, interval, weekdays, monthWeek, span: {startsOn, endsOn}}`; see below |
 
 ```json
 {"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f10", "name": "Sunday School", "tone": 1, "archived": false}
@@ -338,6 +339,23 @@ Read models embed these instead of repeating their own variants.
 ```json
 {"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f40", "title": "The Good Samaritan", "teachingDate": "2026-11-15"}
 ```
+
+**Recurrence** is how a schedule repeats, the same shape in requests and responses:
+
+```json
+{"frequency": "monthly", "interval": 2, "weekdays": [6], "monthWeek": 1, "span": {"startsOn": "2026-09-20", "endsOn": null}}
+```
+
+- `frequency`: `weekly` (every `interval` weeks, counted from the Monday of `startsOn`'s week, on each of
+  `weekdays`) or `monthly` (every `interval` months from `startsOn`'s month, on the `monthWeek`th weekday: 1–4
+  are days 1–7, 8–14, 15–21, 22–28; -1 is the last 7 days).
+- `weekdays`: ISO numbers, 1 (Monday) to 7 (Sunday); exactly one for monthly.
+- `span`: both ends inclusive; `endsOn` may be `null`. Dates have no time zone.
+- Field errors, the first broken rule only, under the recurrence's own field (`recurrence.interval` in a schedule
+  request), in this order: `interval` (`recurrence.interval`, 1–52), `weekdays` (`recurrence.weekdays`,
+  `recurrence.weekdayRange`, `recurrence.monthlyOneDay`), `monthWeek` (`recurrence.monthWeek`,
+  `recurrence.monthWeekOnlyMonthly`), `span.endsOn` (`recurrence.endBeforeStart`).
+- `tests/Fixtures/recurrence-cases.json` holds golden vectors in this shape for the frontend's port.
 
 **Counts** are a session's attendance. Not marked present is not the same as absent.
 

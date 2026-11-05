@@ -15,6 +15,8 @@ final class SourceLayoutTest extends TestCase
 
     private const array CONTEXT_LAYERS = ['Application', 'Domain', 'Infrastructure'];
 
+    private const array DOMAIN_KINDS = ['Attribute', 'Entity', 'Enum', 'Exception', 'Repository', 'ValueObject'];
+
     private const array LIBRARY_KINDS = ['Client', 'Exception', 'Mapping', 'Model'];
 
     public function testSrcHoldsOnlyTheFiveTopLevelNamespaces(): void
@@ -31,6 +33,17 @@ final class SourceLayoutTest extends TestCase
     {
         foreach (self::CONTEXTS as $context) {
             self::assertSame(self::CONTEXT_LAYERS, self::foldersIn('src/Context/' . $context), $context);
+        }
+    }
+
+    public function testEveryDomainHoldsOnlyTheModel(): void
+    {
+        foreach (self::CONTEXTS as $context) {
+            self::assertSame(
+                [],
+                array_values(array_diff(self::foldersIn('src/Context/' . $context . '/Domain'), self::DOMAIN_KINDS)),
+                $context,
+            );
         }
     }
 
