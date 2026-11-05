@@ -38,4 +38,16 @@ final readonly class ProgressRows
 
         return array_values($matching)[0] ?? [];
     }
+
+    /**
+     * @param array<array-key, mixed> $row
+     */
+    public static function reporterName(array $row): ?string
+    {
+        if (($row['completedBy'] ?? null) === null) {
+            return null;
+        }
+
+        return Type::of(JsonBody::asArray($row['completedBy'], 'completedBy')['name'] ?? null)->toString();
+    }
 }
