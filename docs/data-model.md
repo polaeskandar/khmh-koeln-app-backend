@@ -123,13 +123,18 @@ can reopen a completed session for corrections. A scheduled session can be `canc
 planned date without a session yet can be canceled ahead of time, which creates its session right away so
 the generator skips that date.
 
-### Session generation (backend job, not built yet)
+### Session generation
 
-A scheduled console command runs every hour at minute 5. It creates the sessions of active schedules on the
-calendar day before they take place, and covers today as well in case a run was missed. It is idempotent:
-the unique `(schedule_id, occurrence_date)` key makes a second run a no-op, and a date that already has a
-session (canceled included) is never touched again. The prototype simulates this job on its demo
-clock; it does not exist in the backend yet.
+`GenerateSessionsWorkflow` asks Organization for the archived services and stages, then Meetings'
+`SessionGenerator` creates the sessions of today and tomorrow for generating schedules (active, on a service and
+stage that are not archived) on the dates their recurrence occurs; `generateFor()` does the same for one schedule.
+Per schedule, one transaction locks the schedule row, skips the dates that already have a session and persists
+a session with a `created` event (`by_generator`, no actor) for each other date, so `created_at` comes from the
+lifecycle callback like everywhere else. Retries and concurrent runs therefore never create a second session and
+never touch an existing one, whatever its status; the unique `(schedule_id, occurrence_date)` key stays the last
+guard. A failed transaction resets the entity manager before the next schedule. A failing schedule is logged with its id
+only, counted as `failed`, and the others go on. The result is `{created, existing, failed}`. The hourly console
+command that runs the workflow, with its lock, is #53.
 
 ## Accounts and roles
 
