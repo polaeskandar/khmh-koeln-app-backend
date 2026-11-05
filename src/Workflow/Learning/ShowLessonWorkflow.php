@@ -14,12 +14,13 @@ use App\Context\Learning\Domain\ValueObject\LessonReading;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
-use App\Workflow\Identity\Model\AccountReference;
+use App\Workflow\Identity\Model\AccountReferences;
 use App\Workflow\Learning\Model\LessonDetail;
 use App\Workflow\Learning\Model\LessonDetailView;
 use App\Workflow\Learning\Model\LessonHomework;
 use App\Workflow\Learning\Model\LessonPlanView;
 use App\Workflow\Learning\Model\LessonRow;
+use App\Workflow\Learning\Model\LessonRows;
 use App\Workflow\Learning\Model\LessonStageView;
 use App\Workflow\Learning\Model\LessonSummary;
 use App\Workflow\Learning\Model\MeetingView;
@@ -61,11 +62,17 @@ final readonly class ShowLessonWorkflow
     private function rowOf(LessonReading $reading): LessonRow
     {
         $lesson = $reading->lesson;
-        $responsible = $this->accounts->account($lesson->responsibleId());
+        $lessons = new ArrayCollection([$lesson]);
+
+        $accounts = AccountReferences::of($this->accounts->accounts(LessonRows::accountIdsOf(
+            $lessons,
+            $reading->helpers,
+        )));
 
         return new LessonRow(
             LessonSummary::of($lesson),
-            $responsible === null ? null : AccountReference::of($responsible),
+            $accounts->referenceOf($lesson->responsibleId()),
+            $accounts->byNameOf($reading->helpers->of($lesson)),
             $this->meetingOf($lesson),
             LessonHomework::of($reading->homework),
         );

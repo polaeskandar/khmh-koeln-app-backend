@@ -7,6 +7,7 @@ namespace App\Context\Learning\Application\Service;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Enum\LessonTab;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
+use App\Context\Learning\Domain\Repository\LessonCollaboratorRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkCounts;
 use App\Context\Learning\Domain\ValueObject\LessonListing;
@@ -23,6 +24,7 @@ final readonly class StageLessons
     public function __construct(
         private LessonRepositoryInterface $lessons,
         private HomeworkRepositoryInterface $homework,
+        private LessonCollaboratorRepositoryInterface $collaborators,
         private Calendar $calendar,
     ) {
     }
@@ -43,7 +45,13 @@ final readonly class StageLessons
         $shown = $tabs->shown($chosen, $query);
         $ids = new ArrayCollection($shown)->map(static fn (Lesson $lesson): Uuid => $lesson->id())->getValues();
 
-        return new LessonListing($today, $tabs->counts(), $shown, $this->homework->countsByLesson($ids));
+        return new LessonListing(
+            $today,
+            $tabs->counts(),
+            $shown,
+            $this->homework->countsByLesson($ids),
+            $this->collaborators->ofLessons($ids),
+        );
     }
 
     public function reading(string $id): LessonReading
@@ -54,6 +62,11 @@ final readonly class StageLessons
 
         $counts = $this->homework->countsByLesson([$lesson->id()])->get($lesson->id()->toRfc4122());
 
-        return new LessonReading($lesson, $counts ?? new HomeworkCounts(), $this->calendar->today());
+        return new LessonReading(
+            $lesson,
+            $counts ?? new HomeworkCounts(),
+            $this->calendar->today(),
+            $this->collaborators->ofLessons([$lesson->id()]),
+        );
     }
 }

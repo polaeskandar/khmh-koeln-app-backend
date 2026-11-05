@@ -20,6 +20,7 @@ final readonly class LessonListing
         public array $tabs,
         public array $shown,
         private ReadableCollection $homework,
+        public LessonHelpers $helpers,
     ) {
     }
 

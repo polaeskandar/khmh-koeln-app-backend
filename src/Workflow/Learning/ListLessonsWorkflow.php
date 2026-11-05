@@ -51,7 +51,7 @@ final readonly class ListLessonsWorkflow
             items: LessonRows::of(
                 $listing,
                 $this->meetingsOf($shown),
-                AccountReferences::of($this->accounts->accounts(LessonRows::responsibleIdsOf($shown))),
+                AccountReferences::of($this->accounts->accounts(LessonRows::accountIdsOf($shown, $listing->helpers))),
             ),
         );
     }
