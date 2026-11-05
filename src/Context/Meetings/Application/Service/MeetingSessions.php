@@ -8,10 +8,12 @@ use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Entity\SessionEvent;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
+use App\Context\Meetings\Domain\Repository\SessionListRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\MarkingRules;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
+use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -20,7 +22,34 @@ final readonly class MeetingSessions
     public function __construct(
         private SessionRepositoryInterface $sessions,
         private ScheduleRepositoryInterface $schedules,
+        private SessionListRepositoryInterface $lists,
     ) {
+    }
+
+    /**
+     * @return ReadableCollection<int, Session>
+     */
+    public function on(LocalDate $date): ReadableCollection
+    {
+        return $this->lists->on($date);
+    }
+
+    /**
+     * @return ReadableCollection<int, Session>
+     */
+    public function openBetween(LocalDate $from, LocalDate $to): ReadableCollection
+    {
+        return $this->lists->openBetween($from, $to);
+    }
+
+    /**
+     * @param list<Uuid> $excludedServiceIds
+     *
+     * @return ReadableCollection<int, Session>
+     */
+    public function latestClosed(int $limit, array $excludedServiceIds): ReadableCollection
+    {
+        return $this->lists->latestClosed($limit, $excludedServiceIds);
     }
 
     /**
