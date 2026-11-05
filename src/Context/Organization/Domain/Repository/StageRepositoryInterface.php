@@ -39,4 +39,9 @@ interface StageRepositoryInterface
      * @return ReadableCollection<int, Stage>
      */
     public function activeIn(ReadableCollection $services): ReadableCollection;
+
+    /**
+     * @return ReadableCollection<int, Stage>
+     */
+    public function archived(): ReadableCollection;
 }
