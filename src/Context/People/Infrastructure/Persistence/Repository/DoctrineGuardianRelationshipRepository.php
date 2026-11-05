@@ -86,4 +86,20 @@ final readonly class DoctrineGuardianRelationshipRepository implements GuardianR
 
         return new ArrayCollection(ListOf::instances($query->getResult(), GuardianRelationship::class));
     }
+
+    #[Override]
+    public function allForChild(Person $child): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager->getRepository(GuardianRelationship::class)->findBy([
+            'child' => $child,
+        ], ['approvedAt' => 'ASC', 'id' => 'ASC']));
+    }
+
+    #[Override]
+    public function allOfAccount(Uuid $accountId): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager->getRepository(GuardianRelationship::class)->findBy([
+            'accountId' => $accountId,
+        ], ['approvedAt' => 'ASC', 'id' => 'ASC']));
+    }
 }

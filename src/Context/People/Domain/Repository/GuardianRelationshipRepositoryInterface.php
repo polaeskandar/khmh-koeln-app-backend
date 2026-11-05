@@ -26,4 +26,14 @@ interface GuardianRelationshipRepositoryInterface
      * @return ReadableCollection<int, GuardianRelationship>
      */
     public function approvedForChildren(array $childIds): ReadableCollection;
+
+    /**
+     * @return ReadableCollection<int, GuardianRelationship>
+     */
+    public function allForChild(Person $child): ReadableCollection;
+
+    /**
+     * @return ReadableCollection<int, GuardianRelationship>
+     */
+    public function allOfAccount(Uuid $accountId): ReadableCollection;
 }

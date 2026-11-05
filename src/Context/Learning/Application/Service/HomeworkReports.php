@@ -15,6 +15,7 @@ use App\Context\Learning\Domain\ValueObject\StageHomework;
 use App\Context\Learning\Domain\ValueObject\TaskReports;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
+use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class HomeworkReports
@@ -48,6 +49,22 @@ final readonly class HomeworkReports
     public function ofStage(Uuid $stageId): StageHomework
     {
         return new StageHomework($this->of($this->homework->ofStage($stageId)), $this->lessons->ofStage($stageId));
+    }
+
+    /**
+     * @return ReadableCollection<int, HomeworkCompletion>
+     */
+    public function about(Uuid $personId): ReadableCollection
+    {
+        return $this->completions->allAbout($personId);
+    }
+
+    /**
+     * @return ReadableCollection<int, HomeworkCompletion>
+     */
+    public function madeBy(Uuid $accountId): ReadableCollection
+    {
+        return $this->completions->allBy($accountId);
     }
 
     private function reportOf(HomeworkCompletion $completion): HomeworkReport

@@ -35,4 +35,9 @@ interface AttendanceRepositoryInterface
      * @return ReadableCollection<int, Attendance>
      */
     public function currentOf(Uuid $sessionId): ReadableCollection;
+
+    /**
+     * @return ReadableCollection<int, Attendance>
+     */
+    public function ofPerson(Uuid $personId): ReadableCollection;
 }
