@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Files\LineLengthSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Formatting\SpaceAfterNotSniff;
+use SlevomatCodingStandard\Sniffs\Classes\ForbiddenPublicPropertySniff;
 use SlevomatCodingStandard\Sniffs\Classes\SuperfluousInterfaceNamingSniff;
 
 return [
@@ -12,6 +13,7 @@ return [
     'remove' => [SpaceAfterNotSniff::class, SuperfluousInterfaceNamingSniff::class],
     'config' => [
         LineLengthSniff::class => ['lineLimit' => 120, 'absoluteLineLimit' => 120],
+        ForbiddenPublicPropertySniff::class => ['exclude' => ['src/Interface/Console']],
     ],
     'requirements' => [
         'min-quality' => 100,

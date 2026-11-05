@@ -16,21 +16,12 @@ final readonly class SecretReader
     ) {
     }
 
-    public function read(
-        SymfonyStyle $io,
-        InputInterface $input,
-        string $noneOption,
-        string $standardInputOption,
-        string $prompt,
-    ): ?string {
-        return match (true) {
-            $input->getOption($noneOption) === true => null,
-            $input->getOption($standardInputOption) === true => $this->standardInput->firstLine($input),
-            default => $this->typed($io, $input, $prompt),
-        };
+    public function fromStandardInput(InputInterface $input): string
+    {
+        return $this->standardInput->firstLine($input);
     }
 
-    private function typed(SymfonyStyle $io, InputInterface $input, string $prompt): string
+    public function typed(SymfonyStyle $io, InputInterface $input, string $prompt): string
     {
         if (!$input->isInteractive()) {
             throw new TerminalRequired();

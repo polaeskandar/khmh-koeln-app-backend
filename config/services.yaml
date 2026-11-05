@@ -19,4 +19,5 @@ services:
             - '../src/Context/*/Infrastructure/Persistence/Migrations/'
             - '../src/Interface/Api/*/Request/'
             - '../src/Interface/Api/*/Response/'
+            - '../src/Interface/Console/*/Request/'
             - '../src/Workflow/*/Model/'
