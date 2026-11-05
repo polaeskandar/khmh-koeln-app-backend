@@ -18,6 +18,10 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrinePersonRepository implements PersonRepositoryInterface
 {
+    private const string LOCK_ROW = 'SELECT id FROM people.person WHERE id = ? FOR UPDATE';
+
+    private const string SHARE_ROW = 'SELECT id FROM people.person WHERE id = ? FOR SHARE';
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -39,6 +43,24 @@ final readonly class DoctrinePersonRepository implements PersonRepositoryInterfa
     public function find(Uuid $id): ?Person
     {
         return $this->entityManager->find(Person::class, $id);
+    }
+
+    #[Override]
+    public function findForUpdate(Uuid $id): ?Person
+    {
+        $this->entityManager->getConnection()->executeQuery(self::LOCK_ROW, [$id->toRfc4122()]);
+
+        return $this->entityManager->find(Person::class, $id);
+    }
+
+    #[Override]
+    public function withShareLock(Uuid $id, callable $work): mixed
+    {
+        return $this->entityManager->wrapInTransaction(function () use ($id, $work): mixed {
+            $this->entityManager->getConnection()->executeQuery(self::SHARE_ROW, [$id->toRfc4122()]);
+
+            return $work();
+        });
     }
 
     #[Override]

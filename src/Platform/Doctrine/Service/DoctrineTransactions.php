@@ -18,11 +18,9 @@ final readonly class DoctrineTransactions implements Transactions
     }
 
     #[Override]
-    public function run(callable $work): void
+    public function run(callable $work): mixed
     {
-        $this->entityManager->wrapInTransaction(static function () use ($work): void {
-            $work();
-        });
+        return $this->entityManager->wrapInTransaction(static fn (): mixed => $work());
     }
 
     #[Override]

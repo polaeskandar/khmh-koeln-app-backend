@@ -37,7 +37,10 @@ final readonly class MarkPresentWorkflow
             $accountId,
         );
 
-        $recorded = $this->sessions->whileMarkable($sessionId, $record);
+        $recorded = $this->attendees->whileKept($personId, fn (): RecordedMark => $this->sessions->whileMarkable(
+            $sessionId,
+            $record,
+        ));
 
         $mark = $recorded->mark;
 

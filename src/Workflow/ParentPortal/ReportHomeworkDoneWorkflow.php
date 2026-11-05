@@ -34,11 +34,11 @@ final readonly class ReportHomeworkDoneWorkflow
 
         $viewer = Uuid::fromString($viewerId);
 
-        $outcome = $this->completions->whileLocked(
+        $outcome = $this->families->whileKept($childId, fn (): CompletionOutcome => $this->completions->whileLocked(
             $homeworkId,
             fn (HomeworkAssignment $task): CompletionOutcome => $this->reported($viewer, $childId, $task),
             fn (): never => $this->visibleTo($viewer)->missingTask($childId),
-        );
+        ));
 
         return ReportResult::of($outcome, $this->accounts->account($outcome->completedBy), $viewer);
     }

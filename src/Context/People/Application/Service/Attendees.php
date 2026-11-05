@@ -75,6 +75,18 @@ final readonly class Attendees
             ->filter(static fn (Membership $membership): bool => $membership->tenure()->includes($today));
     }
 
+    /**
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function whileKept(string $personId, callable $work): mixed
+    {
+        return Uuid::isValid($personId) ? $this->people->withShareLock(Uuid::fromString($personId), $work) : $work();
+    }
+
     public function find(string $personId): Person
     {
         $person = Uuid::isValid($personId) ? $this->people->find(Uuid::fromString($personId)) : null;
