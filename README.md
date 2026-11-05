@@ -59,3 +59,14 @@ SHA-256 hash.
 Commits follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat: …`, `fix: …`).
 Git hooks are installed on `docker compose up`: `commit-msg` checks the message, `pre-commit` runs
 `composer check`.
+
+## Guardian links
+
+Parents see a child only through an approved guardian link. At launch operators manage links on the server:
+
+| Command | Does |
+| --- | --- |
+| `app:guardian:link <email> <personId> [--relationship=guardian]` | Links an approved, enabled account to an active child and gives the account the Parent role. Repeating changes nothing. |
+| `app:guardian:revoke <email>` | Lists the account's children with their ids. |
+| `app:guardian:revoke <email> <personId>` | Ends the account's access to that child; the link stays as revoked. Repeating changes nothing. |
+

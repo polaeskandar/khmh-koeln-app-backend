@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Workflow\People;
+
+use App\Context\Identity\Application\Service\ParentAccounts;
+use App\Context\People\Application\Service\Guardianship;
+use App\Workflow\People\Model\GuardianLink;
+
+final readonly class ListGuardianLinksWorkflow
+{
+    public function __construct(
+        private ParentAccounts $accounts,
+        private Guardianship $guardianship,
+    ) {
+    }
+
+    /**
+     * @return list<GuardianLink>
+     */
+    public function __invoke(string $email): array
+    {
+        $account = $this->accounts->byEmail($email);
+
+        return $this->guardianship
+            ->approvedOf($account->id())
+            ->map(GuardianLink::of(...))
+            ->getValues();
+    }
+}
