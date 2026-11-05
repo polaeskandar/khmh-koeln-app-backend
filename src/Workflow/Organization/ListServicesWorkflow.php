@@ -11,8 +11,11 @@ use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
+use App\Context\People\Application\Service\Rosters;
+use App\Workflow\Organization\Model\MemberCounts;
 use App\Workflow\Organization\Model\ServiceList;
 use App\Workflow\Organization\Model\ServiceOverview;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class ListServicesWorkflow
 {
@@ -20,6 +23,7 @@ final readonly class ListServicesWorkflow
         private AccessCheck $access,
         private ChurchServices $services,
         private ServiceStages $stages,
+        private Rosters $rosters,
     ) {
     }
 
@@ -29,11 +33,15 @@ final readonly class ListServicesWorkflow
 
         $services = $this->services->listed($status);
         $stages = $this->stages->activeIn($services);
+        $members = $this->rosters->serviceMembersToday(
+            $services->map(static fn (Service $service): Uuid => $service->id())->getValues(),
+        );
 
         return new ServiceList(
             $services->map(static fn (Service $service): ServiceOverview => ServiceOverview::of(
                 $service,
                 $stages->filter(static fn (Stage $stage): bool => $stage->service() === $service),
+                MemberCounts::in($members, $service),
             ))->getValues(),
         );
     }

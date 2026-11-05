@@ -97,6 +97,17 @@ UNIQUE indexes allow one open membership (`ends_on IS NULL`) per person and stag
 service-level roster; `(service_id, stage_id)` is indexed for rosters. Ending a membership from today sets
 `ends_on` to yesterday; one that started today is deleted instead, the only delete besides erasure.
 
+### Rosters
+
+A roster is computed from membership dates only (D10): person P is on the roster of a stage (or of the service
+level, `stage_id` null) on day D when a membership there has `starts_on <= D` and `ends_on` null or `>= D`. A
+stage roster holds only that stage; the service-level roster only memberships without a stage. The person's
+status doesn't matter, so a person set `inactive` stays on past rosters. People are ordered by last name, then
+first name, with the German ICU collation (`de-x-icu`): `Özdemir` sorts between `Nashed` and `Rizk`.
+`RosterRepositoryInterface` answers one roster (`rosterOn`), many (service, stage, day) rosters in one statement
+(`rostersOn`, through `jsonb_to_recordset`), and today's member counts per service (each person once, plus the
+service level) or per stage, one statement for any number of services or stages.
+
 ## Meetings and attendance
 
 | Table | Purpose | Key rules |

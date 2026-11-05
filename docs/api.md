@@ -984,7 +984,9 @@ A service row:
 }
 ```
 
-`stages` are the active stages by position, then by name ignoring case.
+`stages` are the active stages by position, then by name ignoring case. `memberCount` counts the people on any
+roster of the service today (Europe/Berlin), each once; `serviceLevelMemberCount` only those on the
+service-level roster.
 
 #### `GET /api/services?status=active|archived|all`
 
@@ -1013,8 +1015,8 @@ services. 200 with the service row; 404 `notFound.service`.
 
 #### `GET /api/services/{id}/stages`
 
-`services: read`. `{service: ServiceRef, stages: [{id, name, description, position}], archivedStages: [{id, name,
-archivedAt}]}`; stages by position. Apps offer structure changes for `stages: create`/`stages: update` while
+`services: read`. `{service: ServiceRef, stages: [{id, name, description, position, memberCount}],
+archivedStages: [{id, name, archivedAt}]}`; stages by position; `memberCount` counts the stage's roster today. Apps offer structure changes for `stages: create`/`stages: update` while
 `service.archived` is `false`. 404 `notFound.service`, also for an id that is not a UUID.
 
 #### `POST /api/services/{id}/stages`
@@ -1028,7 +1030,8 @@ service row is locked). 201 with `Location` and the body of its `GET`.
 
 #### `GET /api/stages/{id}`
 
-`services: read`. `{id, name, description, position, archived, service: ServiceRef}`. Apps offer structure
+`services: read`. `{id, name, description, position, archived, memberCount, service: ServiceRef}`; `memberCount`
+counts the stage's roster today. Apps offer structure
 changes for `stages: update` on an active service, and member changes for `members: update` on an active stage of
 an active service. 404 `notFound.stage`, also for an id that is not a UUID.
 

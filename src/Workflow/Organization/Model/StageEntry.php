@@ -13,16 +13,18 @@ final readonly class StageEntry
         public string $name,
         public ?string $description,
         public int $position,
+        public int $memberCount,
     ) {
     }
 
-    public static function of(Stage $stage): self
+    public static function of(Stage $stage, int $memberCount): self
     {
         return new self(
             id: $stage->id()->toRfc4122(),
             name: $stage->name()->value,
             description: $stage->description()->value,
             position: $stage->position(),
+            memberCount: $memberCount,
         );
     }
 }
