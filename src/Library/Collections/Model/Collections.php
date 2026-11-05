@@ -66,6 +66,34 @@ final readonly class Collections
      * @template TValue
      * @template TResult
      *
+     * @param array<TKey, TValue> $values
+     * @param callable(TValue, TKey): TResult $map
+     *
+     * @return array<TKey, TResult>
+     */
+    public static function mapArray(array $values, callable $map): array
+    {
+        $keys = array_keys($values);
+
+        return array_combine($keys, array_map($map, $values, $keys));
+    }
+
+    public static function mapItems(mixed $value, callable $map): mixed
+    {
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        $keys = array_keys($value);
+
+        return array_combine($keys, array_map($map, $value, $keys));
+    }
+
+    /**
+     * @template TKey of array-key
+     * @template TValue
+     * @template TResult
+     *
      * @param ReadableCollection<TKey, TValue> $items
      * @param callable(TValue): (TResult|null) $map
      *

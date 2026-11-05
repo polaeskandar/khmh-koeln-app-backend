@@ -4,6 +4,14 @@ framework:
         App\Library\Problem\Exception\NotFound: { log_level: info }
         App\Library\Problem\Exception\InvalidInput: { log_level: info }
         Doctrine\DBAL\Exception\UniqueConstraintViolationException: { log_level: info }
+        Symfony\Component\HttpKernel\Exception\BadRequestHttpException: { log_level: info }
+        Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException: { log_level: info }
+        Symfony\Component\HttpKernel\Exception\NotFoundHttpException: { log_level: info }
+        Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException: { log_level: info }
+        Symfony\Component\HttpKernel\Exception\ConflictHttpException: { log_level: info }
+        Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException: { log_level: info }
+        Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException: { log_level: info }
+        Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException: { log_level: info }
     secret: '%env(APP_SECRET)%'
     trusted_proxies: '%env(TRUSTED_PROXIES)%'
     trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port']
