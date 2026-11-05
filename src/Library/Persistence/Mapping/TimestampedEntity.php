@@ -28,4 +28,9 @@ abstract class TimestampedEntity extends CreatedAtEntity
     {
         $this->updatedAt = Clock::get()->now();
     }
+
+    protected function touch(): void
+    {
+        $this->stampUpdatedAt();
+    }
 }

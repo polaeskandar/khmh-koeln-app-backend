@@ -13,6 +13,7 @@ final readonly class LessonStatusView
         public string $id,
         public string $status,
         public ?string $completedAt,
+        public int $version,
     ) {
     }
 
@@ -24,6 +25,7 @@ final readonly class LessonStatusView
             id: $lesson->id()->toRfc4122(),
             status: $state->status->value,
             completedAt: $state->completedAt?->format(DateTimeInterface::ATOM),
+            version: $lesson->version(),
         );
     }
 }

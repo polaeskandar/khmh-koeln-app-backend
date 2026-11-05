@@ -14,6 +14,7 @@ final readonly class ChangedHomework
         public string $status,
         public ?string $publishedAt,
         public ?string $archivedAt,
+        public int $version,
     ) {
     }
 
@@ -26,6 +27,7 @@ final readonly class ChangedHomework
             status: $state->status->value,
             publishedAt: $state->publishedAt === null ? null : $calendar->formatInstant($state->publishedAt),
             archivedAt: $state->archivedAt === null ? null : $calendar->formatInstant($state->archivedAt),
+            version: $task->version(),
         );
     }
 }

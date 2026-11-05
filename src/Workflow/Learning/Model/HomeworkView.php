@@ -13,6 +13,7 @@ final readonly class HomeworkView
         public string $status,
         public ?string $publishedAt,
         public HomeworkTextView $text,
+        public int $version,
     ) {
     }
 
@@ -25,6 +26,7 @@ final readonly class HomeworkView
             status: $task->state()->status->value,
             publishedAt: $reading->reports->publishedAtOf($task),
             text: HomeworkTextView::of($task),
+            version: $task->version(),
         );
     }
 }

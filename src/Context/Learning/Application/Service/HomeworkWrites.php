@@ -11,6 +11,7 @@ use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkDraft;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
+use App\Platform\Doctrine\Contract\VersionChecks;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class HomeworkWrites
@@ -18,6 +19,7 @@ final readonly class HomeworkWrites
     public function __construct(
         private HomeworkRepositoryInterface $homework,
         private LessonRepositoryInterface $lessons,
+        private VersionChecks $versions,
         private Calendar $calendar,
     ) {
     }
@@ -58,9 +60,10 @@ final readonly class HomeworkWrites
      *
      * @return T
      */
-    public function whileEditable(string $id, callable $work): object
+    public function whileEditable(string $id, ?int $version, callable $work): object
     {
-        return $this->locked($id, static function (HomeworkAssignment $task) use ($work): object {
+        return $this->locked($id, function (HomeworkAssignment $task) use ($version, $work): object {
+            $this->versions->ensureCurrent($task, $version, 'homework.changedMeanwhile');
             $task->ensureEditable();
             $task->lesson()->ensureEditable();
 

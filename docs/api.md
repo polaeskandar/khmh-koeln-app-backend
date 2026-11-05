@@ -559,7 +559,7 @@ the endpoint, and a well-formed one gets the endpoint's 403.
 | 404 | `homework.notAvailable` | Parent portal: anything that is not the parent's, always the same (D10) |
 | 405 | `invalidRequest` | The route has no such method |
 | 409 | rule codes | A business rule forbids it now, e.g. `stages.hasMembers` |
-| 409 | `conflict` | Fallback: a concurrent change hit a database constraint |
+| 409 | `conflict` | Fallback: a concurrent change hit a database constraint or a newer version of the row |
 | 415 | `invalidRequest` | Unsafe method without a JSON body |
 | 422 | `checkFields` | Field errors in `fieldErrors` (`validation.invalidType`, `validation.unexpectedField` and the field codes) |
 | 422 | specific codes | Without fields, e.g. `auth.resetLinkInvalid` |
@@ -843,6 +843,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `lessons.taughtAfterDate` | – | A lesson is marked as taught on or after its teaching date. |
 | `lessons.deleteDraftsOnly` | – | Only draft lessons can be deleted. Archive it instead. |
 | `lessons.homeworkPublished` | – | Homework of this lesson was published to parents. Archive the lesson instead. |
+| `lessons.changedMeanwhile` | – | **New.** Someone else changed this lesson in the meantime. Reload it and save again. |
 
 ### `privacy`
 
@@ -877,6 +878,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `homework.onlyPublishedBack` | – | Only published homework can be taken back. |
 | `homework.alreadyReported` | – | Parents have already reported it as completed. Archive it instead. |
 | `homework.publishedStays` | – | Homework that was published stays in the history. Archive it instead. |
+| `homework.changedMeanwhile` | – | **New.** Someone else changed this homework in the meantime. Reload it and save again. |
 | `homework.ownChildrenOnly` | – | You can only report homework for your own children. |
 | `homework.notAvailable` | – | This homework is not available. |
 | `homework.otherClass` | `name` | This homework is for another class than {name}’s. |
@@ -1628,7 +1630,9 @@ lessons stay readable.
 
 - `lesson` is the stage list's `LessonRow` without `homework`, plus `scheduleId`, `summary`, `memoryVerse`,
   `objectives`, `teachingPoints`, `activities`, `materials`, `notes`, `completedAt` and `archivedAt` (instants in
-  Europe/Berlin). `homework` is the row's `{total, published, drafts}`.
+  Europe/Berlin), and `version`. `homework` is the row's `{total, published, drafts}`.
+- `version` starts at 1 and grows with every saved change of the lesson: an edit (also of the helping servants
+  alone), a status change, archive and restore. See "Stale edits".
 - `notes` may name children, so it is `null` unless the caller may read members (`members: read`), which is
   `can.viewNotes`.
 - `manage` is `lessons: update` and `manageHomework` is `homework: update`, both while the lesson, its stage and its
@@ -1653,7 +1657,7 @@ lessons stay readable.
 }
 ```
 
-→ 201 `{id, status}`. `meeting` is one of the shapes in "The meeting a lesson is for". The title's spaces are
+→ 201 `{id, status, version}`. `meeting` is one of the shapes in "The meeting a lesson is for". The title's spaces are
 collapsed and the texts trimmed (empty → `null`); material rows with neither label nor url are dropped.
 `status` is `draft` (default) or `ready`. 404 `notFound.stage`; an archived stage or service → 409
 `lessons.stageArchived {name}`.
@@ -1676,19 +1680,24 @@ keeps its value (inside `details` and `plan` too), `""` clears a text, a sent `m
 a sent `materials` replaces the list. The lesson's own meeting stays valid, and an unchanged `responsibleId` is
 kept even when that account is no longer a preparer. A completed lesson keeps its status when `status` is left
 out, and `draft` or `ready` reopens it and clears its completion; moving it after today → 422 `meeting`
-`lessons.taughtAfterDate`. 200 `{id, status}`; 404
+`lessons.taughtAfterDate`. 200 `{id, status, version}`; 404
 `notFound.lesson`; an archived lesson → 409 `lessons.archived`; an archived stage → 409 `lessons.stageArchived
 {name}`.
+
+**Stale edits.** `PATCH /api/lessons/{id}?version=3` saves only while the lesson is still at version 3, else → 409
+`lessons.changedMeanwhile` and nothing is saved; a `version` that is not an integer → 422 `invalidRequest`. Without
+`version` the save works as before. A change that lands between loading and saving the lesson → 409 `conflict`.
+`version` is a query parameter because the body's top level is the lesson's own fields.
 
 #### `POST /api/lessons/{id}/archive`, `POST /api/lessons/{id}/restore` and `DELETE /api/lessons/{id}`
 
 `lessons: update` (403 `lessons.changeStageOnly`), body `{}`; 404 `notFound.lesson`; an archived stage or service →
 409 `lessons.stageArchived {name}`.
 
-- **Archive** → 200 `{id, archivedAt, homeworkArchived}`. One transaction archives the lesson and its homework
+- **Archive** → 200 `{id, archivedAt, homeworkArchived, version}`. One transaction archives the lesson and its homework
   that is not archived yet at one instant; parents no longer see the tasks, the reports stay. Repeating it → 200
   with the first `archivedAt` and `homeworkArchived: 0`.
-- **Restore** → 200 `{id, archivedAt: null}` (also when it was not archived). If another lesson now holds the
+- **Restore** → 200 `{id, archivedAt: null, version}` (also when it was not archived). If another lesson now holds the
   meeting → 409 `lessons.meetingHasLesson {title}`. The homework stays archived.
 - **Delete** → 204. Only a `draft` (409 `lessons.deleteDraftsOnly`); with its tasks locked, any task with
   `publishedAt` → 409 `lessons.homeworkPublished`. Otherwise the tasks and the lesson go in one transaction.
@@ -1696,7 +1705,7 @@ out, and `draft` or `ready` reopens it and clears its completion; moving it afte
 #### `POST /api/lessons/{id}/status`
 
 `lessons: update` (403 `lessons.changeStageOnly`). Body `{status}`: `draft`, `ready` or `completed` (else 422
-`status` `validation.invalidChoice`) → 200 `{id, status, completedAt}`. Any status moves to any other; `completed`
+`status` `validation.invalidChoice`) → 200 `{id, status, completedAt, version}`. Any status moves to any other; `completed`
 needs the teaching date to be church-today or earlier (Europe/Berlin), else 409 `lessons.taughtAfterDate`. It sets
 `completedAt`, and leaving `completed` clears it. The same status changes nothing, so retries are harmless. 404
 `notFound.lesson`; an archived lesson → 409 `lessons.archived`; an archived stage or service → 409
@@ -1723,7 +1732,8 @@ The items cost the same number of statements whatever their number.
 #### `POST /api/lessons/{lessonId}/homework`
 
 `homework: create` (403 `homework.assignStageOnly`). Body `{title, instructions, dueDate?,
-resources?: [{label, url?}]}` → 201 `{id, status: "draft"}`: a draft in the lesson's stage, created by the caller.
+resources?: [{label, url?}]}` → 201 `{id, status: "draft", version: 1}`: a draft in the lesson's stage, created by
+the caller.
 The title's spaces are collapsed; the instructions are trimmed and keep their line breaks; empty resource rows are
 dropped.
 
@@ -1737,8 +1747,9 @@ Every invalid field comes in one 422: `title` `homework.titleRequired`, `validat
 
 `homework: read` (403 `forbidden`). The homework editor's task: `{today, id, title, status, dueDate, publishedAt,
 instructions, resources, minDueDate, lesson: {id, title, teachingDate, passage, memoryVerse}, service: ServiceRef,
-stage: StageRef, audienceSize, counts, can: {edit, publish, unpublish, archive, restore, delete, viewProgress}}`;
-404 `notFound.homework`.
+stage: StageRef, audienceSize, counts, version, can: {edit, publish, unpublish, archive, restore, delete,
+viewProgress}}`; 404 `notFound.homework`. `version` grows with every saved change of the task: an edit, publish,
+unpublish, archive and restore.
 
 - `lesson` holds only those keys: no notes, objectives, teaching points or activities.
 - `minDueDate` is the lesson's date, or the saved due date when that is earlier (it stays valid after a move).
@@ -1754,13 +1765,15 @@ stage: StageRef, audienceSize, counts, can: {edit, publish, unpublish, archive, 
 `homework: update` (403 `homework.changeStageOnly`). The same body; a member left out
 keeps its value, `""` clears `dueDate`, a sent `resources` replaces the list. An unchanged due date stays valid
 after the lesson moved past it. The task is locked while it changes; a published task keeps its status,
-`publishedAt` and reports. 200 `{id, status}`; 404 `notFound.homework`; an archived task → 409
-`homework.archivedNoEdit`; the lesson, stage and service rules as for `POST`.
+`publishedAt` and reports. 200 `{id, status, version}`; 404 `notFound.homework`; an archived task → 409
+`homework.archivedNoEdit`; the lesson, stage and service rules as for `POST`. `PATCH /api/homework/{id}?version=3`
+checks the version on the locked task first, as for lessons: a stale one → 409 `homework.changedMeanwhile` and
+nothing is saved; without `version` the save works as before.
 
 #### `POST /api/homework/{id}/publish`
 
 `homework: update` (403 `homework.changeStageOnly`). Body `{}` → 200 `{id, status: "published", publishedAt,
-archivedAt: null}` (Europe/Berlin offset). It runs on the locked task row. A draft becomes `published` with `publishedAt` = now, also
+archivedAt: null, version}` (Europe/Berlin offset). It runs on the locked task row. A draft becomes `published` with `publishedAt` = now, also
 when it was published and taken back before; an already published task stays as it is, so a phone's retry changes
 nothing. Parents only ever see published tasks. 404 `notFound.homework`; an archived task → 409
 `homework.archivedNoPublish`; an archived lesson → 409 `homework.lessonArchived`; an archived stage or service → 409
@@ -1769,7 +1782,7 @@ nothing. Parents only ever see published tasks. 404 `notFound.homework`; an arch
 #### `POST /api/homework/{id}/unpublish`, `…/archive`, `…/restore` and `DELETE /api/homework/{id}`
 
 `homework: update` (403 `homework.changeStageOnly`). Each takes body `{}` and runs in one transaction on the locked
-task row, the lock a parent's report takes too. The `POST`s answer 200 `{id, status, publishedAt, archivedAt}`
+task row, the lock a parent's report takes too. The `POST`s answer 200 `{id, status, publishedAt, archivedAt, version}`
 (Europe/Berlin offset); `DELETE` answers 204. 404 `notFound.homework`; an archived stage or service → 409
 `lessons.stageArchived {name}`. Reports are never removed.
 

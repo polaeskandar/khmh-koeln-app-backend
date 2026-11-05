@@ -26,7 +26,9 @@ final class LessonLifecycleController extends AbstractController
     #[Route('/restore', name: 'api_lessons_restore', methods: ['POST'])]
     public function restore(string $id, RestoreLessonWorkflow $restoreLesson): JsonResponse
     {
-        return $this->json(['id' => $restoreLesson($id), 'archivedAt' => null]);
+        $restored = $restoreLesson($id);
+
+        return $this->json(['id' => $restored->id, 'archivedAt' => null, 'version' => $restored->version]);
     }
 
     #[Route('', name: 'api_lessons_delete', methods: ['DELETE'])]

@@ -34,6 +34,7 @@ final readonly class HomeworkDetailResponse implements JsonSerializable
      *     stage: StageSummary,
      *     audienceSize: int,
      *     counts: AudienceCountsResponse|null,
+     *     version: int,
      *     can: HomeworkAbilitiesResponse,
      * }
      */
@@ -53,6 +54,7 @@ final readonly class HomeworkDetailResponse implements JsonSerializable
             'stage' => $detail->stage->stage,
             'audienceSize' => $facts->audienceSize,
             'counts' => $facts->counts === null ? null : new AudienceCountsResponse($facts->counts),
+            'version' => $detail->task->version,
             'can' => new HomeworkAbilitiesResponse($can),
         ];
     }

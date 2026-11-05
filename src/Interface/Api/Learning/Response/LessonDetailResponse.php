@@ -25,7 +25,7 @@ final readonly class LessonDetailResponse implements JsonSerializable
      *     service: ServiceReference,
      *     stage: StageSummary,
      *     today: string,
-     *     lesson: array<string, string|list<array{label: string, url: string|null}|AccountReference>|object|null>,
+     *     lesson: array<string, string|int|list<array{label: string, url: string|null}|AccountReference>|object|null>,
      *     homework: LessonHomework,
      *     can: array{
      *         manage: bool,
@@ -82,6 +82,7 @@ final readonly class LessonDetailResponse implements JsonSerializable
      *     notes: string|null,
      *     completedAt: string|null,
      *     archivedAt: string|null,
+     *     version: int,
      * }
      */
     private static function lessonOf(LessonDetailView $lesson): array
@@ -100,6 +101,7 @@ final readonly class LessonDetailResponse implements JsonSerializable
             'notes' => $plan->notes,
             'completedAt' => $lesson->moments->completedAt,
             'archivedAt' => $lesson->moments->archivedAt,
+            'version' => $lesson->moments->version,
         ];
     }
 }

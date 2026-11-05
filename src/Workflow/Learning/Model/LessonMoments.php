@@ -11,11 +11,12 @@ final readonly class LessonMoments
     public function __construct(
         public ?string $completedAt,
         public ?string $archivedAt,
+        public int $version,
     ) {
     }
 
     public static function of(LessonReading $reading): self
     {
-        return new self($reading->completedAt, $reading->archivedAt);
+        return new self($reading->completedAt, $reading->archivedAt, $reading->lesson->version());
     }
 }

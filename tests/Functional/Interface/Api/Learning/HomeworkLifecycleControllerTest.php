@@ -48,6 +48,7 @@ final class HomeworkLifecycleControllerTest extends ApiTestCase
                 'status' => 'draft',
                 'publishedAt' => '2026-11-01T09:00:00+01:00',
                 'archivedAt' => null,
+                'version' => 2,
             ],
             $this->responseJson(),
         );

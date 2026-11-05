@@ -6,8 +6,10 @@ namespace App\Context\Learning\Application\Service;
 
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Repository\LessonCollaboratorRepositoryInterface;
+use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\LessonTeam;
 use App\Context\Learning\Domain\ValueObject\TeamChoice;
+use App\Platform\Doctrine\Contract\Transactions;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -15,6 +17,8 @@ final readonly class LessonTeams
 {
     public function __construct(
         private LessonCollaboratorRepositoryInterface $collaborators,
+        private LessonRepositoryInterface $lessons,
+        private Transactions $transactions,
     ) {
     }
 
@@ -26,13 +30,14 @@ final readonly class LessonTeams
         return new LessonTeam($responsible, $team->helpers->chosen($responsible, $current));
     }
 
-    public function store(Lesson $lesson, LessonTeam $team): void
+    public function savedWith(Lesson $lesson, LessonTeam $team): Lesson
     {
-        if ($team->helpers === null) {
-            return;
-        }
+        return $this->transactions->run(function () use ($lesson, $team): Lesson {
+            $this->lessons->save($lesson);
+            $this->store($lesson, $team);
 
-        $this->collaborators->replace($lesson, $team->helpers);
+            return $lesson;
+        });
     }
 
     /**
@@ -45,5 +50,16 @@ final readonly class LessonTeams
         return $this->collaborators->ofLessons(
             new ArrayCollection($lessons)->map(static fn (Lesson $lesson): Uuid => $lesson->id())->getValues(),
         );
+    }
+
+    private function store(Lesson $lesson, LessonTeam $team): void
+    {
+        if ($team->helpers === null) {
+            return;
+        }
+
+        $this->collaborators->replace($lesson, $team->helpers);
+        $lesson->helpersChanged();
+        $this->lessons->save($lesson);
     }
 }

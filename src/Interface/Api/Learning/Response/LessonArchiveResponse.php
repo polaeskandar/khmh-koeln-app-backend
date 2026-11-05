@@ -12,11 +12,12 @@ final readonly class LessonArchiveResponse
         public string $id,
         public ?string $archivedAt,
         public int $homeworkArchived,
+        public int $version,
     ) {
     }
 
     public static function of(LessonArchiveState $state): self
     {
-        return new self($state->id, $state->archivedAt, $state->homeworkArchived);
+        return new self($state->id, $state->archivedAt, $state->homeworkArchived, $state->version);
     }
 }

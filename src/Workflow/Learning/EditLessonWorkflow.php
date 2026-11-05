@@ -29,11 +29,11 @@ final readonly class EditLessonWorkflow
     ) {
     }
 
-    public function __invoke(string $id, LessonChoice $choice): WrittenLesson
+    public function __invoke(string $id, LessonChoice $choice, ?int $version): WrittenLesson
     {
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.changeStageOnly');
 
-        $lesson = $this->lessons->editable($id);
+        $lesson = $this->lessons->editable($id, $version);
         $stage = LessonStages::opened($this->structure->stage($lesson->stageId()->toRfc4122()));
         $draft = $choice->draft();
 

@@ -13,6 +13,7 @@ final readonly class LessonArchiveState
         public string $id,
         public ?string $archivedAt,
         public int $homeworkArchived,
+        public int $version,
     ) {
     }
 
@@ -24,6 +25,7 @@ final readonly class LessonArchiveState
             id: $archived->lesson->id()->toRfc4122(),
             archivedAt: $at === null ? null : $calendar->formatInstant($at),
             homeworkArchived: $archived->homeworkArchived,
+            version: $archived->lesson->version(),
         );
     }
 }
