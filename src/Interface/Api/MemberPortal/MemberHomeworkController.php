@@ -7,8 +7,11 @@ namespace App\Interface\Api\MemberPortal;
 use App\Interface\Api\MemberPortal\Response\MemberHomeworkDetailResponse;
 use App\Interface\Api\ParentPortal\Request\ChildHomeworkQueryRequest;
 use App\Interface\Api\ParentPortal\Response\ChildHomeworkListResponse;
+use App\Interface\Api\ParentPortal\Response\ReportResultResponse;
 use App\Workflow\MemberPortal\ListMemberHomeworkWorkflow;
+use App\Workflow\MemberPortal\ReportOwnHomeworkWorkflow;
 use App\Workflow\MemberPortal\ShowMemberHomeworkWorkflow;
+use App\Workflow\MemberPortal\UndoOwnReportWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -43,5 +46,32 @@ final class MemberHomeworkController extends AbstractController
         $detail = $showMemberHomework($viewer->getUserIdentifier(), $homeworkId);
 
         return $this->json(new MemberHomeworkDetailResponse($detail));
+    }
+
+    #[Route('/{homeworkId}/completion', name: 'api_member_homework_report', methods: ['PUT'])]
+    public function report(
+        string $homeworkId,
+        #[CurrentUser]
+        UserInterface $viewer,
+        ReportOwnHomeworkWorkflow $reportOwnHomework,
+    ): JsonResponse {
+        $result = $reportOwnHomework($viewer->getUserIdentifier(), $homeworkId);
+
+        return $this->json(
+            new ReportResultResponse($result),
+            status: $result->created ? Response::HTTP_CREATED : Response::HTTP_OK,
+        );
+    }
+
+    #[Route('/{homeworkId}/completion', name: 'api_member_homework_undo', methods: ['DELETE'])]
+    public function undo(
+        string $homeworkId,
+        #[CurrentUser]
+        UserInterface $viewer,
+        UndoOwnReportWorkflow $undoOwnReport,
+    ): Response {
+        $undoOwnReport($viewer->getUserIdentifier(), $homeworkId);
+
+        return new Response(status: Response::HTTP_NO_CONTENT);
     }
 }
