@@ -938,6 +938,7 @@ label is its own label, and the 120-character limit applies only to a label that
 | `accounts.personHasAccount` | `name` | **New.** Field error on `personId`: {name} already has an account. Check that you chose the right person. |
 | `accounts.chooseAge` | – | **New.** Field error on `ageCheck`: Choose whether the member is 16 or older, or under 16 with a parent’s agreement. |
 | `accounts.notLinked` | – | **New.** 409: This account isn’t linked to a member record. |
+| `accounts.accountInactive` | – | **New.** Console (`app:member:link`): only an approved, enabled account can be linked to a member record. |
 
 ### `privacy`
 

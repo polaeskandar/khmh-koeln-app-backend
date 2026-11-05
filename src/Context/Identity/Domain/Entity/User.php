@@ -6,6 +6,7 @@ namespace App\Context\Identity\Domain\Entity;
 
 use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\ValueObject\AccountStatus;
+use App\Context\Identity\Domain\ValueObject\MemberLink;
 use App\Context\Identity\Domain\ValueObject\PersonalDetails;
 use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Identity\Domain\ValueObject\Registration;
@@ -20,6 +21,11 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Entity]
 #[ORM\Table(name: 'app_user', schema: 'identity')]
 #[ORM\UniqueConstraint(name: 'app_user_email_unique', columns: ['email'])]
+#[ORM\UniqueConstraint(
+    name: 'app_user_person_unique',
+    columns: ['person_id'],
+    options: ['where' => '(person_id IS NOT NULL)'],
+)]
 final class User extends CreatedAtEntity
 {
     #[ORM\Id]
@@ -40,6 +46,9 @@ final class User extends CreatedAtEntity
 
     #[ORM\Embedded(AccountStatus::class, columnPrefix: false)]
     private AccountStatus $status;
+
+    #[ORM\Embedded(MemberLink::class, columnPrefix: false)]
+    private MemberLink $member;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[ORM\JoinColumn(name: 'approved_by', nullable: true, onDelete: 'SET NULL')]
@@ -70,6 +79,7 @@ final class User extends CreatedAtEntity
         $this->registration = $registration;
         $this->personalDetails = PersonalDetails::none();
         $this->status = $status;
+        $this->member = MemberLink::none();
         $this->roles = new ArrayCollection($roles);
     }
 
@@ -123,6 +133,16 @@ final class User extends CreatedAtEntity
     public function changeStatus(AccountStatus $status): void
     {
         $this->status = $status;
+    }
+
+    public function member(): MemberLink
+    {
+        return $this->member;
+    }
+
+    public function changeMember(MemberLink $member): void
+    {
+        $this->member = $member;
     }
 
     public function approvedBy(): ?self

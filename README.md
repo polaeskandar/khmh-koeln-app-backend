@@ -123,3 +123,15 @@ Parents see a child only through an approved guardian link. At launch operators 
 | `app:guardian:revoke <email>` | Lists the account's children with their ids. |
 | `app:guardian:revoke <email> <personId>` | Ends the account's access to that child; the link stays as revoked. Repeating changes nothing. |
 
+## Member accounts
+
+A member with an account of their own sees their own groups and homework through the link to their member record.
+An administrator checks who the account belongs to before linking it; under 16 only with a parent's or guardian's
+agreement. Parents and staff can be linked to their own record too and keep their roles.
+
+| Command | Does |
+| --- | --- |
+| `app:member:link <email> <personId> --age=16-or-older` | Links an approved, enabled account to an active member record that no other account has. Linking it to the same record again changes nothing. |
+| `app:member:link <email> <personId> --age=guardian-consent [--note=…]` | The same for a member under 16 whose parent or guardian agreed; the note (at most 200 characters) says how. |
+| `app:member:unlink <email>` | Removes the account's link to its member record. Repeating changes nothing. |
+

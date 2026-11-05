@@ -15,16 +15,23 @@ use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
 use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Privacy\Contract\PersonReferences;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class PersonErasures
 {
+    /**
+     * @param iterable<PersonReferences> $references
+     */
     public function __construct(
         private Transactions $transactions,
         private PersonRepositoryInterface $people,
         private RosterRepositoryInterface $rosters,
         private PersonTraceRepositoryInterface $traces,
+        #[AutowireIterator(PersonReferences::TAG)]
+        private iterable $references,
     ) {
     }
 
@@ -37,6 +44,10 @@ final readonly class PersonErasures
 
         return $this->transactions->run(function () use ($id, $elsewhere): PersonErased {
             $swept = $elsewhere($this->erasable($id));
+
+            foreach ($this->references as $references) {
+                $references->forgetPerson($id);
+            }
 
             return new PersonErased($this->traces->forget($id), $swept);
         });
