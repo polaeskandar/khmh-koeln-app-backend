@@ -1293,6 +1293,24 @@ in German collation.
 
 The options cost the same number of statements whatever the number of lessons.
 
+#### `GET /api/stages/{stageId}/lessons?tab=upcoming|previous|archived&q=`
+
+`lessons: read`. The stage's Lessons tab: `{service: ServiceRef, stage: StageRef, today, tabs: {upcoming, previous,
+archived}, servants: AccountRef[], can: {create}, items: LessonRow[]}`; 404 `notFound.stage`; another `tab` → 422
+`validation.invalidChoice`.
+
+- `upcoming` (default): lessons not archived with `teachingDate` from today on, oldest first; `previous`: not
+  archived and before today, newest first; `archived`: newest first.
+- `q` keeps the rows whose title or passage holds every word, ignoring case and accents. `tabs` counts each tab
+  without `q`.
+- A `LessonRow` is `{id, title, passage, teachingDate, status, responsible: AccountRef | null, meeting:
+  MeetingView, homework: {total, published, drafts}}`. `responsible` is `null` once the account is gone; `homework`
+  counts the lesson's tasks that are not archived.
+- `servants` are the lesson preparers; `can.create` is `lessons: create` while the stage and its service are not
+  archived.
+
+The rows cost the same number of statements whatever their number.
+
 #### `POST /api/stages/{stageId}/lessons`
 
 `lessons: create` (403 `lessons.prepareStageOnly`). Body:

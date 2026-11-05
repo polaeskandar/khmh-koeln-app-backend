@@ -111,6 +111,23 @@ final readonly class Collections
      * @template TKey of array-key
      * @template TValue
      *
+     * @param ReadableCollection<TKey, TValue> $items
+     * @param callable(TValue): string $keyOf
+     *
+     * @return list<TValue>
+     */
+    public static function sortedDescendingBy(ReadableCollection $items, callable $keyOf): array
+    {
+        $sorted = $items->getValues();
+        usort($sorted, static fn (mixed $one, mixed $other): int => strcmp($keyOf($other), $keyOf($one)));
+
+        return $sorted;
+    }
+
+    /**
+     * @template TKey of array-key
+     * @template TValue
+     *
      * @param array<TKey, TValue> $items
      *
      * @return ArrayCollection<TKey, TValue>

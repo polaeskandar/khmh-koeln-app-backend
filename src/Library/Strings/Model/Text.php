@@ -60,6 +60,11 @@ final readonly class Text implements Stringable
         return str_starts_with($this->value, $prefix);
     }
 
+    public function contains(string $part): bool
+    {
+        return str_contains($this->value, $part);
+    }
+
     /**
      * @param non-empty-string $separator
      *

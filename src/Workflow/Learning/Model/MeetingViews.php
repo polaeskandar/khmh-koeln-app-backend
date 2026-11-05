@@ -32,6 +32,14 @@ final readonly class MeetingViews
      */
     public static function lookedUpIn(MeetingLookup $meetings, ReadableCollection $lessons): array
     {
+        return $lessons->map(self::of($meetings, $lessons)->viewOf(...))->getValues();
+    }
+
+    /**
+     * @param ReadableCollection<int, Lesson> $lessons
+     */
+    public static function of(MeetingLookup $meetings, ReadableCollection $lessons): self
+    {
         $scheduleIds = Collections::mapPresent(
             $lessons,
             static fn (Lesson $lesson): ?Uuid => $lesson->link()->scheduleId,
@@ -40,15 +48,13 @@ final readonly class MeetingViews
         $schedules = $meetings->schedules($scheduleIds->getValues());
         $dates = $lessons->map(static fn (Lesson $lesson): LocalDate => $lesson->link()->teachingDate)->getValues();
 
-        $views = new self(
+        return new self(
             Collections::firstPerKey($schedules, keyOf: self::scheduleKey(...)),
             Collections::firstPerKey($meetings->sessionsOn($schedules, $dates), keyOf: self::sessionKey(...)),
         );
-
-        return $lessons->map($views->viewOf(...))->getValues();
     }
 
-    private function viewOf(Lesson $lesson): MeetingView
+    public function viewOf(Lesson $lesson): MeetingView
     {
         $link = $lesson->link();
 

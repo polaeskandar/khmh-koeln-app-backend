@@ -25,11 +25,12 @@ final readonly class Lessons
         ?Schedule $schedule,
         string $date,
         string $title = 'The Good Samaritan',
+        ?string $passage = null,
     ): Lesson {
         $lesson = new Lesson(
             $stage->id(),
             new MeetingLink($schedule?->id(), LocalDate::of($date)),
-            new LessonText($title),
+            new LessonText($title, passage: $passage),
             responsibleId: null,
         );
 
