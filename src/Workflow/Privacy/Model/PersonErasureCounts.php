@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
+use App\Context\People\Domain\ValueObject\PersonErased;
 use App\Library\Strings\Model\Text;
 
 final readonly class PersonErasureCounts
@@ -15,6 +16,19 @@ final readonly class PersonErasureCounts
         public int $guardianLinks,
         public int $sessions,
     ) {
+    }
+
+    public static function of(PersonErased $erased): self
+    {
+        $elsewhere = $erased->elsewhere;
+
+        return new self(
+            $erased->people->memberships,
+            $elsewhere->marks,
+            $elsewhere->reports,
+            $erased->people->guardianLinks,
+            $elsewhere->sessions,
+        );
     }
 
     public function summary(): string

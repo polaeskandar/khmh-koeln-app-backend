@@ -1,0 +1,72 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Workflow\Privacy;
+
+use App\Context\Identity\Application\Service\AccessCheck;
+use App\Context\Identity\Application\Service\AccountLookup;
+use App\Context\Identity\Domain\Enum\Action;
+use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Organization\Application\Service\StructureLookup;
+use App\Context\People\Application\Service\PeopleExports;
+use App\Context\People\Domain\Entity\Person;
+use App\Context\Privacy\Application\Service\DataRequests;
+use App\Library\Problem\Exception\NotFound;
+use App\Workflow\People\Model\DirectoryEntries;
+use App\Workflow\People\Model\Placements;
+use App\Workflow\Privacy\Model\DataRequestDetail;
+use App\Workflow\Privacy\Model\DataRequestRows;
+use App\Workflow\Privacy\Model\MembershipRow;
+use App\Workflow\Privacy\Model\RequestAccount;
+use App\Workflow\Privacy\Model\RequestMember;
+
+final readonly class ShowDataRequestWorkflow
+{
+    public function __construct(
+        private AccessCheck $access,
+        private DataRequests $requests,
+        private PeopleExports $people,
+        private AccountLookup $accounts,
+        private StructureLookup $structure,
+    ) {
+    }
+
+    public function __invoke(string $requestId): DataRequestDetail
+    {
+        $this->access->require(Action::Update, Resource::Users, refusal: 'privacy.adminOnly');
+
+        $request = $this->requests->find($requestId);
+        $subject = $request->subject();
+        $requests = [$request];
+
+        $rows = DataRequestRows::of(
+            $requests,
+            $this->people->people(DataRequestRows::personIdsOf($requests)),
+            $this->accounts->accounts(DataRequestRows::accountIdsOf($requests)),
+        );
+
+        $person = $subject->personId === null ? null : $this->people->person($subject->personId->toRfc4122());
+        $account = $subject->accountId === null ? null : $this->accounts->account($subject->accountId);
+
+        return new DataRequestDetail(
+            $this->requests->today(),
+            $rows[0] ?? throw NotFound::of('request'),
+            RequestMember::of($person, $person === null ? [] : $this->membershipsOf($person)),
+            RequestAccount::of($account),
+        );
+    }
+
+    /**
+     * @return list<MembershipRow>
+     */
+    private function membershipsOf(Person $person): array
+    {
+        $memberships = $this->people->membershipsOf($person);
+
+        return MembershipRow::listOf($memberships, Placements::of(
+            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+        ));
+    }
+}

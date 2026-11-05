@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Interface\Console\Privacy;
 use App\Context\Learning\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as LearningTraces;
 use App\Context\Meetings\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as MeetingTraces;
 use App\Context\People\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as PeopleTraces;
+use App\Context\Privacy\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as PrivacyTraces;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
@@ -123,14 +124,13 @@ final class PrivacyEraseAccountCommandTest extends KernelTestCase
             self::assertMatchesRegularExpression('/=[nc]$/', $key, $key . ' is neither SET NULL nor CASCADE');
         }
 
-        $covered = array_map(
-            static fn (array $actor): string => $actor[0] . '.' . $actor[1],
-            [
-                ...MeetingTraces::ACTOR_COLUMNS,
-                ...LearningTraces::ACTOR_COLUMNS,
-                ...PeopleTraces::ACTOR_COLUMNS,
-            ],
-        );
+        $covered = array_map(static fn (array $actor): string => $actor[0] . '.' . $actor[1], [
+            ...MeetingTraces::ACTOR_COLUMNS,
+            ...LearningTraces::ACTOR_COLUMNS,
+            ...PeopleTraces::ACTOR_COLUMNS,
+            ...PrivacyTraces::ACTOR_COLUMNS,
+            ...PrivacyTraces::SUBJECT_COLUMNS,
+        ]);
 
         $references = $connection->fetchFirstColumn(
             "SELECT table_schema || '.' || table_name || '.' || column_name FROM information_schema.columns
