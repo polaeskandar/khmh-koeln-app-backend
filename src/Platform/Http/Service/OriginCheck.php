@@ -25,7 +25,11 @@ final readonly class OriginCheck
     {
         $request = $event->getRequest();
 
-        if (!ApiRequest::isUnsafe($request) || $this->allows($request->headers->get('Origin'))) {
+        if (
+            !ApiRequest::isUnsafe($request)
+            || ApiRequest::isBearer($request)
+            || $this->allows($request->headers->get('Origin'))
+        ) {
             return;
         }
 
