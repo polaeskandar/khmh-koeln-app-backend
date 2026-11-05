@@ -23,6 +23,15 @@ interface ServiceRepositoryInterface
     public function findByNameKey(string $key): ?Service;
 
     /**
+     * @template T of object
+     *
+     * @param callable(Service): T $work
+     *
+     * @return T
+     */
+    public function withStructureLock(Uuid $id, callable $work): object;
+
+    /**
      * @return ReadableCollection<int, Service>
      */
     public function listed(ServiceFilter $filter): ReadableCollection;

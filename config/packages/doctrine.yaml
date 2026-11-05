@@ -9,6 +9,7 @@ doctrine:
             local_date: App\Platform\Doctrine\Service\LocalDateType
             local_time: App\Platform\Doctrine\Service\LocalTimeType
     orm:
+        enable_native_lazy_objects: true
         validate_xml_mapping: true
         naming_strategy: doctrine.orm.naming_strategy.underscore
         identity_generation_preferences:

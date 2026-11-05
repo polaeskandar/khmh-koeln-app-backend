@@ -22,7 +22,7 @@ final class Stage extends CreatedAtEntity
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
-    private readonly Uuid $id;
+    private Uuid $id;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'service_id', nullable: false, onDelete: 'RESTRICT')]
@@ -72,6 +72,22 @@ final class Stage extends CreatedAtEntity
     public function position(): int
     {
         return $this->position;
+    }
+
+    public function edit(string $name, ?string $description): void
+    {
+        $this->name = StageName::of($name);
+        $this->description = Description::of($description, max: 500);
+    }
+
+    public function moveTo(int $position): void
+    {
+        $this->position = $position;
+    }
+
+    public function archivedAt(): ?DateTimeImmutable
+    {
+        return $this->archivedAt;
     }
 
     public function archive(DateTimeImmutable $at): void
