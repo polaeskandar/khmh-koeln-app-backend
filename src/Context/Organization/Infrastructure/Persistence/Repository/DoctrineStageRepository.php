@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Context\Organization\Infrastructure\Persistence\Repository;
 
+use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
+use App\Library\Types\Model\Type;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,6 +16,8 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineStageRepository implements StageRepositoryInterface
 {
+    private const string SERVICE_OF_STAGE = 'SELECT service_id FROM organization.stage WHERE id = ?';
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -35,6 +39,38 @@ final readonly class DoctrineStageRepository implements StageRepositoryInterface
                 'id' => $stageId,
                 'service' => $serviceId,
             ]) > 0;
+    }
+
+    #[Override]
+    public function find(Uuid $id): ?Stage
+    {
+        return $this->entityManager->find(Stage::class, $id);
+    }
+
+    #[Override]
+    public function serviceIdOf(Uuid $stageId): ?Uuid
+    {
+        $serviceId = $this->entityManager->getConnection()->fetchOne(self::SERVICE_OF_STAGE, [$stageId->toRfc4122()])
+            |> Type::of(...)
+            |> (static fn (Type $found): ?string => $found->toStringOrNull());
+
+        return $serviceId === null ? null : Uuid::fromString($serviceId);
+    }
+
+    #[Override]
+    public function ofService(Service $service): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager->getRepository(Stage::class)->findBy(['service' => $service], [
+            'position' => 'ASC',
+        ]));
+    }
+
+    #[Override]
+    public function findInService(Service $service, string $nameKey): ?Stage
+    {
+        return $this->entityManager
+            ->getRepository(Stage::class)
+            ->findOneBy(['service' => $service, 'name.key' => $nameKey]);
     }
 
     #[Override]

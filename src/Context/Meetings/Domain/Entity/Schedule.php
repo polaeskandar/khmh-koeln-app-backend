@@ -19,7 +19,7 @@ final class Schedule extends TimestampedEntity
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
-    private readonly Uuid $id;
+    private Uuid $id;
 
     #[ORM\Embedded(Roster::class, columnPrefix: false)]
     private Roster $roster;

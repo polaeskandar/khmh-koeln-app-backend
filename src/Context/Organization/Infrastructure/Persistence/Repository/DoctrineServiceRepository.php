@@ -9,8 +9,10 @@ use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Context\Organization\Infrastructure\Persistence\Repository\Filter\ServiceFilters;
 use App\Library\Collections\Model\Collections;
+use App\Library\Problem\Exception\NotFound;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
@@ -54,6 +56,16 @@ final readonly class DoctrineServiceRepository implements ServiceRepositoryInter
     public function findByNameKey(string $key): ?Service
     {
         return $this->entityManager->getRepository(Service::class)->findOneBy(['name.key' => $key]);
+    }
+
+    #[Override]
+    public function withStructureLock(Uuid $id, callable $work): object
+    {
+        return $this->entityManager->wrapInTransaction(function () use ($id, $work): object {
+            $service = $this->entityManager->find(Service::class, $id, LockMode::PESSIMISTIC_WRITE);
+
+            return $work($service ?? throw NotFound::of('service'));
+        });
     }
 
     #[Override]

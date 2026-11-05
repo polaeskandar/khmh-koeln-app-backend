@@ -19,7 +19,7 @@ final class Session extends CreatedAtEntity
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
-    private readonly Uuid $id;
+    private Uuid $id;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'schedule_id', nullable: false, onDelete: 'RESTRICT')]

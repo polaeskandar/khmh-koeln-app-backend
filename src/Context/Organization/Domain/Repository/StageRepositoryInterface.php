@@ -13,6 +13,17 @@ interface StageRepositoryInterface
 {
     public function save(Stage $stage): void;
 
+    public function find(Uuid $id): ?Stage;
+
+    public function serviceIdOf(Uuid $stageId): ?Uuid;
+
+    /**
+     * @return ReadableCollection<int, Stage>
+     */
+    public function ofService(Service $service): ReadableCollection;
+
+    public function findInService(Service $service, string $nameKey): ?Stage;
+
     public function belongsTo(Uuid $stageId, Uuid $serviceId): bool;
 
     /**
