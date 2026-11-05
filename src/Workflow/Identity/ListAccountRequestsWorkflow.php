@@ -13,6 +13,7 @@ use App\Context\Organization\Application\Service\RegistrationServices;
 use App\Library\Time\Client\Calendar;
 use App\Workflow\Identity\Model\AccountRequest;
 use App\Workflow\Identity\Model\AccountRequestList;
+use App\Workflow\Identity\Model\RoleSummary;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class ListAccountRequestsWorkflow
@@ -39,6 +40,10 @@ final readonly class ListAccountRequestsWorkflow
             items: $pending->map(
                 static fn (User $user): AccountRequest => AccountRequest::of($user, $chosen),
             )->getValues(),
+            roles: $this->requests
+                ->roleChoices()
+                ->map(RoleSummary::of(...))
+                ->getValues(),
             today: $this->calendar->today()->toString(),
         );
     }

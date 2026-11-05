@@ -33,6 +33,16 @@ final readonly class Registration
         return new self($registeredAs, $note, $privacyAcceptedAt, $privacyVersion);
     }
 
+    public function decided(): self
+    {
+        return new self(
+            registeredAs: null,
+            note: null,
+            privacyAcceptedAt: $this->privacyAcceptedAt,
+            privacyVersion: $this->privacyVersion,
+        );
+    }
+
     public static function none(): self
     {
         return new self(registeredAs: null, note: null, privacyAcceptedAt: null, privacyVersion: null);

@@ -16,6 +16,13 @@ interface PersonRepositoryInterface
     public function find(Uuid $id): ?Person;
 
     /**
+     * @param list<Uuid> $ids
+     *
+     * @return ReadableCollection<int, Person>
+     */
+    public function findByIds(array $ids): ReadableCollection;
+
+    /**
      * @param list<string> $words
      *
      * @return ReadableCollection<int, Person>

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\CurrentAccounts;
-use App\Context\Identity\Domain\Entity\Role;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\ValueObject\Access;
 use App\Library\Collections\Model\Collections;
@@ -48,8 +47,8 @@ final readonly class ShowCurrentAccountWorkflow
      */
     private static function rolesOf(User $user): array
     {
-        return Collections::of($user->roles()->map(
-            static fn (Role $role): RoleSummary => new RoleSummary($role->id()->toRfc4122(), $role->name()->value),
-        ))->matching(Criteria::create()->orderBy(['name' => Order::Ascending]))->getValues();
+        return Collections::of($user->roles()->map(RoleSummary::of(...)))->matching(Criteria::create()->orderBy([
+            'name' => Order::Ascending,
+        ]))->getValues();
     }
 }

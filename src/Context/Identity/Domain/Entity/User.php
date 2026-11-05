@@ -102,6 +102,13 @@ final class User extends CreatedAtEntity
         return $this->status;
     }
 
+    public function approve(AccountStatus $status, self $by, Registration $registration): void
+    {
+        $this->status = $status;
+        $this->approvedBy = $by;
+        $this->registration = $registration;
+    }
+
     public function changePassword(string $passwordHash): void
     {
         $this->passwordHash = $passwordHash;

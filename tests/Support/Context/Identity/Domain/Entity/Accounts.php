@@ -21,7 +21,7 @@ final readonly class Accounts
         return new User(
             new Profile(Email::of($email), DisplayName::of('Sara Hanna'), Language::German),
             passwordHash: $passwordHash,
-            status: AccountStatus::approvedAt(new DateTimeImmutable('2026-11-08T12:00:00+01:00')),
+            status: AccountStatus::pending()->approvedOn(new DateTimeImmutable('2026-11-08T12:00:00+01:00')),
             registration: Registration::none(),
             roles: [],
         );

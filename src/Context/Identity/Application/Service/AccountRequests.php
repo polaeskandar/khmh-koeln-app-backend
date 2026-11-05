@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
+use App\Context\Identity\Domain\Entity\Role;
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
@@ -18,8 +20,17 @@ final readonly class AccountRequests
 
     public function __construct(
         private UserRepositoryInterface $users,
+        private RoleRepositoryInterface $roles,
         private LoggerInterface $logger,
     ) {
+    }
+
+    /**
+     * @return ReadableCollection<int, Role>
+     */
+    public function roleChoices(): ReadableCollection
+    {
+        return $this->roles->byName();
     }
 
     /**

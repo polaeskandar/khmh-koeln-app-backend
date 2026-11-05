@@ -12,6 +12,8 @@ final class AccountStatusTest extends TestCase
 {
     public function testAnApprovedAccountIsActive(): void
     {
-        self::assertTrue(AccountStatus::approvedAt(new DateTimeImmutable('2026-11-08T12:00:00+01:00'))->isActive());
+        self::assertTrue(
+            AccountStatus::pending()->approvedOn(new DateTimeImmutable('2026-11-08T12:00:00+01:00'))->isActive(),
+        );
     }
 }
