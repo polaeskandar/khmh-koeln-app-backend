@@ -29,4 +29,6 @@ interface StructureUsageRepositoryInterface
      * @return list<string>
      */
     public function lockUnfinished(array $scheduleIds): array;
+
+    public function lockSchedulesOf(?Uuid $serviceId, ?Uuid $stageId): void;
 }

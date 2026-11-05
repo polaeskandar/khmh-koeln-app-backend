@@ -90,9 +90,16 @@ staff (administrators, service leaders, servants) and parents. Children never ha
   archive is refused, otherwise the schedules are deactivated in the same transaction. Opening a session checks
   that its service and stage are not archived under the session lock, so an archive and an opening wait for each
   other. Restoring leaves the schedules inactive.
-- Other contexts store `service_id` and `stage_id` without foreign keys. The workflows that write them
-  check through an Organization application service (on `StageRepositoryInterface::belongsTo()`) that the stage
-  belongs to the service.
+- Other contexts store `service_id` and `stage_id` without foreign keys. The workflows that write them check
+  through Organization's `PlacementChoices` that the stage belongs to the service, and they do it under a share
+  lock on the service row (`PlacementChoices::whileKept()`, `StructureLookup::whileStageKept()` for lessons): adding or moving a membership,
+  importing members, creating a schedule or a one-off session, and creating a lesson. Deleting a service or a stage
+  (`DeleteServiceWorkflow`, `DeleteStageWorkflow`) holds the structure lock, so it waits for those writes and they
+  wait for it; a write that waited then finds the service or stage gone.
+- **Deleting** is for a service or stage created by mistake. Under the structure lock, Meetings' `ScheduleRemovals`
+  locks the schedules of the service or stage (so the generator can't add a session meanwhile), counts their
+  sessions and, without any, removes them; Learning counts the lessons and People the memberships. Any of the three
+  refuses the deletion and the transaction rolls back.
 
 `person` and `membership` live in the `people` schema. A person's names are cleaned like service names; `name_key`
 is "first_last" in lower case (indexed, for duplicate checks) and `search_text` is first, last and display

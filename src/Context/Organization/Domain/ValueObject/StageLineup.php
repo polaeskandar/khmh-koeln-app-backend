@@ -44,6 +44,14 @@ final readonly class StageLineup
     /**
      * @return list<Stage>
      */
+    public function others(): array
+    {
+        return new ArrayCollection([...$this->active, ...$this->archived])->getValues();
+    }
+
+    /**
+     * @return list<Stage>
+     */
     public function placing(Stage $stage): array
     {
         return new ArrayCollection([...$this->active, $stage, ...$this->archived])->getValues();

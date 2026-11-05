@@ -32,14 +32,10 @@ final readonly class DoctrineStageRepository implements StageRepositoryInterface
     }
 
     #[Override]
-    public function belongsTo(Uuid $stageId, Uuid $serviceId): bool
+    public function remove(Stage $stage): void
     {
-        return $this->entityManager
-            ->getRepository(Stage::class)
-            ->count([
-                'id' => $stageId,
-                'service' => $serviceId,
-            ]) > 0;
+        $this->entityManager->remove($stage);
+        $this->entityManager->flush();
     }
 
     /**

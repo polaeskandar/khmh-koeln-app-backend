@@ -34,6 +34,14 @@ final readonly class MoveMembershipWorkflow
 
     private function moved(Membership $membership, ?string $stageId): AddedMembership
     {
+        return $this->placements->whileKept(
+            [$membership->serviceId()->toRfc4122()],
+            fn (): AddedMembership => $this->movedTo($membership, $stageId),
+        );
+    }
+
+    private function movedTo(Membership $membership, ?string $stageId): AddedMembership
+    {
         $chosen = $this->placements->inService($membership->serviceId()->toRfc4122(), $stageId, field: 'stageId');
         $place = $chosen->stage?->name()->value ?? $chosen->service->name()->value;
         $target = new Placement($chosen->service->id(), $chosen->stage?->id());

@@ -27,6 +27,14 @@ final readonly class CreateOneOffSessionWorkflow
     {
         $this->access->require(Action::Create, Resource::Sessions);
 
+        return $this->placements->whileKept([$oneOff->roster->serviceId], fn (): string => $this->created(
+            $oneOff,
+            $accountId,
+        ));
+    }
+
+    private function created(OneOffChoice $oneOff, string $accountId): string
+    {
         $roster = $oneOff->roster;
         $chosen = $this->placements->of($roster->serviceId, $roster->stageId, fieldPrefix: 'roster.');
 

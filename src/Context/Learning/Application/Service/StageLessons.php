@@ -27,6 +27,14 @@ final readonly class StageLessons
     ) {
     }
 
+    /**
+     * @param list<Uuid> $stageIds
+     */
+    public function countIn(array $stageIds): int
+    {
+        return $this->lessons->countForStages($stageIds);
+    }
+
     public function listed(Uuid $stageId, string $tab, ?string $query): LessonListing
     {
         $chosen = LessonTab::tryFrom($tab) ?? throw InvalidInput::field('tab', 'validation.invalidChoice');

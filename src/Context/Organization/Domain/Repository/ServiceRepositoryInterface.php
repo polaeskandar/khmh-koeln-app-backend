@@ -13,6 +13,8 @@ interface ServiceRepositoryInterface
 {
     public function save(Service $service): void;
 
+    public function remove(Service $service): void;
+
     /**
      * @param list<Uuid> $ids
      *
@@ -37,6 +39,16 @@ interface ServiceRepositoryInterface
      * @return T
      */
     public function withStructureLock(Uuid $id, callable $work): object;
+
+    /**
+     * @template T
+     *
+     * @param list<Uuid> $ids
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function withShareLock(array $ids, callable $work): mixed;
 
     /**
      * @return ReadableCollection<int, Service>

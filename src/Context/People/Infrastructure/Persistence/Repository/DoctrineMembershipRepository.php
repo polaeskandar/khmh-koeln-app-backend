@@ -9,6 +9,7 @@ use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Repository\MembershipRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Model\LocalDate;
+use App\Library\Types\Model\Integers;
 use App\Library\Types\Model\Type;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -36,6 +37,18 @@ final readonly class DoctrineMembershipRepository implements MembershipRepositor
     {
         $this->entityManager->remove($membership);
         $this->entityManager->flush();
+    }
+
+    #[Override]
+    public function countInService(Uuid $serviceId): int
+    {
+        return $this->countWhere('service_id', $serviceId);
+    }
+
+    #[Override]
+    public function countInStage(Uuid $stageId): int
+    {
+        return $this->countWhere('stage_id', $stageId);
     }
 
     #[Override]
@@ -76,5 +89,19 @@ final readonly class DoctrineMembershipRepository implements MembershipRepositor
                 'membership',
             ),
         ));
+    }
+
+    private function countWhere(string $column, Uuid $id): int
+    {
+        return Integers::of(
+            $this->entityManager
+                ->getConnection()
+                ->createQueryBuilder()
+                ->select('count(*)')
+                ->from('people.membership')
+                ->where($column . ' = :id')
+                ->setParameter('id', $id->toRfc4122())
+                ->fetchOne(),
+        );
     }
 }

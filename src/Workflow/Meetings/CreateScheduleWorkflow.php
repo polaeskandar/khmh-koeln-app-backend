@@ -31,6 +31,13 @@ final readonly class CreateScheduleWorkflow
     {
         $this->access->require(Action::Create, Resource::Sessions);
 
+        return $this->placements->whileKept([$schedule->roster->serviceId], fn (): WrittenSchedule => $this->created(
+            $schedule,
+        ));
+    }
+
+    private function created(NewSchedule $schedule): WrittenSchedule
+    {
         $roster = $schedule->roster;
 
         $placementOf = fn (): ChosenPlacement => $this->placements->of(

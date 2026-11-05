@@ -35,4 +35,20 @@ final readonly class ImportPlan
     {
         return $this->errors === [];
     }
+
+    /**
+     * @return list<string>
+     */
+    public function serviceIds(): array
+    {
+        $ids = [];
+
+        foreach ($this->people as [, $memberships]) {
+            foreach ($memberships as $membership) {
+                $ids[] = $membership->serviceId()->toRfc4122();
+            }
+        }
+
+        return $ids;
+    }
 }
