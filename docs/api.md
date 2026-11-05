@@ -620,6 +620,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `validation.invalidType` | – | **New.** Field error: the value has the wrong JSON type (a string where a number is expected). |
 | `validation.unexpectedField` | – | **New.** Field error: the body has a member the endpoint does not accept. |
 | `validation.invalidChoice` | – | **New.** Field error: the value is not one of the allowed choices (`status=deleted`). |
+| `validation.tooMany` | `max` | **New.** Field error: more items than allowed. |
 | `validation.invalidRange` | `max` | **New.** Field error: the end is before the start, or the range is longer than `max` days. |
 | `validation.birthDateInFuture` | – | **New.** Field error on `birthDate`: the date is after today. |
 | `validation.addressIncomplete` | – | **New.** Field error on `address`: give street, postal code and city, or none of them. |
@@ -730,7 +731,8 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `roles.stageOnlyForServants` | – | **New.** Field error on `stageId`: only servant roles can be narrowed to a stage. |
 | `roles.lastAdministrator` | – | **New.** 409: the last active account that can manage roles (`roles: update`) keeps that permission. |
 | `roles.nameRequired` | – | **New.** Field error on `name`: enter a name for the role. |
-| `roles.unknown` | – | **New.** Field error on `role`: no role has this name. |
+| `roles.unknown` | – | **New.** Field error on `role` or `roleIds`: no role has this name or id. |
+| `roles.chooseRole` | – | **New.** Field error on `roleIds`: choose at least one role. |
 | `roles.notHeld` | `name` | **New.** 409: {name} doesn't have this role. |
 | `roles.accountPending` | – | **New.** 409: an account that waits for approval gets its roles when it is approved. |
 
@@ -917,13 +919,14 @@ Readiness: runs `SELECT 1` with a 2-second connect and statement timeout.
 
 ### Account requests
 
-Registrations waiting for a decision. Both endpoints need the users permission (`users: read` to list,
-`users: delete` to decline); anyone else gets 403 `accounts.adminOnly`.
+Registrations waiting for a decision. The endpoints need the users permission (`users: read` to list,
+`users: update` to approve, `users: delete` to decline); anyone else gets 403 `accounts.adminOnly`.
 
 #### `GET /api/account-requests`
 
-`{items: [AccountRequest], today}`: the 200 oldest pending accounts (not approved, also when disabled, so they can
-still be declined), oldest first; `services` by name.
+`{items: [AccountRequest], roles: [{id, name}], today}`: the 200 oldest pending accounts (not approved, also when
+disabled, so they can still be declined), oldest first, with `services` by name, and every role by name for the
+approval dialog.
 
 | Member | Type |
 | --- | --- |
@@ -934,6 +937,23 @@ still be declined), oldest first; `services` by name.
 | `services` | `[ServiceRef]`, the services a servant named; empty for parents |
 
 Nothing else: no password hash and no privacy fields.
+
+#### `POST /api/account-requests/{id}/approve`
+
+Body `{as: "parent", childIds, roleIds}` or `{as: "servant", roleIds}`. Roles hold everywhere, so a servant
+gets roles and nothing else; children come from the people directory (`GET /api/people/directory?q=`). In one
+transaction, with the account locked: the roles are given, a parent gets approved guardian links to the
+children (`approved_by` = the administrator), the account is approved, and the registration's note, its
+`registeredAs` and the services the person named are deleted. Any failure stores nothing. 200
+`{id, email, displayName, language}`.
+
+| Field | Codes |
+| --- | --- |
+| `as` | `validation.invalidChoice` (not `parent` or `servant`) |
+| `roleIds` | `roles.chooseRole` (none), `roles.unknown` (an id no role has); duplicates are ignored |
+| `childIds` (parents) | `accounts.chooseChild` (none), `validation.tooMany {max: 20}`, `accounts.childNotFound` (unknown or inactive); duplicates are ignored |
+
+404 `notFound.user`; 409 `accounts.alreadyApproved`.
 
 #### `POST /api/account-requests/{id}/decline`
 

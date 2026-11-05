@@ -42,6 +42,15 @@ final readonly class DoctrinePersonRepository implements PersonRepositoryInterfa
     }
 
     /**
+     * @param list<Uuid> $ids
+     */
+    #[Override]
+    public function findByIds(array $ids): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager->getRepository(Person::class)->findBy(['id' => $ids]));
+    }
+
+    /**
      * @param list<string> $words
      */
     #[Override]

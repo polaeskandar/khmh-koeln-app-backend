@@ -48,7 +48,7 @@ final readonly class ApprovedAccounts
         $user = new User(
             $profile,
             passwordHash: $this->passwordHash($password),
-            status: AccountStatus::approvedAt($this->calendar->now()),
+            status: AccountStatus::pending()->approvedOn($this->calendar->now()),
             registration: Registration::none(),
             roles: $this->rolesNamed($role),
         );
