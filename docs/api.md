@@ -1383,6 +1383,20 @@ UUID; another `tab` → 422 `validation.invalidChoice`.
 
 The rows cost the same number of statements whatever their number.
 
+#### `GET /api/lessons/{id}`
+
+`lessons: read` (403 `forbidden`). The lesson page and the editor: `{service: ServiceRef, stage: StageRef, archived,
+today, lesson, homework}`; 404 `notFound.lesson`, also for an id that is not a UUID. Archived lessons stay readable.
+`archived` is the stage's or its service's, as in the stage list.
+
+- `lesson` is the stage list's `LessonRow` without `homework`, plus `scheduleId`, `summary`, `memoryVerse`,
+  `objectives`, `teachingPoints`, `activities`, `materials`, `notes`, `completedAt` and `archivedAt` (instants in
+  Europe/Berlin). `homework` is the row's `{total, published, drafts}`.
+- `notes` may name children, so it is `null` unless the caller may read members (`members: read`).
+- Apps derive the actions from `GET /api/me`: editing needs `lessons: update` and homework `homework: update`, both
+  while `archived` is `false` and the lesson's `archivedAt` is `null`; marking it taught also needs a `ready` lesson
+  whose `teachingDate` is `today` or earlier.
+
 #### `POST /api/stages/{stageId}/lessons`
 
 `lessons: create` (403 `lessons.prepareStageOnly`). Body:

@@ -32,6 +32,22 @@ final readonly class LessonRowResponse implements JsonSerializable
     #[Override]
     public function jsonSerialize(): array
     {
+        return [...$this->fields(), 'homework' => $this->row->homework];
+    }
+
+    /**
+     * @return array{
+     *     id: string,
+     *     title: string,
+     *     passage: string|null,
+     *     teachingDate: string,
+     *     status: string,
+     *     responsible: AccountReference|null,
+     *     meeting: MeetingViewResponse,
+     * }
+     */
+    public function fields(): array
+    {
         $lesson = $this->row->lesson;
 
         return [
@@ -42,7 +58,6 @@ final readonly class LessonRowResponse implements JsonSerializable
             'status' => $lesson->status,
             'responsible' => $this->row->responsible,
             'meeting' => new MeetingViewResponse($this->row->meeting),
-            'homework' => $this->row->homework,
         ];
     }
 }
