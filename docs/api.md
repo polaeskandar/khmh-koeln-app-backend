@@ -1276,3 +1276,20 @@ An existing canceled link stays valid when the lesson is edited.
 Lesson preparers (`responsibleId` choices) are the active accounts whose roles grant `lessons: update`, by name
 in German collation.
 
+### Lessons
+
+#### `GET /api/stages/{stageId}/lesson-options?lessonId=`
+
+`lessons: update` (403 `lessons.prepareStageOnly`). Feeds the lesson editor's Meeting and Responsible selects:
+`{today, options, servants}`. 404 `notFound.stage`; a `lessonId` that is unknown or of another stage → 404
+`notFound.lesson`; a malformed or empty one → 422 `lessonId` `validation.invalidType`.
+
+- `options`: every date from today−28 (or the edited lesson's teaching date, when earlier) to today+84, both
+  included, of the stage's active schedules, by date and time. Each is `{scheduleId, date, startTime, title, state,
+  takenBy}`: `title` is the schedule's name, `state` is the session's status (`scheduled`, `active`, `completed`,
+  `canceled`) or `planned` when the date has no session yet. `takenBy` is `{id, title}` of the date's
+  non-archived lesson, the edited lesson excepted, or `null`.
+- `servants`: the lesson preparers as `AccountRef`.
+
+The options cost the same number of statements whatever the number of lessons.
+
