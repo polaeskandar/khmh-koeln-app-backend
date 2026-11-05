@@ -185,6 +185,9 @@ switching to 7.4 now costs little, because the backend has no features yet.
   `errors.*` (in `ui-prototype/messages/en.json`) are the codes.
 - Calendar dates as `YYYY-MM-DD` in the church's time zone (Europe/Berlin), instants as RFC 3339 with an
   offset. See the [data model](data-model.md).
+- Every database session runs in Europe/Berlin (`ChurchTimeZone`, a Doctrine middleware that sends `SET TIME
+  ZONE` with `app.time_zone` on connect), so stored instants come back with the Berlin offset whatever the
+  server's default zone is (CI and most hosts use UTC).
 - The full conventions, the auth contract and the code catalog are in the [API contract](api.md).
 
 ### One origin, cookie session for the web, bearer tokens for the apps
