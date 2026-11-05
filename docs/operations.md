@@ -251,6 +251,56 @@ record at all:
 Logs are kept 14 days unless the data protection adviser decides otherwise by Tue 3 Nov. Access logs of the
 reverse proxy leave out query strings (#27, #74).
 
+## Release
+
+A release ships one API image (`ghcr.io/polaeskandar/khmh-koeln-app-backend:<sha>`) and one web bundle. Any team
+member can do it by hand; nothing is automated yet (#99).
+
+1. **Note the rollback target:** the SHA of the running API image and the running web bundle's build.
+2. **Back up:** run the backup job once and wait for its heartbeat (§ Backups).
+3. **Migrate** in a one-off container of the new image, against production, before anything switches:
+   `docker run --rm -e APP_SECRET -e DATABASE_URL <new image> php bin/console app:migrations:migrate --no-interaction`.
+   It applies the pending migrations of every context and does nothing when there are none. The running release
+   keeps working, because every migration is compatible with it (§ Migrations).
+4. **Switch the API** to `<new sha>` (the API, the worker and the jobs use the same image).
+5. **Publish the web bundle,** keeping the previous `_next/static` files, so open tabs still load their chunks.
+6. **Smoke test:** `deploy/smoke-test.sh` with the smoke account (§ Smoke test).
+7. **Generate sessions once:** `php bin/console app:sessions:generate` in a one-off container.
+8. **Log** the date, the API and web SHAs, each context's latest migration and who released. Step 3 has
+   applied every pending migration; a context's latest one is
+   `SELECT max(version) FROM <context>_migration_versions` (`identity`, `organization`, `people`, `meetings`,
+   `attendance`, `learning`).
+
+## Migrations
+
+Migrations are written expand/contract, so the release before the new code keeps running against the migrated
+schema:
+
+- **Expand first:** new tables, new nullable columns, new indexes and new values ship with (or before) the code
+  that uses them; a migration never breaks the previous release's queries.
+- **Contract one release later:** dropping or renaming a column or table, and a new `NOT NULL` on an existing
+  column, ship in the release after the one whose code stopped using it.
+- **Forward only:** no `down` migrations in production; a fix is a new migration.
+- Every pull request with a migration ticks "Migration is compatible with the running release" in the template.
+
+## Rollback
+
+1. **Redeploy** the previous API SHA and web bundle noted in step 1 of the release. The migrations stay: they
+   were compatible with that release.
+2. **Smoke test** again.
+3. **Restore from backup** (§ Backups) only for data loss or corruption, never for a broken release; then
+   re-apply the erasures made since the backup.
+
+## First release
+
+1. **Migrate** an empty database as in step 3 of the release.
+2. **First administrators:** `php bin/console app:user:create <email> "<name>" --role=Administrator --no-password`,
+   then `php bin/console app:user:password-link <email>`; the link reaches them by email and is valid 24 hours.
+   Tell each of them in person that it is coming.
+3. **The smoke account:** `app:user:create smoke@… "Smoke Test" --password-stdin`, no role; its password goes
+   only into the secret store.
+4. **Smoke test** and generate sessions as in steps 6 and 7.
+
 ## Smoke test
 
 `deploy/smoke-test.sh` proves a deployed environment works end to end. It needs only bash, curl and jq, reads
