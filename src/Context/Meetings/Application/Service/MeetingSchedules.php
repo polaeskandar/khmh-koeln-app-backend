@@ -6,6 +6,9 @@ namespace App\Context\Meetings\Application\Service;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
+use App\Context\Meetings\Domain\ValueObject\AgendaDates;
+use App\Context\Meetings\Domain\ValueObject\AgendaRange;
+use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -15,6 +18,7 @@ final readonly class MeetingSchedules
 {
     public function __construct(
         private ScheduleRepositoryInterface $schedules,
+        private PlannedDates $plannedDates,
     ) {
     }
 
@@ -44,6 +48,16 @@ final readonly class MeetingSchedules
         $id = self::idOf('scheduleId', $scheduleId);
 
         return $id === null ? $this->listed($serviceId, $stageId) : $this->schedules->findByIds([$id]);
+    }
+
+    public function agendaOf(
+        ?string $scheduleId,
+        ?string $serviceId,
+        ?string $stageId,
+        ArchivedStructure $archived,
+        AgendaRange $range,
+    ): AgendaDates {
+        return $this->plannedDates->agendaOf($this->chosen($scheduleId, $serviceId, $stageId), $archived, $range);
     }
 
     public function find(string $id): Schedule

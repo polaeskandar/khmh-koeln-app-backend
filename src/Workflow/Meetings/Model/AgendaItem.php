@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace App\Workflow\Meetings\Model;
 
+use App\Workflow\Attendance\Model\AttendanceCounts;
+
 final readonly class AgendaItem
 {
     private function __construct(
         public SessionView|PlannedSession $entry,
         public string $sortKey,
+        public ?AttendanceCounts $counts = null,
     ) {
     }
 
-    public static function session(SessionView $view): self
+    public static function session(SessionView $view, ?AttendanceCounts $counts): self
     {
-        return new self($view, self::sortKeyOf($view->times, $view->details->title, $view->details->id));
+        return new self($view, self::sortKeyOf($view->times, $view->details->title, $view->details->id), $counts);
     }
 
     public static function planned(PlannedSession $planned): self

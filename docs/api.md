@@ -1281,6 +1281,7 @@ A `ScheduleSummary`:
 | `generating` | active, not past `endsOn`, and its service and stage are not archived |
 | `nextDates` | up to 3 `{date, startTime, status, sessionId}` from today (400-day horizon): sessions `scheduled` or `active` and planned dates without a session (`status: planned`, `sessionId: null`); canceled and completed dates are skipped; empty unless `generating` |
 | `sessionCount` | sessions of the schedule, every status |
+| `rosterSize` | members on the schedule's roster today (Europe/Berlin): its stage's, or for a schedule without a stage the members of the service who are in no stage; `null` for `open` schedules |
 | `createdAt`, `updatedAt` | instants |
 | `can` | `{manage}`: `sessions: update` |
 
@@ -1391,7 +1392,9 @@ rule as `cancelReason`.
 `services: read`. `{today, from, to, items}` for the church dates `from` to `to`, both included (default today−6 to
 today+7, at most 120 days). `items` come by start, then title:
 
-- `{kind: "session", ...SessionView}`: every session in the range, past ones and canceled ones included.
+- `{kind: "session", ...SessionView, counts: Counts | null}`: every session in the range, past ones and canceled
+  ones included. `counts` are the attendance board's for active and completed sessions, `null` for scheduled and
+  canceled ones.
 - `{kind: "planned", scheduleId, title, service: ServiceRef, stage: StageRef | null, date, startTime, endTime,
   startsAt, endsAt, location, rosterMode, can: {manage}}`: a date of a generating schedule from today on that has
   no session yet. A date with a session, a past date and a date of an inactive or archived schedule have none.

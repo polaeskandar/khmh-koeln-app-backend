@@ -41,6 +41,19 @@ final readonly class SessionTallies
     ): ReadableCollection {
         $meetings->loadSchedulesOf($sessions);
 
+        return self::ofScheduled($attendees, $marks, $sessions);
+    }
+
+    /**
+     * @param ReadableCollection<int, Session> $sessions
+     *
+     * @return ReadableCollection<non-empty-string, SessionTally>
+     */
+    public static function ofScheduled(
+        Attendees $attendees,
+        AttendanceMarks $marks,
+        ReadableCollection $sessions,
+    ): ReadableCollection {
         $tallies = new self(
             $attendees->rostersOn(
                 $sessions

@@ -43,6 +43,11 @@ final readonly class Progress
         return new self(SessionStatus::Active, $this->cancelReason, $this->opened, Stamp::none());
     }
 
+    public function wasOpened(): bool
+    {
+        return $this->status === SessionStatus::Active || $this->status === SessionStatus::Completed;
+    }
+
     public function ensureNotCanceled(): void
     {
         if ($this->status === SessionStatus::Canceled) {

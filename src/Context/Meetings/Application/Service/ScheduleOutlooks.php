@@ -20,9 +20,26 @@ final readonly class ScheduleOutlooks
     private const int NEXT_DATES = 3;
 
     public function __construct(
+        private MeetingSchedules $schedules,
         private PlannedDates $plannedDates,
         private SessionRepositoryInterface $sessions,
     ) {
+    }
+
+    /**
+     * @return list<ScheduleOutlook>
+     */
+    public function listed(?string $serviceId, ?string $stageId, ArchivedStructure $archived, LocalDate $today): array
+    {
+        return $this->outlooksOf($this->schedules->recurring($serviceId, $stageId), $archived, $today);
+    }
+
+    public function found(string $id, ArchivedStructure $archived, LocalDate $today): ScheduleOutlook
+    {
+        $schedules = new ArrayCollection([$this->schedules->find($id)]);
+        $outlook = new ArrayCollection($this->outlooksOf($schedules, $archived, $today))->first();
+
+        return $outlook instanceof ScheduleOutlook ? $outlook : throw new LogicException('A schedule has an outlook.');
     }
 
     /**
@@ -30,7 +47,7 @@ final readonly class ScheduleOutlooks
      *
      * @return list<ScheduleOutlook>
      */
-    public function of(ReadableCollection $schedules, ArchivedStructure $archived, LocalDate $today): array
+    private function outlooksOf(ReadableCollection $schedules, ArchivedStructure $archived, LocalDate $today): array
     {
         $generating = $archived
             ->generating($schedules)
@@ -47,13 +64,6 @@ final readonly class ScheduleOutlooks
                 sessionCount: $counts->get($schedule->id()->toRfc4122()) ?? 0,
             ),
         )->getValues();
-    }
-
-    public function one(Schedule $schedule, ArchivedStructure $archived, LocalDate $today): ScheduleOutlook
-    {
-        $outlook = new ArrayCollection($this->of(new ArrayCollection([$schedule]), $archived, $today))->first();
-
-        return $outlook instanceof ScheduleOutlook ? $outlook : throw new LogicException('A schedule has an outlook.');
     }
 
     /**
