@@ -1,6 +1,13 @@
 .git
+.github
 .idea
+.phpunit.cache
 var
 vendor
+tests
+tools
+docs
 .env.local
 .env.*.local
+.env.dev
+.env.test
