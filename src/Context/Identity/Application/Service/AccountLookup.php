@@ -25,4 +25,9 @@ final readonly class AccountLookup
     {
         return $this->users->findByIds($ids);
     }
+
+    public function account(Uuid $id): ?User
+    {
+        return $this->users->find($id);
+    }
 }
