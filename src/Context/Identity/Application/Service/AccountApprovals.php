@@ -76,7 +76,7 @@ final readonly class AccountApprovals
      * @param ReadableCollection<int, Role> $roles
      * @param callable(User): void $alongside
      */
-    public function approve(string $id, string $actorId, ReadableCollection $roles, callable $alongside): void
+    public function approve(string $id, string $actorId, ReadableCollection $roles, callable $alongside): User
     {
         $actor = $this->account($actorId);
 
@@ -94,7 +94,12 @@ final readonly class AccountApprovals
             $alongside($user);
         });
 
-        $this->notices->send($this->account($id));
+        return $this->account($id);
+    }
+
+    public function announce(User $approved): void
+    {
+        $this->notices->send($approved);
     }
 
     public function account(string $id): User

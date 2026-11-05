@@ -14,6 +14,7 @@ use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class MemberAccounts
 {
@@ -45,6 +46,16 @@ final readonly class MemberAccounts
         } catch (UniqueConstraintViolationException) {
             throw $record->taken();
         }
+    }
+
+    /**
+     * @param list<Uuid> $personIds
+     *
+     * @return list<string>
+     */
+    public function linkedAmong(array $personIds): array
+    {
+        return $this->members->linkedAmong($personIds);
     }
 
     public function unlink(string $email): void

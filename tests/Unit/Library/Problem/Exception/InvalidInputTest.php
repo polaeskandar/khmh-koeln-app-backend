@@ -61,4 +61,20 @@ final class InvalidInputTest extends TestCase
 
         InvalidInput::all(static fn (): object => new stdClass(), static fn (): object => new stdClass());
     }
+
+    public function testNestingPrefixesEveryField(): void
+    {
+        $invalid = new InvalidInput([
+            'personId' => ['code' => 'accounts.personNotFound'],
+            'guardianConsentNote' => ['code' => 'validation.tooLong', 'params' => ['max' => 200]],
+        ]);
+
+        self::assertSame(
+            [
+                'member.personId' => ['code' => 'accounts.personNotFound'],
+                'member.guardianConsentNote' => ['code' => 'validation.tooLong', 'params' => ['max' => 200]],
+            ],
+            $invalid->nestedIn('member')->fieldErrors,
+        );
+    }
 }
