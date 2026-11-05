@@ -28,6 +28,15 @@ final readonly class HomeworkState
         return new self(HomeworkStatus::Draft, publishedAt: null, archivedAt: null);
     }
 
+    public function published(DateTimeImmutable $at): self
+    {
+        return match (true) {
+            $this->archivedAt !== null => throw new RuleViolation('homework.archivedNoPublish'),
+            $this->status === HomeworkStatus::Published => $this,
+            default => new self(HomeworkStatus::Published, $at, $this->archivedAt),
+        };
+    }
+
     public function ensureEditable(): void
     {
         if ($this->archivedAt !== null) {

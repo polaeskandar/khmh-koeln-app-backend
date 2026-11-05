@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Domain\Entity;
 
+use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\ValueObject\HomeworkState;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
@@ -91,6 +92,16 @@ final class HomeworkAssignment extends TimestampedEntity
     public function createdBy(): ?Uuid
     {
         return $this->createdBy;
+    }
+
+    public function isVisibleToParents(): bool
+    {
+        return $this->state->status === HomeworkStatus::Published;
+    }
+
+    public function changeState(HomeworkState $state): void
+    {
+        $this->state = $state;
     }
 
     public function edit(HomeworkText $text, Materials $resources): void
