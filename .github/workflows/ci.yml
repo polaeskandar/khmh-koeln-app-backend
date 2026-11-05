@@ -53,3 +53,8 @@ jobs:
       - run: composer install --no-interaction --no-progress
 
       - run: composer ci
+
+      - name: The demo seed is not a production command
+        run: |
+          APP_ENV=prod APP_DEBUG=0 php bin/console list --raw > var/prod-commands.txt
+          ! grep -q '^app:demo:seed ' var/prod-commands.txt

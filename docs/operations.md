@@ -172,6 +172,8 @@ environment (#41).
 | `TRUSTED_PROXIES` | `10.0.0.0/8` or `REMOTE_ADDR` | No | Proxies whose `X-Forwarded-For`, `-Proto` and `-Port` are trusted, so sign-in limits count the real client (#41). Empty: forwarded headers are ignored. |
 | `MAILER_DSN` | `mailgun+api://KEY:DOMAIN@default?region=eu` | Yes | Where email goes. Production: Mailgun's EU region (with a DPA, Art. 28) through `symfony/mailgun-mailer`. `.env` and tests use `null://null` (nothing is sent); `.env.dev` uses `log://default`, which writes each email (recipient, subject, text) to stderr instead of sending it. `bin/console app:mail:test <email>` checks the setting with a real account. |
 | `MAILER_FROM` | `KHMK Köln <no-reply@khmk-koeln.com>` | No | Sender of every email. The sending domain needs Mailgun's SPF and DKIM records. |
+| `DEMO_PASSWORD` | `khmk-demo-2026` (`.env.dev`, `.env.test`) | `dev`/`test` | The password of every demo account. |
+| `ALLOW_DEMO_SEED` | `0` | No | `dev`/`test` only: `1` lets `composer db:seed` (`app:demo:seed`) purge and load the demo data into a database that is not local. The command does not exist in `prod`. |
 
 Sign-in limits (5 attempts per email and client, 25 per client, per 15 minutes) are kept in the
 `cache.rate_limiter` pool, which is the application cache on the local filesystem. That is right for one API
