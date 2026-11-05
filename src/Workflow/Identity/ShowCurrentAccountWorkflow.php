@@ -31,22 +31,10 @@ final readonly class ShowCurrentAccountWorkflow
         $user = $this->accounts->find($userId);
 
         return new CurrentAccount(
-            account: self::summaryOf($user),
+            account: AccountSummary::of($user),
             roles: self::rolesOf($user),
             permissions: new ArrayCollection($this->accounts->grantsOf($user))->map(self::grantOf(...))->getValues(),
             today: $this->calendar->today()->toString(),
-        );
-    }
-
-    private static function summaryOf(User $user): AccountSummary
-    {
-        $profile = $user->profile();
-
-        return new AccountSummary(
-            $user->id()->toRfc4122(),
-            $profile->email->value,
-            $profile->displayName->value,
-            $profile->language->value,
         );
     }
 

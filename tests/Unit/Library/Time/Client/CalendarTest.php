@@ -74,12 +74,13 @@ final class CalendarTest extends TestCase
         yield 'repeated hour takes the later' => ['2026-10-25', '02:30', '2026-10-25T02:30:00+01:00'];
     }
 
-    public function testTheDateOfAnInstantIsItsDateInBerlin(): void
+    public function testAnInstantReadsAsItsBerlinDateAndOffset(): void
     {
         $calendar = self::calendarAt('2026-11-07T12:00:00Z');
         $lateSaturday = $calendar->instantAt(LocalDate::of('2026-11-07'), LocalTime::of('23:30'));
 
         self::assertSame('2026-11-07', $calendar->localDateOf($lateSaturday->setTimezone('UTC'))->toString());
+        self::assertSame('2026-11-07T23:30:00+01:00', $calendar->formatInstant($lateSaturday->setTimezone('UTC')));
     }
 
     #[DataProvider('dayLengths')]
