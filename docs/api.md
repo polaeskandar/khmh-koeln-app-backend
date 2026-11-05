@@ -906,6 +906,32 @@ Readiness: runs `SELECT 1` with a 2-second connect and statement timeout.
 {"status": "unavailable", "checks": {"database": "unavailable"}}
 ```
 
+### Account requests
+
+Registrations waiting for a decision. Both endpoints need the users permission (`users: read` to list,
+`users: delete` to decline); anyone else gets 403 `accounts.adminOnly`.
+
+#### `GET /api/account-requests`
+
+`{items: [AccountRequest], today}`: the 200 oldest pending accounts (not approved, not disabled), oldest first.
+
+| Member | Type |
+| --- | --- |
+| `account` | `{id, email, displayName, language}` |
+| `registeredAt` | instant |
+| `registeredAs` | `parent` or `servant` |
+| `note` | string or `null` |
+| `services` | `[ServiceRef]`, the services a servant named; empty for parents |
+
+Nothing else: no password hash and no privacy fields.
+
+#### `POST /api/account-requests/{id}/decline`
+
+Body `{}`. Deletes the account and everything the person entered, then answers 204; the same email can
+register again. The account is locked (`SELECT … FOR UPDATE`) while the decision is made, so two
+administrators can't both decide. 404 `notFound.user`; 409 `accounts.alreadyApproved` for an approved
+account, which stays.
+
 ### Services
 
 A service row:

@@ -59,4 +59,19 @@ final readonly class RegistrationServices
             $this->registrationServices->add(new RegistrationService($accountId, $service));
         }
     }
+
+    /**
+     * @param list<Uuid> $accountIds
+     *
+     * @return ReadableCollection<int, RegistrationService>
+     */
+    public function chosenBy(array $accountIds): ReadableCollection
+    {
+        return $this->registrationServices->ofAccounts($accountIds);
+    }
+
+    public function forget(Uuid $accountId): void
+    {
+        $this->registrationServices->removeFor($accountId);
+    }
 }

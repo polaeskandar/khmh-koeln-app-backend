@@ -18,6 +18,20 @@ interface UserRepositoryInterface
 
     public function find(Uuid $id): ?User;
 
+    public function remove(User $user): void;
+
+    /**
+     * @param positive-int $limit
+     *
+     * @return ReadableCollection<int, User>
+     */
+    public function pending(int $limit): ReadableCollection;
+
+    /**
+     * @param callable(User): void $work
+     */
+    public function withWriteLock(Uuid $id, callable $work): void;
+
     public function hasOtherActiveAccountThatCan(User $except, Action $action, Resource $resource): bool;
 
     /**
