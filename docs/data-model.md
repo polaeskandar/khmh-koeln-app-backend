@@ -278,6 +278,18 @@ a parent ticked it off; it says nothing about how well the child learned, and no
 A task goes to everyone currently on the stage's roster, so a child who joins later sees the stage's
 published homework. A child who left keeps the reports already made, shown as no longer in the stage.
 
+In numbers (`TaskAudiences`), for church-today in Europe/Berlin:
+
+- **In the stage:** active people with a membership in the task's stage that has started (`starts_on` ≤ today) and
+  not ended (`ends_on` null or ≥ today, the last day included).
+- **Left with a report:** people with a current report (not undone) who are no longer in the stage; they are
+  listed with `inStage: false` and count only in `reportedTotal`. Someone who left without a report is not listed.
+- `assigned` = in the stage; `completed` = in the stage with a current report; `notCompleted` = the rest;
+  `completedAfterDueDate` = in-stage reports whose Berlin date is after `due_date` (never without one);
+  `withoutParentAccount` = in-stage children with no report and no approved guardian link to an active account;
+  `reportedTotal` = every current report.
+- The parent portal (#90) uses the same condition for the tasks a parent's child sees.
+
 ## Data protection
 
 | Table | Purpose | Key rules |

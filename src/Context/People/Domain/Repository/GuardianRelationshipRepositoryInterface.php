@@ -19,4 +19,11 @@ interface GuardianRelationshipRepositoryInterface
      * @return ReadableCollection<int, GuardianRelationship>
      */
     public function approvedOf(Uuid $accountId): ReadableCollection;
+
+    /**
+     * @param list<Uuid> $childIds
+     *
+     * @return ReadableCollection<int, GuardianRelationship>
+     */
+    public function approvedForChildren(array $childIds): ReadableCollection;
 }
