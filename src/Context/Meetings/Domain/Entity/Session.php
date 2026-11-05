@@ -23,10 +23,10 @@ final class Session extends CreatedAtEntity
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'schedule_id', nullable: false, onDelete: 'RESTRICT')]
-    private readonly Schedule $schedule;
+    private Schedule $schedule;
 
     #[ORM\Column(type: 'local_date')]
-    private readonly LocalDate $occurrenceDate;
+    private LocalDate $occurrenceDate;
 
     #[ORM\Embedded(Progress::class, columnPrefix: false)]
     private Progress $progress;
