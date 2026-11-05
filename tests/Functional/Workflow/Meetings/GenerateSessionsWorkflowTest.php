@@ -122,11 +122,12 @@ final class GenerateSessionsWorkflowTest extends KernelTestCase
 
     private function generate(string $today): GeneratedSessions
     {
-        self::mockTime($today . ' 12:00:00 Europe/Berlin');
+        self::mockTime('2028-01-01T12:00:00+01:00');
+
         $workflow = self::getContainer()->get(GenerateSessionsWorkflow::class);
         self::assertInstanceOf(GenerateSessionsWorkflow::class, $workflow);
 
-        return $workflow();
+        return $workflow($today);
     }
 
     private function generation(): SessionGeneration
