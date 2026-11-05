@@ -99,14 +99,18 @@ final readonly class SessionTallies
         $presentIds = $this->present->get(self::idOf($session)) ?? [];
 
         if (!$this->isExpected($session)) {
-            return new SessionTally([], $presentIds, SessionCounts::open($presentIds));
+            return new SessionTally([], $presentIds, SessionCounts::open($presentIds, $session->erased()));
         }
 
         $rosterIds = new ArrayCollection($this->rosters->get($this->keyOf($session)->id()) ?? [])->map(
             static fn (Uuid $id): string => $id->toRfc4122(),
         )->getValues();
 
-        return new SessionTally($rosterIds, $presentIds, SessionCounts::expected($rosterIds, $presentIds));
+        return new SessionTally(
+            $rosterIds,
+            $presentIds,
+            SessionCounts::expected($rosterIds, $presentIds, $session->erased()),
+        );
     }
 
     /**
