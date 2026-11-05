@@ -34,6 +34,11 @@ final readonly class LessonState
         return new self($this->status, $this->completedAt, $at);
     }
 
+    public function restored(): self
+    {
+        return new self($this->status, $this->completedAt, archivedAt: null);
+    }
+
     public function movedTo(LessonStatus $status, DateTimeImmutable $at): self
     {
         return new self($status, $status === LessonStatus::Completed ? $at : null, $this->archivedAt);

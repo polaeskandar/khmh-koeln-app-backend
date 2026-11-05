@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
+use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\LessonStage;
 use App\Context\Organization\Domain\Entity\Stage;
 
@@ -20,6 +21,11 @@ final readonly class LessonStages
         };
 
         return LessonStage::open($stage->id(), $archivedName);
+    }
+
+    public static function isOpenFor(Lesson $lesson, Stage $stage): bool
+    {
+        return $lesson->state()->archivedAt === null && self::isOpen($stage);
     }
 
     public static function isOpen(Stage $stage): bool

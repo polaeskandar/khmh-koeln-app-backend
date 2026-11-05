@@ -39,6 +39,9 @@ final class LessonsControllerShowTest extends ApiTestCase
             'markCompleted' => false,
             'manageHomework' => true,
             'viewNotes' => true,
+            'archive' => true,
+            'restore' => false,
+            'delete' => false,
         ]);
 
         $detail = $this->responseJson();
@@ -68,6 +71,9 @@ final class LessonsControllerShowTest extends ApiTestCase
             'markCompleted' => false,
             'manageHomework' => false,
             'viewNotes' => false,
+            'archive' => false,
+            'restore' => false,
+            'delete' => false,
         ]);
     }
 
@@ -101,6 +107,9 @@ final class LessonsControllerShowTest extends ApiTestCase
             'markCompleted' => false,
             'manageHomework' => false,
             'viewNotes' => true,
+            'archive' => false,
+            'restore' => true,
+            'delete' => false,
         ]);
     }
 

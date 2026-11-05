@@ -138,6 +138,15 @@ final class HomeworkAssignment extends TimestampedEntity
         return $dueDate->isBefore($lessonDate) ? $dueDate : $lessonDate;
     }
 
+    public function archive(DateTimeImmutable $at): bool
+    {
+        $archived = $this->state->archived($at);
+        $changed = $archived !== $this->state;
+        $this->state = $archived;
+
+        return $changed;
+    }
+
     public function isVisibleToParents(): bool
     {
         return $this->state->status === HomeworkStatus::Published;

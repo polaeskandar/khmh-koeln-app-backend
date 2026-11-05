@@ -1621,7 +1621,8 @@ The rows cost the same number of statements whatever their number.
 #### `GET /api/lessons/{id}`
 
 `lessons: read` (403 `forbidden`). The lesson page and the editor: `{service: ServiceRef, stage: StageRef, today,
-lesson, homework, can: {manage, markCompleted, manageHomework, viewNotes}}`; 404 `notFound.lesson`. Archived
+lesson, homework, can: {manage, markCompleted, manageHomework, viewNotes, archive, restore, delete}}`; 404
+`notFound.lesson`. Archived
 lessons stay readable.
 
 - `lesson` is the stage list's `LessonRow` without `homework`, plus `scheduleId`, `summary`, `memoryVerse`,
@@ -1632,6 +1633,9 @@ lessons stay readable.
 - `manage` is `lessons: update` and `manageHomework` is `homework: update`, both while the lesson, its stage and its
   service are not archived; `markCompleted` is `manage` for a `ready` lesson whose teaching date is church-today or
   earlier.
+- `archive` is `manage`; `restore` is `lessons: update` for an archived lesson whose stage and service are open;
+  `delete` is `lessons: update` for a `draft` whose stage and service are open and none of whose homework was ever
+  published, exactly when `DELETE` succeeds.
 
 #### `POST /api/stages/{stageId}/lessons`
 
@@ -1670,6 +1674,19 @@ out, and `draft` or `ready` reopens it and clears its completion; moving it afte
 `lessons.taughtAfterDate`. 200 `{id, status}`; 404
 `notFound.lesson`; an archived lesson → 409 `lessons.archived`; an archived stage → 409 `lessons.stageArchived
 {name}`.
+
+#### `POST /api/lessons/{id}/archive`, `POST /api/lessons/{id}/restore` and `DELETE /api/lessons/{id}`
+
+`lessons: update` (403 `lessons.changeStageOnly`), body `{}`; 404 `notFound.lesson`; an archived stage or service →
+409 `lessons.stageArchived {name}`.
+
+- **Archive** → 200 `{id, archivedAt, homeworkArchived}`. One transaction archives the lesson and its homework
+  that is not archived yet at one instant; parents no longer see the tasks, the reports stay. Repeating it → 200
+  with the first `archivedAt` and `homeworkArchived: 0`.
+- **Restore** → 200 `{id, archivedAt: null}` (also when it was not archived). If another lesson now holds the
+  meeting → 409 `lessons.meetingHasLesson {title}`. The homework stays archived.
+- **Delete** → 204. Only a `draft` (409 `lessons.deleteDraftsOnly`); with its tasks locked, any task with
+  `publishedAt` → 409 `lessons.homeworkPublished`. Otherwise the tasks and the lesson go in one transaction.
 
 #### `POST /api/lessons/{id}/status`
 

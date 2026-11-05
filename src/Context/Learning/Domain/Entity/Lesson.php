@@ -124,6 +124,11 @@ final class Lesson extends TimestampedEntity
         $this->state = $this->state->archivedAt($at);
     }
 
+    public function restore(): void
+    {
+        $this->state = $this->state->restored();
+    }
+
     public function ensureEditable(): void
     {
         $this->state->ensureNotArchived();

@@ -33,6 +33,11 @@ final readonly class HomeworkState
         return new self(HomeworkStatus::Published, $at, $this->archivedAt);
     }
 
+    public function archived(DateTimeImmutable $at): self
+    {
+        return $this->archivedAt === null ? new self(HomeworkStatus::Archived, $this->publishedAt, $at) : $this;
+    }
+
     public function ensureNotArchived(string $refusal): void
     {
         if ($this->archivedAt !== null) {

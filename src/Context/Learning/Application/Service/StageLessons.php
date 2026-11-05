@@ -7,6 +7,7 @@ namespace App\Context\Learning\Application\Service;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Enum\LessonTab;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
+use App\Context\Learning\Domain\Repository\LessonHomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkTally;
 use App\Context\Learning\Domain\ValueObject\LessonListing;
@@ -24,6 +25,7 @@ final readonly class StageLessons
     public function __construct(
         private LessonRepositoryInterface $lessons,
         private HomeworkRepositoryInterface $homework,
+        private LessonHomeworkRepositoryInterface $lessonHomework,
         private Calendar $calendar,
     ) {
     }
@@ -34,6 +36,11 @@ final readonly class StageLessons
     public function countIn(array $stageIds): int
     {
         return $this->lessons->countForStages($stageIds);
+    }
+
+    public function hasPublishedHomework(Lesson $lesson): bool
+    {
+        return $this->lessonHomework->hasPublished($lesson->id());
     }
 
     public function listed(Uuid $stageId, string $tab, ?string $query): LessonListing

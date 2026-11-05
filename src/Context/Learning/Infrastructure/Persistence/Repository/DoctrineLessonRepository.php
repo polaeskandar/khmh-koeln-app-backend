@@ -44,6 +44,13 @@ final readonly class DoctrineLessonRepository implements LessonRepositoryInterfa
     }
 
     #[Override]
+    public function remove(Lesson $lesson): void
+    {
+        $this->entityManager->remove($lesson);
+        $this->entityManager->flush();
+    }
+
+    #[Override]
     public function countForSchedule(Uuid $scheduleId): int
     {
         $count = $this->entityManager->getConnection()->fetchOne(self::COUNT_FOR_SCHEDULE, [$scheduleId->toRfc4122()]);

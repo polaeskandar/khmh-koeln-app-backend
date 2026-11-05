@@ -13,6 +13,8 @@ interface LessonRepositoryInterface
 {
     public function save(Lesson $lesson): void;
 
+    public function remove(Lesson $lesson): void;
+
     public function currentAt(Uuid $scheduleId, LocalDate $date): ?Lesson;
 
     public function find(Uuid $id): ?Lesson;

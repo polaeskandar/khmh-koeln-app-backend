@@ -27,7 +27,15 @@ final readonly class LessonDetailResponse implements JsonSerializable
      *     today: string,
      *     lesson: array<string, string|list<array{label: string, url: string|null}>|object|null>,
      *     homework: LessonHomework,
-     *     can: array{manage: bool, markCompleted: bool, manageHomework: bool, viewNotes: bool},
+     *     can: array{
+     *         manage: bool,
+     *         markCompleted: bool,
+     *         manageHomework: bool,
+     *         viewNotes: bool,
+     *         archive: bool,
+     *         restore: bool,
+     *         delete: bool,
+     *     },
      * }
      */
     #[Override]
@@ -47,6 +55,9 @@ final readonly class LessonDetailResponse implements JsonSerializable
                 'markCompleted' => $can->markCompleted,
                 'manageHomework' => $can->manageHomework,
                 'viewNotes' => $can->viewNotes,
+                'archive' => $can->lifecycle->archive,
+                'restore' => $can->lifecycle->restore,
+                'delete' => $can->lifecycle->delete,
             ],
         ];
     }
