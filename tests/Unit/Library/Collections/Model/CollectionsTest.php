@@ -77,4 +77,22 @@ final class CollectionsTest extends TestCase
 
         self::assertSame(['a9', 'b1', 'b2'], $sorted);
     }
+
+    public function testMapItemsSeesEachKeyAndLeavesOtherValuesAlone(): void
+    {
+        self::assertSame(
+            ['a' => 'a1', 'b' => 'b2'],
+            Collections::mapItems(['a' => 1, 'b' => 2], static fn (int $value, string $key): string => $key . $value),
+        );
+
+        self::assertSame('text', Collections::mapItems('text', static fn (): string => 'never'));
+    }
+
+    public function testMapArrayKeepsTheKeys(): void
+    {
+        self::assertSame(
+            ['a' => 'a1'],
+            Collections::mapArray(['a' => 1], static fn (int $value, string $key): string => $key . $value),
+        );
+    }
 }
