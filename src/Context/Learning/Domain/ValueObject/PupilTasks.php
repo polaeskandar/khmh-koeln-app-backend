@@ -25,9 +25,14 @@ final readonly class PupilTasks
     /**
      * @param list<HomeworkAssignment> $published
      * @param ReadableCollection<int, HomeworkCompletion> $reports
+     * @param ReadableCollection<string, string> $completedAt
      */
-    public static function of(Pupil $pupil, array $published, ReadableCollection $reports): self
-    {
+    public static function of(
+        Pupil $pupil,
+        array $published,
+        ReadableCollection $reports,
+        ReadableCollection $completedAt,
+    ): self {
         $own = $reports->filter(static fn (HomeworkCompletion $report): bool => $report
             ->personId()
             ->equals($pupil->personId));
@@ -40,7 +45,9 @@ final readonly class PupilTasks
 
         $reported = $own->map(static fn (HomeworkCompletion $report): HomeworkAssignment => $report->assignment());
 
-        return new self($pupil->personId, self::visible([...$inStage->getValues(), ...$reported->getValues()], $own));
+        $tasks = [...$inStage->getValues(), ...$reported->getValues()];
+
+        return new self($pupil->personId, self::visible($tasks, $own, $completedAt));
     }
 
     public function done(): int
@@ -67,10 +74,11 @@ final readonly class PupilTasks
     /**
      * @param list<HomeworkAssignment> $tasks
      * @param ReadableCollection<int, HomeworkCompletion> $own
+     * @param ReadableCollection<string, string> $completedAt
      *
      * @return list<VisibleTask>
      */
-    private static function visible(array $tasks, ReadableCollection $own): array
+    private static function visible(array $tasks, ReadableCollection $own, ReadableCollection $completedAt): array
     {
         $unique = Collections::firstPerKey(
             new ArrayCollection($tasks)->filter(
@@ -81,11 +89,14 @@ final readonly class PupilTasks
 
         $reportsByTask = Collections::firstPerKey($own, keyOf: self::reportKey(...));
 
+        $visibleOf = static function (HomeworkAssignment $task) use ($reportsByTask, $completedAt): VisibleTask {
+            $report = $reportsByTask->get(self::taskKey($task));
+
+            return new VisibleTask($task, $report, $completedAt->get($report?->id()->toRfc4122() ?? ''));
+        };
+
         return new ArrayCollection(Collections::sortedDescendingBy($unique, keyOf: self::sortKey(...)))->map(
-            static fn (HomeworkAssignment $task): VisibleTask => new VisibleTask(
-                $task,
-                $reportsByTask->get(self::taskKey($task)),
-            ),
+            $visibleOf,
         )->getValues();
     }
 

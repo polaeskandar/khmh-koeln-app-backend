@@ -10,6 +10,7 @@ use App\Context\People\Domain\Entity\Person;
 use App\Tests\Support\Database;
 use DateTimeImmutable;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class Reports
 {
@@ -23,8 +24,14 @@ final readonly class Reports
         Person $child,
         string $at = '2026-11-07T10:00:00+01:00',
         ?string $undoneAt = null,
+        ?string $by = null,
     ): HomeworkCompletion {
-        $report = HomeworkCompletion::report($task, $child->id(), new DateTimeImmutable($at), by: null);
+        $report = HomeworkCompletion::report(
+            $task,
+            $child->id(),
+            new DateTimeImmutable($at),
+            $by === null ? null : Uuid::fromString($by),
+        );
 
         if ($undoneAt !== null) {
             $report->undo(new DateTimeImmutable($undoneAt), by: null);

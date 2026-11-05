@@ -263,7 +263,7 @@ removes it from the parent portal and keeps the reports.
 ### What parents receive
 
 The parent read models contain only the parent's own approved children, their current stage, published
-homework (title, instructions, due date, resources) and the lesson's passage and memory verse. Lesson plans,
+homework (title, instructions, due date, resources) and the lesson's title, date, passage and memory verse. Lesson plans,
 notes for the servants, attendance, other children and other families are never part of them. "Done" means
 a parent ticked it off; it says nothing about how well the child learned, and nothing is graded or ranked.
 

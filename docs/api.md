@@ -1462,3 +1462,20 @@ name, fullName, initials, stage, service, toDo, done}`: `name` is the display na
 current placement (the first by service name, then stage position), else `null`; `done` counts visible tasks
 with a current report and `toDo` the rest.
 
+
+#### `GET /api/parent/children/{childId}/homework?state=todo|done`
+
+`{today, items}` for one of the viewer's approved children (`state` defaults to `todo`; another value → 422
+`validation.invalidChoice`). An item is `{id, title, lessonTitle, stage, dueDate, done, completedAt,
+completedByYou, completedBy}`: `stage` is the task's stage name, `completedBy` the reporter's display name
+(`null` once that account is gone). `todo` is by due date, undated last, then the newest `publishedAt`; `done`
+is newest `completedAt` first; the id breaks ties.
+
+#### `GET /api/parent/children/{childId}/homework/{homeworkId}`
+
+`{today, child: {id, name}, task: item + {instructions, resources}, lesson: {title, teachingDate, passage,
+memoryVerse}}`.
+
+A child the viewer is not linked to (another family, a revoked link, an unknown id) is always the same 404
+`notFound.person`; a task the child may not see (draft, archived, another stage, unknown) is always the same 404
+`homework.notAvailable`, so nothing about other families leaks. Malformed ids are 404 too.

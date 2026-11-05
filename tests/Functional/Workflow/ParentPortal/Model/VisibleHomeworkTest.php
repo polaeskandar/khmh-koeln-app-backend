@@ -8,17 +8,12 @@ use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Learning\Application\Service\PupilHomework;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\Entity\Lesson;
-use App\Context\Learning\Domain\Repository\HomeworkReportRepositoryInterface;
-use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\ParentChildren;
 use App\Context\People\Domain\Entity\Person;
-use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
-use App\Context\People\Domain\Repository\PersonRepositoryInterface;
-use App\Library\Time\Client\Calendar;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Learning\Domain\Entity\Reports;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
@@ -222,23 +217,12 @@ final class VisibleHomeworkTest extends KernelTestCase
         self::mockTime($today . 'T12:00:00+01:00');
         $container = self::getContainer();
         $accounts = $container->get(AccountLookup::class);
-        $calendar = $container->get(Calendar::class);
-        $links = $container->get(GuardianRelationshipRepositoryInterface::class);
-        $people = $container->get(PersonRepositoryInterface::class);
-        $homework = $container->get(HomeworkRepositoryInterface::class);
-        $reports = $container->get(HomeworkReportRepositoryInterface::class);
+        $families = $container->get(ParentChildren::class);
+        $homework = $container->get(PupilHomework::class);
         self::assertInstanceOf(AccountLookup::class, $accounts);
-        self::assertInstanceOf(Calendar::class, $calendar);
-        self::assertInstanceOf(GuardianRelationshipRepositoryInterface::class, $links);
-        self::assertInstanceOf(PersonRepositoryInterface::class, $people);
-        self::assertInstanceOf(HomeworkRepositoryInterface::class, $homework);
-        self::assertInstanceOf(HomeworkReportRepositoryInterface::class, $reports);
+        self::assertInstanceOf(ParentChildren::class, $families);
+        self::assertInstanceOf(PupilHomework::class, $homework);
 
-        return VisibleHomework::lookedUpIn(
-            $accounts,
-            new ParentChildren($links, $people, $calendar),
-            new PupilHomework($homework, $reports),
-            Uuid::fromString($viewer),
-        );
+        return VisibleHomework::lookedUpIn($accounts, $families, $homework, Uuid::fromString($viewer));
     }
 }

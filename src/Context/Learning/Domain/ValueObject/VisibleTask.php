@@ -12,6 +12,7 @@ final readonly class VisibleTask
     public function __construct(
         public HomeworkAssignment $task,
         public ?HomeworkCompletion $report,
+        public ?string $completedAt,
     ) {
     }
 
