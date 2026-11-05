@@ -117,7 +117,7 @@ final class OwnDataControllerTest extends ApiTestCase
         $export = self::getContainer()->get(ExportAccountDataWorkflow::class);
         self::assertInstanceOf(ExportAccountDataWorkflow::class, $export);
 
-        $encoded = json_encode(AccountDataResponse::of($export($accountId)), JSON_THROW_ON_ERROR);
+        $encoded = json_encode(AccountDataResponse::of($export($accountId), memberRecord: null), JSON_THROW_ON_ERROR);
 
         return JsonBody::asArray(json_decode($encoded, associative: true, flags: JSON_THROW_ON_ERROR), 'export');
     }

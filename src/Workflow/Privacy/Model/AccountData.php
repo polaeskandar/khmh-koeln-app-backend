@@ -15,6 +15,12 @@ final readonly class AccountData
         public AccountRecord $account,
         public array $children,
         public array $homeworkReports,
+        public ?MemberLinkView $member,
     ) {
+    }
+
+    public function memberRecordId(): ?string
+    {
+        return $this->member?->personId;
     }
 }

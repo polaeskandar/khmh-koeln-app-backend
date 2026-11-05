@@ -25,8 +25,8 @@ final readonly class ErasableSubject
         string $viewerId,
     ): self {
         $subject = $request->subject();
-        $person = $people->existing($subject->personId);
-        $account = $accounts->existing($subject->accountId);
+        $person = $people->existing($subject->personId ?? $accounts->recordOfAccount($subject->accountId));
+        $account = $accounts->existing($subject->accountId ?? $accounts->accountOfRecord($subject->personId));
 
         if ($person === null && $account === null) {
             throw new RuleViolation('privacy.subjectGone');

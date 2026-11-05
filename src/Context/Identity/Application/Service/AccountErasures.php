@@ -30,6 +30,16 @@ final readonly class AccountErasures
         return $accountId === null ? null : $this->users->find($accountId)?->id();
     }
 
+    public function accountOfRecord(?Uuid $personId): ?Uuid
+    {
+        return $personId === null ? null : $this->people->accountOf($personId);
+    }
+
+    public function recordOfAccount(?Uuid $accountId): ?Uuid
+    {
+        return $accountId === null ? null : $this->users->find($accountId)?->member()->personId;
+    }
+
     public function forgetPerson(Uuid $personId): int
     {
         return $this->people->forget($personId);

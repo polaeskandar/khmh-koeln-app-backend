@@ -34,9 +34,9 @@ final readonly class ExportMemberDataWorkflow
     ) {
     }
 
-    public function __invoke(string $personId): ?MemberData
+    public function __invoke(?string $personId): ?MemberData
     {
-        $person = $this->people->person($personId);
+        $person = $personId === null ? null : $this->people->person($personId);
 
         if ($person === null) {
             return null;

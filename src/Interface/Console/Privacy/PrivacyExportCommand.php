@@ -48,7 +48,7 @@ final readonly class PrivacyExportCommand
 
         $data = $request->isMember()
             ? MemberDataResponse::of(($this->exportMemberData)($request->id()))
-            : AccountDataResponse::of(($this->exportAccountData)($request->id()));
+            : $this->accountCopy($request->id());
 
         if ($data === null) {
             $io->error(Text::format('notFound.%s', $request->isMember() ? 'person' : 'account')->toString());
@@ -60,5 +60,12 @@ final readonly class PrivacyExportCommand
         $io->success(Text::format('Wrote %s (readable only by you).', $request->path())->toString());
 
         return Command::SUCCESS;
+    }
+
+    private function accountCopy(string $accountId): ?AccountDataResponse
+    {
+        $account = ($this->exportAccountData)($accountId);
+
+        return AccountDataResponse::of($account, ($this->exportMemberData)($account?->memberRecordId()));
     }
 }
