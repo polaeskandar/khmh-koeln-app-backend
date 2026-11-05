@@ -23,6 +23,11 @@ interface PersonRepositoryInterface
     public function findByIds(array $ids): ReadableCollection;
 
     /**
+     * @return ReadableCollection<int, Person>
+     */
+    public function withNameKey(string $key): ReadableCollection;
+
+    /**
      * @param list<string> $words
      *
      * @return ReadableCollection<int, Person>

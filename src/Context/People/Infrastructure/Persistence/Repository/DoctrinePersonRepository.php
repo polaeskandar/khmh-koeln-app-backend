@@ -41,6 +41,15 @@ final readonly class DoctrinePersonRepository implements PersonRepositoryInterfa
         return $this->entityManager->find(Person::class, $id);
     }
 
+    #[Override]
+    public function withNameKey(string $key): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager->getRepository(Person::class)->findBy(['name.key' => $key], [
+            'name.lastName' => 'ASC',
+            'name.firstName' => 'ASC',
+        ]));
+    }
+
     /**
      * @param list<Uuid> $ids
      */

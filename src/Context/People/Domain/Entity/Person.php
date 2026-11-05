@@ -48,6 +48,11 @@ final class Person extends CreatedAtEntity
         return $this->name;
     }
 
+    public function rename(string $firstName, string $lastName, ?string $displayName): void
+    {
+        $this->name = PersonName::of($firstName, $lastName, $displayName);
+    }
+
     public function status(): PersonStatus
     {
         return $this->status;
