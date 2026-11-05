@@ -161,7 +161,8 @@ jobs:
           docker build -q -t khmk-backup deploy/backup > /dev/null
           backups="$RUNNER_TEMP/backups"
           mkdir -m 777 -p "$backups"
-          python3 -m http.server 8099 --bind 127.0.0.1 > "$RUNNER_TEMP/heartbeat.log" 2>&1 &
+          mkdir -p "$RUNNER_TEMP/probe" && touch "$RUNNER_TEMP/probe/heartbeat"
+          python3 -m http.server 8099 --bind 127.0.0.1 --directory "$RUNNER_TEMP/probe" > "$RUNNER_TEMP/heartbeat.log" 2>&1 &
           $PSQL "INSERT INTO people.person (id, first_name, last_name, name_key, search_text, status, created_at)
             VALUES (gen_random_uuid(), 'Fictionala', 'Restorova', 'fictionala_restorova', 'fictionala restorova', 'active', now())"
           docker run --rm --entrypoint age-keygen khmk-backup > "$RUNNER_TEMP/key.txt" 2> /dev/null
