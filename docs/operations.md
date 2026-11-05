@@ -298,8 +298,30 @@ reverse proxy leave out query strings (#27, #74).
 
 ## Release
 
-A release ships one API image (`ghcr.io/polaeskandar/khmh-koeln-app-backend:<sha>`) and one web bundle. Any team
-member can do it by hand; nothing is automated yet (#99).
+A release ships one API image (`ghcr.io/polaeskandar/khmh-koeln-app-backend:<sha>`) and one web bundle. The API
+part runs from GitHub Actions: **Actions › Deploy › Run workflow** with the image's full commit SHA. The steps below
+stay the manual fallback, and publishing the web bundle stays manual.
+
+The `Deploy` workflow (`.github/workflows/deploy.yml`) runs in the GitHub environment `production`, which needs a
+required reviewer, one run at a time (a second dispatch waits). With the reviewer's approval it:
+
+1. records the SHA the server runs (`deploy/release.sh current`: the image of the running API container, not the
+   `.env`, which an interrupted roll-out may already have changed; nothing when no API container runs, and then
+   there is nothing to roll back to);
+2. pulls the new image on the server with a short-lived package token, then logs out again;
+3. migrates in a one-off container of the new image (`app:migrations:migrate --no-interaction`, nothing to do when
+   none are pending);
+4. rolls the API and worker out (`deploy/release.sh rollout <sha>`: `API_IMAGE` in the server's `.env`, then
+   `docker compose up --detach --wait`);
+5. runs `deploy/smoke-test.sh` against `BASE_URL`;
+6. on any failure after step 1, rolls back to the recorded SHA and smoke-tests again; the run ends red either way.
+   Migrations are never rolled back (§ Migrations).
+
+The job summary lists the requested and the previous SHA, the migration and the smoke-test outcome. The
+environment holds `DEPLOY_TARGET` (`deploy@<server>`), `DEPLOY_SSH_KEY` (a key only for deploys),
+`DEPLOY_KNOWN_HOSTS` (the server's host key), `SMOKE_EMAIL` and `SMOKE_PASSWORD` as secrets and `BASE_URL` as a
+variable; no secret is printed. The server keeps its Compose project in `/srv/khmk` (`DEPLOY_DIR`), whose services
+take their image from `API_IMAGE` in the project's `.env`.
 
 1. **Note the rollback target:** the SHA of the running API image and the running web bundle's build.
 2. **Back up:** run the backup job once and wait for its heartbeat (§ Backups).
