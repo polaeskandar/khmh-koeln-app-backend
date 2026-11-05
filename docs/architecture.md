@@ -34,27 +34,46 @@ in the frontend repository's `docs/architecture.md`.
 
 ## Code layout
 
-A modular monolith with bounded contexts, based on `bisort-console`. `src/` holds exactly four top-level
-namespaces:
+A modular monolith with bounded contexts, based on `bisort-console`. `src/` holds exactly five top-level
+namespaces, and calls go one way: **Interface → Workflow → Context**.
 
 | Namespace | Holds |
 | --- | --- |
-| `App\Context` | The bounded contexts: `Identity`, `Organization`, `People`, `Meetings`, `Attendance`, `Learning`. Each has `Domain` (`Entity`, `ValueObject`, `Enum`, `Repository` interfaces, `Exception`, domain services) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations). |
-| `App\Interface` | Everything that serves a caller. `Application/<Area>/UseCase/Command/<Name>/` (writes) and `Application/<Area>/UseCase/Query/<Name>/` (reads) hold the use cases: each folder has exactly `<Name>Command` or `<Name>Query` and a `<Name>Handler` whose `__invoke()` takes it. Read models live in `Application/<Area>/Model/`. Use cases may combine several contexts and decide what crosses a context boundary. `Api/<Area>/…Controller` and `Console/<Area>/…Command` are the entry points that call them. The parent portal is `Api/ParentPortal` with its queries in `Application/ParentPortal`. |
+| `App\Interface` | Entry points and the shapes they exchange, nothing else: `Api/<Area>/<Name>Controller`, `Api/<Area>/Request/<Name>Request` (the `#[MapRequestPayload]` DTOs with their `#[Assert]` constraints, strings and lists only), `Api/<Area>/Response/<Name>Response` (the JSON an endpoint answers, built with `::of()` from a workflow model) and `Console/<Area>/<Name>Command`. Interface calls workflows only and never names a context class. The parent portal is `Api/ParentPortal`. |
+| `App\Workflow` | One class per process: `<Area>/<Verb><Subject>Workflow`, run through its only public method `__invoke()`. A workflow sequences the application services of one or more contexts, holds the transaction when several writes must succeed together, checks access, and maps what the contexts return to its models in `<Area>/Model/` (final readonly, scalars, lists and other models). It is the only code that uses the contexts. |
+| `App\Context` | The bounded contexts: `Identity`, `Organization`, `People`, `Meetings`, `Attendance`, `Learning`. Each has `Application/Service` (the business logic, and the `*Interface` ports its `Infrastructure` implements), `Domain` (the model: `Entity`, `ValueObject`, `Enum`, `Repository` interfaces, `Exception`, `Attribute`) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations). |
 | `App\Library` | Business-agnostic packages, each split into `Client`, `Model` and `Exception` (and `Mapping` for Doctrine mapped superclasses that entities extend); they wrap PHP's native functions once for the rest of the application (see [Code style](code-style.md)): `Strings` (`Text`, `InputText`, `NameKey`), `Types` (`Type`), `Collections` (`Collections`, next to Doctrine's collections), `Files` (`Path`), `Console` (`HiddenPrompt`), `Problem` (the coded exceptions), `Time` (`LocalDate`, `LocalTime`, `Calendar`, on Carbon), `Persistence` (the `CreatedAtEntity` and `TimestampedEntity` mapped superclasses). Packages never use each other (`mago guard`); a package keeps only the methods something uses, and missing ones are added with their first caller. |
 | `App\Platform` | The runtime: `Kernel`, `Migration`, `Health`, `Http`. Each module splits into `Contract` (interfaces the rest may use), `Service`, `Model` and `Command`. |
 
 Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
 
-- A context never uses another context; only `Interface` combines contexts.
-- Only a context's own `Infrastructure` uses its `Infrastructure`; `Domain` never does, and `Interface` works
-  with the `Domain` repository interfaces.
-- Nothing depends on `Interface`. `Domain` and `Library` don't depend on `Platform`; outside `Platform`, code
-  uses only `Platform/*/Contract`.
-- Commands, queries, handlers and read models are `final readonly`; a handler never calls another handler. Repositories are interfaces named `*RepositoryInterface`,
-  exceptions `*Exception`, enums live in `Enum`, final readonly value objects in `ValueObject`.
+- Interface uses workflows, never a context (`InterfaceLayoutTest`). Nothing depends on Interface.
+- Only workflows use the contexts. A workflow never calls another workflow and never uses a repository; it goes
+  through the contexts' application services (`WorkflowLayoutTest`).
+- A context never uses another context. Only a context's own `Infrastructure` uses its `Infrastructure`.
+- `Domain` holds the model only; business logic that is not a single entity's or value object's own behavior
+  lives in `Application/Service`.
+- `Domain` and `Library` don't depend on `Platform`; outside `Platform`, code uses only `Platform/*/Contract`.
 - Every application route lives under `/api` (class-level `#[Route]`).
 - Code follows [Code style](code-style.md).
+
+Naming:
+
+| What | Where | Named | Shape |
+| --- | --- | --- | --- |
+| Controller | `Interface/Api/<Area>/` | `<Name>Controller` | final |
+| Request | `Interface/Api/<Area>/Request/` | `<Name>Request` | final readonly |
+| Response | `Interface/Api/<Area>/Response/` | `<Name>Response` | final readonly |
+| Console command | `Interface/Console/<Area>/` | `<Name>Command` | final |
+| Workflow | `Workflow/<Area>/` | `<Verb><Subject>Workflow`: an imperative verb for a write (`RegisterAccount`, `GiveRole`), `Show` for one thing, `List` for many, `Check` for a probe | final readonly, only `__invoke()` public |
+| Workflow model | `Workflow/<Area>/Model/` | a noun (`CurrentAccount`, `AccountDetails`) | final readonly |
+| Application service | `Context/<C>/Application/Service/` | what it manages (`RoleAssignments`, `AccountRegistration`), never `*Service`, `*Manager` or `*Helper` | final readonly |
+| Port | `Context/<C>/Application/Service/` | `*Interface` | interface |
+| Repository | `Context/<C>/Domain/Repository/` | `*RepositoryInterface` | interface |
+| Exception | `Context/<C>/Domain/Exception/` | `*Exception` | class |
+| Enum | `Context/<C>/Domain/Enum/` | a noun | backed enum |
+| Value object | `Context/<C>/Domain/ValueObject/` | a noun | final readonly |
+| Attribute | `Context/<C>/Domain/Attribute/` | what it declares | final readonly |
 
 Persistence (ADR 0004 of `bisort-console`):
 
@@ -67,8 +86,8 @@ Persistence (ADR 0004 of `bisort-console`):
   <context>` for a change to the mapping, `app:migrations:generate <context>` for an empty migration that
   holds SQL the mapping can't express (a table Doctrine doesn't map, a data change). The generated file is
   then edited only to add what the diff can't produce (CHECK constraints) and to complete `down()`.
-- A context stores only the id of another context's record. No foreign keys cross schemas; the use case in
-  `Interface` checks references across contexts before it writes.
+- A context stores only the id of another context's record. No foreign keys cross schemas; the workflow checks
+  references across contexts before it writes.
 - A context's diff compares the database with a target made of the context's mapping plus every table the
   database already holds outside the context. Other contexts therefore never show up in the diff, and DBAL
   derives every schema from real tables.
@@ -101,7 +120,7 @@ Naming and Doctrine rules:
 - `created_at` and `updated_at` come only from the mapped superclasses in `App\Library\Persistence\Mapping`: an
   entity with `created_at` extends `CreatedAtEntity`, one with both extends `TimestampedEntity`. Their
   lifecycle callbacks stamp the fields on `PrePersist` (and `PreUpdate` for `updated_at`) from Symfony's
-  clock, the one `Calendar` uses. Constructors and use cases never set them
+  clock, the one `Calendar` uses. Constructors, services and workflows never set them
   (`tests/Architecture/TimestampsComeFromLifecycleCallbacksTest`).
   References to an acting account are nullable: `ON DELETE SET NULL` inside Identity, set to null by the
   erasure process in the other contexts. Embeddables live in `Domain`.
@@ -229,12 +248,11 @@ Parents see only the children an administrator linked to their account (#23), an
 need: published homework, the passage and memory verse, never lesson plans, notes, attendance or other
 families. The frontend only hides what a person can't do; the API checks every request.
 
-An endpoint declares what it needs with `#[RequiresAccess(Action::Update, Resource::Services)]`
-(`Interface\Application\Security\Model`, repeatable,
-on the controller class or method). `AccessCheck` asks Symfony's authorization checker, and `AccessVoter`
-grants the `Access` when the account, reloaded on every request, is active and one of its roles has the
-permission; otherwise 403 `forbidden`. A role or permission change applies on the next request, without a new
-sign-in.
+A workflow that needs a permission states it as its first step:
+`$this->access->require(Action::Update, Resource::Services)` (`Context\Identity\Application\Service\AccessCheck`).
+`AccessCheck` asks Symfony's authorization checker, and `AccessVoter` grants the `Access` when the account,
+reloaded on every request, is active and one of its roles has the permission; otherwise 403 `forbidden`. A role
+or permission change applies on the next request, without a new sign-in.
 
 ### Sessions are created the day before
 

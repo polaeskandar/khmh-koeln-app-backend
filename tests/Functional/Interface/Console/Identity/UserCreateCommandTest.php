@@ -112,13 +112,14 @@ final class UserCreateCommandTest extends KernelTestCase
     {
         $tester = $this->tester();
 
-        self::assertSame(Command::FAILURE, $tester->execute([
+        self::assertSame(Command::INVALID, $tester->execute([
             'email' => 'sara@example.org',
             'name' => 'Sara',
             '--no-password' => true,
             '--language' => 'fr',
         ]));
 
+        self::assertStringContainsString('language: accounts.chooseLanguage', $tester->getDisplay());
         self::assertSame(0, $this->accounts()->count());
     }
 

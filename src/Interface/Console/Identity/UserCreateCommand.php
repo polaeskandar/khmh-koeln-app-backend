@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace App\Interface\Console\Identity;
 
-use App\Context\Identity\Domain\Enum\Language;
-use App\Interface\Application\Identity\UseCase\Command\CreateUser\CreateUserCommand;
-use App\Interface\Application\Identity\UseCase\Command\CreateUser\CreateUserHandler;
 use App\Library\Console\Client\SecretReader;
 use App\Library\Console\Exception\ConfirmationMismatch;
 use App\Library\Console\Exception\HiddenInputUnavailable;
-use App\Library\Console\Exception\InvalidOption;
 use App\Library\Console\Exception\TerminalRequired;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Strings\Model\Text;
 use App\Library\Types\Model\Type;
+use App\Workflow\Identity\CreateUserWorkflow;
 use Override;
 use SensitiveParameter;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -29,7 +26,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final class UserCreateCommand extends Command
 {
     public function __construct(
-        private readonly CreateUserHandler $createUser,
+        private readonly CreateUserWorkflow $createUser,
         private readonly SecretReader $secrets,
     ) {
         parent::__construct();
@@ -61,30 +58,28 @@ final class UserCreateCommand extends Command
                 prompt: 'Password',
             );
 
-            $account = ($this->createUser)(self::request($input, $password));
+            $account = $this->create($input, $password);
         } catch (InvalidInput $invalid) {
             self::report($io, $invalid);
 
             return Command::INVALID;
-        } catch (ConfirmationMismatch|HiddenInputUnavailable|InvalidOption|TerminalRequired $unusable) {
+        } catch (ConfirmationMismatch|HiddenInputUnavailable|TerminalRequired $unusable) {
             $io->error($unusable->getMessage());
 
             return Command::FAILURE;
         }
 
-        $io->success(Text::format('Created the approved account %s.', $account->toRfc4122())->toString());
+        $io->success(Text::format('Created the approved account %s.', $account)->toString());
 
         return Command::SUCCESS;
     }
 
-    private static function request(InputInterface $input, #[SensitiveParameter] ?string $password): CreateUserCommand
+    private function create(InputInterface $input, #[SensitiveParameter] ?string $password): string
     {
-        $language = Type::of($input->getOption('language'))->toString();
-
-        return new CreateUserCommand(
+        return ($this->createUser)(
             email: Type::of($input->getArgument('email'))->toString(),
             displayName: Type::of($input->getArgument('name'))->toString(),
-            language: Language::tryFrom($language) ?? throw new InvalidOption('language', choices: 'en, de, ar'),
+            language: Type::of($input->getOption('language'))->toString(),
             password: $password,
             role: Type::of($input->getOption('role'))->toStringOrNull(),
         );

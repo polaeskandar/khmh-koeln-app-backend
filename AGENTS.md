@@ -26,10 +26,19 @@ because it isn't installed yet; installing it is one command.
 
 ## Layout
 
-Follow `docs/architecture.md` § Code layout: bounded contexts in `src/Context/<Context>/{Domain,Infrastructure}`,
-use cases in `src/Interface/Application/<Area>/UseCase/{Command,Query}/<Name>/` (`<Name>Command|<Name>Query` + `<Name>Handler`), read models in `src/Interface/Application/<Area>/Model/`, entry points in
-`src/Interface/{Api,Console}`, runtime in `src/Platform`. `composer check` enforces the boundaries
-(`mago guard`). Schema changes go through `bin/console app:migrations:diff <context>`.
+Follow `docs/architecture.md` § Code layout. Calls go one way, Interface → Workflow → Context:
+
+- `src/Interface/{Api,Console}/<Area>/` holds entry points (`*Controller`, `*Command`) and, for the API,
+  `Request/*Request` and `Response/*Response`. Nothing else, and no context class.
+- `src/Workflow/<Area>/<Verb><Subject>Workflow.php` holds one process each, run by `__invoke()`, with its models
+  in `src/Workflow/<Area>/Model/`. Workflows are the only code that uses the contexts.
+- `src/Context/<Context>/` holds the bounded contexts: business logic in `Application/Service`, the model in
+  `Domain/{Entity,ValueObject,Enum,Repository,Exception,Attribute}`, adapters in `Infrastructure`. A context
+  never uses another context.
+- The runtime is in `src/Platform`.
+
+`composer check` enforces the boundaries (`mago guard` and `tests/Architecture`). Schema changes go through
+`bin/console app:migrations:diff <context>`.
 
 ## Conventions
 

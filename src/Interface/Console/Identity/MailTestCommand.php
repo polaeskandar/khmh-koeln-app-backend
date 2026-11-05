@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Interface\Console\Identity;
 
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
-use App\Interface\Application\Identity\Service\AccountMailer;
+use App\Library\Problem\Exception\NotFound;
 use App\Library\Types\Model\Type;
+use App\Workflow\Identity\SendTestMailWorkflow;
 use Override;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -19,8 +19,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final class MailTestCommand extends Command
 {
     public function __construct(
-        private readonly UserRepositoryInterface $users,
-        private readonly AccountMailer $mailer,
+        private readonly SendTestMailWorkflow $sendTestMail,
     ) {
         parent::__construct();
     }
@@ -35,15 +34,15 @@ final class MailTestCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $user = $this->users->findByEmail(Type::of($input->getArgument('email'))->toString());
 
-        if ($user === null) {
-            $io->error('notFound.account');
+        try {
+            ($this->sendTestMail)(Type::of($input->getArgument('email'))->toString());
+        } catch (NotFound $missing) {
+            $io->error($missing->getMessage());
 
             return Command::FAILURE;
         }
 
-        $this->mailer->send($user, 'test');
         $io->success('The test email is sent when this command ends.');
 
         return Command::SUCCESS;

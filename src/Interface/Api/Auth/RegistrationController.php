@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Auth;
 
-use App\Interface\Application\Identity\UseCase\Command\RegisterAccount\RegisterAccountCommand;
-use App\Interface\Application\Identity\UseCase\Command\RegisterAccount\RegisterAccountHandler;
-use App\Interface\Application\Identity\UseCase\Query\ListRegistrationServices\ListRegistrationServicesHandler;
-use App\Interface\Application\Identity\UseCase\Query\ListRegistrationServices\ListRegistrationServicesQuery;
+use App\Interface\Api\Auth\Request\RegisterAccountRequest;
+use App\Interface\Api\Auth\Response\RegistrationReceivedResponse;
+use App\Interface\Api\Auth\Response\RegistrationServicesResponse;
 use App\Library\Time\Client\Calendar;
+use App\Workflow\Identity\ListRegistrationServicesWorkflow;
+use App\Workflow\Identity\RegisterAccountWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,8 +34,8 @@ final class RegistrationController extends AbstractController
     public function register(
         Request $request,
         #[MapRequestPayload]
-        RegisterAccountCommand $command,
-        RegisterAccountHandler $registerAccount,
+        RegisterAccountRequest $registration,
+        RegisterAccountWorkflow $registerAccount,
     ): JsonResponse {
         $limit = $this->registrations->create($request->getClientIp() ?? '')->consume();
 
@@ -44,14 +45,14 @@ final class RegistrationController extends AbstractController
             throw new TooManyRequestsHttpException($seconds, 'auth.tooManyAttempts');
         }
 
-        $registerAccount($command);
+        $registerAccount($registration->accountDetails(), $registration->registrationDetails());
 
-        return $this->json(['status' => 'received'], status: Response::HTTP_ACCEPTED);
+        return $this->json(new RegistrationReceivedResponse(), status: Response::HTTP_ACCEPTED);
     }
 
     #[Route('/services', name: 'api_auth_register_services', methods: ['GET'])]
-    public function services(ListRegistrationServicesHandler $listRegistrationServices): JsonResponse
+    public function services(ListRegistrationServicesWorkflow $listRegistrationServices): JsonResponse
     {
-        return $this->json(['items' => $listRegistrationServices(new ListRegistrationServicesQuery())]);
+        return $this->json(RegistrationServicesResponse::of($listRegistrationServices()));
     }
 }

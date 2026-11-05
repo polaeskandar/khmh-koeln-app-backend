@@ -9,13 +9,13 @@ services:
     App\Library\Time\Client\Calendar:
         public: true
 
-    App\Interface\Application\Identity\Service\AccountMailer:
+    App\Context\Identity\Application\Service\AccountMailer:
         public: true
 
     App\Tests\Support\Context\Identity\Infrastructure\Security\SessionProbeController:
         tags: [controller.service_arguments]
 
-    App\Tests\Support\Interface\Application\Security\Service\AccessProbeController:
+    App\Tests\Support\Context\Identity\Application\Service\AccessProbeController:
         tags: [controller.service_arguments]
 
     App\Tests\Support\Context\Identity\Infrastructure\Security\SpyPasswordHasherFactory:
