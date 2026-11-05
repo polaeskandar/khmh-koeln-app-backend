@@ -7,6 +7,7 @@ namespace App\Context\Meetings\Application\Service;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Entity\SessionEvent;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
+use App\Context\Meetings\Domain\ValueObject\MarkingRules;
 use App\Library\Problem\Exception\NotFound;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -29,5 +30,23 @@ final readonly class MeetingSessions
     public function historyOf(Session $session): ReadableCollection
     {
         return $this->sessions->historyOf($session);
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param callable(Session): T $work
+     *
+     * @return T
+     */
+    public function whileMarkable(string $sessionId, callable $work): object
+    {
+        return $this->sessions->withWriteLock(Uuid::fromString($sessionId), static function (Session $session) use (
+            $work,
+        ): object {
+            MarkingRules::ensureMarkable($session->progress()->status);
+
+            return $work($session);
+        });
     }
 }

@@ -6,7 +6,6 @@ namespace App\Tests\Functional\Workflow\Attendance\Model;
 
 use App\Context\Attendance\Application\Service\AttendanceMarks;
 use App\Context\Attendance\Domain\Entity\Attendance;
-use App\Context\Attendance\Infrastructure\Persistence\Repository\DoctrineAttendanceRepository;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\People\Application\Service\Rosters as PeopleRosters;
@@ -172,9 +171,8 @@ final class SessionTalliesTest extends KernelTestCase
         $rosters = self::getContainer()->get(PeopleRosters::class);
         self::assertInstanceOf(PeopleRosters::class, $rosters);
 
-        $marks = new AttendanceMarks(
-            new DoctrineAttendanceRepository(new Database(self::getContainer())->entityManager()),
-        );
+        $marks = self::getContainer()->get(AttendanceMarks::class);
+        self::assertInstanceOf(AttendanceMarks::class, $marks);
 
         $meetings = self::getContainer()->get(MeetingLookup::class);
         self::assertInstanceOf(MeetingLookup::class, $meetings);
