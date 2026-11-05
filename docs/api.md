@@ -758,6 +758,8 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `guardians.alreadyHasAccess` | `parent`, `child` | {parent} already has access to {child}. |
 | `guardians.adminOnlyApprove` | – | Only administrators can approve parent access. |
 | `guardians.adminOnlyRemove` | – | Only administrators can remove parent access. |
+| `guardians.accountInactive` | – | **New.** 409: only an approved, enabled account can be linked to a child. |
+| `guardians.childInactive` | – | **New.** 409: the person is inactive. |
 
 ### `accounts`
 

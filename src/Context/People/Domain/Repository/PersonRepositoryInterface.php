@@ -7,10 +7,13 @@ namespace App\Context\People\Domain\Repository;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use Doctrine\Common\Collections\ReadableCollection;
+use Symfony\Component\Uid\Uuid;
 
 interface PersonRepositoryInterface
 {
     public function save(Person $person, Membership ...$memberships): void;
+
+    public function find(Uuid $id): ?Person;
 
     /**
      * @param list<string> $words

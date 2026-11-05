@@ -14,6 +14,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrinePersonRepository implements PersonRepositoryInterface
 {
@@ -32,6 +33,12 @@ final readonly class DoctrinePersonRepository implements PersonRepositoryInterfa
         }
 
         $this->entityManager->flush();
+    }
+
+    #[Override]
+    public function find(Uuid $id): ?Person
+    {
+        return $this->entityManager->find(Person::class, $id);
     }
 
     /**
