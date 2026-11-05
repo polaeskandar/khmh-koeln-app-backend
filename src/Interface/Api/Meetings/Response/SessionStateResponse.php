@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Interface\Api\Meetings\Response;
+
+use App\Workflow\Identity\Model\AccountReference;
+use App\Workflow\Meetings\Model\SessionState;
+
+final readonly class SessionStateResponse
+{
+    public function __construct(
+        public string $id,
+        public string $status,
+        public ?string $openedAt,
+        public ?string $closedAt,
+        public ?AccountReference $closedBy,
+    ) {
+    }
+
+    public static function of(SessionState $state): self
+    {
+        return new self($state->id, $state->status, $state->openedAt, $state->closedAt, $state->closedBy);
+    }
+}

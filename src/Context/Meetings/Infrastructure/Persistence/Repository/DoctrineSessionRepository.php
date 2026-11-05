@@ -50,6 +50,12 @@ final readonly class DoctrineSessionRepository implements SessionRepositoryInter
     }
 
     #[Override]
+    public function append(SessionEvent $event): void
+    {
+        $this->entityManager->persist($event);
+    }
+
+    #[Override]
     public function withWriteLock(Uuid $id, callable $work): object
     {
         return $this->entityManager->wrapInTransaction(function () use ($id, $work): object {

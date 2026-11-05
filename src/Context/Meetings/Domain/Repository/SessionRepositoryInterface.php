@@ -18,6 +18,8 @@ interface SessionRepositoryInterface
 {
     public function find(Uuid $id): ?Session;
 
+    public function append(SessionEvent $event): void;
+
     /**
      * @template T of object
      *
