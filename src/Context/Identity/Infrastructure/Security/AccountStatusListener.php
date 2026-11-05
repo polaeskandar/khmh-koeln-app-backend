@@ -16,7 +16,7 @@ final readonly class AccountStatusListener
         $user = $event->getAuthenticationToken()->getUser();
         $status = $user instanceof SecurityUser ? $user->status() : null;
 
-        if ($status?->isDisabled() === true) {
+        if ($status?->disabledAt !== null) {
             throw new CustomUserMessageAccountStatusException('auth.disabled');
         }
 

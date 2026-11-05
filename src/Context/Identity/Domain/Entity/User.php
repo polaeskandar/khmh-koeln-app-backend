@@ -113,7 +113,7 @@ final class User extends CreatedAtEntity
         return $this->status;
     }
 
-    public function approve(AccountStatus $status, self $by, Registration $registration): void
+    public function changeApproval(?self $by, AccountStatus $status, Registration $registration): void
     {
         $this->status = $status;
         $this->approvedBy = $by;
