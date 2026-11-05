@@ -83,8 +83,26 @@ final class HomeworkControllerListTest extends ApiTestCase
         $this->assertJsonPath('lessons.0.title', 'Abraham');
         $this->assertJsonPath('audienceSize', 14);
         $this->assertJsonPath('can', ['create' => true]);
-        $this->assertJsonPath('items.1.can', ['edit' => true, 'publish' => true, 'viewProgress' => true]);
-        $this->assertJsonPath('items.0.can', ['edit' => true, 'publish' => false, 'viewProgress' => true]);
+
+        $this->assertJsonPath('items.1.can', [
+            'edit' => true,
+            'publish' => true,
+            'unpublish' => false,
+            'archive' => true,
+            'restore' => false,
+            'delete' => true,
+            'viewProgress' => true,
+        ]);
+
+        $this->assertJsonPath('items.0.can', [
+            'edit' => true,
+            'publish' => false,
+            'unpublish' => false,
+            'archive' => true,
+            'restore' => false,
+            'delete' => false,
+            'viewProgress' => true,
+        ]);
     }
 
     public function testAnArchivedStageLeavesOnlyProgressAndTwentyTasksCostAsManyStatementsAsOne(): void
@@ -122,7 +140,16 @@ final class HomeworkControllerListTest extends ApiTestCase
 
         $this->jsonRequest('GET', $this->path($stage));
         $this->assertJsonPath('can', ['create' => false]);
-        $this->assertJsonPath('items.0.can', ['edit' => false, 'publish' => false, 'viewProgress' => true]);
+
+        $this->assertJsonPath('items.0.can', [
+            'edit' => false,
+            'publish' => false,
+            'unpublish' => false,
+            'archive' => false,
+            'restore' => false,
+            'delete' => false,
+            'viewProgress' => true,
+        ]);
     }
 
     public function testParentsAnonymousCallersAndUnknownStages(): void

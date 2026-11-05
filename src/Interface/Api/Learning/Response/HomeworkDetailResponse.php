@@ -34,7 +34,7 @@ final readonly class HomeworkDetailResponse implements JsonSerializable
      *     stage: StageSummary,
      *     audienceSize: int,
      *     counts: AudienceCountsResponse|null,
-     *     can: array{edit: bool, publish: bool, viewProgress: bool},
+     *     can: HomeworkAbilitiesResponse,
      * }
      */
     #[Override]
@@ -53,7 +53,7 @@ final readonly class HomeworkDetailResponse implements JsonSerializable
             'stage' => $detail->stage->stage,
             'audienceSize' => $facts->audienceSize,
             'counts' => $facts->counts === null ? null : new AudienceCountsResponse($facts->counts),
-            'can' => ['edit' => $can->edit, 'publish' => $can->publish, 'viewProgress' => $can->viewProgress],
+            'can' => new HomeworkAbilitiesResponse($can),
         ];
     }
 

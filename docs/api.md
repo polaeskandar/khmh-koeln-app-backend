@@ -1737,13 +1737,17 @@ Every invalid field comes in one 422: `title` `homework.titleRequired`, `validat
 
 `homework: read` (403 `forbidden`). The homework editor's task: `{today, id, title, status, dueDate, publishedAt,
 instructions, resources, minDueDate, lesson: {id, title, teachingDate, passage, memoryVerse}, service: ServiceRef,
-stage: StageRef, audienceSize, counts, can: {edit, publish, viewProgress}}`; 404 `notFound.homework`.
+stage: StageRef, audienceSize, counts, can: {edit, publish, unpublish, archive, restore, delete, viewProgress}}`;
+404 `notFound.homework`.
 
 - `lesson` holds only those keys: no notes, objectives, teaching points or activities.
 - `minDueDate` is the lesson's date, or the saved due date when that is earlier (it stays valid after a move).
 - `audienceSize` and `counts` (`null` for a draft) follow "Who a task is for" in `docs/data-model.md`.
 - `edit` is `homework: update` while the task, its lesson, its stage and its service are not archived; `publish`
   is `edit` for a draft; `viewProgress` is `members: read`.
+- `unpublish`, `archive`, `restore` and `delete` are `homework: update` while the stage and service are not
+  archived, and then: `unpublish` for a published task without a current report, `archive` for a task that is not
+  archived, `restore` for an archived task whose lesson is not archived, `delete` while `publishedAt` is `null`.
 
 #### `PATCH /api/homework/{id}`
 
@@ -1755,12 +1759,28 @@ after the lesson moved past it. The task is locked while it changes; a published
 
 #### `POST /api/homework/{id}/publish`
 
-`homework: update` (403 `homework.changeStageOnly`). Body `{}` → 200 `{id, status: "published", publishedAt}`
-(Europe/Berlin offset). It runs on the locked task row. A draft becomes `published` with `publishedAt` = now, also
+`homework: update` (403 `homework.changeStageOnly`). Body `{}` → 200 `{id, status: "published", publishedAt,
+archivedAt: null}` (Europe/Berlin offset). It runs on the locked task row. A draft becomes `published` with `publishedAt` = now, also
 when it was published and taken back before; an already published task stays as it is, so a phone's retry changes
 nothing. Parents only ever see published tasks. 404 `notFound.homework`; an archived task → 409
 `homework.archivedNoPublish`; an archived lesson → 409 `homework.lessonArchived`; an archived stage or service → 409
 `lessons.stageArchived {name}`.
+
+#### `POST /api/homework/{id}/unpublish`, `…/archive`, `…/restore` and `DELETE /api/homework/{id}`
+
+`homework: update` (403 `homework.changeStageOnly`). Each takes body `{}` and runs in one transaction on the locked
+task row, the lock a parent's report takes too. The `POST`s answer 200 `{id, status, publishedAt, archivedAt}`
+(Europe/Berlin offset); `DELETE` answers 204. 404 `notFound.homework`; an archived stage or service → 409
+`lessons.stageArchived {name}`. Reports are never removed.
+
+- **Unpublish** takes a published task back to `draft` and keeps `publishedAt`. Not published → 409
+  `homework.onlyPublishedBack`; any current report, also from a child no longer in the stage → 409
+  `homework.alreadyReported`. Undone reports do not count.
+- **Archive** works from `draft` and `published`; an archived task keeps its first `archivedAt`.
+- **Restore** brings an archived task back as `published` when `publishedAt` is set, else as `draft`. Not archived
+  → 409 `homework.notArchived`; an archived lesson → 409 `homework.lessonArchived`.
+- **Delete** removes a task whose `publishedAt` is `null`: drafts, also archived ones. Otherwise → 409
+  `homework.publishedStays`.
 
 #### `GET /api/homework/{id}/progress`
 

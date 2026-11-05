@@ -36,6 +36,13 @@ final readonly class DoctrineHomeworkRepository implements HomeworkRepositoryInt
     }
 
     #[Override]
+    public function remove(HomeworkAssignment $assignment): void
+    {
+        $this->entityManager->remove($assignment);
+        $this->entityManager->flush();
+    }
+
+    #[Override]
     public function find(Uuid $id): ?HomeworkAssignment
     {
         return $this->entityManager->find(HomeworkAssignment::class, $id);

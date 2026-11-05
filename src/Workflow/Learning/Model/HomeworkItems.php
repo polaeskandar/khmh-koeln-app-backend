@@ -43,7 +43,7 @@ final readonly class HomeworkItems
             HomeworkSummary::of($task, $audiences->reports()),
             LessonOnDate::of($task->lesson()),
             self::countsOf($audiences, $task),
-            HomeworkAbilities::grantedBy($access, $task, $stage),
+            HomeworkAbilities::grantedBy($access, $task, $stage, $audiences->reports()),
         );
     }
 

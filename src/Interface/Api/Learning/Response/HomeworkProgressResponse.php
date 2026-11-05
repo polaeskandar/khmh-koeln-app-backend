@@ -33,7 +33,7 @@ final readonly class HomeworkProgressResponse implements JsonSerializable
      *         publishedAt: string|null,
      *         lesson: LessonOnDate,
      *         counts: AudienceCountsResponse|null,
-     *         can: array{edit: bool, publish: bool, viewProgress: bool},
+     *         can: HomeworkAbilitiesResponse,
      *         instructions: string|null,
      *         resources: list<array{label: string, url: string|null}>,
      *     },

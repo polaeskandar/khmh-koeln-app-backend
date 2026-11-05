@@ -27,6 +27,13 @@ interface HomeworkReportRepositoryInterface
      */
     public function currentReportsAbout(array $personIds): ReadableCollection;
 
+    /**
+     * @param list<Uuid> $taskIds
+     *
+     * @return ReadableCollection<int, string>
+     */
+    public function reportedAmong(array $taskIds): ReadableCollection;
+
     public function reportDone(Uuid $taskId, Uuid $personId, DateTimeImmutable $at, ?Uuid $by): bool;
 
     public function currentReport(Uuid $taskId, Uuid $personId): ?CurrentReport;

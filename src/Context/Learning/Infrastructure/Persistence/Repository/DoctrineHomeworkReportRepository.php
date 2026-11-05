@@ -88,6 +88,29 @@ final readonly class DoctrineHomeworkReportRepository implements HomeworkReportR
         return new ArrayCollection(ListOf::instances($query->getResult(), HomeworkCompletion::class));
     }
 
+    /**
+     * @param list<Uuid> $taskIds
+     */
+    #[Override]
+    public function reportedAmong(array $taskIds): ReadableCollection
+    {
+        $ids = $this->entityManager
+            ->getConnection()
+            ->createQueryBuilder()
+            ->select('DISTINCT assignment_id')
+            ->from('learning.homework_completion')
+            ->where('assignment_id IN (:tasks)')
+            ->andWhere('undone_at IS NULL')
+            ->setParameter(
+                'tasks',
+                new ArrayCollection($taskIds)->map(static fn (Uuid $id): string => $id->toRfc4122())->getValues(),
+                ArrayParameterType::STRING,
+            )
+            ->fetchFirstColumn();
+
+        return new ArrayCollection($ids)->map(static fn (mixed $id): string => Type::of($id)->toString());
+    }
+
     #[Override]
     public function reportDone(Uuid $taskId, Uuid $personId, DateTimeImmutable $at, ?Uuid $by): bool
     {

@@ -18,6 +18,7 @@ use App\Workflow\Learning\Model\AudienceCounts;
 use App\Workflow\Learning\Model\AudienceSize;
 use App\Workflow\Learning\Model\HomeworkAbilities;
 use App\Workflow\Learning\Model\HomeworkDetail;
+use App\Workflow\Learning\Model\HomeworkDueDates;
 use App\Workflow\Learning\Model\HomeworkFacts;
 use App\Workflow\Learning\Model\HomeworkLessonView;
 use App\Workflow\Learning\Model\HomeworkView;
@@ -48,7 +49,7 @@ final readonly class ShowHomeworkWorkflow
             lesson: HomeworkLessonView::of($task->lesson()),
             stage: LessonStageView::of($stage),
             facts: $this->factsOf($reading, $stage),
-            can: HomeworkAbilities::grantedBy($this->access, $task, $stage),
+            can: HomeworkAbilities::grantedBy($this->access, $task, $stage, $reading->reports),
         );
     }
 
@@ -58,7 +59,7 @@ final readonly class ShowHomeworkWorkflow
 
         return new HomeworkFacts(
             today: $today->toString(),
-            minDueDate: $reading->task->minDueDate()->toString(),
+            minDueDate: HomeworkDueDates::minimumOf($reading->task)->toString(),
             audienceSize: AudienceSize::of($this->rosters, $stage, $today),
             counts: $this->countsOf($reading),
         );

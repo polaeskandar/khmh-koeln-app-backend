@@ -38,6 +38,22 @@ final readonly class HomeworkState
         return $this->archivedAt === null ? new self(HomeworkStatus::Archived, $this->publishedAt, $at) : $this;
     }
 
+    public function drafted(): self
+    {
+        if ($this->status !== HomeworkStatus::Published) {
+            throw new RuleViolation('homework.onlyPublishedBack');
+        }
+
+        return new self(HomeworkStatus::Draft, $this->publishedAt, $this->archivedAt);
+    }
+
+    public function restored(): self
+    {
+        $status = $this->publishedAt === null ? HomeworkStatus::Draft : HomeworkStatus::Published;
+
+        return new self($status, $this->publishedAt, archivedAt: null);
+    }
+
     public function ensureNotArchived(string $refusal): void
     {
         if ($this->archivedAt !== null) {

@@ -13,6 +13,8 @@ interface HomeworkRepositoryInterface
 {
     public function save(HomeworkAssignment $assignment): void;
 
+    public function remove(HomeworkAssignment $assignment): void;
+
     public function find(Uuid $id): ?HomeworkAssignment;
 
     /**

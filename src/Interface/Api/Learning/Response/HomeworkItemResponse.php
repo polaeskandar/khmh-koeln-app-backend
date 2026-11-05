@@ -25,7 +25,7 @@ final readonly class HomeworkItemResponse implements JsonSerializable
      *     publishedAt: string|null,
      *     lesson: LessonOnDate,
      *     counts: AudienceCountsResponse|null,
-     *     can: array{edit: bool, publish: bool, viewProgress: bool},
+     *     can: HomeworkAbilitiesResponse,
      * }
      */
     #[Override]
@@ -43,7 +43,7 @@ final readonly class HomeworkItemResponse implements JsonSerializable
             'publishedAt' => $task->publishedAt,
             'lesson' => $item->lesson,
             'counts' => $item->counts === null ? null : new AudienceCountsResponse($item->counts),
-            'can' => ['edit' => $can->edit, 'publish' => $can->publish, 'viewProgress' => $can->viewProgress],
+            'can' => new HomeworkAbilitiesResponse($can),
         ];
     }
 }

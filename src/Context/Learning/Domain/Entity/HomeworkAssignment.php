@@ -10,7 +10,6 @@ use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Library\Persistence\Mapping\TimestampedEntity;
 use App\Library\Problem\Exception\RuleViolation;
-use App\Library\Time\Model\LocalDate;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -116,10 +115,7 @@ final class HomeworkAssignment extends TimestampedEntity
     public function publish(DateTimeImmutable $at): bool
     {
         $this->state->ensureNotArchived('homework.archivedNoPublish');
-
-        if ($this->lesson->state()->archivedAt !== null) {
-            throw new RuleViolation('homework.lessonArchived');
-        }
+        $this->ensureLessonOpen();
 
         if ($this->isVisibleToParents()) {
             return false;
@@ -128,14 +124,6 @@ final class HomeworkAssignment extends TimestampedEntity
         $this->state = $this->state->publishedAt($at);
 
         return true;
-    }
-
-    public function minDueDate(): LocalDate
-    {
-        $lessonDate = $this->lesson->link()->teachingDate;
-        $dueDate = $this->text->dueDate ?? $lessonDate;
-
-        return $dueDate->isBefore($lessonDate) ? $dueDate : $lessonDate;
     }
 
     public function archive(DateTimeImmutable $at): bool
@@ -147,8 +135,30 @@ final class HomeworkAssignment extends TimestampedEntity
         return $changed;
     }
 
+    public function unpublish(): void
+    {
+        $this->state = $this->state->drafted();
+    }
+
+    public function restore(): void
+    {
+        if ($this->state->archivedAt === null) {
+            throw new RuleViolation('homework.notArchived');
+        }
+
+        $this->ensureLessonOpen();
+        $this->state = $this->state->restored();
+    }
+
     public function isVisibleToParents(): bool
     {
         return $this->state->status === HomeworkStatus::Published;
+    }
+
+    private function ensureLessonOpen(): void
+    {
+        if ($this->lesson->state()->archivedAt !== null) {
+            throw new RuleViolation('homework.lessonArchived');
+        }
     }
 }

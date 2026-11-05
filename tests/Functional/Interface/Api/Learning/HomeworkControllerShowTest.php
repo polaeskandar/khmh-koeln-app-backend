@@ -37,7 +37,16 @@ final class HomeworkControllerShowTest extends ApiTestCase
         $this->assertJsonPath('counts', null);
         $this->assertJsonPath('audienceSize', 14);
         $this->assertJsonPath('minDueDate', '2026-11-15');
-        $this->assertJsonPath('can', ['edit' => true, 'publish' => true, 'viewProgress' => true]);
+
+        $this->assertJsonPath('can', [
+            'edit' => true,
+            'publish' => true,
+            'unpublish' => false,
+            'archive' => true,
+            'restore' => false,
+            'delete' => true,
+            'viewProgress' => true,
+        ]);
 
         $this->assertJsonPath('lesson', [
             'id' => $lesson->id()->toRfc4122(),
@@ -85,11 +94,29 @@ final class HomeworkControllerShowTest extends ApiTestCase
         $this->jsonRequest('GET', $this->path($published));
         $this->assertJsonPath('counts.assigned', 3);
         $this->assertJsonPath('publishedAt', '2026-11-08T09:00:00+01:00');
-        $this->assertJsonPath('can', ['edit' => true, 'publish' => false, 'viewProgress' => true]);
+
+        $this->assertJsonPath('can', [
+            'edit' => true,
+            'publish' => false,
+            'unpublish' => true,
+            'archive' => true,
+            'restore' => false,
+            'delete' => false,
+            'viewProgress' => true,
+        ]);
 
         $this->jsonRequest('GET', $this->path($archived));
         $this->assertJsonPath('counts.notCompleted', 3);
-        $this->assertJsonPath('can', ['edit' => false, 'publish' => false, 'viewProgress' => true]);
+
+        $this->assertJsonPath('can', [
+            'edit' => false,
+            'publish' => false,
+            'unpublish' => false,
+            'archive' => false,
+            'restore' => true,
+            'delete' => true,
+            'viewProgress' => true,
+        ]);
 
         $connection->update(
             'learning.lesson',
@@ -98,7 +125,16 @@ final class HomeworkControllerShowTest extends ApiTestCase
         );
 
         $this->jsonRequest('GET', $this->path($published));
-        $this->assertJsonPath('can', ['edit' => false, 'publish' => false, 'viewProgress' => true]);
+
+        $this->assertJsonPath('can', [
+            'edit' => false,
+            'publish' => false,
+            'unpublish' => true,
+            'archive' => true,
+            'restore' => false,
+            'delete' => false,
+            'viewProgress' => true,
+        ]);
     }
 
     public function testParentsAnonymousCallersAndUnknownTasks(): void
