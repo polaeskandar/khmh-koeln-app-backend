@@ -12,6 +12,7 @@ use App\Library\Strings\Model\InputText;
 use App\Library\Strings\Model\Text;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ReadableCollection;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class PersonDirectory
 {
@@ -21,6 +22,16 @@ final readonly class PersonDirectory
         private PersonRepositoryInterface $people,
         private Calendar $calendar,
     ) {
+    }
+
+    /**
+     * @param list<Uuid> $ids
+     *
+     * @return ReadableCollection<int, Person>
+     */
+    public function records(array $ids): ReadableCollection
+    {
+        return $this->people->findByIds($ids);
     }
 
     /**

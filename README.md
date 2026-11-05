@@ -113,5 +113,5 @@ agreement. Parents and staff can be linked to their own record too and keep thei
 | --- | --- |
 | `app:member:link <email> <personId> --age=16-or-older` | Links an approved, enabled account to an active member record that no other account has. Linking it to the same record again changes nothing. |
 | `app:member:link <email> <personId> --age=guardian-consent [--note=…]` | The same for a member under 16 whose parent or guardian agreed; the note (at most 200 characters) says how. |
-| `app:member:unlink <email>` | Removes the account's link to its member record. Repeating changes nothing. |
+| `app:member:unlink <email>` | Removes the account's link to its member record; an account without roles becomes an account request again. Repeating changes nothing. |
 

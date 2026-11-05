@@ -16,6 +16,28 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineMemberAccountRepository implements MemberAccountRepositoryInterface
 {
+    private const string LISTED = <<<'SQL'
+        SELECT u.id::text AS id, u.display_name AS name, u.email, u.disabled_at IS NOT NULL AS disabled,
+          EXISTS (
+            SELECT 1 FROM identity.user_role ur
+            JOIN identity.role_permission rp ON rp.role_id = ur.role_id
+            JOIN identity.permission p ON p.id = rp.permission_id
+            WHERE ur.user_id = u.id AND p.resource = 'parentPortal'
+          ) AS parent,
+          u.person_id::text AS person, u.age_check, u.guardian_consent_note AS note, u.approved_at::text AS approved_at,
+          a.id::text AS approver_id, a.display_name AS approver_name
+        FROM identity.app_user u
+        LEFT JOIN identity.app_user a ON a.id = u.approved_by
+        WHERE u.person_id IS NOT NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM identity.user_role ur
+            JOIN identity.role_permission rp ON rp.role_id = ur.role_id
+            JOIN identity.permission p ON p.id = rp.permission_id
+            WHERE ur.user_id = u.id AND p.resource <> 'parentPortal'
+          )
+        ORDER BY lower(u.display_name), u.id
+        SQL;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -79,5 +101,40 @@ final readonly class DoctrineMemberAccountRepository implements MemberAccountRep
         return Collections::firstPerKey(new ArrayCollection($rows), keyOf: static fn (array $row): string => Type::of(
             $row['person'] ?? null,
         )->toString())->map(static fn (array $row): string => Type::of($row['account'] ?? null)->toString())->toArray();
+    }
+
+    /**
+     * @return list<array{
+     *     id: string,
+     *     name: string,
+     *     email: string,
+     *     disabled: bool,
+     *     isParent: bool,
+     *     personId: string,
+     *     ageCheck: string|null,
+     *     guardianConsentNote: string|null,
+     *     approvedAt: string|null,
+     *     approverId: string|null,
+     *     approverName: string|null,
+     * }>
+     */
+    #[Override]
+    public function listed(): array
+    {
+        $rows = $this->entityManager->getConnection()->fetchAllAssociative(self::LISTED);
+
+        return new ArrayCollection($rows)->map(static fn (array $row): array => [
+            'id' => Type::of($row['id'] ?? null)->toString(),
+            'name' => Type::of($row['name'] ?? null)->toString(),
+            'email' => Type::of($row['email'] ?? null)->toString(),
+            'disabled' => ($row['disabled'] ?? false) === true,
+            'isParent' => ($row['parent'] ?? false) === true,
+            'personId' => Type::of($row['person'] ?? null)->toString(),
+            'ageCheck' => Type::of($row['age_check'] ?? null)->toStringOrNull(),
+            'guardianConsentNote' => Type::of($row['note'] ?? null)->toStringOrNull(),
+            'approvedAt' => Type::of($row['approved_at'] ?? null)->toStringOrNull(),
+            'approverId' => Type::of($row['approver_id'] ?? null)->toStringOrNull(),
+            'approverName' => Type::of($row['approver_name'] ?? null)->toStringOrNull(),
+        ])->getValues();
     }
 }

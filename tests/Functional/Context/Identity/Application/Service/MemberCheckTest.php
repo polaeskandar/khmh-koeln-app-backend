@@ -54,7 +54,8 @@ final class MemberCheckTest extends ApiTestCase
 
     public function testUnlinkingClosesThePortalOnTheNextRequestWithoutSigningOut(): void
     {
-        $this->linked('nevine@example.org');
+        [$nevine] = $this->linked('nevine@example.org');
+        new RoleGrants(self::getContainer())->grant($nevine, 'parent');
         $this->signInAs('nevine@example.org', SignInAccounts::TYPED);
         $this->jsonRequest('GET', self::PROBE);
         self::assertResponseIsSuccessful();

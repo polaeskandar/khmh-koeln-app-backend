@@ -43,6 +43,16 @@ final readonly class Registration
         );
     }
 
+    public function reopenedAs(RegisteredAs $registeredAs): self
+    {
+        return new self(
+            $registeredAs,
+            note: null,
+            privacyAcceptedAt: $this->privacyAcceptedAt,
+            privacyVersion: $this->privacyVersion,
+        );
+    }
+
     public static function none(): self
     {
         return new self(registeredAs: null, note: null, privacyAcceptedAt: null, privacyVersion: null);

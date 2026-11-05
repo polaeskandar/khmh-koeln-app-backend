@@ -129,11 +129,11 @@ final class User extends CreatedAtEntity
         return $this->status;
     }
 
-    public function approve(self $by, DateTimeImmutable $at): void
+    public function changeApproval(?self $by, AccountStatus $status, Registration $registration): void
     {
-        $this->status = $this->status->approvedOn($at);
+        $this->status = $status;
         $this->approvedBy = $by;
-        $this->registration = $this->registration->decided();
+        $this->registration = $registration;
     }
 
     public function changePassword(string $passwordHash): void

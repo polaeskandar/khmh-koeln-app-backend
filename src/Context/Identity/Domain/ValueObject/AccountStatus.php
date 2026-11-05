@@ -40,11 +40,21 @@ final readonly class AccountStatus
 
     public function disabledAt(DateTimeImmutable $at): self
     {
-        if ($this->isDisabled()) {
+        if ($this->disabledAt !== null) {
             return $this;
         }
 
         return new self($this->approvedAt, $at, $this->authVersion + 1, $this->emailConfirmedAt);
+    }
+
+    public function reopened(): self
+    {
+        return new self(
+            approvedAt: null,
+            disabledAt: $this->disabledAt,
+            authVersion: $this->authVersion + 1,
+            emailConfirmedAt: $this->emailConfirmedAt,
+        );
     }
 
     public function enabled(): self
@@ -59,17 +69,12 @@ final readonly class AccountStatus
 
     public function isActive(): bool
     {
-        return !$this->isPending() && !$this->isDisabled();
+        return !$this->isPending() && $this->disabledAt === null;
     }
 
     public function isPending(): bool
     {
         return $this->approvedAt === null;
-    }
-
-    public function isDisabled(): bool
-    {
-        return $this->disabledAt !== null;
     }
 
     public function isEmailConfirmed(): bool

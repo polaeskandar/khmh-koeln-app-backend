@@ -1120,6 +1120,24 @@ nobody to manage roles.
 `app:user:password-link` does. The link itself is never returned, stored or logged. 404 `notFound.user`; 409
 `accounts.passwordLinkUnavailable` for a pending or disabled account.
 
+### Member accounts
+
+#### `GET /api/member-accounts`
+
+`users: read`, else 403 `accounts.adminOnly`. → 200 `{today, items}`: the accounts linked to a member record that hold
+no staff role (no permission outside `parentPortal`), by name in German collation, as `{id, name, email, isParent,
+disabled, member: {id, name, inactive, groups}, ageCheck, guardianConsentNote, approvedAt, approvedBy: AccountRef |
+null}`. `member.groups` are the record's current groups as `"Service"` or `"Service › Stage"`; `inactive` says the
+record is inactive. No password, registration or session data.
+
+#### `POST /api/member-accounts/{id}/unlink`
+
+`users: update`, else 403 `accounts.adminOnly`. Body `{}` → 204: the link, the age check and the note are removed.
+An account without roles becomes an account request again (`approvedAt`, `approvedBy` null, `registeredAs: member`,
+no note); its sessions end on their next request and signing in answers 403 `auth.pending` until it is approved
+again. An account with roles keeps them, so a parent keeps the parent portal. 404 `notFound.user`; 409
+`accounts.notLinked` when the account has no link.
+
 ### Parent access
 
 The administrators' page for giving and revoking a parent's access to a child, the same links that
