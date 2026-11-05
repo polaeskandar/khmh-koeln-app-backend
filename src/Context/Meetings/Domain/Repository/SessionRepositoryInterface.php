@@ -19,6 +19,15 @@ interface SessionRepositoryInterface
     public function find(Uuid $id): ?Session;
 
     /**
+     * @template T of object
+     *
+     * @param callable(Session): T $work
+     *
+     * @return T
+     */
+    public function withWriteLock(Uuid $id, callable $work): object;
+
+    /**
      * @return ReadableCollection<int, SessionEvent>
      */
     public function historyOf(Session $session): ReadableCollection;

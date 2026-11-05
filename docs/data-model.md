@@ -106,6 +106,15 @@ service-level roster; `(service_id, stage_id)` is indexed for rosters. Ending a 
 | `session_event` | The session's history: created, opened, closed, reopened, canceled, edited, with who and an optional note. | Append-only. |
 | `attendance` | A "present" mark. | At most one current mark per session and person (`removed_at` null). A correction sets `removed_at`, `removed_by` and a reason. There are no absence rows: not marked present is not the same as absent. |
 
+`attendance.attendance` (`Attendance`, own schema): `session_id` (Meetings) and `person_id` (People) are plain ids
+without foreign keys; `recorded_at`, `recorded_by` and the `Removal` (`removed_at`, `removed_by`,
+`removal_reason` ≤200, trimmed, blank → null). The account columns are nulled by the erasure process (D6), and
+the use cases refuse to delete a person or session with marks, since no foreign key crosses schemas. Partial
+UNIQUE `uniq_attendance_current (session_id, person_id) WHERE removed_at IS NULL`; CHECKs: removal fields only on a
+removed mark, `removed_at >= recorded_at`. Indexes on `session_id` and `person_id`. Every attendance write runs in
+the session write lock (`SessionRepositoryInterface::withWriteLock()`): one transaction holding `SELECT … FOR
+UPDATE` on the `meeting_session` row, so marks, opening, closing and canceling are serialized per session.
+
 The meeting tables live in the `meetings` schema. A schedule's `Recurrence` is `frequency` (`weekly` or
 `monthly`), `interval` (1–52 weeks when weekly, 1–52 months when monthly), `weekdays` (a bitmask of ISO weekdays, Monday = 1 … Sunday = 64, so 1–127),
 `month_week` (1–4 or -1 for the last; set exactly when monthly, and then with exactly one weekday) and
