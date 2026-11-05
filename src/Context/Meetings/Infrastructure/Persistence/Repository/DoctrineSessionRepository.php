@@ -10,6 +10,7 @@ use App\Context\Meetings\Domain\Entity\SessionEvent;
 use App\Context\Meetings\Domain\Enum\SessionEventType;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\Actor;
+use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Model\LocalDate;
 use App\Library\Types\Model\ListOf;
 use App\Library\Types\Model\Type;
@@ -17,6 +18,7 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\DBAL\ArrayParameterType;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Override;
@@ -41,6 +43,16 @@ final readonly class DoctrineSessionRepository implements SessionRepositoryInter
     public function find(Uuid $id): ?Session
     {
         return $this->entityManager->find(Session::class, $id);
+    }
+
+    #[Override]
+    public function withWriteLock(Uuid $id, callable $work): object
+    {
+        return $this->entityManager->wrapInTransaction(function () use ($id, $work): object {
+            $session = $this->entityManager->find(Session::class, $id, LockMode::PESSIMISTIC_WRITE);
+
+            return $work($session ?? throw NotFound::of('session'));
+        });
     }
 
     #[Override]
