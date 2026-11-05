@@ -755,6 +755,7 @@ label is its own label, and the 120-character limit applies only to a label that
 
 | Code | Params | Meaning (English reference text) |
 | --- | --- | --- |
+| `homework.alreadyUndone` | – | **New.** 409: this report was already undone. |
 | `homework.titleRequired` | – | Enter a title, e.g. “Learn the memory verse”. |
 | `homework.instructionsRequired` | – | Write what the parent and child should do. |
 | `homework.instructionsTooLong` | – | Use at most 2,000 characters. |
