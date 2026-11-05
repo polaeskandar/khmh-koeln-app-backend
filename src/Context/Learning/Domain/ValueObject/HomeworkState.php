@@ -42,6 +42,29 @@ final readonly class HomeworkState
         return new self(HomeworkStatus::Archived, $this->publishedAt, $this->archivedAt ?? $at);
     }
 
+    public function drafted(): self
+    {
+        return $this->status === HomeworkStatus::Published
+            ? new self(HomeworkStatus::Draft, $this->publishedAt, $this->archivedAt)
+            : throw new RuleViolation('homework.onlyPublishedBack');
+    }
+
+    public function restored(): self
+    {
+        return match (true) {
+            $this->archivedAt === null => throw new RuleViolation('homework.notArchived'),
+            $this->publishedAt === null => new self(HomeworkStatus::Draft, publishedAt: null, archivedAt: null),
+            default => new self(HomeworkStatus::Published, $this->publishedAt, archivedAt: null),
+        };
+    }
+
+    public function ensureNeverPublished(): void
+    {
+        if ($this->publishedAt !== null) {
+            throw new RuleViolation('homework.publishedStays');
+        }
+    }
+
     public function ensureEditable(): void
     {
         if ($this->archivedAt !== null) {

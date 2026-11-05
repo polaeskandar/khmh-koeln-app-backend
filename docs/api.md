@@ -1828,12 +1828,29 @@ reports. 200 `{id, status}`; 404 `notFound.homework`, also for an id that is not
 
 #### `POST /api/homework/{id}/publish`
 
-`homework: update` (403 `homework.changeStageOnly`). Body `{}` → 200 `{id, status: "published", publishedAt}`
-(Europe/Berlin offset). It runs on the locked task row. A draft becomes `published` with `publishedAt` = now, also
+`homework: update` (403 `homework.changeStageOnly`). Body `{}` → 200 `{id, status: "published", publishedAt,
+archivedAt: null}` (Europe/Berlin offset). It runs on the locked task row. A draft becomes `published` with `publishedAt` = now, also
 when it was published and taken back before; an already published task stays as it is, so a phone's retry changes
 nothing. Parents only ever see published tasks. 404 `notFound.homework`, also for an id that is not a UUID; an
 archived stage or service → 409 `lessons.stageArchived {name}`; an archived task → 409
 `homework.archivedNoPublish`; an archived lesson → 409 `homework.lessonArchived`, in that order.
+
+#### `POST /api/homework/{id}/unpublish`, `…/archive`, `…/restore` and `DELETE /api/homework/{id}`
+
+`homework: update` (403 `homework.changeStageOnly`). Each takes body `{}` and runs in one transaction on the locked
+task row, the lock a parent's report takes too. The `POST`s answer 200 `{id, status, publishedAt, archivedAt}`
+(Europe/Berlin offset); `DELETE` answers 204. 404 `notFound.homework`, also for an id that is not a UUID; an archived
+stage or service → 409 `lessons.stageArchived {name}`. Reports are never removed. Apps offer each action from the
+task's `status`, `publishedAt` and the lesson's `archivedAt`, under the rules below.
+
+- **Unpublish** takes a published task back to `draft` and keeps `publishedAt`. Not published → 409
+  `homework.onlyPublishedBack`; any current report, also from a child no longer in the stage → 409
+  `homework.alreadyReported`. Undone reports do not count.
+- **Archive** works from `draft` and `published`; an archived task keeps its first `archivedAt`.
+- **Restore** brings an archived task back as `published` when `publishedAt` is set, else as `draft`. Not archived
+  → 409 `homework.notArchived`; an archived lesson → 409 `homework.lessonArchived`.
+- **Delete** removes a task whose `publishedAt` is `null`: drafts, also archived ones. Otherwise → 409
+  `homework.publishedStays`.
 
 #### `GET /api/homework/{id}/progress`
 
