@@ -196,9 +196,8 @@ final class SessionTalliesTest extends KernelTestCase
         $rosters = self::getContainer()->get(PeopleRosters::class);
         self::assertInstanceOf(PeopleRosters::class, $rosters);
 
-        $marks = new AttendanceMarks(
-            new DoctrineAttendanceRepository(new Database(self::getContainer())->entityManager()),
-        );
+        $marks = self::getContainer()->get(AttendanceMarks::class);
+        self::assertInstanceOf(AttendanceMarks::class, $marks);
 
         $meetings = self::getContainer()->get(MeetingLookup::class);
         self::assertInstanceOf(MeetingLookup::class, $meetings);
