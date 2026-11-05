@@ -21,4 +21,9 @@ final readonly class LessonStages
 
         return LessonStage::open($stage->id(), $archivedName);
     }
+
+    public static function isOpen(Stage $stage): bool
+    {
+        return !$stage->isArchived() && !$stage->service()->isArchived();
+    }
 }

@@ -8,10 +8,14 @@ use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Enum\LessonTab;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
+use App\Context\Learning\Domain\ValueObject\HomeworkTally;
 use App\Context\Learning\Domain\ValueObject\LessonListing;
+use App\Context\Learning\Domain\ValueObject\LessonReading;
 use App\Context\Learning\Domain\ValueObject\LessonTabs;
 use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -30,8 +34,36 @@ final readonly class StageLessons
         $today = $this->calendar->today();
         $tabs = new LessonTabs($this->lessons->ofStage($stageId), $today);
         $shown = $tabs->shown($chosen, $query);
-        $ids = new ArrayCollection($shown)->map(static fn (Lesson $lesson): Uuid => $lesson->id())->getValues();
 
-        return new LessonListing($today, $tabs->counts(), $shown, $this->homework->countsByLesson($ids));
+        return new LessonListing($today, $tabs->counts(), $shown, $this->homeworkOf($shown));
+    }
+
+    public function reading(string $id): LessonReading
+    {
+        $lesson = $this->lessons->find(Uuid::fromString($id)) ?? throw NotFound::of('lesson');
+        $state = $lesson->state();
+
+        return new LessonReading(
+            $lesson,
+            $this->homeworkOf([$lesson]),
+            $this->calendar->today(),
+            completedAt: $this->instantOf($state->completedAt),
+            archivedAt: $this->instantOf($state->archivedAt),
+        );
+    }
+
+    /**
+     * @param list<Lesson> $lessons
+     */
+    private function homeworkOf(array $lessons): HomeworkTally
+    {
+        $ids = new ArrayCollection($lessons)->map(static fn (Lesson $lesson): Uuid => $lesson->id())->getValues();
+
+        return new HomeworkTally($this->homework->countsByLesson($ids));
+    }
+
+    private function instantOf(?DateTimeInterface $instant): ?string
+    {
+        return $instant === null ? null : $this->calendar->formatInstant($instant);
     }
 }

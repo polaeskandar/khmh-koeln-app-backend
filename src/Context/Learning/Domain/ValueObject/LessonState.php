@@ -44,6 +44,11 @@ final readonly class LessonState
         return $this->status === LessonStatus::Completed && $today->isBefore($teachingDate);
     }
 
+    public function isTeachable(LocalDate $teachingDate, LocalDate $today): bool
+    {
+        return $this->status === LessonStatus::Ready && !$today->isBefore($teachingDate);
+    }
+
     public function ensureNotArchived(): void
     {
         if ($this->archivedAt !== null) {

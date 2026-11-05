@@ -136,6 +136,11 @@ final class Lesson extends TimestampedEntity
         }
     }
 
+    public function isTeachableOn(LocalDate $today): bool
+    {
+        return $this->state->isTeachable($this->link->teachingDate, $today);
+    }
+
     public function edit(LessonText $text, MeetingLink $link, ?Uuid $responsibleId): void
     {
         $this->text = $text;

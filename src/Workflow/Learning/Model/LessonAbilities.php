@@ -25,7 +25,7 @@ final readonly class LessonAbilities
 
     public static function grantedBy(AccessCheck $access, AccountLookup $accounts, Stage $stage): self
     {
-        $open = !$stage->isArchived() && !$stage->service()->isArchived();
+        $open = LessonStages::isOpen($stage);
         $preparers = $accounts->activeAllowedTo(Action::Update, Resource::Lessons);
 
         return new self(

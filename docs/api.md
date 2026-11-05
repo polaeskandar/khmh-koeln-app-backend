@@ -1311,6 +1311,21 @@ archived}, servants: AccountRef[], can: {create}, items: LessonRow[]}`; 404 `not
 
 The rows cost the same number of statements whatever their number.
 
+#### `GET /api/lessons/{id}`
+
+`lessons: read` (403 `forbidden`). The lesson page and the editor: `{service: ServiceRef, stage: StageRef, today,
+lesson, homework, can: {manage, markCompleted, manageHomework, viewNotes}}`; 404 `notFound.lesson`. Archived
+lessons stay readable.
+
+- `lesson` is the stage list's `LessonRow` without `homework`, plus `scheduleId`, `summary`, `memoryVerse`,
+  `objectives`, `teachingPoints`, `activities`, `materials`, `notes`, `completedAt` and `archivedAt` (instants in
+  Europe/Berlin). `homework` is the row's `{total, published, drafts}`.
+- `notes` may name children, so it is `null` unless the caller may read members (`members: read`), which is
+  `can.viewNotes`.
+- `manage` is `lessons: update` and `manageHomework` is `homework: update`, both while the lesson, its stage and its
+  service are not archived; `markCompleted` is `manage` for a `ready` lesson whose teaching date is church-today or
+  earlier.
+
 #### `POST /api/stages/{stageId}/lessons`
 
 `lessons: create` (403 `lessons.prepareStageOnly`). Body:
