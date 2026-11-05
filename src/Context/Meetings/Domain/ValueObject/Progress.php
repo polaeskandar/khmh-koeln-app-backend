@@ -41,4 +41,9 @@ final readonly class Progress
     {
         return new self(SessionStatus::Active, $this->cancelReason, $this->opened, Stamp::none());
     }
+
+    public function canceled(?string $reason): self
+    {
+        return new self(SessionStatus::Canceled, $reason, $this->opened, $this->closed);
+    }
 }

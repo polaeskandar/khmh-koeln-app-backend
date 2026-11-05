@@ -9,6 +9,7 @@ use App\Context\Meetings\Domain\ValueObject\AttendanceRules;
 use App\Context\Meetings\Domain\ValueObject\Progress;
 use App\Context\Meetings\Domain\ValueObject\Stamp;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
+use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Time\Model\LocalDate;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -90,6 +91,17 @@ final class Session extends CreatedAtEntity
     {
         AttendanceRules::ensureReopenable($this->progress->status);
         $this->progress = $this->progress->reopened();
+
+        return true;
+    }
+
+    public function cancel(?string $reason): bool
+    {
+        if ($this->progress->status !== SessionStatus::Scheduled) {
+            throw new RuleViolation('meetings.onlyScheduledCanCancel');
+        }
+
+        $this->progress = $this->progress->canceled($reason);
 
         return true;
     }

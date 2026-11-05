@@ -51,6 +51,19 @@ final readonly class SessionTransitions
         );
     }
 
+    public function cancel(string $sessionId, string $accountId, ?string $reason): Session
+    {
+        $note = InputText::of($reason)->trimmed()->toStringOrNull();
+
+        return $this->apply(
+            $sessionId,
+            $accountId,
+            SessionEventType::Canceled,
+            note: $note,
+            change: static fn (Session $session): bool => $session->cancel($note),
+        );
+    }
+
     /**
      * @param callable(Session, Stamp): bool $change
      */

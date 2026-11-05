@@ -6,7 +6,7 @@ namespace App\Interface\Api\Meetings\Request;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
-final readonly class ReopenSessionRequest
+final readonly class ReasonRequest
 {
     public function __construct(
         #[Assert\Length(max: 200, maxMessage: 'validation.tooLong', normalizer: 'trim')]
