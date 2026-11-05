@@ -83,7 +83,8 @@ jobs:
       DEFAULT_URI: https://app.khmk-koeln.com
       MAILER_DSN: null://null
       TRUSTED_PROXIES: ''
-      RUN_ENV: -e APP_SECRET -e DATABASE_URL -e DEFAULT_URI -e MAILER_DSN -e TRUSTED_PROXIES
+      TRUSTED_HOSTS: ^(app\.khmk-koeln\.com|localhost|127\.0\.0\.1)$
+      RUN_ENV: -e APP_SECRET -e DATABASE_URL -e DEFAULT_URI -e MAILER_DSN -e TRUSTED_PROXIES -e TRUSTED_HOSTS
       PSQL: docker run --rm --network host postgres:18-alpine psql postgresql://khmk:khmk@127.0.0.1:5432/khmk -tAc
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -131,6 +132,12 @@ jobs:
           for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/api/health && break; sleep 1; done
           curl -fsS -D headers.txt http://127.0.0.1:8080/api/health/ready
           if grep -qi '^x-powered-by' headers.txt; then exit 1; fi
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: evil.example' http://127.0.0.1:8080/api/health)" = 400
+          for attempt in $(seq 1 20); do
+            test "$(docker inspect api --format '{{.State.Health.Status}}')" = healthy && break
+            sleep 3
+          done
+          test "$(docker inspect api --format '{{.State.Health.Status}}')" = healthy
 
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0

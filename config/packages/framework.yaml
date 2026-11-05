@@ -32,8 +32,14 @@ when@dev:
 
 when@prod:
     framework:
+        trusted_hosts: '%env(TRUSTED_HOSTS)%'
         session:
             name: __Host-khmk_session
+            cookie_secure: true
+            cookie_httponly: true
+            cookie_samesite: lax
+            cookie_path: /
+            cookie_domain: null
 
 when@test:
     framework:
