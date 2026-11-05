@@ -24,6 +24,7 @@ final readonly class StageResponse implements JsonSerializable
      *     description: string|null,
      *     position: int,
      *     archived: bool,
+     *     memberCount: int,
      *     service: ServiceReference,
      *     can: StageAbilities,
      * }
@@ -39,6 +40,7 @@ final readonly class StageResponse implements JsonSerializable
             'description' => $stage->description,
             'position' => $stage->position,
             'archived' => $this->details->archived,
+            'memberCount' => $stage->memberCount,
             'service' => $this->details->service,
             'can' => $this->details->can,
         ];

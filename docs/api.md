@@ -964,6 +964,8 @@ A service row:
   "tone": 1,
   "archived": false,
   "archivedAt": null,
+  "memberCount": 24,
+  "serviceLevelMemberCount": 0,
   "stages": [
     {"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f20", "name": "3rd Class", "position": 2, "archived": false, "can": {"manageMembers": true}}
   ],
@@ -971,7 +973,8 @@ A service row:
 }
 ```
 
-`stages` are the active stages by position. The flags follow the viewer's permissions: `edit` is
+`stages` are the active stages by position. `memberCount` counts the people on any roster of the service today
+(Europe/Berlin), each once; `serviceLevelMemberCount` only those on the service-level roster. The flags follow the viewer's permissions: `edit` is
 `services: update`, `archive` `services: delete`, `manageStructure` `stages: update`, `manageSessions`
 `sessions: update`, `manageMembers` `members: update`.
 
@@ -1001,8 +1004,9 @@ clears the description. Same rules as `POST`, also for archived services. 200 wi
 
 #### `GET /api/services/{id}/stages`
 
-`services: read`. `{service: ServiceRef, stages: [{id, name, description, position}], archivedStages: [{id, name,
-archivedAt}], can: {manageStructure}}`; stages by position. `manageStructure` is `stages: update` on an active
+`services: read`. `{service: ServiceRef, stages: [{id, name, description, position, memberCount}],
+archivedStages: [{id, name, archivedAt}], can: {manageStructure}}`; stages by position; `memberCount` counts the
+stage's roster today. `manageStructure` is `stages: update` on an active
 service, else `false`. 404 `notFound.service`.
 
 #### `POST /api/services/{id}/stages`
@@ -1015,8 +1019,8 @@ service row is locked). 201 with `Location` and the body of its `GET`.
 
 #### `GET /api/stages/{id}`
 
-`services: read`. `{id, name, description, position, archived, service: ServiceRef, can: {manageStructure,
-manageMembers}}`. Both flags are `false` on an archived service; `manageMembers` (`members: update`) is also
+`services: read`. `{id, name, description, position, archived, memberCount, service: ServiceRef, can:
+{manageStructure, manageMembers}}`; `memberCount` counts the stage's roster today. Both flags are `false` on an archived service; `manageMembers` (`members: update`) is also
 `false` on an archived stage. 404 `notFound.stage`.
 
 #### `PATCH /api/stages/{id}`

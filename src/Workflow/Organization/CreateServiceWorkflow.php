@@ -9,6 +9,7 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
+use App\Workflow\Organization\Model\MemberCounts;
 use App\Workflow\Organization\Model\ServiceAbilities;
 use App\Workflow\Organization\Model\ServiceOverview;
 
@@ -30,6 +31,7 @@ final readonly class CreateServiceWorkflow
         return ServiceOverview::of(
             $service,
             $this->stages->activeOf($service),
+            MemberCounts::none(),
             ServiceAbilities::grantedBy($this->access),
         );
     }

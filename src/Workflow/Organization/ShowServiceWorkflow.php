@@ -9,6 +9,8 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
+use App\Context\People\Application\Service\Rosters;
+use App\Workflow\Organization\Model\MemberCounts;
 use App\Workflow\Organization\Model\ServiceAbilities;
 use App\Workflow\Organization\Model\ServiceOverview;
 
@@ -18,6 +20,7 @@ final readonly class ShowServiceWorkflow
         private AccessCheck $access,
         private ChurchServices $services,
         private ServiceStages $stages,
+        private Rosters $rosters,
     ) {
     }
 
@@ -30,6 +33,7 @@ final readonly class ShowServiceWorkflow
         return ServiceOverview::of(
             $service,
             $this->stages->activeOf($service),
+            MemberCounts::ofService($service, $this->rosters),
             ServiceAbilities::grantedBy($this->access),
         );
     }

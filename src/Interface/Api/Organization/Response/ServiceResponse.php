@@ -26,6 +26,8 @@ final readonly class ServiceResponse implements JsonSerializable
      *     tone: int,
      *     archived: bool,
      *     archivedAt: string|null,
+     *     memberCount: int,
+     *     serviceLevelMemberCount: int,
      *     stages: list<array{
      *         id: string,
      *         name: string,
@@ -48,6 +50,8 @@ final readonly class ServiceResponse implements JsonSerializable
             'tone' => $service->tone,
             'archived' => $service->archivedAt !== null,
             'archivedAt' => $service->archivedAt,
+            'memberCount' => $this->overview->members->members,
+            'serviceLevelMemberCount' => $this->overview->members->serviceLevel,
             'stages' => new ArrayCollection($this->overview->stages)->map($this->stageOf(...))->getValues(),
             'can' => $this->overview->can,
         ];

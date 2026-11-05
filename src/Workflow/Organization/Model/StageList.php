@@ -24,14 +24,22 @@ final readonly class StageList
 
     /**
      * @param ReadableCollection<int, Stage> $stages
+     * @param ReadableCollection<string, int> $members
      */
-    public static function of(Service $service, ReadableCollection $stages, bool $canManageStructure): self
-    {
+    public static function of(
+        Service $service,
+        ReadableCollection $stages,
+        ReadableCollection $members,
+        bool $canManageStructure,
+    ): self {
         return new self(
             ServiceReference::of($service),
             $stages
                 ->filter(static fn (Stage $stage): bool => !$stage->isArchived())
-                ->map(StageEntry::of(...))
+                ->map(static fn (Stage $stage): StageEntry => StageEntry::of(
+                    $stage,
+                    $members->get($stage->id()->toRfc4122()) ?? 0,
+                ))
                 ->getValues(),
             $stages
                 ->filter(static fn (Stage $stage): bool => $stage->isArchived())

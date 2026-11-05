@@ -8,6 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ServiceStages;
+use App\Context\People\Application\Service\Rosters;
 use App\Workflow\Organization\Model\DetailChanges;
 use App\Workflow\Organization\Model\StageDetails;
 
@@ -16,6 +17,7 @@ final readonly class EditStageWorkflow
     public function __construct(
         private AccessCheck $access,
         private ServiceStages $stages,
+        private Rosters $rosters,
     ) {
     }
 
@@ -25,6 +27,6 @@ final readonly class EditStageWorkflow
 
         $stage = $this->stages->edit($stageId, $changes->name, $changes->descriptionChange());
 
-        return StageDetails::of($stage, $this->access);
+        return StageDetails::of($stage, $this->access, $this->rosters);
     }
 }

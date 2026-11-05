@@ -17,6 +17,7 @@ final readonly class ServiceOverview
     public function __construct(
         public ServiceSummary $service,
         public array $stages,
+        public MemberCounts $members,
         public ServiceAbilities $can,
     ) {
     }
@@ -24,8 +25,12 @@ final readonly class ServiceOverview
     /**
      * @param ReadableCollection<int, Stage> $stages
      */
-    public static function of(Service $service, ReadableCollection $stages, ServiceAbilities $can): self
-    {
+    public static function of(
+        Service $service,
+        ReadableCollection $stages,
+        MemberCounts $members,
+        ServiceAbilities $can,
+    ): self {
         return new self(
             new ServiceSummary(
                 id: $service->id()->toRfc4122(),
@@ -35,6 +40,7 @@ final readonly class ServiceOverview
                 archivedAt: $service->archivedAt()?->format(DateTimeInterface::ATOM),
             ),
             $stages->map(StageSummary::of(...))->getValues(),
+            $members,
             $can,
         );
     }

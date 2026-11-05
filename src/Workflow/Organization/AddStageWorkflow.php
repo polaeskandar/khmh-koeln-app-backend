@@ -8,6 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ServiceStages;
+use App\Context\People\Application\Service\Rosters;
 use App\Workflow\Organization\Model\StageDetails;
 
 final readonly class AddStageWorkflow
@@ -15,6 +16,7 @@ final readonly class AddStageWorkflow
     public function __construct(
         private AccessCheck $access,
         private ServiceStages $stages,
+        private Rosters $rosters,
     ) {
     }
 
@@ -22,6 +24,6 @@ final readonly class AddStageWorkflow
     {
         $this->access->require(Action::Create, Resource::Stages);
 
-        return StageDetails::of($this->stages->add($serviceId, $name, $description), $this->access);
+        return StageDetails::of($this->stages->add($serviceId, $name, $description), $this->access, $this->rosters);
     }
 }
