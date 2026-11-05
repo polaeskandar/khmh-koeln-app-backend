@@ -13,6 +13,7 @@ use App\Context\Learning\Domain\ValueObject\MeetingChoice;
 use App\Context\Learning\Domain\ValueObject\MeetingLink;
 use App\Context\Learning\Domain\ValueObject\OfferedMeeting;
 use App\Context\Learning\Domain\ValueObject\ResponsibleChoice;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
 use Symfony\Component\Uid\Uuid;
@@ -61,6 +62,17 @@ final readonly class LessonWrites
         return $this->described($lesson, $draft);
     }
 
+    public function changeStatus(Lesson $lesson, string $status): Lesson
+    {
+        $chosen = LessonStatus::tryFrom($status) ?? throw InvalidInput::field('status', 'validation.invalidChoice');
+
+        if ($lesson->changeStatus($chosen, $this->calendar->today(), $this->calendar->now())) {
+            $this->lessons->save($lesson);
+        }
+
+        return $lesson;
+    }
+
     private function relinked(
         Lesson $lesson,
         LessonStage $stage,
@@ -80,7 +92,8 @@ final readonly class LessonWrites
     private function described(Lesson $lesson, LessonDraft $draft): Lesson
     {
         $lesson->describe($draft->plan->merged($lesson->plan()), $draft->plan->materials($lesson->materials()));
-        $lesson->prepare(LessonStatus::from($draft->status ?? $lesson->state()->status->value));
+        $status = LessonStatus::from($draft->status ?? $lesson->state()->status->value);
+        $lesson->changeStatus($status, $this->calendar->today(), $this->calendar->now());
         $this->lessons->save($lesson);
 
         return $lesson;

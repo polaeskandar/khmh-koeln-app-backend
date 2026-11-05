@@ -1349,3 +1349,12 @@ out, and `draft` or `ready` reopens it and clears its completion; moving it afte
 `notFound.lesson`; an archived lesson → 409 `lessons.archived`; an archived stage → 409 `lessons.stageArchived
 {name}`.
 
+#### `POST /api/lessons/{id}/status`
+
+`lessons: update` (403 `lessons.changeStageOnly`). Body `{status}`: `draft`, `ready` or `completed` (else 422
+`status` `validation.invalidChoice`) → 200 `{id, status, completedAt}`. Any status moves to any other; `completed`
+needs the teaching date to be church-today or earlier (Europe/Berlin), else 409 `lessons.taughtAfterDate`. It sets
+`completedAt`, and leaving `completed` clears it. The same status changes nothing, so retries are harmless. 404
+`notFound.lesson`; an archived lesson → 409 `lessons.archived`; an archived stage or service → 409
+`lessons.stageArchived {name}`. `PATCH`'s `status` uses the same rule.
+

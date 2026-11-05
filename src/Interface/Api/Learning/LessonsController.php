@@ -6,8 +6,11 @@ namespace App\Interface\Api\Learning;
 
 use App\Interface\Api\Learning\Request\LessonListQueryRequest;
 use App\Interface\Api\Learning\Request\LessonRequest;
+use App\Interface\Api\Learning\Request\LessonStatusRequest;
 use App\Interface\Api\Learning\Response\LessonListResponse;
+use App\Interface\Api\Learning\Response\LessonStatusResponse;
 use App\Interface\Api\Learning\Response\WrittenLessonResponse;
+use App\Workflow\Learning\ChangeLessonStatusWorkflow;
 use App\Workflow\Learning\CreateLessonWorkflow;
 use App\Workflow\Learning\EditLessonWorkflow;
 use App\Workflow\Learning\ListLessonsWorkflow;
@@ -66,5 +69,20 @@ final class LessonsController extends AbstractController
         EditLessonWorkflow $editLesson,
     ): JsonResponse {
         return $this->json(WrittenLessonResponse::of($editLesson($id, $lesson->lesson())));
+    }
+
+    #[Route(
+        '/api/lessons/{id}/status',
+        name: 'api_lessons_status',
+        requirements: ['id' => Requirement::UUID],
+        methods: ['POST'],
+    )]
+    public function changeStatus(
+        string $id,
+        #[MapRequestPayload]
+        LessonStatusRequest $request,
+        ChangeLessonStatusWorkflow $changeLessonStatus,
+    ): JsonResponse {
+        return $this->json(LessonStatusResponse::of($changeLessonStatus($id, $request->status ?? '')));
     }
 }

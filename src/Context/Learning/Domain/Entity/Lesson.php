@@ -126,14 +126,12 @@ final class Lesson extends TimestampedEntity
 
     public function ensureEditable(): void
     {
-        if ($this->state->archivedAt !== null) {
-            throw new RuleViolation('lessons.archived');
-        }
+        $this->state->ensureNotArchived();
     }
 
     public function ensureMovableTo(MeetingLink $link, LocalDate $today): void
     {
-        if ($this->state->status === LessonStatus::Completed && $today->isBefore($link->teachingDate)) {
+        if ($this->state->isCompletedAfter($link->teachingDate, $today)) {
             throw MeetingChoice::refusal('lessons.taughtAfterDate');
         }
     }
@@ -145,8 +143,20 @@ final class Lesson extends TimestampedEntity
         $this->responsibleId = $responsibleId;
     }
 
-    public function prepare(LessonStatus $status): void
+    public function changeStatus(LessonStatus $status, LocalDate $today, DateTimeImmutable $now): bool
     {
-        $this->state = $this->state->withStatus($status);
+        if ($status === $this->state->status) {
+            return false;
+        }
+
+        $moved = $this->state->movedTo($status, $now);
+
+        if ($moved->isCompletedAfter($this->link->teachingDate, $today)) {
+            throw new RuleViolation('lessons.taughtAfterDate');
+        }
+
+        $this->state = $moved;
+
+        return true;
     }
 }

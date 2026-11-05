@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Context\Learning\Domain\ValueObject;
 
 use App\Context\Learning\Domain\Enum\LessonStatus;
+use App\Library\Problem\Exception\RuleViolation;
+use App\Library\Time\Model\LocalDate;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -32,10 +34,20 @@ final readonly class LessonState
         return new self($this->status, $this->completedAt, $at);
     }
 
-    public function withStatus(LessonStatus $status): self
+    public function movedTo(LessonStatus $status, DateTimeImmutable $at): self
     {
-        $completedAt = $status === LessonStatus::Completed ? $this->completedAt : null;
+        return new self($status, $status === LessonStatus::Completed ? $at : null, $this->archivedAt);
+    }
 
-        return new self($status, $completedAt, $this->archivedAt);
+    public function isCompletedAfter(LocalDate $teachingDate, LocalDate $today): bool
+    {
+        return $this->status === LessonStatus::Completed && $today->isBefore($teachingDate);
+    }
+
+    public function ensureNotArchived(): void
+    {
+        if ($this->archivedAt !== null) {
+            throw new RuleViolation('lessons.archived');
+        }
     }
 }
