@@ -12,6 +12,10 @@ framework:
             policy: fixed_window
             limit: 20
             interval: '1 hour'
+        password_link:
+            policy: fixed_window
+            limit: 10
+            interval: '1 hour'
 
 when@test:
     framework:
@@ -21,4 +25,6 @@ when@test:
             sign_in_client:
                 storage_service: app.test.rate_limits
             registration:
+                storage_service: app.test.rate_limits
+            password_link:
                 storage_service: app.test.rate_limits

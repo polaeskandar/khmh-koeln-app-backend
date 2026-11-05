@@ -102,6 +102,11 @@ final class User extends CreatedAtEntity
         return $this->status;
     }
 
+    public function changePassword(string $passwordHash): void
+    {
+        $this->passwordHash = $passwordHash;
+    }
+
     public function changeStatus(AccountStatus $status): void
     {
         $this->status = $status;
