@@ -7,10 +7,13 @@ namespace App\Workflow\Identity;
 use App\Context\Identity\Application\Service\CurrentAccounts;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\ValueObject\Access;
+use App\Context\Organization\Application\Service\StructureLookup;
+use App\Context\People\Application\Service\MemberRecords;
 use App\Library\Collections\Model\Collections;
 use App\Library\Time\Client\Calendar;
 use App\Workflow\Identity\Model\AccountSummary;
 use App\Workflow\Identity\Model\CurrentAccount;
+use App\Workflow\Identity\Model\MemberSummary;
 use App\Workflow\Identity\Model\PermissionGrant;
 use App\Workflow\Identity\Model\RoleSummary;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -22,6 +25,8 @@ final readonly class ShowCurrentAccountWorkflow
     public function __construct(
         private CurrentAccounts $accounts,
         private Calendar $calendar,
+        private MemberRecords $records,
+        private StructureLookup $structure,
     ) {
     }
 
@@ -34,6 +39,22 @@ final readonly class ShowCurrentAccountWorkflow
             roles: self::rolesOf($user),
             permissions: new ArrayCollection($this->accounts->grantsOf($user))->map(self::grantOf(...))->getValues(),
             today: $this->calendar->today()->toString(),
+            member: $this->memberOf($user),
+        );
+    }
+
+    private function memberOf(User $user): ?MemberSummary
+    {
+        $personId = $user->member()->personId;
+
+        if ($personId === null) {
+            return null;
+        }
+
+        return MemberSummary::of(
+            $personId,
+            $this->records->currentMembershipsOf($personId),
+            $this->structure->archivedIds(),
         );
     }
 

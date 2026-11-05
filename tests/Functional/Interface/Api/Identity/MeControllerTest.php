@@ -21,7 +21,8 @@ final class MeControllerTest extends ApiTestCase
 
         self::assertResponseIsSuccessful();
         $body = $this->responseJson();
-        self::assertSame(['account', 'roles', 'permissions', 'today'], array_keys($body));
+        self::assertSame(['account', 'roles', 'permissions', 'today', 'member'], array_keys($body));
+        self::assertNull($body['member'] ?? null);
 
         self::assertSame(
             ['id' => $id, 'email' => 'daniel@example.org', 'displayName' => 'Sara Hanna', 'language' => 'de'],

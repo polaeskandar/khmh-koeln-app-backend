@@ -276,19 +276,23 @@ Any signed-in account, parents included. 401 `auth.unauthenticated` without a va
 | `roles` | `[{id, name}]`, by name |
 | `permissions` | `[{action, resource}]`, every permission the account's roles grant, once each, by resource and action in the order of the catalog |
 | `today` | date |
+| `member` | `null`, or `{personId, groupCount}` for an account linked to its own member record: `groupCount` counts the record's current memberships (church-today) in services and stages that are not archived, 0 while the record is inactive |
 
-Nothing else: no password hash, registration, approval or disabled data.
+Nothing else: no password hash, registration, approval, disabled data or age check.
 
 Clients choose the account's areas, navigation and actions from `permissions`, by the same rules the API
 enforces:
 
 - **Staff app:** a permission on any resource other than `parentPortal`.
 - **Parent portal:** `read` on `parentPortal`.
+- **Member portal:** `member` is not `null`. It is the start page of an account with neither a staff nor a
+  parent permission; staff and parents get a link to it while `groupCount > 0`.
 - **Navigation:** for example the users and roles settings for `users: read`.
 - **Actions:** for example a service's edit button for `services: update`, its archive button for
   `services: delete`, and creating a service for `services: create`. Read models carry no permission flags.
 
-An account can have both areas; an approved account without roles has neither and sees the no-role view.
+An account can have several areas; an approved account without roles and without a member record has none and
+sees the no-role view.
 
 A servant (its `members`, `lessons` and `homework` permissions left out):
 
@@ -308,7 +312,8 @@ A servant (its `members`, `lessons` and `homework` permissions left out):
     {"action": "update", "resource": "attendance"},
     {"action": "delete", "resource": "attendance"}
   ],
-  "today": "2026-11-08"
+  "today": "2026-11-08",
+  "member": null
 }
 ```
 
@@ -324,7 +329,8 @@ A parent:
   },
   "roles": [{"id": "019a3f00-0000-7000-8000-000000000004", "name": "Parent"}],
   "permissions": [{"action": "read", "resource": "parentPortal"}],
-  "today": "2026-11-08"
+  "today": "2026-11-08",
+  "member": null
 }
 ```
 
@@ -1971,8 +1977,11 @@ then the task is no longer visible.
 ### Member portal
 
 `/api/member/*` is open to an active account linked to a member record (`person_id`), whatever its roles; the
-person always comes from the account, never from the request. The endpoints come with the member portal issues
-(#136–#141).
+person always comes from the account, never from the request. Each member workflow starts with Identity's
+`MemberCheck::require(accountId)`, which reloads the account on every request and hands back its record, so
+removing the link closes the portal on the next request without signing out. Without a link → 403 `forbidden`; without a session → 401 `auth.unauthenticated`. An
+inactive record keeps the portal open with empty lists. A member-only account (no roles) gets 403 on every route
+that needs a permission, the parent portal included.
 
 ### Your own data
 
