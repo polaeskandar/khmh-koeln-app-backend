@@ -26,11 +26,20 @@ final readonly class SessionView
         Calendar $calendar,
         SessionAbilities $can,
     ): self {
-        $schedule = $session->schedule();
+        $references = RosterReferences::lookedUpIn($structure, new ArrayCollection([$session->schedule()]));
 
+        return self::with($session, $references, $calendar, $can);
+    }
+
+    public static function with(
+        Session $session,
+        RosterReferences $references,
+        Calendar $calendar,
+        SessionAbilities $can,
+    ): self {
         return new self(
             SessionDetails::of($session),
-            ScheduleRoster::of($schedule, RosterReferences::lookedUpIn($structure, new ArrayCollection([$schedule]))),
+            ScheduleRoster::of($session->schedule(), $references),
             SessionTimes::of($session, $calendar),
             SessionProgress::of($session, $can),
             $can,

@@ -14,6 +14,7 @@ use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\Attendees;
 use App\Library\Time\Client\Calendar;
+use App\Workflow\Attendance\Model\AccountNames;
 use App\Workflow\Attendance\Model\AttendanceBoard;
 use App\Workflow\Attendance\Model\AttendanceCounts;
 use App\Workflow\Attendance\Model\BoardLists;
@@ -54,7 +55,9 @@ final readonly class ShowAttendanceBoardWorkflow
 
         return new AttendanceBoard(
             today: $this->calendar->today()->toString(),
-            session: BoardSession::of($session, $view, $this->accounts, $this->calendar),
+            session: BoardSession::of($session, $view, AccountNames::lookedUpIn($this->accounts, [
+                $session->progress()->closed->by,
+            ]), $this->calendar),
             counts: AttendanceCounts::of($tally->counts),
             lists: $this->listsOf($session, $tally),
             history: HistoryEntry::listOf($events, ActorReferences::lookedUpIn($this->accounts, $events), $can),

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Attendance\Response;
 
-use App\Interface\Api\Meetings\Response\SessionResponse;
 use App\Workflow\Attendance\Model\AttendanceBoard;
 use App\Workflow\Attendance\Model\AttendanceCounts;
 use App\Workflow\Attendance\Model\BoardRow;
@@ -40,16 +39,10 @@ final readonly class AttendanceBoardResponse implements JsonSerializable
     public function jsonSerialize(): array
     {
         $board = $this->board;
-        $session = $board->session;
 
         return [
             'today' => $board->today,
-            'session' => [
-                ...new SessionResponse($session->view)->jsonSerialize(),
-                'openedAt' => $session->openedAt,
-                'closedAt' => $session->closedAt,
-                'closedBy' => $session->closedBy,
-            ],
+            'session' => new BoardSessionResponse($board->session)->jsonSerialize(),
             'counts' => $board->counts,
             'roster' => $board->lists->roster,
             'notOnRoster' => $board->lists->notOnRoster,
