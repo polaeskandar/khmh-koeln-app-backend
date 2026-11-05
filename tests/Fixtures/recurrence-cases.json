@@ -1,0 +1,80 @@
+{
+  "occurrences": [
+    {
+      "name": "every 2 weeks on Monday from a Wednesday",
+      "recurrence": {"frequency": "weekly", "interval": 2, "weekdays": [1], "monthWeek": null, "span": {"startsOn": "2026-09-09", "endsOn": null}},
+      "from": "2026-09-09", "to": "2026-10-05",
+      "dates": ["2026-09-21", "2026-10-05"]
+    },
+    {
+      "name": "every 2 weeks on Monday and Sunday from a Sunday",
+      "recurrence": {"frequency": "weekly", "interval": 2, "weekdays": [1, 7], "monthWeek": null, "span": {"startsOn": "2026-09-13", "endsOn": null}},
+      "from": "2026-09-13", "to": "2026-10-05",
+      "dates": ["2026-09-13", "2026-09-21", "2026-09-27", "2026-10-05"]
+    },
+    {
+      "name": "every other Monday in November",
+      "recurrence": {"frequency": "weekly", "interval": 2, "weekdays": [1], "monthWeek": null, "span": {"startsOn": "2026-09-14", "endsOn": null}},
+      "from": "2026-11-01", "to": "2026-11-30",
+      "dates": ["2026-11-09", "2026-11-23"]
+    },
+    {
+      "name": "4th Sunday",
+      "recurrence": {"frequency": "monthly", "interval": 1, "weekdays": [7], "monthWeek": 4, "span": {"startsOn": "2026-01-01", "endsOn": null}},
+      "from": "2026-11-01", "to": "2026-11-30",
+      "dates": ["2026-11-22"]
+    },
+    {
+      "name": "last Sunday",
+      "recurrence": {"frequency": "monthly", "interval": 1, "weekdays": [7], "monthWeek": -1, "span": {"startsOn": "2026-01-01", "endsOn": null}},
+      "from": "2026-11-01", "to": "2026-11-30",
+      "dates": ["2026-11-29"]
+    },
+    {
+      "name": "4th Sunday in February",
+      "recurrence": {"frequency": "monthly", "interval": 1, "weekdays": [7], "monthWeek": 4, "span": {"startsOn": "2026-01-01", "endsOn": null}},
+      "from": "2026-02-01", "to": "2026-02-28",
+      "dates": ["2026-02-22"]
+    },
+    {
+      "name": "last Sunday in February",
+      "recurrence": {"frequency": "monthly", "interval": 1, "weekdays": [7], "monthWeek": -1, "span": {"startsOn": "2026-01-01", "endsOn": null}},
+      "from": "2026-02-01", "to": "2026-02-28",
+      "dates": ["2026-02-22"]
+    },
+    {
+      "name": "first Saturday every 2 months",
+      "recurrence": {"frequency": "monthly", "interval": 2, "weekdays": [6], "monthWeek": 1, "span": {"startsOn": "2026-09-20", "endsOn": null}},
+      "from": "2026-09-20", "to": "2027-01-31",
+      "dates": ["2026-11-07", "2027-01-02"]
+    },
+    {
+      "name": "weekly Wednesday within the span",
+      "recurrence": {"frequency": "weekly", "interval": 1, "weekdays": [3], "monthWeek": null, "span": {"startsOn": "2026-07-22", "endsOn": "2026-08-26"}},
+      "from": "2026-07-01", "to": "2026-09-30",
+      "dates": ["2026-07-22", "2026-07-29", "2026-08-05", "2026-08-12", "2026-08-19", "2026-08-26"]
+    },
+    {
+      "name": "weekly Sunday across the October clock change",
+      "recurrence": {"frequency": "weekly", "interval": 1, "weekdays": [7], "monthWeek": null, "span": {"startsOn": "2026-01-04", "endsOn": null}},
+      "from": "2026-10-18", "to": "2026-11-01",
+      "dates": ["2026-10-18", "2026-10-25", "2026-11-01"]
+    },
+    {
+      "name": "weekly Sunday across the March clock change",
+      "recurrence": {"frequency": "weekly", "interval": 1, "weekdays": [7], "monthWeek": null, "span": {"startsOn": "2026-01-04", "endsOn": null}},
+      "from": "2027-03-21", "to": "2027-04-04",
+      "dates": ["2027-03-21", "2027-03-28", "2027-04-04"]
+    }
+  ],
+  "errors": [
+    {"name": "interval 0", "recurrence": {"frequency": "weekly", "interval": 0, "weekdays": [1], "monthWeek": null, "span": {"startsOn": "2026-09-01", "endsOn": null}}, "error": {"code": "recurrence.interval", "field": "interval"}},
+    {"name": "interval 53", "recurrence": {"frequency": "weekly", "interval": 53, "weekdays": [1], "monthWeek": null, "span": {"startsOn": "2026-09-01", "endsOn": null}}, "error": {"code": "recurrence.interval", "field": "interval"}},
+    {"name": "no weekday", "recurrence": {"frequency": "weekly", "interval": 1, "weekdays": [], "monthWeek": null, "span": {"startsOn": "2026-09-01", "endsOn": null}}, "error": {"code": "recurrence.weekdays", "field": "weekdays"}},
+    {"name": "weekday 8", "recurrence": {"frequency": "weekly", "interval": 1, "weekdays": [8], "monthWeek": null, "span": {"startsOn": "2026-09-01", "endsOn": null}}, "error": {"code": "recurrence.weekdayRange", "field": "weekdays"}},
+    {"name": "monthly on two weekdays", "recurrence": {"frequency": "monthly", "interval": 1, "weekdays": [6, 7], "monthWeek": 1, "span": {"startsOn": "2026-09-01", "endsOn": null}}, "error": {"code": "recurrence.monthlyOneDay", "field": "weekdays"}},
+    {"name": "fifth week", "recurrence": {"frequency": "monthly", "interval": 1, "weekdays": [7], "monthWeek": 5, "span": {"startsOn": "2026-09-01", "endsOn": null}}, "error": {"code": "recurrence.monthWeek", "field": "monthWeek"}},
+    {"name": "weekly with a month week", "recurrence": {"frequency": "weekly", "interval": 1, "weekdays": [7], "monthWeek": 1, "span": {"startsOn": "2026-09-01", "endsOn": null}}, "error": {"code": "recurrence.monthWeekOnlyMonthly", "field": "monthWeek"}},
+    {"name": "end before start", "recurrence": {"frequency": "weekly", "interval": 1, "weekdays": [7], "monthWeek": null, "span": {"startsOn": "2026-09-01", "endsOn": "2026-08-31"}}, "error": {"code": "recurrence.endBeforeStart", "field": "span.endsOn"}}
+  ]
+}

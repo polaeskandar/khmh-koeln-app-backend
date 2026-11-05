@@ -51,8 +51,8 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
 - Only workflows use the contexts. A workflow never calls another workflow and never uses a repository; it goes
   through the contexts' application services (`WorkflowLayoutTest`).
 - A context never uses another context. Only a context's own `Infrastructure` uses its `Infrastructure`.
-- `Domain` holds the model only; business logic that is not a single entity's or value object's own behavior
-  lives in `Application/Service`.
+- `Domain` holds the model only (`SourceLayoutTest`); business logic that is not a single entity's or value
+  object's own behavior lives in `Application/Service`.
 - `Domain` and `Library` don't depend on `Platform`; outside `Platform`, code uses only `Platform/*/Contract`.
 - Every application route lives under `/api` (class-level `#[Route]`).
 - Code follows [Code style](code-style.md).
@@ -109,6 +109,9 @@ Errors (the contract is in [API contract](api.md#problems)):
   reaches its constraint; every constraint message is a code (`#[Assert\NotBlank(message:
   'services.nameRequired')]`). `ConstraintMessagesAreCodesTest` fails for a message that is not in the code
   catalog.
+- A request checks only the shape of the input: presence, types, formats and choices. Rules that weigh values
+  against each other belong to the context, which throws `InvalidInput` with the request's field path; for
+  example `RecurrenceRules` (Meetings) checks a `RecurrenceDraft` and reports `recurrence.interval`.
 - Adding a code: add it to its module in the code catalog of `docs/api.md`, and its en/de/ar texts as
   `errors.<code>` in the frontend.
 
