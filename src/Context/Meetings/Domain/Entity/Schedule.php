@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Domain\Entity;
 
+use App\Context\Meetings\Domain\Enum\RosterMode;
 use App\Context\Meetings\Domain\ValueObject\MeetingDetails;
 use App\Context\Meetings\Domain\ValueObject\Recurrence;
 use App\Context\Meetings\Domain\ValueObject\Roster;
@@ -43,6 +44,14 @@ final class Schedule extends TimestampedEntity
         $this->details = $details;
         $this->recurrence = $recurrence;
         $this->timeSlot = $timeSlot;
+    }
+
+    public function edit(MeetingDetails $details, Recurrence $recurrence, TimeSlot $timeSlot, RosterMode $mode): void
+    {
+        $this->details = $details;
+        $this->recurrence = $recurrence;
+        $this->timeSlot = $timeSlot;
+        $this->roster = new Roster($this->roster->serviceId, $this->roster->stageId, $mode);
     }
 
     public function id(): Uuid
