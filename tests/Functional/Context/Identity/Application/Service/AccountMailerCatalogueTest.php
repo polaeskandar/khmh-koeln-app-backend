@@ -48,9 +48,11 @@ final class AccountMailerCatalogueTest extends KernelTestCase
                 'language' => $language,
                 'direction' => $language === 'ar' ? 'rtl' : 'ltr',
                 'name' => 'Sara',
+                'url' => 'https://app.khmk-koeln.com/en/set-password/#token=sample',
+                'validUntil' => '09.11.2026 10:00',
             ]));
 
-            self::assertStringNotContainsString('test.body', $rendered, $template . ' ' . $language);
+            self::assertStringNotContainsString(self::keyPrefixOf($template), $rendered, $template . ' ' . $language);
         }
     }
 
@@ -64,6 +66,11 @@ final class AccountMailerCatalogueTest extends KernelTestCase
         foreach ($paths === false ? [] : $paths as $path) {
             yield basename($path) => ['emails/' . basename($path)];
         }
+    }
+
+    private static function keyPrefixOf(string $template): string
+    {
+        return explode('.', basename($template))[0] . '.';
     }
 
     private static function root(): string

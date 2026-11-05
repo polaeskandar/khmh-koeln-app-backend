@@ -7,6 +7,7 @@ namespace App\Context\Identity\Infrastructure\Security;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\ValueObject\AccountStatus;
 use App\Library\Checksum\Model\Checksum;
+use App\Library\Strings\Model\Text;
 use LogicException;
 use Override;
 use Symfony\Component\Security\Core\User\EquatableInterface;
@@ -15,25 +16,45 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 final readonly class SecurityUser implements UserInterface, PasswordAuthenticatedUserInterface, EquatableInterface
 {
+    private const string ID = 'id';
+
+    private const string PASSWORD_FINGERPRINT = 'passwordFingerprint';
+
+    private const string STATUS_FINGERPRINT = 'statusFingerprint';
+
     private function __construct(
         private string $id,
         private string $passwordHash,
         private string $passwordFingerprint,
-        private AccountStatus $status,
+        private string $statusFingerprint,
+        private ?AccountStatus $status,
     ) {
     }
 
     /**
-     * @return array<string, string|AccountStatus>
+     * @return array<string, string>
      */
     public function __serialize(): array
     {
         return [
-            "\0" . self::class . "\0id" => $this->id,
-            "\0" . self::class . "\0passwordHash" => '',
-            "\0" . self::class . "\0passwordFingerprint" => $this->passwordFingerprint,
-            "\0" . self::class . "\0status" => $this->status,
+            self::ID => $this->id,
+            self::PASSWORD_FINGERPRINT => $this->passwordFingerprint,
+            self::STATUS_FINGERPRINT => $this->statusFingerprint,
         ];
+    }
+
+    /**
+     * @param array<string, string> $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->__construct(
+            id: self::stringIn($data, self::ID),
+            passwordHash: '',
+            passwordFingerprint: self::stringIn($data, self::PASSWORD_FINGERPRINT),
+            statusFingerprint: self::stringIn($data, self::STATUS_FINGERPRINT),
+            status: null,
+        );
     }
 
     public static function of(User $user): self
@@ -42,6 +63,7 @@ final readonly class SecurityUser implements UserInterface, PasswordAuthenticate
             $user->id()->toRfc4122(),
             $user->passwordHash(),
             Checksum::fingerprint($user->passwordHash()),
+            self::fingerprintOf($user->status()),
             $user->status(),
         );
     }
@@ -70,7 +92,7 @@ final readonly class SecurityUser implements UserInterface, PasswordAuthenticate
         return $this->passwordHash;
     }
 
-    public function status(): AccountStatus
+    public function status(): ?AccountStatus
     {
         return $this->status;
     }
@@ -84,6 +106,25 @@ final readonly class SecurityUser implements UserInterface, PasswordAuthenticate
 
         $sameCredentials = $user->id === $this->id && $user->passwordFingerprint === $this->passwordFingerprint;
 
-        return $sameCredentials && $user->status->equals($this->status);
+        return $sameCredentials && $user->statusFingerprint === $this->statusFingerprint;
+    }
+
+    private static function fingerprintOf(AccountStatus $status): string
+    {
+        return Text::format(
+            '%d|%d|%d',
+            $status->approvedAt?->getTimestamp() ?? 0,
+            $status->disabledAt?->getTimestamp() ?? 0,
+            $status->authVersion,
+        )->toString()
+            |> Checksum::fingerprint(...);
+    }
+
+    /**
+     * @param array<string, string> $data
+     */
+    private static function stringIn(array $data, string $key): string
+    {
+        return $data[$key] ?? '';
     }
 }

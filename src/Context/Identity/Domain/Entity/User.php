@@ -121,6 +121,16 @@ final class User extends CreatedAtEntity
         return $this->status;
     }
 
+    public function disable(DateTimeImmutable $at): void
+    {
+        $this->status = $this->status->disabledAt($at);
+    }
+
+    public function enable(): void
+    {
+        $this->status = $this->status->enabled();
+    }
+
     public function approvedBy(): ?self
     {
         return $this->approvedBy;

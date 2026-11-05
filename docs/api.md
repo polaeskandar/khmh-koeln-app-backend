@@ -778,6 +778,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `accounts.currentPasswordWrong` | – | **New.** Field error on `currentPassword` (P1, #45). |
 | `accounts.chooseRegisteredAs` | – | **New.** Field error on `registration.registeredAs`: choose parent or servant. |
 | `accounts.chooseLanguage` | – | **New.** Field error on `account.language`: choose English, German or Arabic. |
+| `accounts.passwordLinkUnavailable` | – | **New.** 409: password links are only for approved, enabled accounts. |
 
 ### `privacy`
 

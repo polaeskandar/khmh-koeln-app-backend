@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Context\Identity\Infrastructure\Security;
 use App\Context\Identity\Infrastructure\Security\SecurityUser;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 final class SecurityUserTest extends TestCase
@@ -41,6 +42,29 @@ final class SecurityUserTest extends TestCase
             'sara@example.org',
             passwordHash: 'second-hash',
         ))));
+    }
+
+    public function testASessionStoredInAnEarlierShapeEndsInsteadOfFailing(): void
+    {
+        $user = Accounts::approved('sara@example.org');
+        $earlier = serialize(SecurityUser::of($user)) |> self::withoutStatusFingerprint(...);
+
+        self::assertFalse(self::restored($earlier)->isEqualTo(SecurityUser::of($user)));
+    }
+
+    public function testADisabledAccountIsAnotherUser(): void
+    {
+        $user = Accounts::approved('sara@example.org');
+        $stored = self::restored(serialize(SecurityUser::of($user)));
+
+        $user->disable(new DateTimeImmutable('2026-11-09T12:00:00+01:00'));
+
+        self::assertFalse($stored->isEqualTo(SecurityUser::of($user)));
+    }
+
+    private static function withoutStatusFingerprint(string $stored): string
+    {
+        return str_replace(search: 's:17:"statusFingerprint"', replace: 's:6:"status"', subject: $stored);
     }
 
     private static function restored(string $stored): SecurityUser

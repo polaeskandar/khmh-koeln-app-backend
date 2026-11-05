@@ -165,14 +165,22 @@ are ordinary roles. `app:user:create --role=<name>` writes the account with that
 (`roles.alreadyHasRole`), only a held role can be taken (`roles.notHeld`), a pending account gets roles when it
 is approved (`roles.accountPending`), and the last active account that can manage roles (`roles: update`)
 keeps that permission (`roles.lastAdministrator`, through `LastAdministrator`; pending and disabled accounts
-don't count). Taking a role holds the administration lock (`AdministrationLockInterface`, a PostgreSQL advisory
-lock through Symfony Lock on the Doctrine connection) from reading the account until it is saved, so two
-removals that run at the same time can't both see the other administrator and leave none.
+don't count). Taking a role and disabling an account hold the administration lock (`AdministrationLockInterface`,
+a PostgreSQL advisory lock through Symfony Lock on the Doctrine connection) from reading the account until it
+is saved, so two changes that run at the same time can't both see the other administrator and leave none.
+
+`password_token` holds one-time password links: `user_id` (CASCADE, indexed), `token_hash` (SHA-256 hex of the
+token, UNIQUE; the token itself is never stored), `expires_at` (CHECK `expires_at > created_at`), `used_at`,
+`created_at` and `created_by` (SET NULL). A new link deletes the account's unused ones, and the link is emailed
+to the account's address (`password_link` template), never printed. `app_user.auth_version`
+counts disablings; a session's status fingerprint includes it, so a session from before a disabling stays dead
+after enabling.
 
 Sign-in sessions live in `public.sessions` (Symfony's `PdoSessionHandler` table, created by an Identity
 migration from `app:migrations:generate identity` and outside every context's schema, so no context's diff touches it). A session holds
-only the account id, a crc32c fingerprint of the password hash and the approval and disabled times; it ends
-when either changes.
+only the account id and two crc32c fingerprints: one of the password hash, one of the approval and disabled
+times and `auth_version`. It ends when either changes. Because the session stores fingerprints and no objects,
+a session saved before a change to the account's shape restores with empty fingerprints and ends cleanly.
 
 The backend checks every request against these roles. The frontend only uses them to hide actions a person
 can't take.
