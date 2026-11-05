@@ -36,6 +36,7 @@ final readonly class ScheduleResponse implements JsonSerializable
      *     generating: bool,
      *     nextDates: list<UpcomingDate>,
      *     sessionCount: int,
+     *     rosterSize: int|null,
      *     createdAt: DateTimeImmutable,
      *     updatedAt: DateTimeImmutable,
      * }
@@ -68,6 +69,7 @@ final readonly class ScheduleResponse implements JsonSerializable
      *     generating: bool,
      *     nextDates: list<UpcomingDate>,
      *     sessionCount: int,
+     *     rosterSize: int|null,
      *     createdAt: DateTimeImmutable,
      *     updatedAt: DateTimeImmutable,
      * }
@@ -82,6 +84,7 @@ final readonly class ScheduleResponse implements JsonSerializable
             'generating' => $activity->generating,
             'nextDates' => $activity->nextDates,
             'sessionCount' => $activity->sessionCount,
+            'rosterSize' => $activity->rosterSize,
             'createdAt' => $record->createdAt,
             'updatedAt' => $record->updatedAt,
         ];

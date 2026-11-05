@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Workflow\Meetings\Model;
 
+use App\Workflow\Attendance\Model\AttendanceCounts;
+
 final readonly class AgendaItem
 {
     private function __construct(
@@ -11,18 +13,19 @@ final readonly class AgendaItem
         public SessionTimes $times,
         public string $title,
         public string $id,
+        public ?AttendanceCounts $counts,
     ) {
     }
 
-    public static function session(SessionView $view): self
+    public static function session(SessionView $view, ?AttendanceCounts $counts): self
     {
-        return new self($view, $view->times, $view->details->title, $view->details->id);
+        return new self($view, $view->times, $view->details->title, $view->details->id, $counts);
     }
 
     public static function planned(PlannedSession $planned): self
     {
         $schedule = $planned->schedule;
 
-        return new self($planned, $planned->times, $schedule->name, $schedule->id);
+        return new self($planned, $planned->times, $schedule->name, $schedule->id, counts: null);
     }
 }

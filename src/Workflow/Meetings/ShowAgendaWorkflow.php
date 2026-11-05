@@ -8,7 +8,6 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\MeetingSchedules;
-use App\Context\Meetings\Application\Service\PlannedDates;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\ValueObject\AgendaDates;
@@ -17,9 +16,13 @@ use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\PlannedDate;
 use App\Context\Meetings\Domain\ValueObject\TimeSlot;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Context\People\Application\Service\Attendees;
 use App\Library\Time\Client\Calendar;
 use App\Library\Time\Model\LocalDate;
+use App\Workflow\Attendance\Model\SessionTallies;
+use App\Workflow\Attendance\Model\SessionTally;
 use App\Workflow\Meetings\Model\Agenda;
+use App\Workflow\Meetings\Model\AgendaCounts;
 use App\Workflow\Meetings\Model\AgendaFilter;
 use App\Workflow\Meetings\Model\AgendaItem;
 use App\Workflow\Meetings\Model\PlannedSession;
@@ -34,9 +37,9 @@ final readonly class ShowAgendaWorkflow
     public function __construct(
         private AccessCheck $access,
         private MeetingSchedules $schedules,
-        private PlannedDates $plannedDates,
         private StructureLookup $structure,
         private Calendar $calendar,
+        private Attendees $attendees,
     ) {
     }
 
@@ -45,13 +48,17 @@ final readonly class ShowAgendaWorkflow
         $this->access->require(Action::Read, Resource::Services);
 
         $range = AgendaRange::of($filter->from, $filter->to, $this->calendar->today());
-        $schedules = $this->schedules->chosen($filter->scheduleId, $filter->serviceId, $filter->stageId);
         $archived = ArchivedStructure::of($this->structure->archivedIds());
 
-        return Agenda::of($range, $this->itemsOf(
-            $this->plannedDates->agendaOf($schedules, $archived, $range),
-            $this->referencesOf($schedules),
-        ));
+        $dates = $this->schedules->agendaOf(
+            $filter->scheduleId,
+            $filter->serviceId,
+            $filter->stageId,
+            $archived,
+            $range,
+        );
+
+        return Agenda::of($range, $this->itemsOf($dates, $this->referencesOf($dates->schedules)));
     }
 
     /**
@@ -63,10 +70,12 @@ final readonly class ShowAgendaWorkflow
             ? static fn (SessionView $view): SessionView => $view
             : static fn (SessionView $view): SessionView => $view->withoutCancelReason();
 
-        $sessionOf = fn (Session $session): AgendaItem => AgendaItem::session($shown($this->viewOf(
-            $session,
-            $references,
-        )));
+        $tallies = $this->talliesOf($dates);
+
+        $sessionOf = fn (Session $session): AgendaItem => AgendaItem::session(
+            $shown($this->viewOf($session, $references)),
+            AgendaCounts::of($tallies, $session),
+        );
 
         $plannedOf = fn (PlannedDate $date): AgendaItem => AgendaItem::planned(PlannedSession::of(
             $date,
@@ -78,6 +87,17 @@ final readonly class ShowAgendaWorkflow
             ...$dates->sessions->map($sessionOf)->getValues(),
             ...new ArrayCollection($dates->planned)->map($plannedOf)->getValues(),
         ];
+    }
+
+    /**
+     * @return ReadableCollection<non-empty-string, SessionTally>
+     */
+    private function talliesOf(AgendaDates $dates): ReadableCollection
+    {
+        $opened = $dates->opened();
+        $rosters = $this->attendees->rostersOn(SessionTallies::rosterKeysOf($opened, $dates->schedules));
+
+        return SessionTallies::of($rosters, $dates->present, $opened, $dates->schedules);
     }
 
     private function viewOf(Session $session, RosterReferences $references): SessionView

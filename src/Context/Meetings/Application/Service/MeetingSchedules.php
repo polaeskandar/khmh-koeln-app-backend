@@ -5,7 +5,12 @@ declare(strict_types=1);
 namespace App\Context\Meetings\Application\Service;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
+use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\Repository\AttendanceRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
+use App\Context\Meetings\Domain\ValueObject\AgendaDates;
+use App\Context\Meetings\Domain\ValueObject\AgendaRange;
+use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\RecurringSchedule;
 use App\Library\Problem\Exception\InvalidInput;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -15,7 +20,26 @@ final readonly class MeetingSchedules
 {
     public function __construct(
         private ScheduleRepositoryInterface $schedules,
+        private PlannedDates $plannedDates,
+        private AttendanceRepositoryInterface $attendance,
     ) {
+    }
+
+    public function agendaOf(
+        ?string $scheduleId,
+        ?string $serviceId,
+        ?string $stageId,
+        ArchivedStructure $archived,
+        AgendaRange $range,
+    ): AgendaDates {
+        $dates = $this->plannedDates->agendaOf($this->chosen($scheduleId, $serviceId, $stageId), $archived, $range);
+
+        $opened = $dates
+            ->opened()
+            ->map(static fn (Session $session): Uuid => $session->id())
+            ->getValues();
+
+        return $dates->withPresent($this->attendance->presentBySession($opened));
     }
 
     /**

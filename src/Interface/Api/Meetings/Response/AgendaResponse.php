@@ -37,6 +37,8 @@ final readonly class AgendaResponse
     {
         $entry = $item->entry;
 
-        return $entry instanceof SessionView ? new AgendaSessionResponse($entry) : new PlannedSessionResponse($entry);
+        return $entry instanceof SessionView
+            ? new AgendaSessionResponse($entry, $item->counts)
+            : new PlannedSessionResponse($entry);
     }
 }

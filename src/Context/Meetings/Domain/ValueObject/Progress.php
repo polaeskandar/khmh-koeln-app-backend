@@ -76,4 +76,9 @@ final readonly class Progress
             throw new RuleViolation('meetings.sessionCanceled');
         }
     }
+
+    public function wasOpened(): bool
+    {
+        return $this->status === SessionStatus::Active || $this->status === SessionStatus::Completed;
+    }
 }

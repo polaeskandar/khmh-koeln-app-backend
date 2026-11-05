@@ -17,16 +17,18 @@ final readonly class ScheduleActivity
         public bool $generating,
         public array $nextDates,
         public int $sessionCount,
+        public ?int $rosterSize,
     ) {
     }
 
-    public static function of(ScheduleOutlook $outlook): self
+    public static function of(ScheduleOutlook $outlook, ?int $rosterSize): self
     {
         return new self(
             active: $outlook->schedule->isActive(),
             generating: $outlook->generating,
             nextDates: new ArrayCollection($outlook->nextDates)->map(UpcomingDate::of(...))->getValues(),
             sessionCount: $outlook->sessionCount,
+            rosterSize: $rosterSize,
         );
     }
 }

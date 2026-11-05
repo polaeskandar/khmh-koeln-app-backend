@@ -52,12 +52,16 @@ final readonly class PlannedDates
     ): AgendaDates {
         $sessions = $this->sessions->ofSchedulesBetween($schedules, $range->from, $range->to);
 
-        return new AgendaDates($sessions, self::missing(
-            GeneratingSchedules::among($schedules, $archived),
-            $sessions->map(PlannedDate::ofSession(...)),
-            $range->plannedFrom(),
-            $range->to,
-        ));
+        return new AgendaDates(
+            $schedules,
+            $sessions,
+            self::missing(
+                GeneratingSchedules::among($schedules, $archived),
+                $sessions->map(PlannedDate::ofSession(...)),
+                $range->plannedFrom(),
+                $range->to,
+            ),
+        );
     }
 
     /**
