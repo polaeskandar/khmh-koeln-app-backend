@@ -6,10 +6,12 @@ namespace App\Interface\Api\Learning;
 
 use App\Interface\Api\Learning\Request\HomeworkRequest;
 use App\Interface\Api\Learning\Response\HomeworkDetailResponse;
+use App\Interface\Api\Learning\Response\HomeworkListResponse;
 use App\Interface\Api\Learning\Response\PublishedHomeworkResponse;
 use App\Interface\Api\Learning\Response\WrittenHomeworkResponse;
 use App\Workflow\Learning\CreateHomeworkWorkflow;
 use App\Workflow\Learning\EditHomeworkWorkflow;
+use App\Workflow\Learning\ListHomeworkWorkflow;
 use App\Workflow\Learning\PublishHomeworkWorkflow;
 use App\Workflow\Learning\ShowHomeworkWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,6 +24,12 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 final class HomeworkController extends AbstractController
 {
+    #[Route('/api/stages/{stageId}/homework', name: 'api_homework_list', methods: ['GET'])]
+    public function list(string $stageId, ListHomeworkWorkflow $listHomework): JsonResponse
+    {
+        return $this->json(new HomeworkListResponse($listHomework($stageId)));
+    }
+
     #[Route('/api/lessons/{lessonId}/homework', name: 'api_homework_create', methods: ['POST'])]
     public function create(
         string $lessonId,

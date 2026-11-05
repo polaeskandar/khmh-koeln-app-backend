@@ -17,6 +17,11 @@ interface HomeworkRepositoryInterface
     public function find(Uuid $id): ?HomeworkAssignment;
 
     /**
+     * @return list<HomeworkAssignment>
+     */
+    public function ofStage(Uuid $stageId): array;
+
+    /**
      * @param list<Uuid> $lessonIds
      *
      * @return ReadableCollection<string, HomeworkCounts>

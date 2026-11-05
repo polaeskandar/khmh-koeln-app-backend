@@ -41,6 +41,24 @@ final readonly class DoctrineHomeworkRepository implements HomeworkRepositoryInt
         return $this->entityManager->find(HomeworkAssignment::class, $id);
     }
 
+    /**
+     * @return list<HomeworkAssignment>
+     */
+    #[Override]
+    public function ofStage(Uuid $stageId): array
+    {
+        $query = $this->entityManager
+            ->createQueryBuilder()
+            ->select('h', 'l')
+            ->from(HomeworkAssignment::class, 'h')
+            ->join('h.lesson', 'l')
+            ->where('h.stageId = :stage')
+            ->setParameter('stage', $stageId, 'uuid')
+            ->getQuery();
+
+        return ListOf::instances($query->getResult(), HomeworkAssignment::class);
+    }
+
     #[Override]
     public function withLock(Uuid $id, callable $work): object
     {

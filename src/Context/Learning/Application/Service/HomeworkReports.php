@@ -7,8 +7,10 @@ namespace App\Context\Learning\Application\Service;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\Entity\HomeworkCompletion;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
+use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkReading;
 use App\Context\Learning\Domain\ValueObject\HomeworkReport;
+use App\Context\Learning\Domain\ValueObject\StageHomework;
 use App\Context\Learning\Domain\ValueObject\TaskReports;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
@@ -18,6 +20,7 @@ final readonly class HomeworkReports
 {
     public function __construct(
         private HomeworkRepositoryInterface $homework,
+        private LessonRepositoryInterface $lessons,
         private Calendar $calendar,
     ) {
     }
@@ -38,6 +41,11 @@ final readonly class HomeworkReports
         $found = $task ?? throw NotFound::of('homework');
 
         return new HomeworkReading($found, $this->of([$found]));
+    }
+
+    public function ofStage(Uuid $stageId): StageHomework
+    {
+        return new StageHomework($this->of($this->homework->ofStage($stageId)), $this->lessons->ofStage($stageId));
     }
 
     private function reportOf(HomeworkCompletion $completion): HomeworkReport
