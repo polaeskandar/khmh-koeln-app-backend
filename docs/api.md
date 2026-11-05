@@ -178,6 +178,21 @@ Cache-Control: no-store
 Public. Body `{}`. Ends the session and expires the cookie. Answers 204, also without a session.
 `GET` → 405 `invalidRequest`, and the session stays.
 
+#### `POST /api/auth/password-links`
+
+Public. Body `{token, password}`: sets a new password with the one-time link from the `password_link` email
+(`app:user:password-link`). The token travels only in this body; the web app reads it from the link's
+`#token=` fragment. Answers 204; the new password signs in, and every session of the account ends.
+
+| Case | Response |
+| --- | --- |
+| `password` shorter than 10 or longer than 200 characters | 422 `accounts.passwordTooShort {min: 10}` or `validation.tooLong {max: 200}` on `password`; the link stays usable |
+| Token missing, unknown, used, expired or replaced by a newer link, or the account is pending or disabled | 422 `auth.resetLinkInvalid`, the same body for each |
+| An 11th request from one IP within an hour | 429 `auth.tooManyAttempts` with `Retry-After` |
+
+The password is checked before the link is spent. Spending the link and saving the password happen in one
+transaction, so a link works exactly once.
+
 #### `POST /api/auth/register`
 
 Public. Creates an account that waits for an administrator's approval. Its roles come with the approval.

@@ -121,6 +121,11 @@ final class User extends CreatedAtEntity
         return $this->status;
     }
 
+    public function changePassword(string $passwordHash): void
+    {
+        $this->passwordHash = $passwordHash;
+    }
+
     public function disable(DateTimeImmutable $at): void
     {
         $this->status = $this->status->disabledAt($at);
