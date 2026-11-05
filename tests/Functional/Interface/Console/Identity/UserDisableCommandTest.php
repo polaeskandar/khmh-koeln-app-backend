@@ -9,11 +9,11 @@ use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Lock\OtherSession;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Database;
+use Doctrine\DBAL\Exception\DriverException;
 use Override;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\Lock\Exception\LockAcquiringException;
 
 final class UserDisableCommandTest extends ApiTestCase
 {
@@ -38,7 +38,7 @@ final class UserDisableCommandTest extends ApiTestCase
             ->connection()
             ->executeStatement("SET lock_timeout = '100ms'");
 
-        $this->expectException(LockAcquiringException::class);
+        $this->expectException(DriverException::class);
 
         $this->console('app:user:disable');
     }

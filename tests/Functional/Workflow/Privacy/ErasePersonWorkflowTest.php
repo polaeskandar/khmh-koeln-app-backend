@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Workflow\Privacy;
 
-use App\Context\Learning\Application\Service\HomeworkCompletions;
-use App\Context\Meetings\Application\Service\AttendanceMarks;
-use App\Context\Meetings\Application\Service\ErasedTotals;
+use App\Context\Learning\Application\Service\LearningErasures;
+use App\Context\Meetings\Application\Service\MeetingErasures;
 use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\PersonErasures;
 use App\Context\People\Domain\Repository\PersonTraceRepositoryInterface;
 use App\Context\People\Domain\Repository\RosterRepositoryInterface;
 use App\Context\People\Domain\ValueObject\ForgottenPerson;
 use App\Context\People\Infrastructure\Persistence\Repository\DoctrinePersonRepository;
-use App\Context\Privacy\Application\Service\PersonTraces;
+use App\Context\Privacy\Application\Service\RequestErasures;
 use App\Platform\Doctrine\Contract\Transactions;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
@@ -87,10 +87,10 @@ final class ErasePersonWorkflowTest extends ApiTestCase
                 self::service(RosterRepositoryInterface::class),
                 $failing,
             ),
-            self::service(ErasedTotals::class),
-            self::service(AttendanceMarks::class),
-            self::service(HomeworkCompletions::class),
-            self::service(PersonTraces::class),
+            self::service(MeetingErasures::class),
+            self::service(LearningErasures::class),
+            self::service(RequestErasures::class),
+            self::service(StructureLookup::class),
         );
 
         try {

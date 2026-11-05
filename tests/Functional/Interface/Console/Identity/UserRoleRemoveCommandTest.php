@@ -8,13 +8,13 @@ use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Lock\OtherSession;
 use App\Tests\Support\Database;
+use Doctrine\DBAL\Exception\DriverException;
 use Override;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\Lock\Exception\LockAcquiringException;
 use Symfony\Component\Uid\Uuid;
 
 final class UserRoleRemoveCommandTest extends KernelTestCase
@@ -62,7 +62,7 @@ final class UserRoleRemoveCommandTest extends KernelTestCase
             ->connection()
             ->executeStatement("SET lock_timeout = '100ms'");
 
-        $this->expectException(LockAcquiringException::class);
+        $this->expectException(DriverException::class);
 
         $tester->execute(['email' => 'daniel@example.org', 'role' => 'Administrator']);
     }

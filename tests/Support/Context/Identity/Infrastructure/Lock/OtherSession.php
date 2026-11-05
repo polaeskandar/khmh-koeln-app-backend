@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Context\Identity\Infrastructure\Lock;
 
-use App\Context\Identity\Infrastructure\Lock\SymfonyAdministrationLock;
+use App\Context\Identity\Infrastructure\Lock\PostgresAdministrationLock;
 use App\Tests\Support\Database;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
@@ -50,7 +50,7 @@ final class OtherSession
         $this->connection ??= DriverManager::getConnection(new Database($this->container)->connection()->getParams());
 
         return new LockFactory(new DoctrineDbalPostgreSqlStore($this->connection))->createLock(
-            SymfonyAdministrationLock::RESOURCE,
+            PostgresAdministrationLock::RESOURCE,
             ttl: null,
             autoRelease: false,
         );

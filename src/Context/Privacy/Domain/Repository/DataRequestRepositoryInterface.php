@@ -17,4 +17,13 @@ interface DataRequestRepositoryInterface
      * @return list<DataRequest>
      */
     public function all(): array;
+
+    /**
+     * @template T
+     *
+     * @param callable(DataRequest): T $work
+     *
+     * @return T
+     */
+    public function withWriteLock(Uuid $id, callable $work): mixed;
 }
