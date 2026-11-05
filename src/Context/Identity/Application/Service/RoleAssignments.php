@@ -17,7 +17,6 @@ final readonly class RoleAssignments
         private UserRepositoryInterface $users,
         private RoleRepositoryInterface $roles,
         private LastAdministrator $lastAdministrator,
-        private AdministrationLockInterface $administration,
     ) {
     }
 
@@ -36,7 +35,7 @@ final readonly class RoleAssignments
 
     public function take(string $email, string $roleName): void
     {
-        $this->administration->whileLocked(function () use ($email, $roleName): void {
+        $this->lastAdministrator->whileLocked(function () use ($email, $roleName): void {
             $user = $this->account($email);
             $role = $this->role($roleName);
 

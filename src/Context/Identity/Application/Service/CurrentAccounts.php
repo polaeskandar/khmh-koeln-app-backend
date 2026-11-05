@@ -31,9 +31,10 @@ final readonly class CurrentAccounts
     {
         $chosen = Language::tryFrom($language) ?? throw InvalidInput::field('language', 'validation.invalidType');
 
-        $this->users->withWriteLock(Uuid::fromString($userId), static fn (User $user) => $user->changeLanguage(
-            $chosen,
-        ));
+        $this->users->withWriteLock(
+            Uuid::fromString($userId),
+            static fn (User $user) => $user->changeProfile($user->profile()->withLanguage($chosen)),
+        );
     }
 
     /**
@@ -51,11 +52,11 @@ final readonly class CurrentAccounts
     {
         foreach (Resource::cases() as $resource) {
             foreach (Action::cases() as $action) {
-                if (!$user->can($action, $resource)) {
-                    continue;
-                }
+                $access = new Access($action, $resource);
 
-                yield new Access($action, $resource);
+                if ($access->isHeldBy($user)) {
+                    yield $access;
+                }
             }
         }
     }

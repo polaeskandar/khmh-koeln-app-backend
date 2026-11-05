@@ -34,6 +34,7 @@ final class PrivacyErasePersonCommandTest extends KernelTestCase
 
     private const array HANDLED = [
         'attendance.attendance.person_id',
+        'identity.app_user.person_id',
         'learning.homework_completion.person_id',
         'people.guardian_relationship.person_id',
         'people.membership.person_id',

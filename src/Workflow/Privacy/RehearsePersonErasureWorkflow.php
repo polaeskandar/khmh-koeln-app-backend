@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Privacy;
 
 use App\Context\Attendance\Application\Service\AttendanceErasures;
+use App\Context\Identity\Application\Service\AccountErasures;
 use App\Context\Learning\Application\Service\LearningErasures;
 use App\Context\Meetings\Application\Service\MeetingErasures;
 use App\Context\Organization\Application\Service\StructureLookup;
@@ -26,6 +27,7 @@ final readonly class RehearsePersonErasureWorkflow
         private LearningErasures $learning,
         private RequestErasures $requests,
         private StructureLookup $structure,
+        private AccountErasures $accounts,
     ) {
     }
 
@@ -37,6 +39,7 @@ final readonly class RehearsePersonErasureWorkflow
     private function sweep(ErasablePerson $person): ErasedElsewhere
     {
         $member = NamedMember::of($person, $this->structure);
+        $this->accounts->forgetPerson($person->id);
 
         return PersonSweep::of($member, $this->meetings, $this->attendance, $this->learning, $this->requests);
     }

@@ -90,6 +90,7 @@ final readonly class ReviewRequestErasureWorkflow
     private function sweepPerson(ErasablePerson $person): ErasedElsewhere
     {
         $member = NamedMember::of($person, $this->structure);
+        $this->accounts->forgetPerson($person->id);
 
         return PersonSweep::of($member, $this->meetings, $this->attendance, $this->learning, $this->requests);
     }

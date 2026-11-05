@@ -19,4 +19,9 @@ final readonly class Profile
         public Language $language,
     ) {
     }
+
+    public function withLanguage(Language $language): self
+    {
+        return new self($this->email, $this->displayName, $language);
+    }
 }

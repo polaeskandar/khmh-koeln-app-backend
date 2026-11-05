@@ -6,6 +6,7 @@ namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Repository\PasswordTokenRepositoryInterface;
+use App\Context\Identity\Domain\Repository\PersonTraceRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\AccountErased;
 use App\Library\Problem\Exception\RuleViolation;
@@ -16,17 +17,22 @@ use Symfony\Component\Uid\Uuid;
 final readonly class AccountErasures
 {
     public function __construct(
-        private AdministrationLockInterface $administration,
         private UserRepositoryInterface $users,
         private LastAdministrator $lastAdministrator,
         private PasswordTokenRepositoryInterface $tokens,
         private Transactions $transactions,
+        private PersonTraceRepositoryInterface $people,
     ) {
     }
 
     public function existing(?Uuid $accountId): ?Uuid
     {
         return $accountId === null ? null : $this->users->find($accountId)?->id();
+    }
+
+    public function forgetPerson(Uuid $personId): int
+    {
+        return $this->people->forget($personId);
     }
 
     /**
@@ -36,7 +42,7 @@ final readonly class AccountErasures
     {
         $erased = null;
 
-        $this->administration->whileLocked(function () use ($accountId, $sweep, &$erased): void {
+        $this->lastAdministrator->whileLocked(function () use ($accountId, $sweep, &$erased): void {
             $this->users->withWriteLock($accountId, function (User $user) use ($sweep, &$erased): void {
                 $erased = $this->removed($user, $sweep);
             });

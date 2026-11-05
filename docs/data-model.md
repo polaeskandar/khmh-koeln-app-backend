@@ -199,7 +199,10 @@ lower(btrim(email))`, UNIQUE), so lookups normalize the typed address the same w
 registration fields are empty once `approved_at` is set; `person_id` is a plain id of a People person (no
 foreign key across schemas), partial UNIQUE `(person_id) WHERE person_id IS NOT NULL`; `age_check`
 (`sixteenOrOlder`, `guardianConsent`) and `guardian_consent_note` (≤200) are set only with `person_id`, and the
-note only with `guardianConsent`; the address is all three parts or none (street ≤120,
+note only with `guardianConsent`; operators set and remove the link with `app:member:link` and `app:member:unlink`.
+`LinkMemberWorkflow` checks the person in People (exists, active, no other account) while it holds a share lock
+on the person's row, so an erasure, which locks the row for update and clears the link, can't remove the person in
+between. The address is all three parts or none (street ≤120,
 postal code ≤10, city ≤80, cleaned, blank → null). A servant who registers names every service they serve in. Those rows live with
 the services: `organization.registration_service (account_id, service_id)`, primary key over both, `service_id`
 references `service` with `ON DELETE CASCADE`, `account_id` is a plain id of an Identity account. The registration
@@ -222,9 +225,9 @@ are ordinary roles. `app:user:create --role=<name>` writes the account with that
 (`roles.alreadyHasRole`), only a held role can be taken (`roles.notHeld`), a pending account gets roles when it
 is approved (`roles.accountPending`), and the last active account that can manage roles (`roles: update`)
 keeps that permission (`roles.lastAdministrator`, through `LastAdministrator`; pending and disabled accounts
-don't count). Taking a role and disabling an account hold the administration lock (`AdministrationLockInterface`,
-a PostgreSQL advisory lock through Symfony Lock on the Doctrine connection) from reading the account until it
-is saved, so two changes that run at the same time can't both see the other administrator and leave none.
+don't count). Taking a role and disabling an account hold the administration lock
+(`LastAdministrator::whileLocked` over `AdministrationLockInterface`, a PostgreSQL advisory lock through Symfony
+Lock on the Doctrine connection) from reading the account until it is saved, so two changes that run at the same time can't both see the other administrator and leave none.
 
 `password_token` holds one-time password links: `user_id` (CASCADE, indexed), `token_hash` (SHA-256 hex of the
 token, UNIQUE; the token itself is never stored), `expires_at` (CHECK `expires_at > created_at`), `used_at`,
@@ -366,7 +369,9 @@ administrator, who can have them emptied in the same step. A linked account lose
    loaded session, so two erasures that share a session both count.
 3. Every request about the member keeps only `erased_subject_kind` `member` and `erased_subject_group`, the
    member's last stage or else its service.
-4. Attendance, Learning and People delete what they hold about the person.
+4. Identity's `AccountErasures` clears an account's link to the person's own record (`person_id`, `age_check`,
+   `guardian_consent_note`).
+5. Attendance, Learning and People delete what they hold about the person.
 
 An erasure request does the same from the app (`EraseRequestSubjectWorkflow`), and its review
 (`ReviewRequestErasureWorkflow`) rehearses it in a transaction that is rolled back. The notes that name the
@@ -387,9 +392,9 @@ wait for each other instead of deadlocking:
 4. the account;
 5. the rows that point at them.
 
-Writers that add data about a person hold a share lock on the person row before they lock the session or
-the homework task: marking someone present, and a parent reporting homework done. So neither write can slip
-in after the erasure has cleaned up.
+Writers that add data about a person hold a share lock on the person row before they lock the session, the
+homework task or the account: marking someone present, a parent reporting homework done, and linking an account
+to its member record. So none of these writes can slip in after the erasure has cleaned up.
 
 For an **account** (`app_user`): the account, its roles and guardian links. What the account did for the
 church stays, without saying who: attendance it recorded, sessions it closed, history entries, homework

@@ -19,7 +19,7 @@ final readonly class OwnAdministration
             return;
         }
 
-        if (!$user->can(Action::Update, Resource::Roles, without: $role)) {
+        if (!new Access(Action::Update, Resource::Roles)->isHeldBy($user, without: $role)) {
             throw new RuleViolation('roles.ownAdminRole');
         }
     }

@@ -50,6 +50,43 @@ final class UserTest extends KernelTestCase
         yield 'note kept after approval' => [['registration_note' => 'Sunday School']];
         yield 'street only' => [['street' => 'Domstraße 1']];
         yield 'no city' => [['street' => 'Domstraße 1', 'postal_code' => '50667']];
+        yield 'age check without a member record' => [['age_check' => 'sixteenOrOlder']];
+        yield 'member record without an age check' => [['person_id' => Uuid::v7()->toRfc4122()]];
+        yield 'unknown age check' => [['person_id' => Uuid::v7()->toRfc4122(), 'age_check' => 'adult']];
+
+        yield 'note without an age check' => [['guardian_consent_note' => 'Mother agreed.']];
+
+        yield 'note without a consent' => [[
+            'person_id' => Uuid::v7()->toRfc4122(),
+            'age_check' => 'sixteenOrOlder',
+            'guardian_consent_note' => 'Mother agreed.',
+        ]];
+    }
+
+    public function testAMemberRecordBelongsToOneAccountAndMembersMayRegister(): void
+    {
+        $personId = Uuid::v7()->toRfc4122();
+        $connection = $this->database()->connection();
+
+        $connection->insert('identity.app_user', Accounts::row([
+            'person_id' => $personId,
+            'age_check' => 'sixteenOrOlder',
+        ]));
+
+        $this->database()->assertRefused(Database::UNIQUE_VIOLATION, static fn (Connection $other): int|string => $other->insert('identity.app_user', Accounts::row([
+            'email' => 'nevine@example.org',
+            'person_id' => $personId,
+            'age_check' => 'guardianConsent',
+        ])));
+
+        $connection->insert('identity.app_user', Accounts::row([
+            'email' => 'mina@example.org',
+            'approved_at' => null,
+            'registered_as' => 'member',
+            'registration_note' => 'Youth Meeting',
+        ]));
+
+        self::assertSame(2, $connection->fetchOne('SELECT count(*) FROM identity.app_user'));
     }
 
     public function testAPendingServantWithANoteAndAFullAddressIsAccepted(): void

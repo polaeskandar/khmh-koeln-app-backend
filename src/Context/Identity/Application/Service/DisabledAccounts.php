@@ -15,7 +15,6 @@ final readonly class DisabledAccounts
     public function __construct(
         private UserRepositoryInterface $users,
         private LastAdministrator $lastAdministrator,
-        private AdministrationLockInterface $administration,
         private Calendar $calendar,
         private ApiTokens $apiTokens,
     ) {
@@ -23,7 +22,7 @@ final readonly class DisabledAccounts
 
     public function disable(string $email): void
     {
-        $this->administration->whileLocked(function () use ($email): void {
+        $this->lastAdministrator->whileLocked(function () use ($email): void {
             $user = $this->account($email);
 
             if ($this->lastAdministrator->is($user)) {

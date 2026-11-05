@@ -20,7 +20,6 @@ final readonly class AccountRoles
         private UserRepositoryInterface $users,
         private RoleRepositoryInterface $roles,
         private LastAdministrator $lastAdministrator,
-        private AdministrationLockInterface $administration,
     ) {
     }
 
@@ -41,7 +40,7 @@ final readonly class AccountRoles
 
     public function take(string $accountId, string $roleId, string $actorId): void
     {
-        $this->administration->whileLocked(function () use ($accountId, $roleId, $actorId): void {
+        $this->lastAdministrator->whileLocked(function () use ($accountId, $roleId, $actorId): void {
             $user = $this->account($accountId);
             $role = $this->role($roleId) ?? throw NotFound::of('role');
             OwnAdministration::ensureKept($user, $role, Uuid::fromString($actorId));
