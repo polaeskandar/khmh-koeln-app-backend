@@ -242,14 +242,25 @@ Public. Creates an account that waits for an administrator's approval. Its roles
 
 | Result | Answer |
 | --- | --- |
-| Valid, new email | 202 `{"status": "received"}`, a pending account |
-| Valid, the email already has an account (any case, any state) | The same 202, byte for byte; nothing changes |
+| Valid, new email | 202 `{"status": "received"}`, a pending account and an `email_confirmation` email in its language with a link to `/{language}/confirm-email/#token=…`, valid 7 days |
+| Valid, the email has an unconfirmed registration | The same 202, byte for byte; a fresh link that voids the older one |
+| Valid, the email already has a confirmed account (any case, any state) | The same 202, byte for byte; an `account_exists` email in that account's language with the sign-in link; nothing else changes |
 | A field fails | 422 `checkFields` with every failed field |
 | `privacy.version` is not the current one | 409 `accounts.privacyNoticeOutdated` |
 | More than 20 registrations from one client within an hour | 429 `auth.tooManyAttempts` + `Retry-After` |
 
-The password is hashed in both 202 cases, so the answer takes as long either way. Signing in before approval
-answers 403 `auth.pending`.
+The password is hashed in every 202 case and emails leave after the response, so the answer takes as long either
+way. An address gets at most 3 of these emails per hour; further registrations still answer 202 and send
+nothing. The registration reaches the office (`GET /api/account-requests`) only after the link is used, and
+`app:user:purge-unconfirmed` (daily) deletes registrations left unconfirmed for 7 days whose newest link has
+expired too, so a link resent on day 6 still works until day 13. Signing in before approval answers 403
+`auth.pending`.
+
+#### `POST /api/auth/email-confirmations`
+
+Public. Body `{token}` from the `#token=` fragment of the confirmation link → 204; the registration now waits
+for the office. A missing, unknown, used or expired token → 422 `auth.confirmationLinkInvalid`, the same body
+for each. An 11th request from one IP within an hour → 429 `auth.tooManyAttempts` with `Retry-After`.
 
 #### `GET /api/auth/register/services`
 
@@ -650,6 +661,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `auth.disabled` | – | **New.** 403 on sign-in with the right password: the account is disabled. |
 | `auth.tooManyAttempts` | – | **New.** 429 on sign-in, registration and password links. `Retry-After` says when to retry. |
 | `auth.resetLinkInvalid` | – | **New.** 422: the one-time password link is missing, unknown, used, expired or superseded. |
+| `auth.confirmationLinkInvalid` | – | **New.** This confirmation link is invalid or has expired. Register again to get a new one. |
 
 ### `notFound`
 
@@ -1009,9 +1021,9 @@ Registrations waiting for a decision. The endpoints need the users permission (`
 
 #### `GET /api/account-requests`
 
-`{items: [AccountRequest], roles: [{id, name}], today}`: the 200 oldest pending accounts (not approved, also when
-disabled, so they can still be declined), oldest first, with `services` by name, and every role by name for the
-approval dialog.
+`{items: [AccountRequest], roles: [{id, name}], today}`: the 200 oldest pending accounts with a confirmed email
+address (not approved, also when disabled, so they can still be declined), oldest first, with `services` by name,
+and every role by name for the approval dialog.
 
 | Member | Type |
 | --- | --- |

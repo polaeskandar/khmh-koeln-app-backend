@@ -84,6 +84,7 @@ The exact rules are in frontend#20; the proxy on the server applies them.
 | One-off commands from the image (migrations before each release) | Must | `app:migrations:migrate` (#43) |
 | The session generator every hour at minute 5 from the host's scheduler (cron, a systemd timer or a Kubernetes CronJob), with an alert on a non-zero exit | Must | `app:sessions:generate` (#53) |
 | A daily backup at 02:15 Europe/Berlin, with an alert on failure | Must | #42 |
+| The unconfirmed-registration purge daily (e.g. `30 3 * * *`: `php bin/console app:user:purge-unconfirmed --no-interaction`); it prints only a count | Must | #84 |
 | Secrets in the host's secret store, passed to the containers as environment variables, never in the image (the image never reads a `.env.local`) | Must | `APP_SECRET`, `DATABASE_URL`, `MAILER_DSN` (#41) |
 | Logs kept 14 days (to be confirmed by the data protection adviser by Tue 3 Nov) | Must | D6, #112 |
 | Uptime check on `GET /api/health/ready` from outside the server, with alerts | Must | Launch watch (#117) |
