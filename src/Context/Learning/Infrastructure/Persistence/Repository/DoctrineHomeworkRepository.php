@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Context\Learning\Infrastructure\Persistence\Repository;
 
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkCompletion;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkCounts;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Types\Model\Integers;
+use App\Library\Types\Model\ListOf;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\DBAL\ArrayParameterType;
@@ -64,6 +66,29 @@ final readonly class DoctrineHomeworkRepository implements HomeworkRepositoryInt
             ),
             static fn (int|string $lessonId): string => (string) $lessonId,
         );
+    }
+
+    /**
+     * @param list<HomeworkAssignment> $tasks
+     */
+    #[Override]
+    public function currentReportsOf(array $tasks): ReadableCollection
+    {
+        if ($tasks === []) {
+            return new ArrayCollection();
+        }
+
+        $query = $this->entityManager
+            ->createQueryBuilder()
+            ->select('c')
+            ->from(HomeworkCompletion::class, 'c')
+            ->where('c.assignment IN (:tasks)')
+            ->andWhere('c.undoneAt IS NULL')
+            ->orderBy('c.completedAt')
+            ->setParameter('tasks', $tasks)
+            ->getQuery();
+
+        return new ArrayCollection(ListOf::instances($query->getResult(), HomeworkCompletion::class));
     }
 
     /**

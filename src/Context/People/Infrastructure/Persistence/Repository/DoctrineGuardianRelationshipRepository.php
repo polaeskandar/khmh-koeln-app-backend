@@ -11,6 +11,7 @@ use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface
 use App\Library\Types\Model\ListOf;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
@@ -54,6 +55,33 @@ final readonly class DoctrineGuardianRelationshipRepository implements GuardianR
             ->setParameter('account', $accountId, 'uuid')
             ->setParameter('approved', GuardianStatus::Approved)
             ->orderBy('p.name.firstName')
+            ->getQuery();
+
+        return new ArrayCollection(ListOf::instances($query->getResult(), GuardianRelationship::class));
+    }
+
+    /**
+     * @param list<Uuid> $childIds
+     */
+    #[Override]
+    public function approvedForChildren(array $childIds): ReadableCollection
+    {
+        if ($childIds === []) {
+            return new ArrayCollection();
+        }
+
+        $query = $this->entityManager
+            ->createQueryBuilder()
+            ->select('g')
+            ->from(GuardianRelationship::class, 'g')
+            ->where('IDENTITY(g.child) IN (:children)')
+            ->andWhere('g.status = :approved')
+            ->setParameter(
+                'children',
+                new ArrayCollection($childIds)->map(static fn (Uuid $id): string => $id->toRfc4122())->getValues(),
+                ArrayParameterType::STRING,
+            )
+            ->setParameter('approved', GuardianStatus::Approved)
             ->getQuery();
 
         return new ArrayCollection(ListOf::instances($query->getResult(), GuardianRelationship::class));
