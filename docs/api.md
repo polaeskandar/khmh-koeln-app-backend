@@ -1047,3 +1047,23 @@ harmless. 404 `notFound.session`, also for an id that is not a UUID.
   `closedAt`/`closedBy` cleared, `openedAt` kept; already `active` → 200 unchanged; otherwise 409
   `meetings.onlyCompletedCanReopen`.
 
+### The meeting a lesson is for
+
+Lesson reads carry a `meeting`, one of:
+
+| `kind` | Members | When |
+| --- | --- | --- |
+| `none` | `date` | The lesson has a date but no schedule. |
+| `planned` | `date`, `startTime`, `title`, `createdOn` | The schedule is active and meets that day, and the session isn't created yet; `createdOn` is the day before, when the generator creates it. |
+| `session` | `id`, `status`, `date`, `startTime`, `endTime`, `title`, `location`, `cancelReason` | The session exists (it wins over everything else), canceled ones included. |
+| `not-on-schedule` | `date`, `title \| null` | The schedule is inactive or doesn't meet that day. |
+
+Writes send `{scheduleId, date}`, `{sessionId}` (stored as its schedule and date) or `{date}` alone. Field errors
+on `meeting`: nothing chosen → `lessons.chooseWhen`; another stage's schedule or session, or a canceled session
+as a new link (chosen by `sessionId` or by `scheduleId` and `date`) → `lessons.chooseMeeting`; an impossible date → `lessons.chooseDate`; no meeting that day →
+`lessons.noMeetingThatDay {name}`; another non-archived lesson already there → `lessons.meetingHasLesson {title}`.
+An existing canceled link stays valid when the lesson is edited.
+
+Lesson preparers (`responsibleId` choices) are the active accounts whose roles grant `lessons: update`, by name
+in German collation.
+

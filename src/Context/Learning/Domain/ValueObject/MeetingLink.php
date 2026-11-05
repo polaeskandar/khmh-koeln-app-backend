@@ -19,4 +19,11 @@ final readonly class MeetingLink
         public LocalDate $teachingDate,
     ) {
     }
+
+    public function equals(self $other): bool
+    {
+        $sameSchedule = $this->scheduleId?->toRfc4122() === $other->scheduleId?->toRfc4122();
+
+        return $sameSchedule && $this->teachingDate->toString() === $other->teachingDate->toString();
+    }
 }

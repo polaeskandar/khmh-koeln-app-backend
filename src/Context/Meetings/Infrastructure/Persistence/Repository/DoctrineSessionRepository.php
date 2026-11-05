@@ -21,7 +21,6 @@ use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
@@ -48,6 +47,14 @@ final readonly class DoctrineSessionRepository implements SessionRepositoryInter
     public function append(SessionEvent $event): void
     {
         $this->entityManager->persist($event);
+    }
+
+    #[Override]
+    public function findOn(Schedule $schedule, LocalDate $date): ?Session
+    {
+        return $this->entityManager
+            ->getRepository(Session::class)
+            ->findOneBy(['schedule' => $schedule, 'occurrenceDate' => $date]);
     }
 
     #[Override]
@@ -111,6 +118,20 @@ final readonly class DoctrineSessionRepository implements SessionRepositoryInter
             ->getQuery();
 
         return new ArrayCollection(ListOf::instances($query->getResult(), Session::class));
+    }
+
+    /**
+     * @param list<LocalDate> $dates
+     */
+    #[Override]
+    public function ofSchedulesOn(ReadableCollection $schedules, array $dates): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager
+            ->getRepository(Session::class)
+            ->findBy([
+                'schedule' => $schedules->toArray(),
+                'occurrenceDate' => $dates,
+            ]));
     }
 
     #[Override]

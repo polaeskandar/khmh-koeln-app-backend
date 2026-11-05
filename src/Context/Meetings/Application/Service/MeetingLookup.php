@@ -1,0 +1,58 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Context\Meetings\Application\Service;
+
+use App\Context\Meetings\Domain\Entity\Schedule;
+use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
+use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
+use App\Context\Meetings\Domain\ValueObject\MeetingSlot;
+use App\Library\Time\Model\LocalDate;
+use Doctrine\Common\Collections\ReadableCollection;
+use Symfony\Component\Uid\Uuid;
+
+final readonly class MeetingLookup
+{
+    public function __construct(
+        private ScheduleRepositoryInterface $schedules,
+        private SessionRepositoryInterface $sessions,
+    ) {
+    }
+
+    public function slotOfSession(Uuid $sessionId): ?MeetingSlot
+    {
+        $session = $this->sessions->find($sessionId);
+
+        return $session === null ? null : MeetingSlot::ofSession($session);
+    }
+
+    public function slotOfSchedule(Uuid $scheduleId, LocalDate $date): ?MeetingSlot
+    {
+        $schedule = $this->schedules->find($scheduleId);
+
+        return $schedule === null ? null : new MeetingSlot($schedule, $date, $this->sessions->findOn($schedule, $date));
+    }
+
+    /**
+     * @param list<Uuid> $ids
+     *
+     * @return ReadableCollection<int, Schedule>
+     */
+    public function schedules(array $ids): ReadableCollection
+    {
+        return $this->schedules->findByIds($ids);
+    }
+
+    /**
+     * @param ReadableCollection<int, Schedule> $schedules
+     * @param list<LocalDate> $dates
+     *
+     * @return ReadableCollection<int, Session>
+     */
+    public function sessionsOn(ReadableCollection $schedules, array $dates): ReadableCollection
+    {
+        return $this->sessions->ofSchedulesOn($schedules, $dates);
+    }
+}

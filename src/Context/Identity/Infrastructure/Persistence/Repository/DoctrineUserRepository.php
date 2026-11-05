@@ -9,6 +9,7 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\Email;
+use App\Library\Types\Model\ListOf;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -44,6 +45,22 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
         return new ArrayCollection(
             $ids === [] ? [] : $this->entityManager->getRepository(User::class)->findBy(['id' => $ids]),
         );
+    }
+
+    #[Override]
+    public function activeThatCan(Action $action, Resource $resource): ReadableCollection
+    {
+        $query = $this->entityManager->createQuery(<<<'DQL'
+            SELECT DISTINCT u FROM App\Context\Identity\Domain\Entity\User u
+            JOIN u.roles r
+            JOIN r.permissions p
+            WHERE u.status.approvedAt IS NOT NULL
+              AND u.status.disabledAt IS NULL
+              AND p.action = :action
+              AND p.resource = :resource
+            DQL)->setParameters(['action' => $action, 'resource' => $resource]);
+
+        return new ArrayCollection(ListOf::instances($query->getResult(), User::class));
     }
 
     #[Override]
