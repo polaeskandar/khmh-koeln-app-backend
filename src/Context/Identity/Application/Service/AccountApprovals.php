@@ -24,6 +24,7 @@ final readonly class AccountApprovals
         private UserRepositoryInterface $users,
         private RoleRepositoryInterface $roles,
         private Calendar $calendar,
+        private ApprovalNotices $notices,
     ) {
     }
 
@@ -92,6 +93,8 @@ final readonly class AccountApprovals
 
             $alongside($user);
         });
+
+        $this->notices->send($this->account($id));
     }
 
     public function account(string $id): User

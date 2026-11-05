@@ -6,3 +6,6 @@ password_link.subject: 'تعيين كلمة المرور لحسابك في KHMK 
 password_link.body: 'استخدم هذا الرابط لتعيين كلمة مرور جديدة لحسابك. يعمل الرابط مرة واحدة وهو صالح حتى %validUntil% (بتوقيت كولونيا).'
 password_link.action: 'تعيين كلمة المرور'
 password_link.ignore: 'إذا لم تطلب ذلك، فتجاهل هذه الرسالة. تبقى كلمة المرور كما هي.'
+account_approved.subject: 'حسابك في KHMK كولونيا جاهز'
+account_approved.body: 'وافق مكتب الكنيسة على حسابك. يمكنك تسجيل الدخول الآن.'
+account_approved.action: 'تسجيل الدخول'
