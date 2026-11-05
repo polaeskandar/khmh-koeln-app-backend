@@ -24,4 +24,21 @@ interface MemberAccountRepositoryInterface
      * @return array<string, string> the approved, enabled account linked to each of those records, by person id
      */
     public function activeAccountsOf(array $personIds): array;
+
+    /**
+     * @return list<array{
+     *     id: string,
+     *     name: string,
+     *     email: string,
+     *     disabled: bool,
+     *     isParent: bool,
+     *     personId: string,
+     *     ageCheck: string|null,
+     *     guardianConsentNote: string|null,
+     *     approvedAt: string|null,
+     *     approverId: string|null,
+     *     approverName: string|null,
+     * }> the linked accounts without a staff role, by name
+     */
+    public function listed(): array;
 }

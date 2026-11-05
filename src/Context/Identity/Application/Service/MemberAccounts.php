@@ -58,11 +58,24 @@ final readonly class MemberAccounts
         return $this->members->linkedAmong($personIds);
     }
 
-    public function unlink(string $email): void
+    /**
+     * @return list<array{
+     *     id: string,
+     *     name: string,
+     *     email: string,
+     *     disabled: bool,
+     *     isParent: bool,
+     *     personId: string,
+     *     ageCheck: string|null,
+     *     guardianConsentNote: string|null,
+     *     approvedAt: string|null,
+     *     approverId: string|null,
+     *     approverName: string|null,
+     * }> the linked accounts without a staff role
+     */
+    public function listed(): array
     {
-        $account = $this->byEmail($email);
-        $account->changeMember(MemberLink::none());
-        $this->users->save($account);
+        return $this->members->listed();
     }
 
     private function ensureFree(MemberRecord $record): void

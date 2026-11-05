@@ -81,9 +81,9 @@ final readonly class AccountApprovals
         $actor = $this->account($actorId);
 
         $this->requests->decide($id, function (User $user) use ($actor, $roles, $alongside): void {
-            $user->approve(
-                $user->status()->approvedOn($this->calendar->now()),
+            $user->changeApproval(
                 $actor,
+                $user->status()->approvedOn($this->calendar->now()),
                 $user->registration()->decided(),
             );
 

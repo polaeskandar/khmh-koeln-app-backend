@@ -247,8 +247,9 @@ own groups next to it.
 Members receive their own groups, when and where they meet, their servants, the last lesson's passage and
 memory verse, the next two weeks' meetings (canceled ones without the reason) and the published homework of
 their stages, which they tick off themselves. They never see attendance, notes for the servants, cancel
-reasons, lesson plans or other members. Only an administrator sets or removes the link; an account that is only
-a member's goes back to the account requests when its link is removed.
+reasons, lesson plans or other members. Only an administrator sets or removes the link (`GET /api/member-accounts`,
+`POST /api/member-accounts/{id}/unlink`, or the console); an account that is only a member's goes back to the
+account requests when its link is removed.
 
 ### Three languages, right to left included
 
