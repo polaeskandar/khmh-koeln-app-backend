@@ -7,6 +7,7 @@ namespace App\Context\Identity\Application\Service;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Identity\Domain\Repository\RoleHolderRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use Collator;
@@ -19,7 +20,16 @@ final readonly class AccountLookup
 
     public function __construct(
         private UserRepositoryInterface $users,
+        private RoleHolderRepositoryInterface $roleHolders,
     ) {
+    }
+
+    /**
+     * @return ReadableCollection<int, User>
+     */
+    public function activeHoldersOf(string $roleNameKey): ReadableCollection
+    {
+        return $this->roleHolders->activeHolders($roleNameKey);
     }
 
     /**

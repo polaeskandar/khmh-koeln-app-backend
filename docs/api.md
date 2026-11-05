@@ -1133,6 +1133,23 @@ memberships open, so its members still count toward the service's `memberCount`.
 
 `services: read`. One service row; 404 `notFound.service`.
 
+#### `GET /api/services/insights?status=active|archived|all`
+
+`services: read`. `{items: [{serviceId, next, trend}]}`, one per service the same `status` lists, in the same
+order; anything else → 422 field error `status`: `validation.invalidChoice`. All rows are computed in one batch.
+
+- `next`: `{date, startTime, stage: {id, name, position} | null, status: scheduled | active | planned} | null`,
+  the earliest scheduled or active session, or planned date of an active schedule, from today to today+21
+  (Europe/Berlin); canceled dates are skipped. `null` when there is none and for archived services.
+- `trend`: `{sessions, rate, averagePresent}` over the completed sessions dated today−28 to yesterday. `rate` is
+  Σ `rosterPresent` / Σ `rosterSize` over expected-roster sessions (two decimals); `averagePresent` the rounded
+  mean `present` over open-roster sessions; each `null` without such sessions.
+
+#### `GET /api/service-leaders`
+
+`services: read`. `{items: [AccountRef]}`, the approved, enabled accounts with the Service leader role, by name.
+Roles are global (D7), so the list is the same for every service.
+
 #### `POST /api/services`
 
 `services: create` (403 `services.adminOnlyCreate`). Body `{name, description?}`. The name is cleaned (spaces
