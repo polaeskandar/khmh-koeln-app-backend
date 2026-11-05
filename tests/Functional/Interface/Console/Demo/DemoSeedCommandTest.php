@@ -26,6 +26,12 @@ final class DemoSeedCommandTest extends KernelTestCase
         'people.membership',
         'meetings.meeting_schedule',
         'meetings.meeting_session',
+        'meetings.session_event',
+        'people.guardian_relationship',
+        'learning.lesson',
+        'learning.homework_assignment',
+        'learning.homework_completion',
+        'attendance.attendance',
     ];
 
     public function testLoadingTwiceGivesTheSameRows(): void
@@ -37,7 +43,7 @@ final class DemoSeedCommandTest extends KernelTestCase
         self::assertSame(Command::SUCCESS, $this->seed());
 
         self::assertSame($first, $this->counts());
-        self::assertSame([5, 4, 2, 6, 94, 94, 8, 7], $first);
+        self::assertSame([5, 4, 2, 6, 94, 94, 8, 8, 11, 2, 2, 2, 1, 19], $first);
         self::assertSame(4, $this->number('SELECT count(*) FROM identity.role'));
     }
 
@@ -67,7 +73,7 @@ final class DemoSeedCommandTest extends KernelTestCase
         }
     }
 
-    public function testThirdClassHasFourteenChildrenAndEachDayASessionToOpen(): void
+    public function testThirdClassHasFourteenChildrenAndEachDayASession(): void
     {
         self::mockTime('2026-11-07T10:00:00+01:00');
         $this->seed();
@@ -83,6 +89,7 @@ final class DemoSeedCommandTest extends KernelTestCase
         );
 
         self::assertSame([
+            ['2026-11-01', 'Sunday class', '12:00:00'],
             ['2026-11-07', '3rd Class practice', '17:00:00'],
             ...array_fill(start_index: 0, count: 6, value: ['2026-11-08', 'Sunday class', '12:00:00']),
         ], $this->rows(

@@ -35,12 +35,17 @@ final readonly class DemoSchedules
     ) {
     }
 
-    public function seed(string $group, string $serviceId, ?string $stageId): void
+    /**
+     * @return list<Schedule> the group's schedules, its Sunday class first
+     */
+    public function seed(string $group, string $serviceId, ?string $stageId): array
     {
         $stage = $stageId === null ? null : Uuid::fromString($stageId);
         $roster = new Roster(Uuid::fromString($serviceId), $stage, RosterMode::Expected);
         $today = $this->calendar->today();
         $span = new DateSpan($today->addDays(-self::RUNNING_SINCE_DAYS), endsOn: null);
+
+        $seeded = [];
 
         foreach (self::MEETINGS[$group] ?? [self::SUNDAY_CLASS] as [$name, $weekdays, [$startTime, $endTime]]) {
             $schedule = new Schedule(
@@ -52,6 +57,9 @@ final readonly class DemoSchedules
 
             $this->schedules->save($schedule);
             $this->generator->generateFor($schedule, $today, ArchivedStructure::of([]));
+            $seeded[] = $schedule;
         }
+
+        return $seeded;
     }
 }

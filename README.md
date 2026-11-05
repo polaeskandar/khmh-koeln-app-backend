@@ -42,6 +42,13 @@ Every account signs in with the password `khmk-demo-2026` (`DEMO_PASSWORD` in `.
   (10), 3rd Class (14, with Mina Hanna), 4th Class (13), 5th & 6th Class (10). Each stage has a Sunday class at
   12:00–13:15; 3rd Class also practises Monday to Saturday at 17:00–18:00, so every day has a session to open.
 - **Youth Meeting:** no stages, 24 members with a second Mina Hanna, meeting on Fridays at 19:00–21:00.
+- **Parent access:** Hoda is approved for Mina Hanna (3rd Class) and Mimi Gerges; Nadia, still pending, has none.
+- **3rd Class lessons**, Daniel responsible: last Sunday's "The Lost Sheep" (Luke 15:3–7) is taught, and next
+  Sunday's "Zacchaeus Meets Jesus" (Luke 19:1–10) is ready. The Lost Sheep's homework "Read the story together" is
+  published, due the Saturday after, and Hoda reported it done for Mina; Zacchaeus's "Learn the memory verse" is a
+  draft.
+- **3rd Class attendance:** last Sunday's class is closed with 11 of 14 present, plus a removed mark for the Youth
+  Meeting's Mina Hanna ("Marked in the wrong group"); today's 3rd Class session is open with 7 marked.
 
 Local overrides go in `.env.local` (git-ignored), never in `.env`. The variables are listed in
 [Operations](docs/operations.md#configuration).

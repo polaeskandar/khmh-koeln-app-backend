@@ -6,8 +6,11 @@ namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\Enum\RegisteredAs;
+use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use LogicException;
 use SensitiveParameter;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class DemoAccounts
 {
@@ -21,6 +24,7 @@ final readonly class DemoAccounts
     public function __construct(
         private ApprovedAccounts $approved,
         private AccountRegistration $registration,
+        private UserRepositoryInterface $users,
         #[Autowire(param: 'app.privacy_notice_version')]
         private string $privacyNoticeVersion,
         #[Autowire(env: 'DEMO_PASSWORD')]
@@ -46,5 +50,12 @@ final readonly class DemoAccounts
         if ($nadia !== null) {
             $this->registration->markEmailConfirmed($nadia);
         }
+    }
+
+    public function idOf(string $email): Uuid
+    {
+        $account = $this->users->findByEmail($email) ?? throw new LogicException('The demo has no ' . $email . '.');
+
+        return $account->id();
     }
 }

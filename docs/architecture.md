@@ -59,6 +59,7 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   - a member's personal data export;
   - the service list, detail and edit, whose service rows carry the leaders, the next meeting and the attendance
     trend;
+  - the demo seed (`SeedDemoDataWorkflow`), which hands each context's demo records to the next;
   - the erasures and their review. Each context takes part through its `*Erasures` service: People's
     `PersonErasures`, Meetings' `MeetingErasures`, Attendance's `AttendanceErasures`, Learning's
     `LearningErasures`, Privacy's `RequestErasures`, and Identity's `AccountErasures`.

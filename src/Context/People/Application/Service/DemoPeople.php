@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Context\People\Application\Service;
 
+use App\Context\People\Domain\Entity\GuardianRelationship;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\Enum\GuardianKind;
+use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Library\Time\Client\Calendar;
 use LogicException;
@@ -73,18 +76,41 @@ final readonly class DemoPeople
 
     public function __construct(
         private PersonRepositoryInterface $people,
+        private GuardianRelationshipRepositoryInterface $links,
         private Calendar $calendar,
     ) {
     }
 
-    public function seed(string $group, string $serviceId, ?string $stageId): void
+    /**
+     * @return list<Person> the group's members, its named person first
+     */
+    public function seed(string $group, string $serviceId, ?string $stageId): array
     {
         $service = Uuid::fromString($serviceId);
         $stage = $stageId === null ? null : Uuid::fromString($stageId);
         $since = $this->calendar->today()->addDays(-self::MEMBERS_SINCE_DAYS);
+        $members = self::membersOf($group);
 
-        foreach (self::membersOf($group) as $person) {
+        foreach ($members as $person) {
             $this->people->save($person, new Membership($person, $service, $stage, $since));
+        }
+
+        return $members;
+    }
+
+    /**
+     * @param list<Person> $children
+     */
+    public function giveAccess(Uuid $parentId, array $children, Uuid $approvedBy): void
+    {
+        foreach ($children as $child) {
+            $this->links->save(GuardianRelationship::approved(
+                $parentId,
+                $child,
+                GuardianKind::Parent,
+                $this->calendar->now(),
+                $approvedBy,
+            ));
         }
     }
 
