@@ -1462,6 +1462,20 @@ Every invalid field comes in one 422: `title` `homework.titleRequired`, `validat
 is not a UUID; an archived lesson
 → 409 `lessons.archived`; an archived stage or service → 409 `lessons.stageArchived {name}`.
 
+#### `GET /api/homework/{id}`
+
+`homework: read` (403 `forbidden`). The homework editor's task: `{today, id, title, status, dueDate, publishedAt,
+instructions, resources, minDueDate, lesson: {id, title, teachingDate, passage, memoryVerse, archived}, service:
+ServiceRef, stage: StageRef, archived, audienceSize, counts}`; 404 `notFound.homework`, also for an id that is not a
+UUID.
+
+- `lesson` holds only those keys: no notes, objectives, teaching points or activities.
+- `minDueDate` is the lesson's date, or the saved due date when that is earlier (it stays valid after a move).
+- `audienceSize` and `counts` (`null` for a draft) follow "Who a task is for" in `docs/data-model.md`.
+- `archived` is the stage's or its service's, as in the lesson list; `lesson.archived` is the lesson's. Apps derive
+  the actions from `GET /api/me`: editing needs `homework: update` while neither the task (`status`), its lesson nor
+  `archived` is archived; publishing is editing a `draft`; progress needs `members: read`.
+
 #### `PUT /api/homework/{id}`
 
 `homework: update` (403 `homework.changeStageOnly`). The same body, the whole editable task: a `dueDate` left out,

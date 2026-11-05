@@ -30,4 +30,11 @@ final readonly class HomeworkText
             $dueDate,
         );
     }
+
+    public function earliestDueDate(LocalDate $teachingDate): LocalDate
+    {
+        $dueDate = $this->dueDate ?? $teachingDate;
+
+        return $dueDate->isBefore($teachingDate) ? $dueDate : $teachingDate;
+    }
 }
