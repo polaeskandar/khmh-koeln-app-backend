@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Organization;
 
+use App\Interface\Api\Organization\Request\StageOrderRequest;
 use App\Interface\Api\Organization\Request\StageRequest;
 use App\Interface\Api\Organization\Response\StageListResponse;
 use App\Interface\Api\Organization\Response\StageResponse;
 use App\Workflow\Organization\AddStageWorkflow;
 use App\Workflow\Organization\EditStageWorkflow;
 use App\Workflow\Organization\ListStagesWorkflow;
+use App\Workflow\Organization\ReorderStagesWorkflow;
 use App\Workflow\Organization\ShowStageWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,6 +26,16 @@ final class StagesController extends AbstractController
     public function list(string $id, ListStagesWorkflow $listStages): JsonResponse
     {
         return $this->json(StageListResponse::of($listStages($id)));
+    }
+
+    #[Route('/services/{id}/stages/order', name: 'api_stages_reorder', methods: ['PUT'])]
+    public function reorder(
+        string $id,
+        #[MapRequestPayload]
+        StageOrderRequest $order,
+        ReorderStagesWorkflow $reorderStages,
+    ): JsonResponse {
+        return $this->json(StageListResponse::of($reorderStages($id, $order->stageIds ?? [])));
     }
 
     #[Route('/services/{id}/stages', name: 'api_stages_add', methods: ['POST'])]
