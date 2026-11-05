@@ -193,6 +193,21 @@ Public. Body `{token, password}`: sets a new password with the one-time link fro
 The password is checked before the link is spent. Spending the link and saving the password happen in one
 transaction, so a link works exactly once.
 
+#### `POST /api/auth/forgot-password`
+
+Public. Body `{email}` → 202 `{"status":"received"}`, the same bytes for every address. Only an active account
+(approved, not disabled) gets a `password_link` email in its language, with a link valid for 1 hour that replaces
+any older unused link; unknown, pending and disabled addresses get nothing. Looking the address up, creating the
+link and sending the email all happen after the response (`AfterResponse`), so the answer's timing reveals nothing.
+The link is used with `POST /api/auth/password-links`; links from `app:user:password-link` still last 24 hours.
+
+| Case | Response |
+| --- | --- |
+| `email` missing or blank | 422 `accounts.emailRequired` on `email` |
+| `email` not an address | 422 `accounts.emailInvalid` on `email` |
+| `email` longer than 254 characters, like an account's address | 422 `validation.tooLong {max: 254}` on `email` |
+| An 11th request from one IP, or a 4th for one address (case-insensitive), within an hour | 429 `auth.tooManyAttempts` with `Retry-After` |
+
 #### `POST /api/auth/register`
 
 Public. Creates an account that waits for an administrator's approval. Its roles come with the approval.
@@ -987,7 +1002,9 @@ gets roles and nothing else; children come from the people directory (`GET /api/
 transaction, with the account locked: the roles are given, a parent gets approved guardian links to the
 children (`approved_by` = the administrator), the account is approved, and the registration's note, its
 `registeredAs` and the services the person named are deleted. Any failure stores nothing. 200
-`{id, email, displayName, language}`.
+`{id, email, displayName, language}`. After the approval is stored, the account gets an `account_approved` email
+in its language with the sign-in link (`{FRONTEND_URL}/{language}/sign-in`); a failed email is logged and the
+approval stands. Declining sends nothing.
 
 | Field | Codes |
 | --- | --- |

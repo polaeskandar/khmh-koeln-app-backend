@@ -1,0 +1,5 @@
+{% extends 'emails/layout.txt.twig' %}
+
+{% block body %}{{ 'account_approved.body'|trans({}, 'emails') }}
+
+{{ url }}{% endblock %}

@@ -11,12 +11,9 @@ use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Checksum\Model\Checksum;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
-use App\Library\Strings\Model\Text;
 use App\Library\Time\Client\Calendar;
 use DateInterval;
 use DateTimeImmutable;
-use SensitiveParameter;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\String\ByteString;
 
 final readonly class PasswordLinks
@@ -27,6 +24,8 @@ final readonly class PasswordLinks
 
     private const string LIFETIME = 'PT24H';
 
+    private const string RESET_LIFETIME = 'PT1H';
+
     private const string VALID_UNTIL = 'd.m.Y H:i';
 
     public function __construct(
@@ -34,8 +33,7 @@ final readonly class PasswordLinks
         private PasswordTokenRepositoryInterface $tokens,
         private AccountMailer $mailer,
         private Calendar $calendar,
-        #[Autowire(env: 'FRONTEND_URL')]
-        private string $frontendUrl,
+        private FrontendLinks $links,
     ) {
     }
 
@@ -47,25 +45,29 @@ final readonly class PasswordLinks
             throw new RuleViolation('accounts.passwordLinkUnavailable');
         }
 
+        return $this->issue($user, self::LIFETIME);
+    }
+
+    public function resetFor(string $email): void
+    {
+        $user = $this->users->findByEmail($email);
+
+        if ($user?->status()->isActive() === true) {
+            $this->issue($user, self::RESET_LIFETIME);
+        }
+    }
+
+    private function issue(User $user, string $lifetime): DateTimeImmutable
+    {
         $token = ByteString::fromRandom(self::TOKEN_LENGTH, self::TOKEN_ALPHABET)->toString();
-        $expiresAt = $this->calendar->now()->add(new DateInterval(self::LIFETIME));
+        $expiresAt = $this->calendar->now()->add(new DateInterval($lifetime));
         $this->tokens->replaceUnused(new PasswordToken($user, Checksum::sha256($token), $expiresAt, createdBy: null));
 
         $this->mailer->send($user, 'password_link', [
-            'url' => $this->urlFor($user, $token),
+            'url' => $this->links->to($user, 'set-password/#token=' . $token),
             'validUntil' => $expiresAt->format(self::VALID_UNTIL),
         ]);
 
         return $expiresAt;
-    }
-
-    private function urlFor(User $user, #[SensitiveParameter] string $token): string
-    {
-        return Text::format(
-            '%s/%s/set-password/#token=%s',
-            Text::of($this->frontendUrl)->replaceMatches('#/+$#', replacement: '')->toString(),
-            $user->profile()->language->value,
-            $token,
-        )->toString();
     }
 }
