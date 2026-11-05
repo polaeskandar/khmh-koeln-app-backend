@@ -108,6 +108,11 @@ first name, with the German ICU collation (`de-x-icu`): `Özdemir` sorts between
 (`rostersOn`, through `jsonb_to_recordset`), and today's member counts per service (each person once, plus the
 service level) or per stage, one statement for any number of services or stages.
 
+A session's roster is its schedule's roster on the session's `occurrence_date` (#16: sessions have no roster of
+their own). `SessionCountsQuery::forSessions()` takes sessions the caller already loaded and returns each one's
+roster ids, present ids and `Counts` (see the API contract) in two statements: one `rostersOn` for the sessions with
+an expected roster and one read of the current marks. Open rosters have no roster ids.
+
 ## Meetings and attendance
 
 | Table | Purpose | Key rules |
