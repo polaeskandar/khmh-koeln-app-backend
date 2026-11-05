@@ -1,0 +1,21 @@
+sentry:
+    dsn: '%env(SENTRY_DSN)%'
+    register_error_listener: false
+    register_error_handler: false
+    options:
+        send_default_pii: false
+        max_breadcrumbs: 0
+        before_send: App\Platform\Errors\Service\SentryEventScrubber
+        ignore_exceptions:
+            - 'Symfony\Component\ErrorHandler\Error\FatalError'
+            - 'Symfony\Component\Debug\Exception\FatalErrorException'
+    tracing:
+        enabled: false
+    messenger:
+        enabled: false
+
+when@test:
+    sentry:
+        dsn: 'https://public@errors.invalid/1'
+        options:
+            transport: App\Tests\Support\Platform\Errors\RecordingTransport

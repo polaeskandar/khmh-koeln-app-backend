@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Platform\Problem\Service;
 
+use App\Platform\Errors\Contract\ErrorTracker;
 use App\Platform\Http\Service\ApiRequest;
 use App\Platform\Problem\Contract\ProblemResponder;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -14,6 +15,7 @@ final readonly class ProblemListener
 {
     public function __construct(
         private ProblemResponder $responder,
+        private ErrorTracker $errors,
     ) {
     }
 
@@ -23,6 +25,12 @@ final readonly class ProblemListener
             return;
         }
 
-        $event->setResponse($this->responder->respond($event->getThrowable()));
+        $response = $this->responder->respond($event->getThrowable());
+
+        if ($response->isServerError()) {
+            $this->errors->capture($event->getThrowable());
+        }
+
+        $event->setResponse($response);
     }
 }
