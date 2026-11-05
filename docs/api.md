@@ -616,6 +616,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `validation.unexpectedField` | – | **New.** Field error: the body has a member the endpoint does not accept. |
 | `validation.invalidChoice` | – | **New.** Field error: the value is not one of the allowed choices (`status=deleted`). |
 | `validation.tooMany` | `max` | **New.** Field error: more items than allowed. |
+| `validation.tooSmall` | `min` | **New.** Field error: the number is below {min}. |
 | `validation.invalidRange` | `max` | **New.** Field error: the end is before the start, or the range is longer than `max` days. |
 | `validation.birthDateInFuture` | – | **New.** Field error on `birthDate`: the date is after today. |
 | `validation.addressIncomplete` | – | **New.** Field error on `address`: give street, postal code and city, or none of them. |
@@ -1047,6 +1048,23 @@ the first, last or display name. Fewer than 2 letters → 422 field error `q`: `
 `%` and `_` match themselves.
 
 ### People
+
+#### `GET /api/people?status=active|inactive|all&serviceId=&stageId=&q=&page=`
+
+`members: read`. `{today, items: [PersonRow], page, pageSize: 25, total, can: {add}}`, by last, then first name
+(German order). A `PersonRow` is `{person: PersonView, placements: [Placement], pastPlacements: [Placement],
+can: {edit}}`; a `Placement` is `{membershipId, service: ServiceRef, stage: StageRef | null, startsOn, endsOn}`,
+current ones (`endsOn` null or from today) under `placements`, ended ones under `pastPlacements`. Roles hold
+everywhere, so every person is listed.
+
+- `status` defaults to `active`; anything other than `active`, `inactive` or `all` → 422 `validation.invalidChoice`.
+- `stageId` keeps the stage's roster today; `serviceId` everyone currently in the service, at any stage or the
+  service level. With `stageId`, `serviceId` is ignored. Unknown → 404 `notFound.stage` / `notFound.service`; an id
+  that is not a UUID → 422 `validation.invalidType` on that filter.
+- `q`: every word (folded like the directory search) appears in the first, last or display name.
+- `page` from 1; `page=0` → 422 `validation.tooSmall {min: 1}`. The page costs the same number of statements
+  whatever its size.
+- `can.add` is `members: create`; `can.edit` is `members: update`.
 
 A `PersonView` is `{id, firstName, lastName, displayName, status}`; a `MembershipView` is `{id, serviceId,
 stageId, startsOn, endsOn}`.
