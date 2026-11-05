@@ -1968,6 +1968,21 @@ own meetings count for every member of the service. By date, start time and grou
 
 Never cancel reasons, session notes, attendance or counts.
 
+#### `GET /api/member/homework?state=todo|done`
+
+`state` defaults to `todo`; another value → 422 `state` `validation.invalidChoice`. → 200 `{today, items}` with the
+parent portal's item and sort orders (see `GET /api/parent/children/{childId}/homework`): `{id, title,
+lessonTitle, stage, dueDate, done, completedAt, completedByYou, completedBy}`, for the published homework of the
+member's own stages and the tasks reported for them. `completedBy` is the reporter's display name, also a parent's
+for an older child, and `null` once that account is gone; `completedByYou` is `true` only for the viewer's own
+report. `items: []` while the record is inactive.
+
+#### `GET /api/member/homework/{homeworkId}`
+
+→ 200 `{today, task: item + instructions, resources: [{label, url}], lesson: {title, teachingDate, passage,
+memoryVerse}}`. A draft, archived, other-stage or unknown task → 404 `homework.notAvailable`, byte-identical; a
+malformed id → 404. No lesson plan, objectives or notes for the servants.
+
 ### Your own data
 
 Any signed-in account, staff or parent; 401 `auth.unauthenticated` without a session. The `POST` follows the JSON

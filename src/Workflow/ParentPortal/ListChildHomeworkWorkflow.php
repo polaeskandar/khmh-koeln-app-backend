@@ -35,7 +35,7 @@ final readonly class ListChildHomeworkWorkflow
         $viewer = Uuid::fromString($viewerId);
         $visible = VisibleHomework::lookedUpIn($this->accounts, $this->families, $this->homework, $viewer);
         $child = $visible->requireChild(Uuid::fromString($childId));
-        $shown = ParentHomeworkOrder::shown($child->tasks, $state);
+        $shown = ParentHomeworkOrder::shown($child->tasks->tasks, $state);
         $items = ParentHomeworkItems::lookedUpIn($this->structure, $this->accounts, $shown, $viewer);
 
         return new ChildHomeworkList($visible->today->toString(), $items->listOf($shown));

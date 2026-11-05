@@ -27,22 +27,11 @@ final readonly class ChildHomeworkDetailResponse implements JsonSerializable
     public function jsonSerialize(): array
     {
         $detail = $this->detail;
-        $lesson = $detail->lesson;
 
         return [
             'today' => $detail->today,
             'child' => ['id' => $detail->child->id, 'name' => $detail->child->name],
-            'task' => [
-                ...new ParentHomeworkItemResponse($detail->item)->jsonSerialize(),
-                'instructions' => $detail->text->instructions,
-                'resources' => $detail->text->resources,
-            ],
-            'lesson' => [
-                'title' => $lesson->title,
-                'teachingDate' => $lesson->teachingDate,
-                'passage' => $lesson->passage,
-                'memoryVerse' => $lesson->memoryVerse,
-            ],
+            ...new HomeworkTaskResponse($detail->item, $detail->text, $detail->lesson)->jsonSerialize(),
         ];
     }
 }

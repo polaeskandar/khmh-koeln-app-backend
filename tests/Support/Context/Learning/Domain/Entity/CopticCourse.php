@@ -53,6 +53,7 @@ final readonly class CopticCourse
             'letters' => self::published($container, $letters, 'Write the first eight letters', '2026-11-09'),
             'words' => self::draft($container, $words, 'Read five short words'),
             'samaritan' => self::published($container, $samaritan, 'Tell the story at home', null),
+            'archived' => self::archived($container, $easter, 'Draw the Easter icon'),
         ]);
     }
 
@@ -112,6 +113,16 @@ final readonly class CopticCourse
         return $task;
     }
 
+    private static function archived(ContainerInterface $container, Lesson $lesson, string $title): HomeworkAssignment
+    {
+        $task = self::draftOf($lesson, $title, null);
+        $task->publish(new DateTimeImmutable('2026-10-27T09:00:00+01:00'));
+        $task->archive(new DateTimeImmutable('2026-10-28T09:00:00+01:00'));
+        new Database($container)->persisted($task);
+
+        return $task;
+    }
+
     private static function draft(ContainerInterface $container, Lesson $lesson, string $title): HomeworkAssignment
     {
         $task = self::draftOf($lesson, $title, null);
@@ -122,10 +133,17 @@ final readonly class CopticCourse
 
     private static function draftOf(Lesson $lesson, string $title, ?string $dueDate): HomeworkAssignment
     {
+        $resources = $title === 'Write the first eight letters'
+            ? Materials::of([[
+                'label' => 'The Coptic alphabet (chart)',
+                'url' => 'https://example.org/alphabet.pdf',
+            ]], 'resources')
+            : Materials::none();
+
         return HomeworkAssignment::draft(
             $lesson,
             HomeworkText::of($title, 'Practise at home.', $dueDate === null ? null : LocalDate::of($dueDate)),
-            Materials::none(),
+            $resources,
             createdBy: null,
         );
     }
