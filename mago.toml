@@ -48,8 +48,13 @@ minimum-fail-level = "note"
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Identity\\**"
-allow-from = ["App\\Context\\Identity\\**", "App\\Interface\\**", "App\\Tests\\**"]
-reason = "A context never uses another context; Interface combines them."
+allow-from = ["App\\Context\\Identity\\**", "App\\Workflow\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; only Workflow uses the contexts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Identity\\Domain\\Repository\\**"
+allow-from = ["App\\Context\\Identity\\**", "App\\Tests\\**"]
+reason = "Workflows go through the context's application services, never straight to its repositories."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Identity\\Infrastructure\\**"
@@ -58,8 +63,13 @@ reason = "Only the context's own Infrastructure uses its Infrastructure; the res
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Organization\\**"
-allow-from = ["App\\Context\\Organization\\**", "App\\Interface\\**", "App\\Tests\\**"]
-reason = "A context never uses another context; Interface combines them."
+allow-from = ["App\\Context\\Organization\\**", "App\\Workflow\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; only Workflow uses the contexts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Organization\\Domain\\Repository\\**"
+allow-from = ["App\\Context\\Organization\\**", "App\\Tests\\**"]
+reason = "Workflows go through the context's application services, never straight to its repositories."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Organization\\Infrastructure\\**"
@@ -68,8 +78,13 @@ reason = "Only the context's own Infrastructure uses its Infrastructure; the res
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\People\\**"
-allow-from = ["App\\Context\\People\\**", "App\\Interface\\**", "App\\Tests\\**"]
-reason = "A context never uses another context; Interface combines them."
+allow-from = ["App\\Context\\People\\**", "App\\Workflow\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; only Workflow uses the contexts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\People\\Domain\\Repository\\**"
+allow-from = ["App\\Context\\People\\**", "App\\Tests\\**"]
+reason = "Workflows go through the context's application services, never straight to its repositories."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\People\\Infrastructure\\**"
@@ -78,8 +93,13 @@ reason = "Only the context's own Infrastructure uses its Infrastructure; the res
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Meetings\\**"
-allow-from = ["App\\Context\\Meetings\\**", "App\\Interface\\**", "App\\Tests\\**"]
-reason = "A context never uses another context; Interface combines them."
+allow-from = ["App\\Context\\Meetings\\**", "App\\Workflow\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; only Workflow uses the contexts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Meetings\\Domain\\Repository\\**"
+allow-from = ["App\\Context\\Meetings\\**", "App\\Tests\\**"]
+reason = "Workflows go through the context's application services, never straight to its repositories."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Meetings\\Infrastructure\\**"
@@ -88,8 +108,13 @@ reason = "Only the context's own Infrastructure uses its Infrastructure; the res
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Attendance\\**"
-allow-from = ["App\\Context\\Attendance\\**", "App\\Interface\\**", "App\\Tests\\**"]
-reason = "A context never uses another context; Interface combines them."
+allow-from = ["App\\Context\\Attendance\\**", "App\\Workflow\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; only Workflow uses the contexts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Attendance\\Domain\\Repository\\**"
+allow-from = ["App\\Context\\Attendance\\**", "App\\Tests\\**"]
+reason = "Workflows go through the context's application services, never straight to its repositories."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Attendance\\Infrastructure\\**"
@@ -98,8 +123,13 @@ reason = "Only the context's own Infrastructure uses its Infrastructure; the res
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Learning\\**"
-allow-from = ["App\\Context\\Learning\\**", "App\\Interface\\**", "App\\Tests\\**"]
-reason = "A context never uses another context; Interface combines them."
+allow-from = ["App\\Context\\Learning\\**", "App\\Workflow\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; only Workflow uses the contexts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Learning\\Domain\\Repository\\**"
+allow-from = ["App\\Context\\Learning\\**", "App\\Tests\\**"]
+reason = "Workflows go through the context's application services, never straight to its repositories."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Learning\\Infrastructure\\**"
@@ -154,7 +184,12 @@ reason = "Library packages are independent of each other."
 [[guard.perimeter.restrictions]]
 dependency = "App\\Interface\\**"
 allow-from = ["App\\Interface\\**", "App\\Tests\\**"]
-reason = "Interface holds entry points, use cases and queries; nothing depends on it."
+reason = "Interface holds entry points, requests and responses; nothing depends on it."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Workflow\\**"
+allow-from = ["App\\Interface\\**", "App\\Workflow\\**", "App\\Tests\\**"]
+reason = "Interface calls workflows; the contexts never depend on them."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Platform\\**"
@@ -196,11 +231,62 @@ must-be = ["enum"]
 reason = "The Enum folder holds only enums."
 
 [[guard.structural.rules]]
-on = "App\\Interface\\Api\\**"
+on = "App\\Context\\*\\Application\\Service\\**"
+target = "class"
+must-be-final = true
+must-be-readonly = true
+reason = "An application service holds only its injected collaborators."
+
+[[guard.structural.rules]]
+on = "App\\Context\\*\\Application\\Service\\**"
+target = "interface"
+must-be-named = "*Interface"
+reason = "A port the context's infrastructure implements carries the Interface suffix."
+
+[[guard.structural.rules]]
+on = "App\\Context\\*\\Domain\\Attribute\\**"
+target = "class"
+must-be-final = true
+must-be-readonly = true
+reason = "An attribute is immutable metadata of the domain."
+
+[[guard.structural.rules]]
+on = "App\\Workflow\\*\\*"
+target = "class"
+must-be-named = "*Workflow"
+must-be-final = true
+must-be-readonly = true
+reason = "A workflow is named <Verb><Subject>Workflow and holds only injected collaborators."
+
+[[guard.structural.rules]]
+on = "App\\Workflow\\*\\Model\\**"
+target = "class"
+must-be-final = true
+must-be-readonly = true
+reason = "A workflow model is an immutable value."
+
+[[guard.structural.rules]]
+on = "App\\Interface\\Api\\*\\*"
 target = "class"
 must-be-named = "*Controller"
 must-be-final = true
 reason = "API entry points are controllers."
+
+[[guard.structural.rules]]
+on = "App\\Interface\\Api\\*\\Request\\**"
+target = "class"
+must-be-named = "*Request"
+must-be-final = true
+must-be-readonly = true
+reason = "A request is the immutable payload an endpoint accepts."
+
+[[guard.structural.rules]]
+on = "App\\Interface\\Api\\*\\Response\\**"
+target = "class"
+must-be-named = "*Response"
+must-be-final = true
+must-be-readonly = true
+reason = "A response is the immutable shape an endpoint answers with."
 
 [[guard.structural.rules]]
 on = "App\\Interface\\Console\\**"
@@ -208,20 +294,6 @@ target = "class"
 must-be-named = "*Command"
 must-be-final = true
 reason = "Console entry points are commands."
-
-[[guard.structural.rules]]
-on = "App\\Interface\\Application\\*\\UseCase\\**"
-target = "class"
-must-be-final = true
-must-be-readonly = true
-reason = "A command or query is an immutable request and its handler holds only injected collaborators."
-
-[[guard.structural.rules]]
-on = "App\\Interface\\Application\\*\\Model\\**"
-target = "class"
-must-be-final = true
-must-be-readonly = true
-reason = "A read model is an immutable value."
 
 [[guard.structural.rules]]
 on = "App\\Library\\*\\Model\\**"

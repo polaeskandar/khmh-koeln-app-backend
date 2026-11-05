@@ -13,8 +13,8 @@ final readonly class Access
     public const string ATTRIBUTE = 'access';
 
     public function __construct(
-        private Action $action,
-        private Resource $resource,
+        public Action $action,
+        public Resource $resource,
     ) {
     }
 

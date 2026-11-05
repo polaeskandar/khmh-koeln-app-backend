@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Infrastructure\Security;
 
-use App\Context\Identity\Domain\Service\PasswordHasherInterface;
+use App\Context\Identity\Application\Service\PasswordHasherInterface;
 use App\Context\Identity\Domain\ValueObject\PlainPassword;
 use Override;
 use SensitiveParameter;

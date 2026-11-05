@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Identity;
 
-use App\Interface\Application\Identity\UseCase\Query\ShowCurrentAccount\ShowCurrentAccountHandler;
-use App\Interface\Application\Identity\UseCase\Query\ShowCurrentAccount\ShowCurrentAccountQuery;
+use App\Interface\Api\Identity\Response\MeResponse;
+use App\Workflow\Identity\ShowCurrentAccountWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -19,8 +19,8 @@ final class MeController extends AbstractController
     public function show(
         #[CurrentUser]
         UserInterface $user,
-        ShowCurrentAccountHandler $showCurrentAccount,
+        ShowCurrentAccountWorkflow $showCurrentAccount,
     ): JsonResponse {
-        return $this->json($showCurrentAccount(new ShowCurrentAccountQuery($user->getUserIdentifier())));
+        return $this->json(MeResponse::of($showCurrentAccount($user->getUserIdentifier())));
     }
 }

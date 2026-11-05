@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Interface\Console\Identity;
 
-use App\Interface\Application\Identity\UseCase\Command\TakeRole\TakeRoleCommand;
-use App\Interface\Application\Identity\UseCase\Command\TakeRole\TakeRoleHandler;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\Text;
+use App\Workflow\Identity\TakeRoleWorkflow;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -18,7 +17,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final readonly class UserRoleRemoveCommand
 {
     public function __construct(
-        private TakeRoleHandler $handler,
+        private TakeRoleWorkflow $takeRole,
     ) {
     }
 
@@ -30,7 +29,7 @@ final readonly class UserRoleRemoveCommand
         string $role,
     ): int {
         try {
-            ($this->handler)(new TakeRoleCommand($email, $role));
+            ($this->takeRole)($email, $role);
         } catch (NotFound|RuleViolation $refused) {
             $io->error($refused->getMessage());
 

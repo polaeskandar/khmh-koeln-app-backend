@@ -11,13 +11,13 @@ final class SourceLayoutTest extends TestCase
 {
     public const array CONTEXTS = ['Attendance', 'Identity', 'Learning', 'Meetings', 'Organization', 'People'];
 
-    private const array TOP_LEVEL_NAMESPACES = ['Context', 'Interface', 'Library', 'Platform'];
+    private const array TOP_LEVEL_NAMESPACES = ['Context', 'Interface', 'Library', 'Platform', 'Workflow'];
 
-    private const array CONTEXT_LAYERS = ['Domain', 'Infrastructure'];
+    private const array CONTEXT_LAYERS = ['Application', 'Domain', 'Infrastructure'];
 
     private const array LIBRARY_KINDS = ['Client', 'Exception', 'Mapping', 'Model'];
 
-    public function testSrcHoldsOnlyTheFourTopLevelNamespaces(): void
+    public function testSrcHoldsOnlyTheFiveTopLevelNamespaces(): void
     {
         self::assertSame(self::TOP_LEVEL_NAMESPACES, self::foldersIn('src'));
     }
@@ -27,7 +27,7 @@ final class SourceLayoutTest extends TestCase
         self::assertSame(self::CONTEXTS, self::foldersIn('src/Context'));
     }
 
-    public function testEveryContextHasADomainAndAnInfrastructure(): void
+    public function testEveryContextHasAnApplicationADomainAndAnInfrastructure(): void
     {
         foreach (self::CONTEXTS as $context) {
             self::assertSame(self::CONTEXT_LAYERS, self::foldersIn('src/Context/' . $context), $context);

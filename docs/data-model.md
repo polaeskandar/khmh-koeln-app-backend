@@ -22,7 +22,7 @@ Doctrine on Symfony 7.4. It has no lessons, homework or parent access.
   (DSGVO Art. 17), which deletes their personal data for good; see [Data protection](#data-protection).
 - **JSON names** in the API are camelCase. Columns are snake_case.
 - **Contexts own their tables.** Each context has its own PostgreSQL schema. A reference to another
-  context's record is its id without a foreign key, checked by the use case that writes it; the foreign keys
+  context's record is its id without a foreign key, checked by the workflow that writes it; the foreign keys
   in the tables below hold within a context only (see [Code layout](architecture.md#code-layout)).
 
 ## Overview
@@ -81,8 +81,9 @@ staff (administrators, service leaders, servants) and parents. Children never ha
   `tone` 1–8, non-blank names, description lengths and `position >= 0`; `stage.service_id` references `service` with
   `ON DELETE RESTRICT`; an index on `stage(service_id, position)`. Positions are not unique: writes that
   reorder stages lock the service row instead.
-- Other contexts store `service_id` and `stage_id` without foreign keys. The use cases that write them
-  check through `StageRepositoryInterface::belongsTo()` that the stage belongs to the service.
+- Other contexts store `service_id` and `stage_id` without foreign keys. The workflows that write them
+  check through an Organization application service (on `StageRepositoryInterface::belongsTo()`) that the stage
+  belongs to the service.
 
 `person` and `membership` live in the `people` schema. A person's names are cleaned like service names; `name_key`
 is "first_last" in lower case (indexed, for duplicate checks) and `search_text` is first, last and display
@@ -90,7 +91,7 @@ name folded: lower case, without accents or Arabic vowel marks (`InputText::fold
 Ḥanna" is found as "monika hanna". First and last name ≤80 characters, display name ≤120 (blank → null);
 CHECKs keep `status` to `active`/`inactive`, the names non-blank and the address all three parts or none, and
 the application keeps the birth date out of the future. `membership.person_id` references `person` with `ON
-DELETE RESTRICT`; `service_id` and `stage_id` are plain ids of Organization records, and the use case that
+DELETE RESTRICT`; `service_id` and `stage_id` are plain ids of Organization records, and the workflow that
 writes a membership checks that the stage belongs to the service. CHECK `ends_on >= starts_on`; partial
 UNIQUE indexes allow one open membership (`ends_on IS NULL`) per person and stage, and per person and
 service-level roster; `(service_id, stage_id)` is indexed for rosters. Ending a membership from today sets
@@ -113,7 +114,7 @@ start_time`, `cancel_reason` only on canceled sessions, `closed_at` exactly on
 completed ones and `opened_at` on active and completed ones. `session_event` is append-only:
 `by_generator` marks the generator's actor-less `created` events. Foreign keys inside Meetings are
 `RESTRICT`: a schedule with sessions and a session with history can't be deleted. `service_id`, `stage_id` (on the schedule) and the actor columns (`opened_by`, `closed_by`,
-`actor_id`) are plain ids without foreign keys; the use cases check them, and the erasure process (#82)
+`actor_id`) are plain ids without foreign keys; the workflows check them, and the erasure process (#82)
 nulls the actor columns. Indexes: `meeting_session (occurrence_date)`, `session_event (session_id, occurred_at)`. For the MVP every
 session belongs to a schedule: there are no one-off sessions and sessions are not moved.
 
@@ -145,7 +146,7 @@ registration fields are empty once `approved_at` is set; the address is all thre
 postal code ≤10, city ≤80, cleaned, blank → null). A servant who registers names every service they serve in. Those rows live with
 the services: `organization.registration_service (account_id, service_id)`, primary key over both, `service_id`
 references `service` with `ON DELETE CASCADE`, `account_id` is a plain id of an Identity account. The registration
-use case writes them only for a pending servant, and the use cases that approve, decline or erase an account
+workflow writes them only for a pending servant, and the workflows that approve, decline or erase an account
 delete them. A birth date is never after today: the application checks it against the
 church calendar, because a CHECK can't read the date. `approved_by` references `app_user` with `ON DELETE SET
 NULL`. Operators create approved accounts with `bin/console app:user:create <email> <name>`, typing the

@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Interface\Console\Identity;
 
-use App\Interface\Application\Identity\UseCase\Command\GiveRole\GiveRoleCommand;
-use App\Interface\Application\Identity\UseCase\Command\GiveRole\GiveRoleHandler;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\Text;
+use App\Workflow\Identity\GiveRoleWorkflow;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -18,7 +17,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final readonly class UserRoleAddCommand
 {
     public function __construct(
-        private GiveRoleHandler $handler,
+        private GiveRoleWorkflow $giveRole,
     ) {
     }
 
@@ -30,7 +29,7 @@ final readonly class UserRoleAddCommand
         string $role,
     ): int {
         try {
-            ($this->handler)(new GiveRoleCommand($email, $role));
+            ($this->giveRole)($email, $role);
         } catch (NotFound|RuleViolation $refused) {
             $io->error($refused->getMessage());
 
