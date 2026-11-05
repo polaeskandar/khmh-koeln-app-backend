@@ -36,7 +36,7 @@ final class Membership
     private readonly Uuid $serviceId;
 
     #[ORM\Column(type: UuidType::NAME, nullable: true)]
-    private readonly ?Uuid $stageId;
+    private ?Uuid $stageId;
 
     #[ORM\Embedded(Tenure::class, columnPrefix: false)]
     private Tenure $tenure;
@@ -78,5 +78,10 @@ final class Membership
     public function changeTenure(Tenure $tenure): void
     {
         $this->tenure = $tenure;
+    }
+
+    public function changeStage(?Uuid $stageId): void
+    {
+        $this->stageId = $stageId;
     }
 }

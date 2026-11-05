@@ -18,7 +18,11 @@ interface MembershipRepositoryInterface
     public function hasCurrent(Person $person, Uuid $serviceId, ?Uuid $stageId, LocalDate $on): bool;
 
     /**
-     * @param callable(Membership): void $work
+     * @template T
+     *
+     * @param callable(Membership): T $work
+     *
+     * @return T
      */
-    public function withWriteLock(Uuid $id, callable $work): void;
+    public function withWriteLock(Uuid $id, callable $work): mixed;
 }

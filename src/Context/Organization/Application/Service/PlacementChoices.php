@@ -20,4 +20,11 @@ final readonly class PlacementChoices
 
         return new ChosenPlacement($service, $this->stages->of($stageId, $service, field: $fieldPrefix . 'stageId'));
     }
+
+    public function inService(string $serviceId, ?string $stageId, string $field): ChosenPlacement
+    {
+        $service = $this->services->of($serviceId, field: $field);
+
+        return new ChosenPlacement($service, $this->stages->of($stageId, $service, field: $field));
+    }
 }

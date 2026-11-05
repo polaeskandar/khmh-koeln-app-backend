@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\People;
 
+use App\Interface\Api\People\Request\MoveMembershipRequest;
 use App\Interface\Api\People\Request\PlacementRequest;
 use App\Interface\Api\People\Response\AddedMembershipResponse;
 use App\Workflow\People\AddMembershipWorkflow;
 use App\Workflow\People\EndMembershipWorkflow;
+use App\Workflow\People\MoveMembershipWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,6 +29,16 @@ final class MembershipsController extends AbstractController
             new AddedMembershipResponse($addMembership($id, $placement->choice())),
             status: Response::HTTP_CREATED,
         );
+    }
+
+    #[Route('/api/memberships/{id}/move', name: 'api_memberships_move', methods: ['POST'])]
+    public function move(
+        string $id,
+        #[MapRequestPayload]
+        MoveMembershipRequest $request,
+        MoveMembershipWorkflow $moveMembership,
+    ): JsonResponse {
+        return $this->json(new AddedMembershipResponse($moveMembership($id, $request->stageId)));
     }
 
     #[Route('/api/memberships/{id}/end', name: 'api_memberships_end', methods: ['POST'])]
