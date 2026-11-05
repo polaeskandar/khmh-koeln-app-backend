@@ -1192,6 +1192,28 @@ harmless. 404 `notFound.session`, also for an id that is not a UUID.
   `closedAt`/`closedBy` cleared, `openedAt` kept; already `active` → 200 unchanged; otherwise 409
   `meetings.onlyCompletedCanReopen`.
 
+### Attendance marks
+
+A `Mark` is `{id, sessionId, personId, recordedAt, recordedBy: AccountRef | null}`.
+
+#### `PUT /api/sessions/{id}/attendance/{personId}`
+
+`attendance: create`. Body `{}`. Marks the person present while the session is `active`: 201 with the new `Mark`,
+recorded by the caller; a repeat → 200 with the unchanged mark (same id, time and recorder), so retries are
+harmless. Anyone active can be marked, on the roster or not (visitors, other groups, open rosters).
+
+#### `DELETE /api/sessions/{id}/attendance/{personId}`
+
+`attendance: delete`. Body `{reason?}`: trimmed, blank → `null`, at most 200 characters (`validation.tooLong`). The
+current mark gets the remover, time and reason and stays in the history; 204, also when there is no current mark.
+A later `PUT` creates a new mark.
+
+Both run with the session row locked (`SELECT … FOR UPDATE`), checking the session, then the person, then the
+current mark: `scheduled` → 409 `attendance.openFirst`; `completed` → 409 `attendance.closedReopen`; `canceled` → 409
+`meetings.sessionCanceled`; an unknown session → 404 `notFound.session`; an unknown person → 404
+`notFound.person`; marking an inactive person → 409 `attendance.personInactive {name}` (removing ignores the
+person's status). A refused call writes nothing.
+
 ### The meeting a lesson is for
 
 Lesson reads carry a `meeting`, one of:
