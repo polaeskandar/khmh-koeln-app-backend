@@ -20,6 +20,11 @@ interface LessonRepositoryInterface
     public function countForSchedule(Uuid $scheduleId): int;
 
     /**
+     * @param list<Uuid> $stageIds
+     */
+    public function countForStages(array $stageIds): int;
+
+    /**
      * @return ReadableCollection<int, Lesson>
      */
     public function ofStage(Uuid $stageId): ReadableCollection;

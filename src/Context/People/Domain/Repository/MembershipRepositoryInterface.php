@@ -15,6 +15,10 @@ interface MembershipRepositoryInterface
 
     public function remove(Membership $membership): void;
 
+    public function countInService(Uuid $serviceId): int;
+
+    public function countInStage(Uuid $stageId): int;
+
     public function hasCurrent(Person $person, Uuid $serviceId, ?Uuid $stageId, LocalDate $on): bool;
 
     public function personOf(Uuid $membershipId): ?Uuid;

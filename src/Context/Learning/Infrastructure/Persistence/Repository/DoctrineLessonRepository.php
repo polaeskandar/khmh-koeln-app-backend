@@ -51,6 +51,23 @@ final readonly class DoctrineLessonRepository implements LessonRepositoryInterfa
         return Integers::of($count);
     }
 
+    /**
+     * @param list<Uuid> $stageIds
+     */
+    #[Override]
+    public function countForStages(array $stageIds): int
+    {
+        if ($stageIds === []) {
+            return 0;
+        }
+
+        return Integers::of($this->entityManager->getConnection()->fetchOne(
+            'SELECT count(*) FROM learning.lesson WHERE stage_id IN (?)',
+            [new ArrayCollection($stageIds)->map(static fn (Uuid $id): string => $id->toRfc4122())->getValues()],
+            [ArrayParameterType::STRING],
+        ));
+    }
+
     #[Override]
     public function currentAt(Uuid $scheduleId, LocalDate $date): ?Lesson
     {

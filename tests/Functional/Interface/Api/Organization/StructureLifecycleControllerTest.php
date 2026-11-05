@@ -18,7 +18,7 @@ use App\Tests\Support\Database;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 use Symfony\Component\Uid\Uuid;
 
-final class ArchiveControllerTest extends ApiTestCase
+final class StructureLifecycleControllerTest extends ApiTestCase
 {
     use ClockSensitiveTrait;
 

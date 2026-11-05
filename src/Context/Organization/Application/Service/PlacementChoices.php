@@ -9,9 +9,12 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
 use App\Context\Organization\Domain\ValueObject\ChosenPlacement;
+use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Strings\Model\InputText;
 use App\Library\Strings\Model\NameKey;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class PlacementChoices
 {
@@ -21,6 +24,24 @@ final readonly class PlacementChoices
         private ServiceRepositoryInterface $serviceRecords,
         private StageRepositoryInterface $stageRecords,
     ) {
+    }
+
+    /**
+     * @template T
+     *
+     * @param list<?string> $serviceIds
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function whileKept(array $serviceIds, callable $work): mixed
+    {
+        $ids = Collections::mapPresent(
+            new ArrayCollection($serviceIds),
+            static fn (?string $id): ?Uuid => Uuid::isValid($id ?? '') ? Uuid::fromString($id ?? '') : null,
+        );
+
+        return $this->serviceRecords->withShareLock($ids->getValues(), $work);
     }
 
     public function of(?string $serviceId, ?string $stageId, string $fieldPrefix): ChosenPlacement

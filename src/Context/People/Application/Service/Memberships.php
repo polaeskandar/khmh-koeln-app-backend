@@ -27,6 +27,16 @@ final readonly class Memberships
     ) {
     }
 
+    public function countInService(Uuid $serviceId): int
+    {
+        return $this->memberships->countInService($serviceId);
+    }
+
+    public function countInStage(Uuid $stageId): int
+    {
+        return $this->memberships->countInStage($stageId);
+    }
+
     public function personOf(string $personId): Person
     {
         $found = Uuid::isValid($personId) ? $this->people->find(Uuid::fromString($personId)) : null;

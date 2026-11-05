@@ -13,6 +13,8 @@ interface StageRepositoryInterface
 {
     public function save(Stage $stage): void;
 
+    public function remove(Stage $stage): void;
+
     /**
      * @param list<Uuid> $ids
      *
@@ -30,8 +32,6 @@ interface StageRepositoryInterface
     public function ofService(Service $service): ReadableCollection;
 
     public function findInService(Service $service, string $nameKey): ?Stage;
-
-    public function belongsTo(Uuid $stageId, Uuid $serviceId): bool;
 
     /**
      * @param ReadableCollection<int, Service> $services

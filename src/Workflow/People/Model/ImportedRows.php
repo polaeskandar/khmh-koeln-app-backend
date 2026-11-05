@@ -55,6 +55,16 @@ final readonly class ImportedRows
     }
 
     /**
+     * @return list<string>
+     */
+    public function serviceIds(): array
+    {
+        return new ArrayCollection($this->rows)->map(
+            static fn (ImportRow $row): string => $row->placement->serviceId->toRfc4122(),
+        )->getValues();
+    }
+
+    /**
      * @param array<string, string> $row
      */
     private static function rowOf(int $line, array $row, ChosenPlacement|InvalidInput|null $placed): ImportRow

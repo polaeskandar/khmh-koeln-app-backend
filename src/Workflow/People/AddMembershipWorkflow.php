@@ -9,6 +9,7 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\PlacementChoices;
 use App\Context\People\Application\Service\Memberships;
+use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\ValueObject\Placement;
 use App\Workflow\People\Model\AddedMembership;
 use App\Workflow\People\Model\PlacementChoice;
@@ -27,6 +28,15 @@ final readonly class AddMembershipWorkflow
         $this->access->require(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
 
         $person = $this->memberships->personOf($personId);
+
+        return $this->placements->whileKept([$choice->serviceId], fn (): AddedMembership => $this->added(
+            $person,
+            $choice,
+        ));
+    }
+
+    private function added(Person $person, PlacementChoice $choice): AddedMembership
+    {
         $chosen = $this->placements->of($choice->serviceId, $choice->stageId, fieldPrefix: '');
         $place = $chosen->stage?->name()->value ?? $chosen->service->name()->value;
 

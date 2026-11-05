@@ -60,6 +60,21 @@ final readonly class StructureLookup
     }
 
     /**
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function whileStageKept(string $stageId, callable $work): mixed
+    {
+        $id = Uuid::isValid($stageId) ? Uuid::fromString($stageId) : throw NotFound::of('stage');
+        $serviceId = $this->stages->serviceIdOf($id) ?? throw NotFound::of('stage');
+
+        return $this->services->withShareLock([$serviceId], $work);
+    }
+
+    /**
      * @return list<Uuid>
      */
     public function archivedIds(): array
