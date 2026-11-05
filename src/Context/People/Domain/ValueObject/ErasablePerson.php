@@ -18,4 +18,20 @@ final readonly class ErasablePerson
         public ReadableCollection $memberships,
     ) {
     }
+
+    public function isRosteredOn(RosterKey $key): bool
+    {
+        return !$this->memberships
+            ->filter(static fn (Membership $membership): bool => self::places($membership, $key))
+            ->isEmpty();
+    }
+
+    private static function places(Membership $membership, RosterKey $key): bool
+    {
+        if ($membership->stageId()?->toRfc4122() !== $key->stageId?->toRfc4122()) {
+            return false;
+        }
+
+        return $membership->serviceId()->equals($key->serviceId) && $membership->isCurrentOn($key->day);
+    }
 }

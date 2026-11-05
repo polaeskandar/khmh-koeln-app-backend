@@ -11,9 +11,9 @@ use App\Context\Meetings\Application\Service\ErasedTotals;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\People\Application\Service\PersonErasures;
 use App\Context\People\Domain\Repository\PersonTraceRepositoryInterface;
-use App\Context\People\Domain\Repository\RosterRepositoryInterface;
 use App\Context\People\Domain\ValueObject\ForgottenPerson;
 use App\Context\People\Infrastructure\Persistence\Repository\DoctrinePersonRepository;
+use App\Context\Privacy\Application\Service\PersonTraces;
 use App\Platform\Doctrine\Contract\Transactions;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
@@ -80,15 +80,15 @@ final class ErasePersonWorkflowTest extends ApiTestCase
         };
 
         $erasure = new ErasePersonWorkflow(
-            self::service(Transactions::class),
             new PersonErasures(
+                self::service(Transactions::class),
                 new DoctrinePersonRepository($entityManager),
-                self::service(RosterRepositoryInterface::class),
                 $failing,
             ),
             self::service(ErasedTotals::class),
             self::service(AttendanceMarks::class),
             self::service(HomeworkCompletions::class),
+            self::service(PersonTraces::class),
         );
 
         try {

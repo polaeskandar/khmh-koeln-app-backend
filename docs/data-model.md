@@ -291,7 +291,7 @@ In numbers (`TaskAudiences`), for church-today in Europe/Berlin:
 
 | Table | Purpose | Key rules |
 | --- | --- | --- |
-| `data_request` | A request to see (`copy`) or erase (`erasure`) personal data: who it is about (`person_id`, `app_user_id`), who asked and how (`requested_by`, `channel`: app, email, letter, in person), `received_at`, `due_on` (one month later), a note, and the outcome. | `status` open → done or declined; declining needs a reason. A member's account and an account's member record belong to the same request. Once the data is erased, the request keeps no name: `subject_name` is cleared and `erased_subject` says what it was ("member of 3rd Class"), and the same happens to earlier requests about the same person. `outcome` counts what was deleted per kind. |
+| `data_request` | A request to see (`copy`) or erase (`erasure`) personal data: who it is about (`person_id`, `app_user_id`), who asked and how (`requested_by`, `channel`: app, email, letter, in person), `received_at`, `due_on` (one month later), a note, and the outcome. | `status` open → done or declined; declining needs a reason. A member's account and an account's member record belong to the same request. The subject's name is never stored: it is read from `person`/`app_user` while they exist. Once the data is erased, `person_id`/`app_user_id` become null and `erased_subject_kind`/`_group` say what it was ("member of 3rd Class"), also on earlier requests about the same person. `outcome` counts what was deleted per kind. |
 
 ### What a copy request exports
 

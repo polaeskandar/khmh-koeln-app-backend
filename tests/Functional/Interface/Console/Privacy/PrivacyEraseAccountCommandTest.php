@@ -8,6 +8,7 @@ use App\Context\Attendance\Infrastructure\Persistence\Repository\DoctrineAccount
 use App\Context\Learning\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as LearningTraces;
 use App\Context\Meetings\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as MeetingTraces;
 use App\Context\People\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as PeopleTraces;
+use App\Context\Privacy\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as PrivacyTraces;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
@@ -130,6 +131,8 @@ final class PrivacyEraseAccountCommandTest extends KernelTestCase
             ...MeetingTraces::ACTOR_COLUMNS,
             ...LearningTraces::ACTOR_COLUMNS,
             ...PeopleTraces::ACTOR_COLUMNS,
+            ...PrivacyTraces::ACTOR_COLUMNS,
+            ...PrivacyTraces::SUBJECT_COLUMNS,
         ]);
 
         $references = $connection->fetchFirstColumn(

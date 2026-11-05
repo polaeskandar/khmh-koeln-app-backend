@@ -1,0 +1,129 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Context\Privacy\Domain\Entity;
+
+use App\Context\Privacy\Domain\Enum\RequestKind;
+use App\Context\Privacy\Domain\Enum\RequestStatus;
+use App\Context\Privacy\Domain\ValueObject\ErasedSubject;
+use App\Context\Privacy\Domain\ValueObject\Receipt;
+use App\Context\Privacy\Domain\ValueObject\RequestClosing;
+use App\Context\Privacy\Domain\ValueObject\RequestSubject;
+use App\Library\Persistence\Mapping\CreatedAtEntity;
+use App\Library\Time\Model\LocalDate;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Uid\Uuid;
+
+#[ORM\Entity]
+#[ORM\Table(name: 'data_request', schema: 'privacy')]
+#[ORM\Index(name: 'data_request_status_due_idx', columns: ['status', 'due_on'])]
+final class DataRequest extends CreatedAtEntity
+{
+    #[ORM\Id]
+    #[ORM\Column(type: UuidType::NAME)]
+    private Uuid $id;
+
+    #[ORM\Column(length: 7, enumType: RequestKind::class)]
+    private RequestKind $kind;
+
+    #[ORM\Embedded(RequestSubject::class, columnPrefix: false)]
+    private RequestSubject $subject;
+
+    #[ORM\Embedded(Receipt::class, columnPrefix: false)]
+    private Receipt $receipt;
+
+    #[ORM\Column(name: 'due_on', type: 'local_date')]
+    private LocalDate $dueOn;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $note;
+
+    #[ORM\Column(length: 8, enumType: RequestStatus::class)]
+    private RequestStatus $status;
+
+    #[ORM\Embedded(RequestClosing::class, columnPrefix: false)]
+    private RequestClosing $closing;
+
+    /**
+     * @var array<string, int>|null
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['jsonb' => true])]
+    private ?array $outcome = null;
+
+    #[ORM\Embedded(ErasedSubject::class, columnPrefix: false)]
+    private ErasedSubject $erasedSubject;
+
+    public function __construct(
+        RequestKind $kind,
+        RequestSubject $subject,
+        Receipt $receipt,
+        LocalDate $dueOn,
+        ?string $note,
+    ) {
+        $this->id = Uuid::v7();
+        $this->kind = $kind;
+        $this->subject = $subject;
+        $this->receipt = $receipt;
+        $this->dueOn = $dueOn;
+        $this->note = $note;
+        $this->status = RequestStatus::Open;
+        $this->closing = new RequestClosing();
+        $this->erasedSubject = new ErasedSubject();
+    }
+
+    public function id(): Uuid
+    {
+        return $this->id;
+    }
+
+    public function kind(): RequestKind
+    {
+        return $this->kind;
+    }
+
+    public function subject(): RequestSubject
+    {
+        return $this->subject;
+    }
+
+    public function receipt(): Receipt
+    {
+        return $this->receipt;
+    }
+
+    public function dueOn(): LocalDate
+    {
+        return $this->dueOn;
+    }
+
+    public function note(): ?string
+    {
+        return $this->note;
+    }
+
+    public function status(): RequestStatus
+    {
+        return $this->status;
+    }
+
+    public function closing(): RequestClosing
+    {
+        return $this->closing;
+    }
+
+    /**
+     * @return array<string, int>|null
+     */
+    public function outcome(): ?array
+    {
+        return $this->outcome;
+    }
+
+    public function erasedSubject(): ErasedSubject
+    {
+        return $this->erasedSubject;
+    }
+}

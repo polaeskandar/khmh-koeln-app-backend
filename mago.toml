@@ -26,7 +26,7 @@ no-redundant-variable = { enabled = true }
 no-unused-closure-capture = { enabled = true }
 no-parameter-shadowing = { enabled = true }
 no-assign-in-argument = { enabled = true }
-no-service-state-mutation = { enabled = true, exclude-namespaces = ["App\\Context\\Attendance\\Domain\\Entity\\", "App\\Context\\Identity\\Domain\\Entity\\", "App\\Context\\Learning\\Domain\\Entity\\", "App\\Context\\Meetings\\Domain\\Entity\\", "App\\Context\\Organization\\Domain\\Entity\\", "App\\Context\\People\\Domain\\Entity\\", "App\\Library\\Persistence\\Mapping\\", "App\\Tests\\"] }
+no-service-state-mutation = { enabled = true, exclude-namespaces = ["App\\Context\\Attendance\\Domain\\Entity\\", "App\\Context\\Identity\\Domain\\Entity\\", "App\\Context\\Learning\\Domain\\Entity\\", "App\\Context\\Meetings\\Domain\\Entity\\", "App\\Context\\Organization\\Domain\\Entity\\", "App\\Context\\People\\Domain\\Entity\\", "App\\Context\\Privacy\\Domain\\Entity\\", "App\\Library\\Persistence\\Mapping\\", "App\\Tests\\"] }
 prefer-self-return-type = { enabled = true }
 variable-name = { enabled = true }
 method-name = { enabled = true }
@@ -134,6 +134,21 @@ reason = "Workflows go through the context's application services, never straigh
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Learning\\Infrastructure\\**"
 allow-from = ["App\\Context\\Learning\\Infrastructure\\**", "App\\Tests\\**"]
+reason = "Only the context's own Infrastructure uses its Infrastructure; the rest goes through Domain contracts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Privacy\\**"
+allow-from = ["App\\Context\\Privacy\\**", "App\\Workflow\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; only Workflow uses the contexts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Privacy\\Domain\\Repository\\**"
+allow-from = ["App\\Context\\Privacy\\**", "App\\Tests\\**"]
+reason = "Workflows go through the context's application services, never straight to its repositories."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Privacy\\Infrastructure\\**"
+allow-from = ["App\\Context\\Privacy\\Infrastructure\\**", "App\\Tests\\**"]
 reason = "Only the context's own Infrastructure uses its Infrastructure; the rest goes through Domain contracts."
 
 [[guard.perimeter.restrictions]]

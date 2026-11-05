@@ -472,6 +472,9 @@ shape, keyed by parameter name (`to`: `validation.invalidRange`).
 
 A 422 without fields uses its own code, such as `auth.resetLinkInvalid`.
 
+A body's shape is checked before the caller's rights: a malformed body gets 422 even from a caller who may not use
+the endpoint, and a well-formed one gets the endpoint's 403.
+
 ### Status codes
 
 | Status | Codes | When |
@@ -763,6 +766,15 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `lessons.taughtAfterDate` | – | A lesson is marked as taught on or after its teaching date. |
 | `lessons.deleteDraftsOnly` | – | Only draft lessons can be deleted. Archive it instead. |
 | `lessons.homeworkPublished` | – | Homework of this lesson was published to parents. Archive the lesson instead. |
+
+### `privacy`
+
+| Code | Params | Meaning (English reference text) |
+| --- | --- | --- |
+| `privacy.adminOnly` | – | **New.** Only administrators can see and record data protection requests. |
+| `privacy.chooseSubject` | – | **New.** Field error on `subject`: choose the member or the account the request is about. |
+| `privacy.requestedByRequired` | – | **New.** Field error: enter who made the request. |
+| `privacy.receivedInFuture` | – | **New.** Field error: the request can't have been received after today. |
 
 ### `homework`
 
@@ -1492,3 +1504,30 @@ current one. 404 `notFound.person` or `homework.notAvailable` as above; 403 `for
 Body `{}` → 204, also when nothing was reported. Either approved parent may undo; the report stays in the history
 with `undone_at`/`undone_by`, and a later `PUT` adds a new one. A child who left the stage can still be undone, but
 then the task is no longer visible.
+
+### Data protection requests
+
+Administrators only (`users: update`, else 403 `privacy.adminOnly`). The office answers each request within one
+month (Art. 12(3)).
+
+#### `POST /api/data-requests`
+
+Body `{kind: erasure|copy, subject: {personId?, accountId?}, receipt: {requestedBy, channel: email|letter|in_person,
+receivedOn}, note?}` → 201 `{id}`. Exactly one existing member or account (`subject` `privacy.chooseSubject`);
+`receipt.requestedBy` `privacy.requestedByRequired`, `validation.tooLong {max: 200}`; `receipt.receivedOn`
+`validation.invalidDate`, `privacy.receivedInFuture`; `note` ≤ 2000; another `kind` or `channel` →
+`validation.invalidChoice`. `receivedAt` is now when received today, else 12:00 Europe/Berlin on that day;
+`dueOn` is one month later, clamped to the month's end (31 Jan → 28 Feb).
+
+#### `GET /api/data-requests`
+
+`{today, open, closed}`: open requests by `dueOn`, closed ones newest first. A row is `{id, kind, status,
+subjectName, erasedSubject: {kind, group} | null, requestedBy, channel, receivedAt, dueOn, note, closedAt, closedBy:
+AccountRef | null, declineReason, outcome}`; `subjectName` is read from the member or account while it exists, else
+`null`.
+
+#### `GET /api/data-requests/{id}`
+
+`{today, request, member: {id, firstName, lastName, displayName, status, memberships} | null, account: {id, name,
+email, roles} | null}`; 404 `notFound.request`.
+

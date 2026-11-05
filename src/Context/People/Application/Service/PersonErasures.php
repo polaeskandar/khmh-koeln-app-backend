@@ -6,47 +6,48 @@ namespace App\Context\People\Application\Service;
 
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonTraceRepositoryInterface;
-use App\Context\People\Domain\Repository\RosterRepositoryInterface;
 use App\Context\People\Domain\ValueObject\ErasablePerson;
-use App\Context\People\Domain\ValueObject\ForgottenPerson;
-use App\Context\People\Domain\ValueObject\RosterKey;
+use App\Context\People\Domain\ValueObject\ErasedElsewhere;
+use App\Context\People\Domain\ValueObject\PersonErased;
 use App\Library\Problem\Exception\NotFound;
+use App\Platform\Doctrine\Contract\Transactions;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class PersonErasures
 {
     public function __construct(
+        private Transactions $transactions,
         private PersonRepositoryInterface $people,
-        private RosterRepositoryInterface $rosters,
         private PersonTraceRepositoryInterface $traces,
     ) {
     }
 
-    public function erasable(string $personId): ErasablePerson
+    /**
+     * @param callable(ErasablePerson): ErasedElsewhere $elsewhere
+     */
+    public function erase(string $personId, callable $elsewhere): PersonErased
     {
-        $person = $this->people->findForUpdate(Uuid::fromString($personId)) ?? throw NotFound::of('person');
-
-        return new ErasablePerson($person->id(), $this->people->membershipsOf(new ArrayCollection([$person])));
+        return $this->transactions->run(fn (): PersonErased => $this->erased($personId, $elsewhere));
     }
 
     /**
-     * @param list<RosterKey> $keys
-     *
-     * @return list<string>
+     * @param callable(ErasablePerson): ErasedElsewhere $elsewhere
      */
-    public function rosteredOn(Uuid $personId, array $keys): array
+    public function rehearse(string $personId, callable $elsewhere): PersonErased
     {
-        return $this->rosters
-            ->rostersOn($keys)
-            ->filter(static fn (array $roster): bool => new ArrayCollection($roster)->map(
-                static fn (Uuid $member): string => $member->toRfc4122(),
-            )->contains($personId->toRfc4122()))
-            ->getKeys();
+        return $this->transactions->rehearse(fn (): PersonErased => $this->erased($personId, $elsewhere));
     }
 
-    public function forget(Uuid $personId): ForgottenPerson
+    /**
+     * @param callable(ErasablePerson): ErasedElsewhere $elsewhere
+     */
+    private function erased(string $personId, callable $elsewhere): PersonErased
     {
-        return $this->traces->forget($personId);
+        $person = $this->people->findForUpdate(Uuid::fromString($personId)) ?? throw NotFound::of('person');
+        $erasable = new ErasablePerson($person->id(), $this->people->membershipsOf(new ArrayCollection([$person])));
+        $swept = $elsewhere($erasable);
+
+        return new PersonErased($this->traces->forget($person->id()), $swept);
     }
 }

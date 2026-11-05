@@ -6,6 +6,7 @@ namespace App\Workflow\Privacy\Model;
 
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\ValueObject\ErasedCounts;
+use App\Context\People\Domain\ValueObject\ErasablePerson;
 use App\Library\Collections\Model\Collections;
 use App\Workflow\Attendance\Model\SessionRoster;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -15,31 +16,28 @@ final readonly class ErasedShares
 {
     /**
      * @param ReadableCollection<int, Session> $sessions
-     * @param list<string> $rosteredKeys
      * @param list<string> $presentAt
      *
      * @return ReadableCollection<string, ErasedCounts>
      */
-    public static function of(ReadableCollection $sessions, array $rosteredKeys, array $presentAt): ReadableCollection
-    {
-        $rostered = new ArrayCollection($rosteredKeys);
+    public static function of(
+        ReadableCollection $sessions,
+        ErasablePerson $person,
+        array $presentAt,
+    ): ReadableCollection {
         $present = new ArrayCollection($presentAt);
 
         return Collections::firstPerKey($sessions, keyOf: self::idOf(...))->map(
-            static fn (Session $session): ErasedCounts => self::shareOf($session, $rostered, $present),
+            static fn (Session $session): ErasedCounts => self::shareOf($session, $person, $present),
         )->filter(static fn (ErasedCounts $share): bool => $share->roster > 0 || $share->present > 0);
     }
 
     /**
-     * @param ReadableCollection<int, string> $rostered
      * @param ReadableCollection<int, string> $present
      */
-    private static function shareOf(
-        Session $session,
-        ReadableCollection $rostered,
-        ReadableCollection $present,
-    ): ErasedCounts {
-        $onRoster = SessionRoster::isExpected($session) && $rostered->contains(SessionRoster::keyOf($session)->id());
+    private static function shareOf(Session $session, ErasablePerson $person, ReadableCollection $present): ErasedCounts
+    {
+        $onRoster = SessionRoster::isExpected($session) && $person->isRosteredOn(SessionRoster::keyOf($session));
         $roster = self::one($onRoster);
         $marked = self::one($present->contains(self::idOf($session)));
 
