@@ -110,6 +110,33 @@ Europe/Berlin) and exits. The host runs it every hour at minute 5 and once after
 - A missed day is backfilled with `--date=YYYY-MM-DD` (never after church-today); it creates that day's and the next
   day's sessions.
 
+## Importing members
+
+The office's class lists can be imported once with a console command, all or nothing, under the API's rules:
+
+```sh
+php bin/console app:members:import:dry-run members.csv   # prints what it would create, keeps the file
+php bin/console app:members:import members.csv           # imports in one transaction, then deletes the file
+```
+
+`composer members:import -- members.csv` runs the import too.
+
+- **Columns:** `first_name, last_name, display_name, service, stage` in the header row, in any order;
+  `first_name`, `last_name` and `service` are required, and an unknown or misspelled column refuses the whole
+  file before anything is read. A blank `stage` is the service's own roster. Services and stages are matched by name, ignoring case and extra spaces. Memberships
+  start today.
+- **The file:** UTF-8 only ("CSV UTF-8" in Excel), with or without a BOM, separated by `;` or `,`; any other
+  encoding is refused with a message. A quoted field may span lines (a spreadsheet cell with a line break);
+  errors name the line the row starts on.
+- **Errors:** any invalid line (the API's codes, e.g. `last_name: people.lastNameRequired`,
+  `stage: meetings.chooseStage`) stops the run with exit 1, lists every bad line, and writes nothing.
+- **Re-runs and namesakes:** a row whose person is already on that roster is skipped, so running a file twice
+  creates nothing. A row with the name of an existing person is skipped and reported, unless
+  `--duplicates=allow` creates a second person. A person listed for several rosters is created once.
+- **Personal data:** names appear only in the command's output, never in logs. Copy the file to the server over
+  SSH (`scp`/`sftp`) only, never by email or a shared folder, into a directory readable only by the operator;
+  a successful import deletes it, and after a failed one delete it yourself once the import is done.
+
 ## Backups
 
 The database provider's backups are the first copy. The second is our own encrypted daily dump in EU object
