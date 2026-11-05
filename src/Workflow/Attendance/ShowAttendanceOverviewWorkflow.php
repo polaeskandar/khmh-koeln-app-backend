@@ -10,21 +10,14 @@ use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\MeetingSessions;
-use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\Attendees;
 use App\Library\Time\Client\Calendar;
-use App\Workflow\Attendance\Model\AccountNames;
 use App\Workflow\Attendance\Model\AttendanceOverview;
-use App\Workflow\Attendance\Model\OverviewCard;
-use App\Workflow\Attendance\Model\OverviewSessions;
-use App\Workflow\Attendance\Model\SessionTallies;
-use App\Workflow\Meetings\Model\RosterReferences;
+use App\Workflow\Attendance\Model\OverviewCards;
 use App\Workflow\Meetings\Model\SessionAbilities;
-use App\Workflow\Meetings\Model\SessionView;
 use Doctrine\Common\Collections\ReadableCollection;
-use Symfony\Component\Uid\Uuid;
 
 final readonly class ShowAttendanceOverviewWorkflow
 {
@@ -50,77 +43,23 @@ final readonly class ShowAttendanceOverviewWorkflow
 
         $today = $this->calendar->today();
         $records = $this->access->allows(Action::Create, Resource::Attendance);
+        $can = SessionAbilities::grantedBy($this->access);
+        $cards = new OverviewCards($this->sessions, $this->attendees, $this->marks, $this->accounts, $this->calendar);
         $earlier = $this->sessions->openBetween($today->addDays(-self::EARLIER_DAYS), $today->addDays(-1));
 
         return AttendanceOverview::of(
             $today->toString(),
-            $this->orderedCardsOf($this->sessions->on($today)),
-            $records ? $this->orderedCardsOf($earlier) : [],
-            $records
-                ? $this->cardsOf($this->sessions->latestClosed(self::CLOSED, $this->structure->archivedIds()))
-                : [],
+            $cards->ordered($this->sessions->on($today), $this->structure, $can),
+            $records ? $cards->ordered($earlier, $this->structure, $can) : [],
+            $records ? $cards->unordered($this->closed(), $this->structure, $can) : [],
         );
     }
 
     /**
-     * @param ReadableCollection<int, Session> $sessions
-     *
-     * @return list<OverviewCard>
+     * @return ReadableCollection<int, Session>
      */
-    private function orderedCardsOf(ReadableCollection $sessions): array
+    private function closed(): ReadableCollection
     {
-        $references = $this->referencesOf($sessions);
-
-        return $this->cards(
-            OverviewSessions::ordered(OverviewSessions::unarchived($sessions, $references), $references),
-            $references,
-        );
-    }
-
-    /**
-     * @param ReadableCollection<int, Session> $sessions
-     *
-     * @return list<OverviewCard>
-     */
-    private function cardsOf(ReadableCollection $sessions): array
-    {
-        $references = $this->referencesOf($sessions);
-
-        return $this->cards(OverviewSessions::unarchived($sessions, $references), $references);
-    }
-
-    /**
-     * @param ReadableCollection<int, Session> $sessions
-     *
-     * @return list<OverviewCard>
-     */
-    private function cards(ReadableCollection $sessions, RosterReferences $references): array
-    {
-        $tallies = SessionTallies::lookedUpIn($this->sessions, $this->attendees, $this->marks, $sessions);
-
-        $closers = AccountNames::lookedUpIn(
-            $this->accounts,
-            $sessions->map(static fn (Session $session): ?Uuid => $session->progress()->closed->by)->getValues(),
-        );
-
-        $can = SessionAbilities::grantedBy($this->access);
-
-        return $sessions->map(fn (Session $session): OverviewCard => OverviewCard::of(
-            $session,
-            SessionView::with($session, $references, $this->calendar, $can),
-            $tallies,
-            $closers,
-            $this->calendar,
-        ))->getValues();
-    }
-
-    /**
-     * @param ReadableCollection<int, Session> $sessions
-     */
-    private function referencesOf(ReadableCollection $sessions): RosterReferences
-    {
-        return RosterReferences::lookedUpIn($this->structure, $sessions->map(
-            static fn (Session $session): Schedule => $session->schedule(),
-        ));
+        return $this->sessions->latestClosed(self::CLOSED, $this->structure->archivedIds());
     }
 }

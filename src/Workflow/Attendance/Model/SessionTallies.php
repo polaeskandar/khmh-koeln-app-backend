@@ -41,7 +41,7 @@ final readonly class SessionTallies
     ): ReadableCollection {
         $meetings->loadSchedulesOf($sessions);
 
-        return self::ofScheduled($attendees, $marks, $sessions);
+        return self::scheduled($attendees, $marks, $sessions);
     }
 
     /**
@@ -49,22 +49,14 @@ final readonly class SessionTallies
      *
      * @return ReadableCollection<non-empty-string, SessionTally>
      */
-    public static function ofScheduled(
+    public static function ofOpened(
         Attendees $attendees,
         AttendanceMarks $marks,
         ReadableCollection $sessions,
     ): ReadableCollection {
-        $tallies = new self(
-            $attendees->rostersOn(
-                $sessions
-                    ->filter(SessionRoster::isExpected(...))
-                    ->map(SessionRoster::keyOf(...))
-                    ->getValues(),
-            ),
-            $marks->currentOf($sessions->map(static fn (Session $session): Uuid => $session->id())->getValues()),
-        );
+        $opened = $sessions->filter(static fn (Session $session): bool => $session->progress()->wasOpened());
 
-        return Collections::firstPerKey($sessions, keyOf: self::idOf(...))->map($tallies->tallyOf(...));
+        return self::scheduled($attendees, $marks, $opened);
     }
 
     private function tallyOf(Session $session): SessionTally
@@ -87,6 +79,29 @@ final readonly class SessionTallies
             $presentIds,
             SessionCounts::expected($rosterIds, $presentIds, self::erasedOf($session)),
         );
+    }
+
+    /**
+     * @param ReadableCollection<int, Session> $sessions
+     *
+     * @return ReadableCollection<non-empty-string, SessionTally>
+     */
+    private static function scheduled(
+        Attendees $attendees,
+        AttendanceMarks $marks,
+        ReadableCollection $sessions,
+    ): ReadableCollection {
+        $tallies = new self(
+            $attendees->rostersOn(
+                $sessions
+                    ->filter(SessionRoster::isExpected(...))
+                    ->map(SessionRoster::keyOf(...))
+                    ->getValues(),
+            ),
+            $marks->currentOf($sessions->map(static fn (Session $session): Uuid => $session->id())->getValues()),
+        );
+
+        return Collections::firstPerKey($sessions, keyOf: self::idOf(...))->map($tallies->tallyOf(...));
     }
 
     private static function erasedOf(Session $session): ErasedAttendance

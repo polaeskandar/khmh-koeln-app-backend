@@ -9,7 +9,6 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\MeetingSchedules;
-use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\ValueObject\AgendaDates;
 use App\Context\Meetings\Domain\ValueObject\AgendaRange;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
@@ -56,13 +55,11 @@ final readonly class ShowAgendaWorkflow
 
     private function viewsOf(AgendaDates $dates): AgendaViews
     {
-        $opened = $dates->sessions->filter(static fn (Session $session): bool => $session->progress()->wasOpened());
-
         return new AgendaViews(
             RosterReferences::lookedUpIn($this->structure, $dates->schedules),
             $this->calendar,
             SessionAbilities::grantedBy($this->access),
-            SessionTallies::ofScheduled($this->attendees, $this->marks, $opened),
+            SessionTallies::ofOpened($this->attendees, $this->marks, $dates->sessions),
         );
     }
 }

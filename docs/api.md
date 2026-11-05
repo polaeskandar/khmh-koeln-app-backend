@@ -1387,6 +1387,18 @@ name and place. `title` `meetings.titleRequired`, `validation.tooLong {max: 120}
 note}`. `actor: null` is the generator when `byGenerator`, otherwise a former account. `note` follows the same
 rule as `cancelReason`.
 
+#### `GET /api/dashboard`
+
+`services: read` (staff), else 403 `forbidden`; 401 without a session. The staff dashboard in one call:
+`{today, sessions, upcoming}`.
+
+- `sessions`: exactly `GET /api/attendance/overview`'s `sessions`, the same cards in the same order (today's
+  sessions of services that are not archived).
+- `upcoming`: the agenda's items (`GET /api/agenda`) from tomorrow to today+7 in the same services: scheduled,
+  active and canceled sessions, and planned dates without a session, in agenda order. A session after midnight
+  belongs to its own church date, so at 23:50 a session at 00:30 is in `upcoming`.
+- Greetings, sentences and grouping stay in the app; the number of SQL statements does not grow with the sessions.
+
 #### `GET /api/agenda?from=&to=&serviceId=&stageId=&scheduleId=`
 
 `services: read`. `{today, from, to, items}` for the church dates `from` to `to`, both included (default today−6 to

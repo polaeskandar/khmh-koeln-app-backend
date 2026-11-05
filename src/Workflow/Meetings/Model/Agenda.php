@@ -24,16 +24,24 @@ final readonly class Agenda
 
     public static function of(AgendaRange $range, AgendaDates $dates, AgendaViews $views): self
     {
+        return new self(
+            today: $range->today->toString(),
+            from: $range->from->toString(),
+            to: $range->to->toString(),
+            items: self::itemsOf($dates, $views),
+        );
+    }
+
+    /**
+     * @return list<AgendaItem>
+     */
+    public static function itemsOf(AgendaDates $dates, AgendaViews $views): array
+    {
         $items = new ArrayCollection([
             ...$dates->sessions->map($views->sessionItem(...))->getValues(),
             ...new ArrayCollection($dates->planned)->map($views->plannedItem(...))->getValues(),
         ]);
 
-        return new self(
-            today: $range->today->toString(),
-            from: $range->from->toString(),
-            to: $range->to->toString(),
-            items: Collections::sortedBy($items, keyOf: static fn (AgendaItem $item): string => $item->sortKey),
-        );
+        return Collections::sortedBy($items, keyOf: static fn (AgendaItem $item): string => $item->sortKey);
     }
 }

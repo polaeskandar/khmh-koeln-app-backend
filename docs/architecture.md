@@ -54,8 +54,8 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   and can't be split without splitting its endpoint is the exception and says so with
   `// @mago-expect lint:excessive-parameter-list` on its constructor; each context then offers it one service
   (besides `AccessCheck`). The exceptions are:
-  - the attendance board and overview, a stage's attendance history, and the agenda, which carries the board's
-    counts for every opened session;
+  - the attendance board and overview, a stage's attendance history, the agenda, which carries the board's
+    counts for every opened session, and the staff dashboard, which joins the overview's cards and the agenda;
   - a member's personal data export;
   - the erasures and their review. Each context takes part through its `*Erasures` service: People's
     `PersonErasures`, Meetings' `MeetingErasures`, Attendance's `AttendanceErasures`, Learning's

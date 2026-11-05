@@ -10,6 +10,9 @@ use App\Context\Meetings\Domain\Repository\RecentSessionRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\SessionListRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
+use App\Context\Meetings\Domain\ValueObject\AgendaDates;
+use App\Context\Meetings\Domain\ValueObject\AgendaRange;
+use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\MarkingRules;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
@@ -24,6 +27,7 @@ final readonly class MeetingSessions
         private ScheduleRepositoryInterface $schedules,
         private SessionListRepositoryInterface $lists,
         private RecentSessionRepositoryInterface $recent,
+        private PlannedDates $plannedDates,
     ) {
     }
 
@@ -74,6 +78,14 @@ final readonly class MeetingSessions
                 keyOf: static fn (Uuid $id): string => $id->toRfc4122(),
             )->getValues(),
         );
+    }
+
+    public function upcoming(LocalDate $today, int $days, ArchivedStructure $archived): AgendaDates
+    {
+        $schedules = $archived->inOpenServices($this->schedules->listed(serviceId: null, stageId: null));
+        $dates = $this->plannedDates->agendaOf($schedules, $archived, AgendaRange::ahead($today, $days));
+
+        return $dates->withoutCompleted();
     }
 
     public function find(string $id): Session

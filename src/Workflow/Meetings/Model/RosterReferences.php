@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Meetings\Model;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
+use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
@@ -24,6 +25,16 @@ final readonly class RosterReferences
         private ReadableCollection $services,
         private ReadableCollection $stages,
     ) {
+    }
+
+    /**
+     * @param ReadableCollection<int, Session> $sessions
+     */
+    public static function ofSessions(StructureLookup $structure, ReadableCollection $sessions): self
+    {
+        return self::lookedUpIn($structure, $sessions->map(
+            static fn (Session $session): Schedule => $session->schedule(),
+        ));
     }
 
     /**

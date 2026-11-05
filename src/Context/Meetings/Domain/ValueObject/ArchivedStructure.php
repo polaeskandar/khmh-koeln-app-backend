@@ -37,6 +37,20 @@ final readonly class ArchivedStructure
         return $schedules->filter(fn (Schedule $schedule): bool => $schedule->isActive() && !$this->holds($schedule));
     }
 
+    /**
+     * @param ReadableCollection<int, Schedule> $schedules
+     *
+     * @return ReadableCollection<int, Schedule>
+     */
+    public function inOpenServices(ReadableCollection $schedules): ReadableCollection
+    {
+        $ids = new ArrayCollection($this->ids);
+
+        return $schedules->filter(
+            static fn (Schedule $schedule): bool => !$ids->contains($schedule->roster()->serviceId->toRfc4122()),
+        );
+    }
+
     private function holds(Schedule $schedule): bool
     {
         $ids = new ArrayCollection($this->ids);
