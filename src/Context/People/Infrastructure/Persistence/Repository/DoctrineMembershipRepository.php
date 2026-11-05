@@ -57,14 +57,12 @@ final readonly class DoctrineMembershipRepository implements MembershipRepositor
     }
 
     #[Override]
-    public function withWriteLock(Uuid $id, callable $work): void
+    public function withWriteLock(Uuid $id, callable $work): mixed
     {
-        $this->entityManager->wrapInTransaction(function () use ($id, $work): void {
-            $work(
-                $this->entityManager->find(Membership::class, $id, LockMode::PESSIMISTIC_WRITE) ?? throw NotFound::of(
-                    'membership',
-                ),
-            );
-        });
+        return $this->entityManager->wrapInTransaction(fn (): mixed => $work(
+            $this->entityManager->find(Membership::class, $id, LockMode::PESSIMISTIC_WRITE) ?? throw NotFound::of(
+                'membership',
+            ),
+        ));
     }
 }
