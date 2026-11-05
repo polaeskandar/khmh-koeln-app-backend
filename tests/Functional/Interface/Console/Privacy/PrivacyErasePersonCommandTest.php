@@ -33,6 +33,7 @@ final class PrivacyErasePersonCommandTest extends KernelTestCase
         'learning.homework_completion.person_id',
         'people.guardian_relationship.person_id',
         'people.membership.person_id',
+        'privacy.data_request.person_id',
     ];
 
     public function testPastTotalsStayTheSameAfterTheErasure(): void

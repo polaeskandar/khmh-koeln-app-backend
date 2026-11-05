@@ -8,27 +8,30 @@ use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonTraceRepositoryInterface;
 use App\Context\People\Domain\Repository\RosterRepositoryInterface;
 use App\Context\People\Domain\ValueObject\ErasablePerson;
-use App\Context\People\Domain\ValueObject\ForgottenPerson;
+use App\Context\People\Domain\ValueObject\ErasedElsewhere;
+use App\Context\People\Domain\ValueObject\PersonErased;
 use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Problem\Exception\NotFound;
+use App\Platform\Doctrine\Contract\Transactions;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class PersonErasures
 {
     public function __construct(
+        private Transactions $transactions,
         private PersonRepositoryInterface $people,
         private RosterRepositoryInterface $rosters,
         private PersonTraceRepositoryInterface $traces,
     ) {
     }
 
-    public function erasable(string $personId): ErasablePerson
+    /**
+     * @param callable(ErasablePerson): ErasedElsewhere $elsewhere
+     */
+    public function erase(string $personId, callable $elsewhere): PersonErased
     {
-        $id = Uuid::isValid($personId) ? Uuid::fromString($personId) : throw NotFound::of('person');
-        $person = $this->people->findForUpdate($id) ?? throw NotFound::of('person');
-
-        return new ErasablePerson($person->id(), $this->people->membershipsOf(new ArrayCollection([$person])));
+        return $this->transactions->run(fn (): PersonErased => $this->erased($personId, $elsewhere));
     }
 
     /**
@@ -46,8 +49,15 @@ final readonly class PersonErasures
             ->getKeys();
     }
 
-    public function forget(Uuid $personId): ForgottenPerson
+    /**
+     * @param callable(ErasablePerson): ErasedElsewhere $elsewhere
+     */
+    private function erased(string $personId, callable $elsewhere): PersonErased
     {
-        return $this->traces->forget($personId);
+        $id = Uuid::isValid($personId) ? Uuid::fromString($personId) : throw NotFound::of('person');
+        $person = $this->people->findForUpdate($id) ?? throw NotFound::of('person');
+        $swept = $elsewhere(new ErasablePerson($id, $this->people->membershipsOf(new ArrayCollection([$person]))));
+
+        return new PersonErased($this->traces->forget($id), $swept);
     }
 }

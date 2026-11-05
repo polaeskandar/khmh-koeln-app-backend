@@ -9,7 +9,8 @@ use App\Context\Meetings\Application\Service\AttendanceMarks;
 use App\Context\Meetings\Application\Service\ErasedTotals;
 use App\Context\People\Application\Service\PersonErasures;
 use App\Context\People\Domain\ValueObject\ErasablePerson;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Context\People\Domain\ValueObject\ErasedElsewhere;
+use App\Context\Privacy\Application\Service\PersonTraces;
 use App\Workflow\Privacy\Model\ErasedShares;
 use App\Workflow\Privacy\Model\PersonErasureCounts;
 use Symfony\Component\Uid\Uuid;
@@ -17,28 +18,25 @@ use Symfony\Component\Uid\Uuid;
 final readonly class ErasePersonWorkflow
 {
     public function __construct(
-        private Transactions $transactions,
         private PersonErasures $people,
         private ErasedTotals $totals,
         private AttendanceMarks $marks,
         private HomeworkCompletions $reports,
+        private PersonTraces $requests,
     ) {
     }
 
     public function __invoke(string $personId): PersonErasureCounts
     {
-        return $this->transactions->run(fn (): PersonErasureCounts => $this->erased($personId));
+        return PersonErasureCounts::of($this->people->erase($personId, $this->sweep(...)));
     }
 
-    private function erased(string $personId): PersonErasureCounts
+    private function sweep(ErasablePerson $person): ErasedElsewhere
     {
-        $person = $this->people->erasable($personId);
         $sessions = $this->raisedTotals($person);
-        $marks = $this->marks->forget($person->id);
-        $reports = $this->reports->forget($person->id);
-        $forgotten = $this->people->forget($person->id);
+        $this->requests->forget($person->id);
 
-        return new PersonErasureCounts($forgotten->memberships, $marks, $reports, $forgotten->guardianLinks, $sessions);
+        return new ErasedElsewhere($sessions, $this->marks->forget($person->id), $this->reports->forget($person->id));
     }
 
     private function raisedTotals(ErasablePerson $person): int
