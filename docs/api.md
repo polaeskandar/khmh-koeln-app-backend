@@ -1389,6 +1389,18 @@ Every invalid field comes in one 422: `title` `homework.titleRequired`, `validat
 `materials.tooMany` and `resources.{i}.label`/`.url` as in `materials`. 404 `notFound.lesson`; an archived lesson
 → 409 `lessons.archived`; an archived stage or service → 409 `lessons.stageArchived {name}`.
 
+#### `GET /api/homework/{id}`
+
+`homework: read` (403 `forbidden`). The homework editor's task: `{today, id, title, status, dueDate, publishedAt,
+instructions, resources, minDueDate, lesson: {id, title, teachingDate, passage, memoryVerse}, service: ServiceRef,
+stage: StageRef, audienceSize, counts, can: {edit, publish, viewProgress}}`; 404 `notFound.homework`.
+
+- `lesson` holds only those keys: no notes, objectives, teaching points or activities.
+- `minDueDate` is the lesson's date, or the saved due date when that is earlier (it stays valid after a move).
+- `audienceSize` and `counts` (`null` for a draft) follow "Who a task is for" in `docs/data-model.md`.
+- `edit` is `homework: update` while the task, its lesson, its stage and its service are not archived; `publish`
+  is `edit` for a draft; `viewProgress` is `members: read`.
+
 #### `PATCH /api/homework/{id}`
 
 `homework: update` (403 `homework.changeStageOnly`). The same body; a member left out

@@ -10,6 +10,7 @@ use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Library\Persistence\Mapping\TimestampedEntity;
 use App\Library\Problem\Exception\RuleViolation;
+use App\Library\Time\Model\LocalDate;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -127,6 +128,14 @@ final class HomeworkAssignment extends TimestampedEntity
         $this->state = $this->state->publishedAt($at);
 
         return true;
+    }
+
+    public function minDueDate(): LocalDate
+    {
+        $lessonDate = $this->lesson->link()->teachingDate;
+        $dueDate = $this->text->dueDate ?? $lessonDate;
+
+        return $dueDate->isBefore($lessonDate) ? $dueDate : $lessonDate;
     }
 
     public function isVisibleToParents(): bool

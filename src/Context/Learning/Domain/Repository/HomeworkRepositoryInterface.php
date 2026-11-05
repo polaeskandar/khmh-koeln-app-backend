@@ -14,6 +14,8 @@ interface HomeworkRepositoryInterface
 {
     public function save(HomeworkAssignment $assignment): void;
 
+    public function find(Uuid $id): ?HomeworkAssignment;
+
     /**
      * @param list<Uuid> $lessonIds
      *

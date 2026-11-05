@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Interface\Api\Learning;
 
 use App\Interface\Api\Learning\Request\HomeworkRequest;
+use App\Interface\Api\Learning\Response\HomeworkDetailResponse;
 use App\Interface\Api\Learning\Response\PublishedHomeworkResponse;
 use App\Interface\Api\Learning\Response\WrittenHomeworkResponse;
 use App\Workflow\Learning\CreateHomeworkWorkflow;
 use App\Workflow\Learning\EditHomeworkWorkflow;
 use App\Workflow\Learning\PublishHomeworkWorkflow;
+use App\Workflow\Learning\ShowHomeworkWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,6 +40,17 @@ final class HomeworkController extends AbstractController
         $written = $createHomework($lessonId, $user->getUserIdentifier(), $homework->choice());
 
         return $this->json(WrittenHomeworkResponse::of($written), status: Response::HTTP_CREATED);
+    }
+
+    #[Route(
+        '/api/homework/{id}',
+        name: 'api_homework_show',
+        requirements: ['id' => Requirement::UUID],
+        methods: ['GET'],
+    )]
+    public function show(string $id, ShowHomeworkWorkflow $showHomework): JsonResponse
+    {
+        return $this->json(new HomeworkDetailResponse($showHomework($id)));
     }
 
     #[Route(
