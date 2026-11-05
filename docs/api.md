@@ -983,3 +983,30 @@ the first, last or display name. Field errors on `q`: fewer than 2 characters be
 `people.searchTooShort {min: 2}`; more than 100 characters → `validation.tooLong {max: 100}`; bytes that are not
 UTF-8 → `validation.invalidType`. `%` and `_` match themselves.
 
+### Schedules
+
+A `ScheduleSummary`:
+
+| Member | Type |
+| --- | --- |
+| `id`, `name`, `description`, `location` | the schedule's details |
+| `service`, `stage` | `ServiceRef`, `StageRef \| null` |
+| `recurrence` | `Recurrence` |
+| `startTime`, `endTime` | `HH:MM`, `endTime` may be `null` |
+| `rosterMode` | `expected` or `open` |
+| `active` | boolean |
+| `generating` | active, not past `endsOn`, and its service and stage are not archived |
+| `nextDates` | up to 3 `{date, startTime, status, sessionId}` from today (400-day horizon): sessions `scheduled` or `active` and planned dates without a session (`status: planned`, `sessionId: null`); canceled and completed dates are skipped; empty unless `generating` |
+| `sessionCount` | sessions of the schedule, every status |
+| `createdAt`, `updatedAt` | instants |
+| `can` | `{manage}`: `sessions: update` |
+
+#### `GET /api/schedules?serviceId=&stageId=`
+
+`services: read`. `{today, items: [ScheduleSummary]}`, active and inactive, by name. The filters take ids
+(`validation.invalidType` otherwise).
+
+#### `GET /api/schedules/{id}`
+
+`services: read`. `{today, schedule: ScheduleSummary}`; 404 `notFound.schedule`.
+
