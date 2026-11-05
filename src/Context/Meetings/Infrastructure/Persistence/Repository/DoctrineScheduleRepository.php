@@ -38,6 +38,15 @@ final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInt
         return $this->entityManager->find(Schedule::class, $id);
     }
 
+    /**
+     * @param list<Uuid> $ids
+     */
+    #[Override]
+    public function findByIds(array $ids): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager->getRepository(Schedule::class)->findBy(['id' => $ids]));
+    }
+
     #[Override]
     public function listed(?Uuid $serviceId, ?Uuid $stageId): ReadableCollection
     {

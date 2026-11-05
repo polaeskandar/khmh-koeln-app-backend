@@ -17,6 +17,8 @@ interface SessionRepositoryInterface
 {
     public function find(Uuid $id): ?Session;
 
+    public function findOn(Schedule $schedule, LocalDate $date): ?Session;
+
     public function append(SessionEvent $event): void;
 
     /**
@@ -48,6 +50,14 @@ interface SessionRepositoryInterface
         LocalDate $from,
         LocalDate $to,
     ): ReadableCollection;
+
+    /**
+     * @param ReadableCollection<int, Schedule> $schedules
+     * @param list<LocalDate> $dates
+     *
+     * @return ReadableCollection<int, Session>
+     */
+    public function ofSchedulesOn(ReadableCollection $schedules, array $dates): ReadableCollection;
 
     /**
      * @param ReadableCollection<int, Schedule> $schedules

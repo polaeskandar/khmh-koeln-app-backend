@@ -20,6 +20,13 @@ interface ScheduleRepositoryInterface
     public function find(Uuid $id): ?Schedule;
 
     /**
+     * @param list<Uuid> $ids
+     *
+     * @return ReadableCollection<int, Schedule>
+     */
+    public function findByIds(array $ids): ReadableCollection;
+
+    /**
      * @return ReadableCollection<int, Schedule>
      */
     public function listed(?Uuid $serviceId, ?Uuid $stageId): ReadableCollection;

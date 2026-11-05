@@ -51,6 +51,9 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
 - Only workflows use the contexts. A workflow never calls another workflow and never uses a repository; it goes
   through the contexts' application services (`WorkflowLayoutTest`).
 - A context never uses another context. Only a context's own `Infrastructure` uses its `Infrastructure`.
+  When a rule of one context needs another context's facts, the workflow reads them and hands them over in
+  the receiving context's own value object: `OfferedMeetings` maps Meetings' `MeetingSlot` into Learning's
+  `OfferedMeeting`, and `ArchivedStructure` carries Organization's archived ids into Meetings.
 - `Domain` holds the model only (`SourceLayoutTest`); business logic that is not a single entity's or value
   object's own behavior lives in `Application/Service`.
 - `Domain` and `Library` don't depend on `Platform`; outside `Platform`, code uses only `Platform/*/Contract`.
