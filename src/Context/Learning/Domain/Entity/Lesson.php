@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Domain\Entity;
 
+use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Context\Learning\Domain\ValueObject\LessonPlan;
 use App\Context\Learning\Domain\ValueObject\LessonState;
 use App\Context\Learning\Domain\ValueObject\LessonText;
 use App\Context\Learning\Domain\ValueObject\Materials;
+use App\Context\Learning\Domain\ValueObject\MeetingChoice;
 use App\Context\Learning\Domain\ValueObject\MeetingLink;
 use App\Library\Persistence\Mapping\TimestampedEntity;
+use App\Library\Problem\Exception\RuleViolation;
+use App\Library\Time\Model\LocalDate;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -118,5 +122,31 @@ final class Lesson extends TimestampedEntity
     public function archive(DateTimeImmutable $at): void
     {
         $this->state = $this->state->archivedAt($at);
+    }
+
+    public function ensureEditable(): void
+    {
+        if ($this->state->archivedAt !== null) {
+            throw new RuleViolation('lessons.archived');
+        }
+    }
+
+    public function ensureMovableTo(MeetingLink $link, LocalDate $today): void
+    {
+        if ($this->state->status === LessonStatus::Completed && $today->isBefore($link->teachingDate)) {
+            throw MeetingChoice::refusal('lessons.taughtAfterDate');
+        }
+    }
+
+    public function edit(LessonText $text, MeetingLink $link, ?Uuid $responsibleId): void
+    {
+        $this->text = $text;
+        $this->link = $link;
+        $this->responsibleId = $responsibleId;
+    }
+
+    public function prepare(LessonStatus $status): void
+    {
+        $this->state = $this->state->withStatus($status);
     }
 }

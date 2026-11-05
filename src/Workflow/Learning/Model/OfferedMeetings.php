@@ -12,9 +12,10 @@ use App\Context\Meetings\Domain\ValueObject\MeetingSlot;
 
 final readonly class OfferedMeetings
 {
-    public static function lookedUpIn(MeetingLookup $meetings, MeetingChoice $choice): ?OfferedMeeting
+    public static function lookedUpIn(MeetingLookup $meetings, ?MeetingChoice $choice): ?OfferedMeeting
     {
         $slot = match (true) {
+            $choice === null => null,
             $choice->sessionId !== null => $meetings->slotOfSession($choice->session()),
             $choice->scheduleId !== null => $meetings->slotOfSchedule($choice->schedule(), $choice->day()),
             default => null,

@@ -31,4 +31,11 @@ final readonly class LessonState
     {
         return new self($this->status, $this->completedAt, $at);
     }
+
+    public function withStatus(LessonStatus $status): self
+    {
+        $completedAt = $status === LessonStatus::Completed ? $this->completedAt : null;
+
+        return new self($status, $completedAt, $this->archivedAt);
+    }
 }

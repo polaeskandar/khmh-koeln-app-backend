@@ -1293,3 +1293,41 @@ in German collation.
 
 The options cost the same number of statements whatever the number of lessons.
 
+#### `POST /api/stages/{stageId}/lessons`
+
+`lessons: create` (403 `lessons.prepareStageOnly`). Body:
+
+```json
+{
+  "details": {"title": "The Good Samaritan", "summary": null, "passage": "Luke 10:25-37", "memoryVerse": null},
+  "meeting": {"scheduleId": "0192f3a4-…", "date": "2026-11-15"},
+  "plan": {"objectives": null, "teachingPoints": null, "activities": null, "notes": null,
+           "materials": [{"label": "Video", "url": "https://example.org/v"}]},
+  "responsibleId": "0192f3a4-…",
+  "status": "draft"
+}
+```
+
+→ 201 `{id, status}`. `meeting` is one of the shapes in "The meeting a lesson is for". The title's spaces are
+collapsed and the texts trimmed (empty → `null`); material rows with neither label nor url are dropped.
+`status` is `draft` (default) or `ready`. 404 `notFound.stage`; an archived stage or service → 409
+`lessons.stageArchived {name}`.
+
+Field errors: `details.title` `lessons.titleRequired`, `validation.tooLong {max: 160}`; `details.summary` 1000,
+`details.passage` 200, `details.memoryVerse` 500 and each `plan.*` text 4000 (`validation.tooLong`);
+`plan.materials.{i}.label`/`.url` as in `materials`; `meeting` as in "The meeting a lesson is for";
+`responsibleId` `lessons.chooseResponsible` when it is missing or not a lesson preparer; `status`
+`validation.invalidChoice`. Two saves racing for one meeting → the loser gets `meeting`
+`lessons.meetingHasLesson {title}`.
+
+#### `PATCH /api/lessons/{id}`
+
+`lessons: update` (403 `lessons.changeStageOnly`). The same body; a member left out
+keeps its value (inside `details` and `plan` too), `""` clears a text, a sent `meeting` replaces the whole link,
+a sent `materials` replaces the list. The lesson's own meeting stays valid, and an unchanged `responsibleId` is
+kept even when that account is no longer a preparer. A completed lesson keeps its status when `status` is left
+out, and `draft` or `ready` reopens it and clears its completion; moving it after today → 422 `meeting`
+`lessons.taughtAfterDate`. 200 `{id, status}`; 404
+`notFound.lesson`; an archived lesson → 409 `lessons.archived`; an archived stage → 409 `lessons.stageArchived
+{name}`.
+
