@@ -46,6 +46,28 @@ There is no account screen at launch; operators run these commands on the server
 The link goes only to the account's own address, never to the console or the logs, and is stored only as a
 SHA-256 hash.
 
+## Container
+
+Production runs one image, built from the `prod` target of the `Dockerfile` (FrankenPHP on a digest-pinned
+PHP 8.5 base; Composer without dev packages, an authoritative class map and a warmed `prod` cache). CI builds
+it on every pull request, smoke-tests it, and on `main` pushes
+`ghcr.io/polaeskandar/khmh-koeln-app-backend:<commit sha>`, so releases and rollbacks name an immutable tag.
+
+```sh
+docker build --target prod -t khmk-api .
+docker run -p 8080:8080 -e APP_SECRET=… -e DATABASE_URL=… khmk-api
+docker run --rm -e APP_SECRET=… -e DATABASE_URL=… khmk-api php bin/console app:migrations:migrate --no-interaction
+```
+
+- It serves plain HTTP on port 8080 (`SERVER_NAME`) behind the TLS proxy, runs as a non-root user and has a
+  `HEALTHCHECK` on `/api/health`.
+- It refuses to start without `APP_SECRET` or `DATABASE_URL` and never migrates on its own: migrations and other
+  console commands run as one-off containers of the same image.
+- Opcache doesn't revalidate files and preloads `config/preload.php`; PHP hides its version and errors.
+- The access log is JSON on stderr without query strings, cookies or `Authorization`.
+- The variables are listed in [Operations](docs/operations.md#configuration).
+- `compose.yaml` builds the `dev` target for local work.
+
 ## Docs
 
 - [Architecture](docs/architecture.md)

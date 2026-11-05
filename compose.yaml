@@ -2,7 +2,9 @@ name: khmk-koeln
 
 services:
   api:
-    build: .
+    build:
+      context: .
+      target: dev
     image: khmk-koeln-api
     command: ["sh", "-c", "composer install --no-interaction && bin/console app:migrations:migrate --no-interaction && exec frankenphp run --config /etc/frankenphp/Caddyfile"]
     environment:
