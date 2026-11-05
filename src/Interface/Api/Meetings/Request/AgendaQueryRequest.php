@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Meetings\Request;
 
+use App\Workflow\Meetings\Model\AgendaChoice;
 use App\Workflow\Meetings\Model\AgendaFilter;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -30,6 +31,10 @@ final readonly class AgendaQueryRequest
 
     public function filter(): AgendaFilter
     {
-        return new AgendaFilter($this->from, $this->to, $this->serviceId, $this->stageId, $this->scheduleId);
+        return new AgendaFilter(
+            $this->from,
+            $this->to,
+            new AgendaChoice($this->serviceId, $this->stageId, $this->scheduleId),
+        );
     }
 }

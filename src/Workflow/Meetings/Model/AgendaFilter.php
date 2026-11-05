@@ -9,9 +9,13 @@ final readonly class AgendaFilter
     public function __construct(
         public ?string $from,
         public ?string $to,
-        public ?string $serviceId,
-        public ?string $stageId,
-        public ?string $scheduleId,
+        public AgendaChoice $choice,
+        public ?int $daysAhead = null,
     ) {
+    }
+
+    public static function ahead(int $days): self
+    {
+        return new self(from: null, to: null, choice: new AgendaChoice(), daysAhead: $days);
     }
 }

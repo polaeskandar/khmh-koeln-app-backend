@@ -1417,6 +1417,15 @@ null}, schedule: {id, name, recurrence, active} | null, history}` (`schedule: nu
 note}`. `actor: null` is the generator when `byGenerator`, otherwise a former account. `note` follows the same
 rule as `cancelReason`.
 
+#### `GET /api/dashboard/upcoming`
+
+`services: read` (staff), else 403 `forbidden`; 401 without a session. The staff dashboard's coming week, shaped
+like `GET /api/agenda` (`{today, from, to, items}`): tomorrow to today+7 in services that are not archived, with
+scheduled, active and canceled sessions and planned dates without a session, in agenda order; completed sessions
+are left out. A session after midnight belongs to its own church date, so at 23:50 a session at 00:30 is listed.
+Today's sessions are `GET /api/attendance/overview`'s `sessions`, which the dashboard shows above. Greetings,
+sentences and grouping stay in the app; the number of SQL statements does not grow with the sessions.
+
 #### `GET /api/agenda?from=&to=&serviceId=&stageId=&scheduleId=`
 
 `services: read`. `{today, from, to, items}` for the church dates `from` to `to`, both included (default today−6 to

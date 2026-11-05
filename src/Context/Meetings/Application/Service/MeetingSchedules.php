@@ -34,12 +34,14 @@ final readonly class MeetingSchedules
     ): AgendaDates {
         $dates = $this->plannedDates->agendaOf($this->chosen($scheduleId, $serviceId, $stageId), $archived, $range);
 
-        $opened = $dates
-            ->opened()
-            ->map(static fn (Session $session): Uuid => $session->id())
-            ->getValues();
+        return $this->withPresent($dates);
+    }
 
-        return $dates->withPresent($this->attendance->presentBySession($opened));
+    public function upcomingOf(ArchivedStructure $archived, AgendaRange $range): AgendaDates
+    {
+        $schedules = $archived->inOpenServices($this->schedules->listed(serviceId: null, stageId: null));
+
+        return $this->withPresent($this->plannedDates->agendaOf($schedules, $archived, $range)->withoutCompleted());
     }
 
     /**
@@ -73,6 +75,16 @@ final readonly class MeetingSchedules
         $schedule = Uuid::isValid($id) ? $this->schedules->find(Uuid::fromString($id)) : null;
 
         return RecurringSchedule::required($schedule);
+    }
+
+    private function withPresent(AgendaDates $dates): AgendaDates
+    {
+        $opened = $dates
+            ->opened()
+            ->map(static fn (Session $session): Uuid => $session->id())
+            ->getValues();
+
+        return $dates->withPresent($this->attendance->presentBySession($opened));
     }
 
     private static function idOf(string $field, ?string $value): ?Uuid

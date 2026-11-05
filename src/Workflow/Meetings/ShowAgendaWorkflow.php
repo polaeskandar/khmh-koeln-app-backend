@@ -47,16 +47,18 @@ final readonly class ShowAgendaWorkflow
     {
         $this->access->require(Action::Read, Resource::Services);
 
-        $range = AgendaRange::of($filter->from, $filter->to, $this->calendar->today());
+        $today = $this->calendar->today();
         $archived = ArchivedStructure::of($this->structure->archivedIds());
+        $days = $filter->daysAhead;
+        $choice = $filter->choice;
 
-        $dates = $this->schedules->agendaOf(
-            $filter->scheduleId,
-            $filter->serviceId,
-            $filter->stageId,
-            $archived,
-            $range,
-        );
+        $range = $days === null
+            ? AgendaRange::of($filter->from, $filter->to, $today)
+            : AgendaRange::ahead($today, $days);
+
+        $dates = $days === null
+            ? $this->schedules->agendaOf($choice->scheduleId, $choice->serviceId, $choice->stageId, $archived, $range)
+            : $this->schedules->upcomingOf($archived, $range);
 
         return Agenda::of($range, $this->itemsOf($dates, $this->referencesOf($dates->schedules)));
     }

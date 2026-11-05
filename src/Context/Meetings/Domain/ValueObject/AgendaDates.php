@@ -6,6 +6,7 @@ namespace App\Context\Meetings\Domain\ValueObject;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\Enum\SessionStatus;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 
@@ -31,6 +32,15 @@ final readonly class AgendaDates
     public function withPresent(ReadableCollection $present): self
     {
         return new self($this->schedules, $this->sessions, $this->planned, $present);
+    }
+
+    public function withoutCompleted(): self
+    {
+        $coming = $this->sessions->filter(
+            static fn (Session $session): bool => $session->progress()->status !== SessionStatus::Completed,
+        );
+
+        return new self($this->schedules, $coming, $this->planned, $this->present);
     }
 
     /**
