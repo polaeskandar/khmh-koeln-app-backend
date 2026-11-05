@@ -302,6 +302,19 @@ A parent:
 }
 ```
 
+#### `POST /api/me/password`
+
+Any signed-in account, staff or parent. Body `{currentPassword, newPassword}` → 204 with a new session cookie: the
+session id changes (the old one is gone) and this session stays signed in. Every other session of the account ends
+(401 on its next request).
+
+| Case | Answer |
+| --- | --- |
+| No session | 401 `auth.unauthenticated` |
+| `currentPassword` blank or wrong | 422 `accounts.currentPasswordWrong` on `currentPassword`; the password stays |
+| `newPassword` shorter than 10 or longer than 200 characters | 422 `accounts.passwordTooShort {min: 10}` or `validation.tooLong {max: 200}` on `newPassword` |
+| 5 wrong current passwords for the account within 15 minutes | 429 `auth.tooManyAttempts` + `Retry-After`, even with the right password; only wrong ones count |
+
 ### Bearer tokens (iOS and Android, after the MVP)
 
 Planned in #83, not available at launch; this section fixes the shape so the apps can plan for it. Tokens
@@ -837,6 +850,7 @@ label is its own label, and the 120-character limit applies only to a label that
 | `accounts.emailInvalid` | – | Enter an email address like name@example.org. |
 | `accounts.emailTaken` | – | There is already an account with this email address. Sign in, or reset the password if you forgot it. |
 | `accounts.passwordTooShort` | `min` | Use at least {min, number} characters. |
+| `accounts.currentPasswordWrong` | – | **New.** Field error on `currentPassword`: the current password is not right. |
 | `accounts.childrenRequired` | – | Write the names and classes of your children, so the church office can link them to your account. |
 | `accounts.serviceDetailsRequired` | – | Write where you serve, so the church office can give you the right access. |
 | `accounts.chooseService` | – | Choose the service you serve in. |

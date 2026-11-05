@@ -20,16 +20,16 @@ final readonly class PlainPassword
     ) {
     }
 
-    public static function of(#[SensitiveParameter] string $value): self
+    public static function of(#[SensitiveParameter] string $value, string $field = 'password'): self
     {
         $length = InputText::of($value)->length();
 
         if ($length < self::MIN_LENGTH) {
-            throw InvalidInput::field('password', 'accounts.passwordTooShort', ['min' => self::MIN_LENGTH]);
+            throw InvalidInput::field($field, 'accounts.passwordTooShort', ['min' => self::MIN_LENGTH]);
         }
 
         if ($length > self::MAX_LENGTH) {
-            throw InvalidInput::tooLong('password', self::MAX_LENGTH);
+            throw InvalidInput::tooLong($field, self::MAX_LENGTH);
         }
 
         return new self($value);
