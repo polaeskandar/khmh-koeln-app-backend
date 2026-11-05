@@ -1932,6 +1932,42 @@ removing the link closes the portal on the next request without signing out. Wit
 inactive record keeps the portal open with empty lists. A member-only account (no roles) gets 403 on every route
 that needs a permission, the parent portal included.
 
+#### `GET /api/member/groups`
+
+→ 200 `{today, items: [MemberGroup]}`: the record's current memberships (church-today) in services and stages that
+are not archived, by service name, the service's own roster first, then by stage position; `items: []` while the
+record is inactive.
+
+| Member | Type |
+| --- | --- |
+| `id` | the membership |
+| `service` | `ServiceRef` |
+| `stage` | `StageRef`, or `null` for the service's own roster |
+| `since` | date the membership started |
+| `schedules` | `[{id, name, recurrence, startTime, endTime, location}]`: the roster's active schedules, `recurrence` as in `GET /api/schedules` |
+| `servants` | `[{id, name, role}]`, `role` `service_leader` or `servant`: the active accounts holding those roles, leaders first, then by name |
+| `lastLesson` | `{title, teachingDate, passage, memoryVerse}` of the stage's latest lesson on or before today that is neither a draft nor archived, or `null` |
+
+Roles are global, so every group lists the same servants. Nothing about attendance, notes, rosters or other
+members. A fixed number of statements, whatever the number of groups.
+
+#### `GET /api/member/meetings`
+
+→ 200 `{today, from, to, items: [MemberMeeting]}` for church-today and the 13 days after: the sessions that are
+`scheduled`, `active` or `canceled` and the planned dates without a session, of the member's groups; a service's
+own meetings count for every member of the service. By date, start time and group.
+
+| Member | Type |
+| --- | --- |
+| `key` | the session id, or `{scheduleId}:{date}` for a planned date |
+| `date`, `startTime`, `endTime` | the schedule's times; `endTime` may be `null` |
+| `title`, `location` | the meeting's, `location` may be `null` |
+| `group` | the stage's name, or the service's for its own meetings |
+| `service` | `ServiceRef` |
+| `status` | `planned`, `scheduled`, `active` or `canceled` |
+
+Never cancel reasons, session notes, attendance or counts.
+
 ### Your own data
 
 Any signed-in account, staff or parent; 401 `auth.unauthenticated` without a session. The `POST` follows the JSON

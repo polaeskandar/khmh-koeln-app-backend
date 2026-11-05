@@ -16,6 +16,7 @@ use App\Workflow\Identity\Model\CurrentAccount;
 use App\Workflow\Identity\Model\MemberSummary;
 use App\Workflow\Identity\Model\PermissionGrant;
 use App\Workflow\Identity\Model\RoleSummary;
+use App\Workflow\MemberPortal\Model\MemberRoster;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Order;
@@ -51,11 +52,7 @@ final readonly class ShowCurrentAccountWorkflow
             return null;
         }
 
-        return MemberSummary::of(
-            $personId,
-            $this->records->currentMembershipsOf($personId),
-            $this->structure->archivedIds(),
-        );
+        return MemberSummary::of($personId, MemberRoster::lookedUpIn($this->records, $this->structure, $personId));
     }
 
     private static function grantOf(Access $access): PermissionGrant

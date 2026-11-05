@@ -60,6 +60,17 @@ final readonly class MeetingSchedules
         return $this->plannedDates->agendaOf($this->chosen($scheduleId, $serviceId, $stageId), $archived, $range);
     }
 
+    /**
+     * @param ReadableCollection<int, Schedule> $schedules
+     */
+    public function agendaFor(
+        ReadableCollection $schedules,
+        ArchivedStructure $archived,
+        AgendaRange $range,
+    ): AgendaDates {
+        return $this->plannedDates->agendaOf($schedules, $archived, $range);
+    }
+
     public function find(string $id): Schedule
     {
         $schedule = $this->schedules->find(Uuid::fromString($id));

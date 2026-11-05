@@ -53,12 +53,14 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
 - A workflow takes at most five collaborators, like any other constructor. A workflow that joins every context
   and can't be split without splitting its endpoint is the exception and says so with
   `// @mago-expect lint:excessive-parameter-list` on its constructor; each context then offers it one service
-  (besides `AccessCheck`). The exceptions are:
+  (besides `AccessCheck`, or `MemberCheck` for a member workflow). The exceptions are:
   - the attendance board and overview, a stage's attendance history, the agenda, which carries the board's
     counts for every opened session, and the staff dashboard, which joins the overview's cards and the agenda;
   - a member's personal data export;
   - the service list, detail and edit, whose service rows carry the leaders, the next meeting and the attendance
     trend;
+  - a member's groups (`ListMemberGroupsWorkflow`): their memberships, the groups' schedules, the servants and
+    each stage's last lesson;
   - the demo seed (`SeedDemoDataWorkflow`), which hands each context's demo records to the next;
   - the erasures and their review. Each context takes part through its `*Erasures` service: People's
     `PersonErasures`, Meetings' `MeetingErasures`, Attendance's `AttendanceErasures`, Learning's
