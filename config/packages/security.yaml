@@ -10,6 +10,25 @@ security:
         dev:
             pattern: ^/(_profiler|_wdt)
             security: false
+        api_token_issue:
+            pattern: ^/api/auth/tokens$
+            methods: [POST]
+            stateless: true
+            provider: accounts
+            login_throttling:
+                limiter: App\Context\Identity\Infrastructure\Security\SignInRateLimiter
+            json_login:
+                check_path: api_auth_tokens
+                username_path: email
+                password_path: password
+                success_handler: App\Context\Identity\Infrastructure\Security\ApiTokenIssuer
+        api_bearer:
+            request_matcher: App\Platform\Http\Service\BearerRequests
+            stateless: true
+            provider: accounts
+            access_token:
+                token_handler: App\Context\Identity\Infrastructure\Security\ApiTokenHandler
+                token_extractors: App\Platform\Http\Service\BearerTokenExtractor
         api:
             pattern: ^/api
             lazy: true
@@ -25,6 +44,7 @@ security:
 
     access_control:
         - { path: ^/api/health, roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/tokens/current, roles: IS_AUTHENTICATED }
         - { path: ^/api/auth/, roles: PUBLIC_ACCESS }
         - { path: ^/api/test/, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED }

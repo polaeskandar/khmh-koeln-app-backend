@@ -13,7 +13,7 @@ final readonly class Origins
 {
     private const string SEPARATOR = ',';
 
-    private const string EXACT_ORIGIN = '#^https?://[a-z0-9.-]+(:[0-9]{1,5})?$#';
+    private const string EXACT_ORIGIN = '#^(https?|capacitor)://[a-z0-9.-]+(:[0-9]{1,5})?$#';
 
     private const string URL_ORIGIN = '#^(https?://[^/?\#]+).*$#';
 

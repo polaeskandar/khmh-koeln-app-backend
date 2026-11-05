@@ -211,9 +211,11 @@ is kept in web storage. Unsafe requests from a foreign `Origin` are rejected. CO
 development (`http://localhost:3000`).
 
 The iOS and Android apps run on `capacitor://localhost` and `https://localhost`, where the session cookie
-doesn't work. After the MVP they get opaque bearer tokens (`Authorization: Bearer`), stored as hashes and
-checked against the account on every request, so disabling an account revokes them (#83). The contract for
-both is in the [API contract](api.md#authentication).
+doesn't work. They get opaque bearer tokens (`Authorization: Bearer`), stored as hashes and checked against
+the account on every request; disabling an account or changing its password revokes them. Two stateless
+firewalls run before the cookie one: `api_token_issue` (`json_login` on `POST /api/auth/tokens`, with the same
+throttling and failure codes) and `api_bearer` (`access_token`, matched by `BearerRequests`, the predicate the
+Origin check also skips). The contract for both is in the [API contract](api.md#authentication).
 
 ### Accounts need an administrator's approval
 

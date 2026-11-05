@@ -21,6 +21,7 @@ final readonly class PasswordChanges
         private UserRepositoryInterface $users,
         private PasswordHasherInterface $hasher,
         private Calendar $calendar,
+        private ApiTokens $apiTokens,
     ) {
     }
 
@@ -28,11 +29,12 @@ final readonly class PasswordChanges
     {
         $plain = PlainPassword::of($password);
 
-        return $this->tokens->spend(
-            Checksum::sha256($token),
-            $this->calendar->now(),
-            fn (User $user) => $user->changePassword($this->hasher->hash($plain)),
-        );
+        return $this->tokens->spend(Checksum::sha256($token), $this->calendar->now(), function (User $user) use (
+            $plain,
+        ): void {
+            $user->changePassword($this->hasher->hash($plain));
+            $this->apiTokens->revokeAllOf($user->id());
+        });
     }
 
     public function changeOwn(
@@ -51,6 +53,7 @@ final readonly class PasswordChanges
             }
 
             $user->changePassword($this->hasher->hash($password));
+            $this->apiTokens->revokeAllOf($user->id());
             $changed = true;
         });
 

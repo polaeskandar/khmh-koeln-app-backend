@@ -38,6 +38,28 @@ final class CorsOriginsTest extends ApiTestCase
         self::assertFalse($response->headers->has('Access-Control-Allow-Origin'));
     }
 
+    public function testTheAppOriginsGetBearerCorsWithoutCredentials(): void
+    {
+        foreach (['capacitor://localhost', 'https://localhost'] as $origin) {
+            $this->browser()->request('OPTIONS', '/api/me', server: [
+                'HTTP_HOST' => 'api.khmk-koeln.com',
+                'HTTP_ORIGIN' => $origin,
+                'HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'GET',
+                'HTTP_ACCESS_CONTROL_REQUEST_HEADERS' => 'authorization, content-type',
+            ]);
+
+            $response = $this->browser()->getResponse();
+            self::assertSame($origin, $response->headers->get('Access-Control-Allow-Origin'));
+
+            self::assertSame(
+                'authorization, content-type',
+                strtolower((string) $response->headers->get('Access-Control-Allow-Headers')),
+            );
+
+            self::assertFalse($response->headers->has('Access-Control-Allow-Credentials'));
+        }
+    }
+
     private function preflight(string $origin): Response
     {
         $this->browser()->request('OPTIONS', '/api/auth/sign-in', server: [
