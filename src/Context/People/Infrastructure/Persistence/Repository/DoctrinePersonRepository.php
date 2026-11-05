@@ -8,6 +8,7 @@ use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
+use App\Library\Problem\Exception\NotFound;
 use App\Library\Strings\Model\Text;
 use App\Library\Types\Model\ListOf;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -46,11 +47,18 @@ final readonly class DoctrinePersonRepository implements PersonRepositoryInterfa
     }
 
     #[Override]
-    public function findForUpdate(Uuid $id): ?Person
+    public function withWriteLock(Uuid $id, callable $work): mixed
     {
-        $this->entityManager->getConnection()->executeQuery(self::LOCK_ROW, [$id->toRfc4122()]);
+        return $this->entityManager->wrapInTransaction(function () use ($id, $work): mixed {
+            $this->entityManager->getConnection()->executeQuery(self::LOCK_ROW, [$id->toRfc4122()]);
+            $loaded = $this->entityManager->getUnitOfWork()->tryGetById(['id' => $id], Person::class);
 
-        return $this->entityManager->find(Person::class, $id);
+            if ($loaded !== false) {
+                $this->entityManager->detach($loaded);
+            }
+
+            return $work($this->entityManager->find(Person::class, $id) ?? throw NotFound::of('person'));
+        });
     }
 
     #[Override]

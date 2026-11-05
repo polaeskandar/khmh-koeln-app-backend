@@ -11,7 +11,9 @@ use App\Interface\Api\People\Response\CreatedPersonResponse;
 use App\Interface\Api\People\Response\PeoplePageResponse;
 use App\Interface\Api\People\Response\PersonResponse;
 use App\Workflow\People\CreatePersonWorkflow;
+use App\Workflow\People\DeactivatePersonWorkflow;
 use App\Workflow\People\ListPeopleWorkflow;
+use App\Workflow\People\ReactivatePersonWorkflow;
 use App\Workflow\People\RenamePersonWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -56,5 +58,17 @@ final class PeopleController extends AbstractController
             $person->lastName,
             $person->displayName,
         )));
+    }
+
+    #[Route('/{id}/deactivate', name: 'api_people_deactivate', methods: ['POST'])]
+    public function deactivate(string $id, DeactivatePersonWorkflow $deactivatePerson): JsonResponse
+    {
+        return $this->json(PersonResponse::of($deactivatePerson($id)));
+    }
+
+    #[Route('/{id}/reactivate', name: 'api_people_reactivate', methods: ['POST'])]
+    public function reactivate(string $id, ReactivatePersonWorkflow $reactivatePerson): JsonResponse
+    {
+        return $this->json(PersonResponse::of($reactivatePerson($id)));
     }
 }

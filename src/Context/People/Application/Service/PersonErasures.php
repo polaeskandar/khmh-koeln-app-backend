@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\People\Application\Service;
 
+use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonTraceRepositoryInterface;
 use App\Context\People\Domain\Repository\RosterRepositoryInterface;
@@ -43,16 +44,16 @@ final readonly class PersonErasures
 
     public function erasable(Uuid $personId): ErasablePerson
     {
-        $person = $this->people->findForUpdate($personId) ?? throw NotFound::of('person');
-        $name = $person->name();
-
-        return new ErasablePerson(
-            $person->id(),
-            Collections::mapPresent(
-                new ArrayCollection([$name->firstName, $name->displayName]),
-                static fn (?string $named): ?string => $named,
-            )->getValues(),
-            $this->people->membershipsOf(new ArrayCollection([$person])),
+        return $this->people->withWriteLock(
+            $personId,
+            fn (Person $person): ErasablePerson => new ErasablePerson(
+                $person->id(),
+                Collections::mapPresent(
+                    new ArrayCollection([$person->name()->firstName, $person->name()->displayName]),
+                    static fn (?string $named): ?string => $named,
+                )->getValues(),
+                $this->people->membershipsOf(new ArrayCollection([$person])),
+            ),
         );
     }
 

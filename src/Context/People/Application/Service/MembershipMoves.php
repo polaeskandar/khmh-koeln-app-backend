@@ -6,6 +6,7 @@ namespace App\Context\People\Application\Service;
 
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Repository\MembershipRepositoryInterface;
+use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\ValueObject\AlreadyIn;
 use App\Context\People\Domain\ValueObject\MembershipMove;
 use App\Context\People\Domain\ValueObject\Placement;
@@ -17,6 +18,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class MembershipMoves
 {
     public function __construct(
+        private PersonRepositoryInterface $people,
         private MembershipRepositoryInterface $memberships,
         private Calendar $calendar,
     ) {
@@ -32,8 +34,9 @@ final readonly class MembershipMoves
     public function whileMovable(string $membershipId, callable $work): mixed
     {
         $id = Uuid::isValid($membershipId) ? Uuid::fromString($membershipId) : throw NotFound::of('membership');
+        $personId = $this->memberships->personOf($id) ?? throw NotFound::of('membership');
 
-        return $this->memberships->withWriteLock($id, $work);
+        return $this->people->withWriteLock($personId, fn (): mixed => $this->memberships->withWriteLock($id, $work));
     }
 
     public function move(Membership $membership, Placement $target, string $placeName): Membership
