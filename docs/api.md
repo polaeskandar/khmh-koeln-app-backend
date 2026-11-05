@@ -1364,3 +1364,41 @@ or of another stage → 404
 
 The options cost the same number of statements whatever the number of lessons.
 
+#### `POST /api/stages/{stageId}/lessons`
+
+`lessons: create` (403 `lessons.prepareStageOnly`). Body:
+
+```json
+{
+  "details": {"title": "The Good Samaritan", "summary": null, "passage": "Luke 10:25-37", "memoryVerse": null},
+  "meeting": {"scheduleId": "0192f3a4-…", "date": "2026-11-15"},
+  "plan": {"objectives": null, "teachingPoints": null, "activities": null, "notes": null,
+           "materials": [{"label": "Video", "url": "https://example.org/v"}]},
+  "responsibleId": "0192f3a4-…",
+  "status": "draft"
+}
+```
+
+→ 201 `{id, status}`. `meeting` is one of the shapes in "The meeting a lesson is for". The title's spaces are
+collapsed and the texts trimmed (empty → `null`); material rows with neither label nor url are dropped.
+`status` is `draft` (default) or `ready`. 404 `notFound.stage`; an archived stage or service → 409
+`lessons.stageArchived {name}`.
+
+Field errors: `details.title` `lessons.titleRequired`, `validation.tooLong {max: 160}`; `details.summary` 1000,
+`details.passage` 200, `details.memoryVerse` 500 and each `plan.*` text 4000 (`validation.tooLong`);
+`plan.materials.{i}.label`/`.url` as in `materials`; `meeting` as in "The meeting a lesson is for";
+`responsibleId` `lessons.chooseResponsible` when it is missing or not a lesson preparer; `status`
+`validation.invalidChoice`. Once the body is well-formed, the errors of the title, the materials, the meeting and the
+responsible are reported together. Two saves racing for one meeting → the loser gets `meeting`
+`lessons.meetingHasLesson {title}`. 404 `notFound.stage` also for an id that is not a UUID.
+
+#### `PUT /api/lessons/{id}`
+
+`lessons: update` (403 `lessons.changeStageOnly`). The same body, the whole editable lesson: a text or material
+list left out, `null` or `""` is cleared, and `meeting` and `responsibleId` are required as on `POST`. The lesson's
+own meeting stays valid, and an unchanged `responsibleId` is kept even when that account is no longer a preparer.
+`status` left out keeps the lesson's status (a completed lesson stays completed); `draft` or `ready` sets it and
+clears a completion. Moving a completed lesson after today → 422 `meeting` `lessons.taughtAfterDate`. Same field
+errors as `POST`. 200 `{id, status}`; 404 `notFound.lesson`, also for an id that is not a UUID; an archived lesson
+→ 409 `lessons.archived`; an archived stage → 409 `lessons.stageArchived {name}`.
+

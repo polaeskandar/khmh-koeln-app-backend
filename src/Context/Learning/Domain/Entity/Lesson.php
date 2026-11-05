@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Domain\Entity;
 
+use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Context\Learning\Domain\ValueObject\LessonPlan;
 use App\Context\Learning\Domain\ValueObject\LessonState;
 use App\Context\Learning\Domain\ValueObject\LessonText;
@@ -118,5 +119,17 @@ final class Lesson extends TimestampedEntity
     public function archive(DateTimeImmutable $at): void
     {
         $this->state = $this->state->archivedAt($at);
+    }
+
+    public function edit(LessonText $text, MeetingLink $link, ?Uuid $responsibleId): void
+    {
+        $this->text = $text;
+        $this->link = $link;
+        $this->responsibleId = $responsibleId;
+    }
+
+    public function prepare(LessonStatus $status): void
+    {
+        $this->state = $this->state->withStatus($status);
     }
 }
