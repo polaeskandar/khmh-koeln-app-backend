@@ -17,12 +17,17 @@ final readonly class AccessCheck
     ) {
     }
 
-    public function require(Action $action, Resource $resource): void
+    public function allows(Action $action, Resource $resource): bool
     {
-        if ($this->authorization->isGranted(Access::ATTRIBUTE, new Access($action, $resource))) {
+        return $this->authorization->isGranted(Access::ATTRIBUTE, new Access($action, $resource));
+    }
+
+    public function require(Action $action, Resource $resource, string $refusal = 'forbidden'): void
+    {
+        if ($this->allows($action, $resource)) {
             return;
         }
 
-        throw new AccessDeniedHttpException('forbidden');
+        throw new AccessDeniedHttpException($refusal);
     }
 }

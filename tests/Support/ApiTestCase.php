@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Support;
 
+use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
+use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use Override;
 use SensitiveParameter;
 use stdClass;
@@ -30,7 +32,13 @@ abstract class ApiTestCase extends WebTestCase
     {
         $server = [
             'HTTP_ACCEPT' => 'application/json',
-            ...array_combine(array_map(self::serverName(...), array_keys($headers)), $headers),
+            ...array_combine(
+                array_map(
+                    static fn (string $header): string => 'HTTP_' . strtr(strtoupper($header), from: '-', to: '_'),
+                    array_keys($headers),
+                ),
+                $headers,
+            ),
         ];
 
         $content = null;
@@ -59,6 +67,15 @@ abstract class ApiTestCase extends WebTestCase
         $response = $this->jsonRequest('POST', '/api/auth/sign-in', ['email' => $email, 'password' => $secret]);
 
         self::assertSame(Response::HTTP_NO_CONTENT, $response->getStatusCode(), (string) $response->getContent());
+    }
+
+    protected function signInWithRoles(string $email, string ...$roles): string
+    {
+        $id = new SignInAccounts(self::getContainer())->add($email);
+        new RoleGrants(self::getContainer())->grant($id, ...$roles);
+        $this->signInAs($email, SignInAccounts::TYPED);
+
+        return $id;
     }
 
     protected function browser(): KernelBrowser
@@ -121,10 +138,5 @@ abstract class ApiTestCase extends WebTestCase
             JsonBody::sorted(JsonBody::asArray($error['params'] ?? null, $field)),
             $field,
         );
-    }
-
-    private static function serverName(string $header): string
-    {
-        return 'HTTP_' . strtr(strtoupper($header), from: '-', to: '_');
     }
 }

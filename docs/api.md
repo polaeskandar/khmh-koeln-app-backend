@@ -581,6 +581,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `validation.invalidTime` | – | Enter a time like 18:30. |
 | `validation.invalidType` | – | **New.** Field error: the value has the wrong JSON type (a string where a number is expected). |
 | `validation.unexpectedField` | – | **New.** Field error: the body has a member the endpoint does not accept. |
+| `validation.invalidChoice` | – | **New.** Field error: the value is not one of the allowed choices (`status=deleted`). |
 | `validation.invalidRange` | `max` | **New.** Field error: the end is before the start, or the range is longer than `max` days. |
 | `validation.birthDateInFuture` | – | **New.** Field error on `birthDate`: the date is after today. |
 | `validation.addressIncomplete` | – | **New.** Field error on `address`: give street, postal code and city, or none of them. |
@@ -867,3 +868,49 @@ Readiness: runs `SELECT 1` with a 2-second connect and statement timeout.
 ```json
 {"status": "unavailable", "checks": {"database": "unavailable"}}
 ```
+
+### Services
+
+A service row:
+
+```json
+{
+  "id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f10",
+  "name": "Sunday School",
+  "description": null,
+  "tone": 1,
+  "archived": false,
+  "archivedAt": null,
+  "stages": [
+    {"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f20", "name": "3rd Class", "position": 2, "archived": false, "can": {"manageMembers": true}}
+  ],
+  "can": {"edit": false, "archive": false, "manageStructure": false, "manageSessions": false, "manageMembers": true}
+}
+```
+
+`stages` are the active stages by position. The flags follow the viewer's permissions: `edit` is
+`services: update`, `archive` `services: delete`, `manageStructure` `stages: update`, `manageSessions`
+`sessions: update`, `manageMembers` `members: update`.
+
+#### `GET /api/services?status=active|archived|all`
+
+`services: read`. `{items: [service row], can: {create}}`, by name; `status` defaults to `active`, anything else
+→ 422 field error `status`: `validation.invalidChoice`.
+
+#### `GET /api/services/{id}`
+
+`services: read`. One service row; 404 `notFound.service`.
+
+#### `POST /api/services`
+
+`services: create` (403 `services.adminOnlyCreate`). Body `{name, description?}`. The name is cleaned (spaces
+collapsed): `services.nameRequired`, `validation.tooLong {max: 120}`; a name any other service has, ignoring case
+and spaces → `services.nameTaken {name}`, or `services.nameTakenArchived {name}` when that service is archived.
+The description is trimmed, empty → `null`, ≤2000. The service gets the least-used tone. 201 with `Location` and
+the body of its `GET`.
+
+#### `PATCH /api/services/{id}`
+
+`services: update`. Body `{name?, description?}`; a member left out keeps its value, and `description: null`
+clears the description. Same rules as `POST`, also for archived services. 200 with the service row.
+

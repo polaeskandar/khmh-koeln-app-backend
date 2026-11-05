@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Context\Organization\Infrastructure\Persistence\Repository;
 
 use App\Context\Organization\Domain\Entity\Service;
+use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineServiceRepository implements ServiceRepositoryInterface
 {
@@ -42,11 +44,21 @@ final readonly class DoctrineServiceRepository implements ServiceRepositoryInter
     }
 
     #[Override]
-    public function active(): ReadableCollection
+    public function find(Uuid $id): ?Service
     {
-        return new ArrayCollection($this->entityManager->getRepository(Service::class)->findBy(['archivedAt' => null], [
-            'name.value' => 'ASC',
-        ]));
+        return $this->entityManager->find(Service::class, $id);
+    }
+
+    #[Override]
+    public function findByNameKey(string $key): ?Service
+    {
+        return $this->entityManager->getRepository(Service::class)->findOneBy(['name.key' => $key]);
+    }
+
+    #[Override]
+    public function listed(ServiceFilter $filter): ReadableCollection
+    {
+        return $this->entityManager->getRepository(Service::class)->matching(ServiceFilters::criteria($filter));
     }
 
     private static function pendingToneOf(object $entity): ?int

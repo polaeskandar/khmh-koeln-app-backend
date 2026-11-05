@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Workflow\Organization;
+
+use App\Context\Identity\Application\Service\AccessCheck;
+use App\Context\Identity\Domain\Enum\Action;
+use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Organization\Application\Service\ChurchServices;
+use App\Context\Organization\Application\Service\ServiceStages;
+use App\Workflow\Organization\Model\DetailChanges;
+use App\Workflow\Organization\Model\ServiceAbilities;
+use App\Workflow\Organization\Model\ServiceOverview;
+
+final readonly class EditServiceWorkflow
+{
+    public function __construct(
+        private AccessCheck $access,
+        private ChurchServices $services,
+        private ServiceStages $stages,
+    ) {
+    }
+
+    public function __invoke(string $id, DetailChanges $changes): ServiceOverview
+    {
+        $this->access->require(Action::Update, Resource::Services);
+
+        $service = $this->services->edit($id, $changes->name, $changes->descriptionChange());
+
+        return ServiceOverview::of(
+            $service,
+            $this->stages->activeOf($service),
+            ServiceAbilities::grantedBy($this->access),
+        );
+    }
+}

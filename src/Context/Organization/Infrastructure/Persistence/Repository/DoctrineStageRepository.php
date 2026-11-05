@@ -6,6 +6,8 @@ namespace App\Context\Organization\Infrastructure\Persistence\Repository;
 
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
@@ -33,5 +35,18 @@ final readonly class DoctrineStageRepository implements StageRepositoryInterface
                 'id' => $stageId,
                 'service' => $serviceId,
             ]) > 0;
+    }
+
+    #[Override]
+    public function activeIn(ReadableCollection $services): ReadableCollection
+    {
+        if ($services->isEmpty()) {
+            return new ArrayCollection();
+        }
+
+        return new ArrayCollection($this->entityManager->getRepository(Stage::class)->findBy([
+            'service' => $services->toArray(),
+            'archivedAt' => null,
+        ], ['position' => 'ASC']));
     }
 }

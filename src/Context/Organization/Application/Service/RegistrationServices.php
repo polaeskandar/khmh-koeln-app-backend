@@ -6,6 +6,7 @@ namespace App\Context\Organization\Application\Service;
 
 use App\Context\Organization\Domain\Entity\RegistrationService;
 use App\Context\Organization\Domain\Entity\Service;
+use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\Organization\Domain\Repository\RegistrationServiceRepositoryInterface;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Library\Problem\Exception\InvalidInput;
@@ -26,7 +27,7 @@ final readonly class RegistrationServices
      */
     public function active(int $limit): ReadableCollection
     {
-        return new ArrayCollection($this->services->active()->slice(offset: 0, length: $limit));
+        return new ArrayCollection($this->services->listed(ServiceFilter::Active)->slice(offset: 0, length: $limit));
     }
 
     /**
@@ -38,9 +39,9 @@ final readonly class RegistrationServices
     {
         $wanted = new ArrayCollection($ids);
 
-        $chosen = $this->services->active()->filter(static fn (Service $service): bool => $wanted->contains(
-            $service->id()->toRfc4122(),
-        ));
+        $chosen = $this->services
+            ->listed(ServiceFilter::Active)
+            ->filter(static fn (Service $service): bool => $wanted->contains($service->id()->toRfc4122()));
 
         if ($chosen->isEmpty() || $chosen->count() !== $wanted->count()) {
             throw InvalidInput::field('registration.serviceIds', 'accounts.chooseService');
