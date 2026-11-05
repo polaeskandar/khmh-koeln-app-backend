@@ -30,4 +30,9 @@ interface AttendanceRepositoryInterface
      * @return ReadableCollection<int, Attendance>
      */
     public function currentMarksOf(array $sessionIds): ReadableCollection;
+
+    /**
+     * @return ReadableCollection<int, Attendance>
+     */
+    public function ofPerson(Uuid $personId): ReadableCollection;
 }

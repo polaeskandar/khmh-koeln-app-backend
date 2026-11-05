@@ -137,4 +137,20 @@ final readonly class DoctrineHomeworkReportRepository implements HomeworkReportR
             'by' => $by?->toRfc4122(),
         ]);
     }
+
+    #[Override]
+    public function allAbout(Uuid $personId): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager->getRepository(HomeworkCompletion::class)->findBy([
+            'personId' => $personId,
+        ], ['completedAt' => 'ASC', 'id' => 'ASC']));
+    }
+
+    #[Override]
+    public function allBy(Uuid $accountId): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager->getRepository(HomeworkCompletion::class)->findBy([
+            'completedBy' => $accountId,
+        ], ['completedAt' => 'ASC', 'id' => 'ASC']));
+    }
 }

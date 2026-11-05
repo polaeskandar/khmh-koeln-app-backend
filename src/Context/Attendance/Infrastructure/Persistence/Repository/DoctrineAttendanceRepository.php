@@ -71,4 +71,12 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
             ->getRepository(Attendance::class)
             ->findBy(['sessionId' => $sessionIds, 'removal.at' => null]));
     }
+
+    #[Override]
+    public function ofPerson(Uuid $personId): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager->getRepository(Attendance::class)->findBy([
+            'personId' => $personId,
+        ], ['recordedAt' => 'ASC', 'id' => 'ASC']));
+    }
 }

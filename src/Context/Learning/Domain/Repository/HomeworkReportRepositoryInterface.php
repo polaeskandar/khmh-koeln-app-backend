@@ -32,4 +32,14 @@ interface HomeworkReportRepositoryInterface
     public function currentReport(Uuid $taskId, Uuid $personId): ?CurrentReport;
 
     public function undo(Uuid $taskId, Uuid $personId, DateTimeImmutable $at, ?Uuid $by): void;
+
+    /**
+     * @return ReadableCollection<int, HomeworkCompletion>
+     */
+    public function allAbout(Uuid $personId): ReadableCollection;
+
+    /**
+     * @return ReadableCollection<int, HomeworkCompletion>
+     */
+    public function allBy(Uuid $accountId): ReadableCollection;
 }

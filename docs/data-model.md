@@ -293,6 +293,24 @@ In numbers (`TaskAudiences`), for church-today in Europe/Berlin:
 | --- | --- | --- |
 | `data_request` | A request to see (`copy`) or erase (`erasure`) personal data: who it is about (`person_id`, `app_user_id`), who asked and how (`requested_by`, `channel`: app, email, letter, in person), `received_at`, `due_on` (one month later), a note, and the outcome. | `status` open → done or declined; declining needs a reason. A member's account and an account's member record belong to the same request. Once the data is erased, the request keeps no name: `subject_name` is cleared and `erased_subject` says what it was ("member of 3rd Class"), and the same happens to earlier requests about the same person. `outcome` counts what was deleted per kind. |
 
+### What a copy request exports
+
+`app:privacy:export` writes one JSON file (camelCase keys, RFC 3339 instants in Europe/Berlin, local dates, a
+fixed order) for `kind: member` or `kind: account`:
+
+- **member:** `member` (names, status, `recordedSince`), `memberships` (service, stage, from, until),
+  `attendance` (meeting, date, `markedPresentAt`, `removedAt`, `removalNote`), `homeworkReports`
+  (homework, `completedAt`, `undoneAt`) and `parentAccounts` (name and link status only).
+- **account:** `account` (email, name, language, `createdAt`, `approvedAt`, `disabledAt`,
+  `privacyNoticeAccepted {at, version}`, role names, the registration while pending), `children` (name and link
+  status) and the `homeworkReports` it made.
+- **Never:** password hashes, password-link tokens, session data, other people's email addresses (Art. 15(4)),
+  notes by others that mention the person.
+
+The file is first written as a new owner-only (`0600`) file beside the target and then renamed over it, so an
+existing file with wider permissions never holds the personal data. `recordedSince` is the church date of the
+record's creation.
+
 ### What erasing deletes, and what stays
 
 For a **member** (`person`): the person row, their memberships, attendance marks (corrections included),

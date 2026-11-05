@@ -22,6 +22,14 @@ final readonly class AttendanceMarks
     }
 
     /**
+     * @return ReadableCollection<int, Attendance>
+     */
+    public function ofPerson(Uuid $personId): ReadableCollection
+    {
+        return $this->attendance->ofPerson($personId);
+    }
+
+    /**
      * @param list<Uuid> $sessionIds
      *
      * @return ReadableCollection<int, Attendance>
