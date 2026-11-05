@@ -126,7 +126,7 @@ jobs:
 
       - name: Starting leaves an empty database empty
         run: |
-          docker run -d --name api --network host $RUN_ENV "$IMAGE"
+          docker run -d --name api --network host $RUN_ENV -e FRONTEND_URL=http://localhost:8080 "$IMAGE"
           sleep 5
           test "$($PSQL "SELECT count(*) FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog', 'information_schema')")" = 0
 
@@ -144,6 +144,16 @@ jobs:
             sleep 3
           done
           test "$(docker inspect api --format '{{.State.Health.Status}}')" = healthy
+
+      - name: Smoke-test the running image
+        env:
+          SMOKE_EMAIL: smoke@example.org
+          SMOKE_PASSWORD: smoke-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+        run: |
+          echo "::add-mask::$SMOKE_PASSWORD"
+          printf '%s' "$SMOKE_PASSWORD" | docker run --rm -i --network host $RUN_ENV "$IMAGE" \
+            php bin/console app:user:create "$SMOKE_EMAIL" 'Smoke Test' --password-stdin --no-interaction > /dev/null
+          SMOKE_WEB=0 BASE_URL=http://localhost:8080 deploy/smoke-test.sh
 
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0

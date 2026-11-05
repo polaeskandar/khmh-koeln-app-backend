@@ -222,6 +222,32 @@ record at all:
 Logs are kept 14 days unless the data protection adviser decides otherwise by Tue 3 Nov. Access logs of the
 reverse proxy leave out query strings (#27, #74).
 
+## Smoke test
+
+`deploy/smoke-test.sh` proves a deployed environment works end to end. It needs only bash, curl and jq, reads
+nothing but its own session, signs in once (so it never trips the sign-in limit) and stops at the first failed
+check with its name and a non-zero exit. It never prints the password or the session cookie.
+
+```bash
+BASE_URL=https://app.khmk-koeln.com SMOKE_EMAIL=smoke@example.org SMOKE_PASSWORD=… deploy/smoke-test.sh
+```
+
+- **API:** `/api/health/ready` 200; an unknown `/api/…` path 404 `application/problem+json` `notFound.route`; on
+  https, `http://` redirects to `https://`.
+- **Web** (`SMOKE_WEB=0` skips it): `/` and `/de/` 200 with HSTS, `nosniff`, a `Referrer-Policy` and a CSP with
+  `frame-ancestors 'none'`; `/de/index.txt` as `text/plain`; an unknown path 404 (no SPA fallback).
+- **Auth:** sign-in from a foreign `Origin` → 403 `forbidden`; sign-in → 204 with an `HttpOnly`, `Secure`,
+  `SameSite=Lax` cookie; `GET /api/me` 200 with no roles, `today` and `no-store`; sign-out 204; the old cookie
+  then gets 401 `auth.unauthenticated`.
+
+CI runs it with `SMOKE_WEB=0` against the production image on `http://localhost:8080` (curl keeps `Secure`
+cookies over plain HTTP for localhost), after creating a fictional account with `app:user:create … --password-stdin`.
+Run it after every production release.
+
+**The smoke account** is fictional ("Smoke Test", `smoke@…`), has no roles, so it sees nothing, and its password
+lives only in the secret store. It stays in production unless the church and its data protection adviser decide
+otherwise at the Tue 3 Nov decision.
+
 ## Decision checklist for Tue 3 Nov
 
 | Decision | Owner |
