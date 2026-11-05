@@ -12,4 +12,6 @@ interface PasswordHasherInterface
     public function hash(#[SensitiveParameter] PlainPassword $password): string;
 
     public function unusableHash(): string;
+
+    public function matches(string $hash, #[SensitiveParameter] string $password): bool;
 }

@@ -33,6 +33,12 @@ final readonly class SymfonyPasswordHasher implements PasswordHasherInterface
         return $this->hasher()->hash(ByteString::fromRandom(self::UNUSABLE_SECRET_LENGTH)->toString());
     }
 
+    #[Override]
+    public function matches(string $hash, #[SensitiveParameter] string $password): bool
+    {
+        return $this->hasher()->verify($hash, $password);
+    }
+
     private function hasher(): SymfonyHasher
     {
         return $this->hashers->getPasswordHasher(SecurityUser::class);
