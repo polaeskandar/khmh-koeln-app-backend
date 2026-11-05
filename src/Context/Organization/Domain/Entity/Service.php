@@ -72,6 +72,17 @@ final class Service extends TimestampedEntity
         $this->tone = $tone;
     }
 
+    public function edit(string $name, ?string $description): void
+    {
+        $this->name = ServiceName::of($name);
+        $this->description = Description::of($description, max: 2000);
+    }
+
+    public function archivedAt(): ?DateTimeImmutable
+    {
+        return $this->archivedAt;
+    }
+
     public function archive(DateTimeImmutable $at): void
     {
         $this->archivedAt = $at;
