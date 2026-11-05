@@ -105,7 +105,8 @@ a controller or a service call for a service, not just "it didn't throw."
 
 Follow `docs/code-style.md`: transform Doctrine collections instead of filling them in loops, pass functions
 as first-class callables, pipe values with `|>`, return early, keep classes small, final and immutable, use
-precise types and names instead of comments. Mago formats, lints, analyses and guards the boundaries
+precise types and names instead of comments. Write no comments: the code explains itself, and `docs/` records
+decisions. Mago formats, lints, analyses and guards the boundaries
 (`mago.toml`), PHP Insights checks quality and complexity (`phpinsights.php`). Run `composer format`, then
 `composer check`; the `pre-commit` hook runs `composer check` too. Fix findings instead of suppressing them.
 
