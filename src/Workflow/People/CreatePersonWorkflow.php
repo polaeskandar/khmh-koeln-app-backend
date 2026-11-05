@@ -61,7 +61,7 @@ final readonly class CreatePersonWorkflow
             return null;
         }
 
-        $chosen = $this->placements->of($choice->serviceId, $choice->stageId);
+        $chosen = $this->placements->of($choice->serviceId, $choice->stageId, fieldPrefix: 'placement.');
 
         return new Placement($chosen->service->id(), $chosen->stage?->id());
     }

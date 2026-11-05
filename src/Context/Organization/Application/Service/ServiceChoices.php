@@ -11,24 +11,22 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class ServiceChoices
 {
-    private const string FIELD = 'placement.serviceId';
-
     public function __construct(
         private ServiceRepositoryInterface $services,
     ) {
     }
 
-    public function of(?string $serviceId): Service
+    public function of(?string $serviceId, string $field): Service
     {
         $id = $serviceId ?? '';
         $service = Uuid::isValid($id) ? $this->services->find(Uuid::fromString($id)) : null;
 
         if ($service === null) {
-            throw InvalidInput::field(self::FIELD, 'meetings.chooseService');
+            throw InvalidInput::field($field, 'meetings.chooseService');
         }
 
         if ($service->isArchived()) {
-            throw InvalidInput::field(self::FIELD, 'meetings.serviceArchived', ['name' => $service->name()->value]);
+            throw InvalidInput::field($field, 'meetings.serviceArchived', ['name' => $service->name()->value]);
         }
 
         return $service;
