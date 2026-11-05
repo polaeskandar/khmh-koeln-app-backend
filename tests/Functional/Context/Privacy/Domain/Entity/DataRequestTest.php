@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Context\Privacy\Domain\Entity;
 
 use App\Tests\Support\Database;
 use Doctrine\DBAL\Exception\DriverException;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Uid\Uuid;
@@ -21,20 +22,7 @@ final class DataRequestTest extends KernelTestCase
         $sqlState = null;
 
         try {
-            new Database(self::getContainer())
-                ->connection()
-                ->insert('privacy.data_request', [
-                    'id' => Uuid::v7()->toRfc4122(),
-                    'kind' => 'copy',
-                    'person_id' => Uuid::v7()->toRfc4122(),
-                    'requested_by' => 'Hoda Farag',
-                    'channel' => 'email',
-                    'received_at' => '2026-11-02 12:00:00+01',
-                    'due_on' => '2026-12-02',
-                    'status' => 'open',
-                    'created_at' => '2026-11-02 12:00:00+01',
-                    ...$columns,
-                ]);
+            $this->insert($columns);
         } catch (DriverException $refused) {
             $sqlState = $refused->getSQLState();
         }
@@ -62,5 +50,37 @@ final class DataRequestTest extends KernelTestCase
 
         yield 'no subject' => [['person_id' => null]];
         yield 'long note' => [['note' => str_repeat('a', times: 2001)]];
+    }
+
+    public function testAnAccountHasAtMostOneOpenErasureRequestFromTheApp(): void
+    {
+        $app = ['kind' => 'erasure', 'person_id' => null, 'app_user_id' => Uuid::v7()->toRfc4122(), 'channel' => 'app'];
+        $this->insert($app);
+        $this->insert([...$app, 'channel' => 'email']);
+        $this->insert([...$app, 'status' => 'done', 'closed_at' => '2026-11-03 12:00:00+01', 'outcome' => '{}']);
+
+        $this->expectException(UniqueConstraintViolationException::class);
+        $this->insert($app);
+    }
+
+    /**
+     * @param array<string, string|null> $columns
+     */
+    private function insert(array $columns): void
+    {
+        new Database(self::getContainer())
+            ->connection()
+            ->insert('privacy.data_request', [
+                'id' => Uuid::v7()->toRfc4122(),
+                'kind' => 'copy',
+                'person_id' => Uuid::v7()->toRfc4122(),
+                'requested_by' => 'Hoda Farag',
+                'channel' => 'email',
+                'received_at' => '2026-11-02 12:00:00+01',
+                'due_on' => '2026-12-02',
+                'status' => 'open',
+                'created_at' => '2026-11-02 12:00:00+01',
+                ...$columns,
+            ]);
     }
 }

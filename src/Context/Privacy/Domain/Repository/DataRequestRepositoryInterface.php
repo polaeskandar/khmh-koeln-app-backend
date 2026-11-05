@@ -15,6 +15,8 @@ interface DataRequestRepositoryInterface
 
     public function reloaded(Uuid $id): ?DataRequest;
 
+    public function openAppErasureOf(Uuid $accountId): ?DataRequest;
+
     /**
      * @return list<DataRequest>
      */

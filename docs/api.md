@@ -779,6 +779,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `privacy.notErasure` | – | **New.** 409: only erasure requests erase data. |
 | `privacy.subjectGone` | – | **New.** 409: neither the member nor the account still exists. |
 | `privacy.ownAccount` | – | **New.** 409: an administrator can't erase their own account. |
+| `privacy.alreadyRequested` | – | **New.** 409: the account already has an open erasure request from the app. |
 
 ### `homework`
 
@@ -1509,6 +1510,29 @@ Body `{}` → 204, also when nothing was reported. Either approved parent may un
 with `undone_at`/`undone_by`, and a later `PUT` adds a new one. A child who left the stage can still be undone, but
 then the task is no longer visible.
 
+### Your own data
+
+Any signed-in account, staff or parent; 401 `auth.unauthenticated` without a session. The `POST` follows the JSON
+and Origin rules above (a foreign `Origin` → 403 `forbidden`).
+
+#### `GET /api/me/personal-data`
+
+200 `application/json` as the attachment `khmk-my-data.json`: the account's export, the same as
+`app:privacy:export --account=…` (`{kind: account, exportedAt, account, children, homeworkReports}`).
+A parent gets the children's names and link status, never their attendance; a copy about a child goes through the
+office.
+
+#### `GET /api/me/erasure-request`
+
+`{erasureRequested: {receivedAt, dueOn} | null}`: the account's open erasure request made in the app.
+
+#### `POST /api/me/erasure-request`
+
+Body `{note?}` → 201 `{receivedAt, dueOn}`. It records an erasure request about the account in the office's log
+(`channel: app`, `requestedBy` the account's display name); `dueOn` is one month later. 409
+`privacy.alreadyRequested` while one is open (a partial unique index also guards against two at once); `note` ≤
+2000 → else 422 `validation.tooLong`. Erasing still needs the office's review (`POST /api/data-requests/{id}/erase`).
+
 ### Data protection requests
 
 Administrators only (`users: update`, else 403 `privacy.adminOnly`). The office answers each request within one
@@ -1526,7 +1550,7 @@ receivedOn}, note?}` → 201 `{id}`. Exactly one existing member or account (`su
 #### `GET /api/data-requests`
 
 `{today, open, closed}`: open requests by `dueOn`, closed ones newest first. A row is `{id, kind, status,
-subjectName, erasedSubject: {kind, group} | null, requestedBy, channel, receivedAt, dueOn, note, closedAt, closedBy:
+subjectName, erasedSubject: {kind, group} | null, requestedBy, channel (`app` when made in the app), receivedAt, dueOn, note, closedAt, closedBy:
 AccountRef | null, declineReason, outcome}`; `subjectName` is read from the member or account while it exists, else
 `null`.
 
