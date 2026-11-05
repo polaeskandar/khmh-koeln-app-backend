@@ -331,6 +331,15 @@ point to the account become null (`recorded_by`, `removed_by`, `closed_by`, `act
 `approved_by`, …); `homework_completion.completed_by`, `lesson.responsible_id` and
 `homework_assignment.created_by` are nullable for this reason, and the apps show "a former account".
 
+`app:privacy:erase-account` (and its `:dry-run`, which rolls the same steps back) runs
+`EraseAccountWorkflow`. Identity's `AccountErasures` locks role administration and the account row, refuses
+the last administrator, counts the roles and password links, lets every context forget the account, and
+deletes it in one transaction. Each context forgets through its `AccountTraces` service, which implements the
+`AccountReferences` platform contract and nulls its actor columns or deletes the rows the account owned; the workflow
+collects them by the contract's tag, so a new context only adds its own service. A request that was already
+running can still write the account's id after that transaction, so the workflow sweeps the contexts once
+more after the commit, and a rerun on an erased account sweeps again before it reports `notFound.user`.
+
 **Past totals stay right.** A session's counts ("12 of 14 present") would shrink when someone is erased.
 Three counters on `meeting_session` keep them: `erased_roster`, `erased_present` and
 `erased_roster_present`, increased for every completed, active or past session the person was on the roster

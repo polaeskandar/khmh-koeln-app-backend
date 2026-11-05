@@ -19,4 +19,6 @@ interface PasswordTokenRepositoryInterface
      * @param callable(User): void $use
      */
     public function spend(#[\SensitiveParameter] string $tokenHash, DateTimeImmutable $at, callable $use): bool;
+
+    public function countFor(Uuid $userId): int;
 }
