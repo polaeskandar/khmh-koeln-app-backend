@@ -1174,6 +1174,21 @@ viewer may read attendance (`attendance: read`), because it may name children (D
 note}`. `actor: null` is the generator when `byGenerator`, otherwise a former account. `note` follows the same
 rule as `cancelReason`.
 
+#### `GET /api/agenda?from=&to=&serviceId=&stageId=&scheduleId=`
+
+`services: read`. `{today, from, to, items}` for the church dates `from` to `to`, both included (default today−6 to
+today+7, at most 120 days). `items` come by start, then title:
+
+- `{kind: "session", ...SessionView}`: every session in the range, past ones and canceled ones included.
+- `{kind: "planned", scheduleId, title, service: ServiceRef, stage: StageRef | null, date, startTime, endTime,
+  startsAt, endsAt, location, rosterMode, can: {manage}}`: a date of a generating schedule from today on that has
+  no session yet. A date with a session, a past date and a date of an inactive or archived schedule have none.
+
+The filters take ids and narrow the schedules; `scheduleId` wins over the others. Field errors: `from`/`to`
+`validation.invalidDate` (an empty value included); `to` `validation.invalidRange {max: 120}` when it is before `from`
+or more than 120 days after it; ids `validation.invalidType` (an empty value included). The items cost the same number
+of statements whatever their number.
+
 #### `POST /api/sessions/{id}/open`, `/close`, `/reopen`
 
 Each answers 200 `{id, status, openedAt, closedAt, closedBy: AccountRef | null}`, runs in the session write lock
