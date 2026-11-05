@@ -1134,6 +1134,29 @@ A `ScheduleSummary`:
 
 `services: read`. `{today, schedule: ScheduleSummary}`; 404 `notFound.schedule`.
 
+#### `POST /api/schedules`
+
+`sessions: create`. Body `{roster: {serviceId, stageId?, mode}, details: {name, description?, location?},
+recurrence: Recurrence, times: {startTime, endTime?}}` → 201 `{id, createdSessions}` with `Location`. The schedule is
+active; in the same transaction #36's generator creates its sessions for today and tomorrow when they are
+occurrences (`createdSessions`).
+
+Field errors: `roster.serviceId` `meetings.chooseService` / `meetings.serviceArchived {name}`; `roster.stageId`
+`meetings.chooseStage` / `meetings.stageArchived {name}`; `roster.mode` `meetings.chooseRosterMode`; `details.name`
+`meetings.scheduleNameRequired`, `validation.tooLong {max: 120}` (description 500, location 120); `times.startTime`
+`validation.chooseTime`, `times.*` `validation.invalidTime`, `times.endTime` `meetings.endAfterStart`;
+`recurrence.*` as in Recurrence. The name's spaces are collapsed; an empty description or location is `null`.
+
+#### `PATCH /api/schedules/{id}`
+
+`sessions: update`. Body `{details?, recurrence?, times?, rosterMode?}`: a member left out keeps its value, a sent
+`recurrence` replaces the old one whole, `""` clears a description or location, and `times.endTime: null` (or `""`)
+clears the end time; an empty `times.startTime` is `validation.chooseTime`; the time order is checked on the
+merged times (`times.endTime` `meetings.endAfterStart`). The service and stage can't change (`roster` →
+`validation.unexpectedField`). Sessions that exist keep their details (D10); an active schedule gets its missing
+sessions for today and tomorrow. 200 `{id, createdSessions}`; 404 `notFound.schedule`; an archived service or stage
+→ 409 `meetings.serviceArchivedRestoreFirst {name}` / `meetings.stageArchivedRestoreFirst {name}`.
+
 ### Sessions
 
 A `SessionView`: `{id, scheduleId, occurrenceDate, title, service: ServiceRef, stage: StageRef | null, date,
