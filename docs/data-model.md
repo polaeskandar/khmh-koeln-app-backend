@@ -81,6 +81,15 @@ staff (administrators, service leaders, servants) and parents. Children never ha
   `tone` 1–8, non-blank names, description lengths and `position >= 0`; `stage.service_id` references `service` with
   `ON DELETE RESTRICT`; an index on `stage(service_id, position)`. Positions are not unique: writes that
   reorder stages lock the service row instead.
+- **The structure lock** (`ServiceRepositoryInterface::withStructureLock()`) locks the service row with `SELECT …
+  FOR UPDATE`, forgets the services and stages the request had loaded, and reads them again. So adding, editing,
+  reordering, archiving and restoring stages, and archiving and restoring the service, always decide on what the
+  previous write committed, never on a copy loaded before the lock.
+- **Archiving** a service (`ArchiveServiceWorkflow`) or a stage (`ArchiveStageWorkflow`) runs in the structure lock.
+  Meetings' `SchedulePauses` locks the scheduled and active sessions of its schedules; while one is active the
+  archive is refused, otherwise the schedules are deactivated in the same transaction. Opening a session checks
+  that its service and stage are not archived under the session lock, so an archive and an opening wait for each
+  other. Restoring leaves the schedules inactive.
 - Other contexts store `service_id` and `stage_id` without foreign keys. The workflows that write them
   check through an Organization application service (on `StageRepositoryInterface::belongsTo()`) that the stage
   belongs to the service.

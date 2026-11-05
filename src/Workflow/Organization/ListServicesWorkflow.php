@@ -7,8 +7,8 @@ namespace App\Workflow\Organization;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
+use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\Rosters;
@@ -21,7 +21,7 @@ final readonly class ListServicesWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private ChurchServices $services,
+        private StructureLookup $services,
         private ServiceStages $stages,
         private Rosters $rosters,
     ) {

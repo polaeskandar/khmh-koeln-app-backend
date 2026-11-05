@@ -1135,7 +1135,7 @@ memberships open, so its members still count toward the service's `memberCount`.
 
 #### `GET /api/services/insights?status=active|archived|all`
 
-`services: read`. `{items: [{serviceId, next, trend}]}`, one per service the same `status` lists, in the same
+`services: read`. `{items: [{serviceId, next, trend, impact}]}`, one per service the same `status` lists, in the same
 order; anything else → 422 field error `status`: `validation.invalidChoice`. All rows are computed in one batch.
 
 - `next`: `{date, startTime, stage: {id, name, position} | null, status: scheduled | active | planned} | null`,
@@ -1144,6 +1144,8 @@ order; anything else → 422 field error `status`: `validation.invalidChoice`. A
 - `trend`: `{sessions, rate, averagePresent}` over the completed sessions dated today−28 to yesterday. `rate` is
   Σ `rosterPresent` / Σ `rosterSize` over expected-roster sessions (two decimals); `averagePresent` the rounded
   mean `present` over open-roster sessions; each `null` without such sessions.
+- `impact`: `{activeSchedules, upcomingSessions}`, the service's active schedules and its sessions still
+  `scheduled` from today on: what archiving it would pause. Stage rows carry the same for the stage's schedules.
 
 #### `GET /api/service-leaders`
 
@@ -1158,6 +1160,18 @@ and spaces → `services.nameTaken {name}`, or `services.nameTakenArchived {name
 The description is trimmed, empty → `null`, ≤2000. The service gets the least-used tone. 201 with `Location` and
 the body of its `GET`.
 
+#### `POST /api/services/{id}/archive` and `POST /api/services/{id}/restore`
+
+`services: delete`, else 403 `services.adminOnlyArchive` / `services.adminOnlyRestore`. Body `{}` → 200 with the
+service row; 404 `notFound.service`, also for an id that is not a UUID. Both run with the service row locked.
+
+- **Archive:** 409 `services.alreadyArchived {name}`. The service's scheduled and active sessions are locked
+  first; while one is `active` → 409 `services.takingAttendance {name}` and nothing changes. Otherwise sets
+  `archivedAt` and deactivates every schedule of the service in the same transaction; existing sessions stay
+  (a scheduled one tomorrow stays `scheduled`, and can't be opened: `POST /api/sessions/{id}/open` → 409
+  `meetings.serviceArchivedRestoreFirst {name}`). Memberships, roles and lessons stay.
+- **Restore:** 409 `services.notArchived {name}`; the schedules stay inactive (`POST /api/schedules/{id}/activate`).
+
 #### `PUT /api/services/{id}`
 
 `services: update`. Body `{name, description?}`, the whole editable service: a description left out or `null`
@@ -1168,9 +1182,23 @@ services. 200 with the service row; 404 `notFound.service`.
 
 #### `GET /api/services/{id}/stages`
 
-`services: read`. `{service: ServiceRef, stages: [{id, name, description, position, memberCount}],
-archivedStages: [{id, name, archivedAt}]}`; stages by position; `memberCount` counts the stage's roster today. Apps offer structure changes for `stages: create`/`stages: update` while
+`services: read`. `{service: ServiceRef, stages: [{id, name, description, position, memberCount, impact}],
+archivedStages: [{id, name, archivedAt, impact}]}`; stages by position; `memberCount` counts the stage's roster
+today; `impact` is `{activeSchedules, upcomingSessions}` for the stage's schedules, as on the service insights. Apps offer structure changes for `stages: create`/`stages: update` while
 `service.archived` is `false`. 404 `notFound.service`, also for an id that is not a UUID.
+
+#### `POST /api/stages/{id}/archive` and `POST /api/stages/{id}/restore`
+
+`stages: update`, else 403 `forbidden`. Body `{}` → 200 with the stage's `GET` body; 404 `notFound.stage`, also for
+an id that is not a UUID. With the service row locked; a stage of an archived service → 409
+`services.archivedNoStageChanges {name}`.
+
+- **Archive:** 409 `stages.alreadyArchived {name}`, or `stages.takingAttendance {name}` while one of its sessions
+  is `active`; otherwise archives it, deactivates its schedules and renumbers the active stages 0…n−1 (the
+  archived ones follow). Memberships stay open; opening its sessions → 409 `meetings.stageArchivedRestoreFirst
+  {name}`.
+- **Restore:** 409 `stages.notArchived {name}`; the stage goes after the active stages; its schedules stay
+  inactive.
 
 #### `PUT /api/services/{id}/stages/order`
 

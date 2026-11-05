@@ -37,6 +37,17 @@ final readonly class StageOrder
         ));
     }
 
+    /**
+     * @param list<Stage> $stages
+     */
+    public function renumber(array $stages): void
+    {
+        foreach ($stages as $position => $stage) {
+            $stage->moveTo($position);
+            $this->stages->save($stage);
+        }
+    }
+
     private function reorderIn(Service $service, StageSequence $sequence): Service
     {
         StageChecks::ensureOpen($service);
@@ -58,17 +69,6 @@ final readonly class StageOrder
         $this->renumber([...$reordered->getValues(), ...$archived]);
 
         return $service;
-    }
-
-    /**
-     * @param list<Stage> $stages
-     */
-    private function renumber(array $stages): void
-    {
-        foreach ($stages as $position => $stage) {
-            $stage->moveTo($position);
-            $this->stages->save($stage);
-        }
     }
 
     private static function idOf(Stage $stage): string
