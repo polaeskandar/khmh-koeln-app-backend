@@ -226,6 +226,20 @@ Lesson status: `draft` → `ready` → `completed` (taught). Completed is only p
 date, and each step can be undone. Lessons are archived; a draft lesson can be deleted while none of its
 homework was ever published.
 
+`learning.homework_assignment` (`HomeworkAssignment`): `lesson_id` (RESTRICT); `stage_id`, the lesson's stage, fixed
+when the task is created; `title` ≤120 (spaces collapsed), `instructions` ≤2000 (trimmed, newlines kept),
+`due_date`, `resources` (jsonb, the lesson's `Material` rules, ≤10), `status`, `published_at`, `archived_at`,
+`created_by` (an account id nulled by the erasure process), timestamps. CHECKs: status enum, published needs
+`published_at`, `(status = 'archived') = (archived_at IS NOT NULL)`, instructions length, ≤10 resources. Indexes
+`(stage_id, status)` and `lesson_id`. Lifecycle changes and parents' reports take the task row `FOR UPDATE`
+(`HomeworkRepositoryInterface::withLock()`), so "back to draft" and a new report never interleave. The due date
+is checked against the lesson's date by the use case (#60), because it spans two rows.
+
+`learning.homework_completion` (`HomeworkCompletion`): `assignment_id` (RESTRICT), `person_id` (People, plain id),
+`completed_at`, `completed_by`, `undone_at`, `undone_by` (account ids nulled by erasure). Partial UNIQUE
+`(assignment_id, person_id) WHERE undone_at IS NULL`; CHECKs: `undone_by` only with `undone_at`, `undone_at >=
+completed_at`; index `person_id`.
+
 Homework status: `draft` → `published` → `archived`. Drafts are never visible to parents. Published homework
 goes back to draft only while no parent has reported it done; after that it can only be archived. Archiving
 removes it from the parent portal and keeps the reports.

@@ -746,6 +746,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 
 | Code | Params | Meaning (English reference text) |
 | --- | --- | --- |
+| `homework.alreadyUndone` | – | **New.** 409: this report was already undone. |
 | `homework.titleRequired` | – | Enter a title, e.g. “Learn the memory verse”. |
 | `homework.instructionsRequired` | – | Write what the parent and child should do. |
 | `homework.instructionsTooLong` | – | Use at most 2,000 characters. |
