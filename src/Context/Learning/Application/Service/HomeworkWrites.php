@@ -10,6 +10,7 @@ use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkDraft;
 use App\Library\Problem\Exception\NotFound;
+use App\Library\Time\Client\Calendar;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class HomeworkWrites
@@ -17,6 +18,7 @@ final readonly class HomeworkWrites
     public function __construct(
         private HomeworkRepositoryInterface $homework,
         private LessonRepositoryInterface $lessons,
+        private Calendar $calendar,
     ) {
     }
 
@@ -44,11 +46,21 @@ final readonly class HomeworkWrites
      *
      * @return T
      */
+    public function locked(string $id, callable $work): object
+    {
+        return $this->homework->withLock(Uuid::fromString($id), $work);
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param callable(HomeworkAssignment): T $work
+     *
+     * @return T
+     */
     public function whileEditable(string $id, callable $work): object
     {
-        return $this->homework->withLock(Uuid::fromString($id), static function (HomeworkAssignment $task) use (
-            $work,
-        ): object {
+        return $this->locked($id, static function (HomeworkAssignment $task) use ($work): object {
             $task->ensureEditable();
             $task->lesson()->ensureEditable();
 
@@ -61,6 +73,15 @@ final readonly class HomeworkWrites
         $content = $draft->contentFor($task->lesson(), $task);
         $task->edit($content->text, $content->resources);
         $this->homework->save($task);
+
+        return $task;
+    }
+
+    public function publish(HomeworkAssignment $task): HomeworkAssignment
+    {
+        if ($task->publish($this->calendar->now())) {
+            $this->homework->save($task);
+        }
 
         return $task;
     }

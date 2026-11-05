@@ -1396,3 +1396,12 @@ keeps its value, `""` clears `dueDate`, a sent `resources` replaces the list. An
 after the lesson moved past it. The task is locked while it changes; a published task keeps its status,
 `publishedAt` and reports. 200 `{id, status}`; 404 `notFound.homework`; an archived task → 409
 `homework.archivedNoEdit`; the lesson, stage and service rules as for `POST`.
+
+#### `POST /api/homework/{id}/publish`
+
+`homework: update` (403 `homework.changeStageOnly`). Body `{}` → 200 `{id, status: "published", publishedAt}`
+(Europe/Berlin offset). It runs on the locked task row. A draft becomes `published` with `publishedAt` = now, also
+when it was published and taken back before; an already published task stays as it is, so a phone's retry changes
+nothing. Parents only ever see published tasks. 404 `notFound.homework`; an archived task → 409
+`homework.archivedNoPublish`; an archived lesson → 409 `homework.lessonArchived`; an archived stage or service → 409
+`lessons.stageArchived {name}`.

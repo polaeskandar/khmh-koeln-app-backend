@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Domain\Entity;
 
+use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\ValueObject\HomeworkState;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Library\Persistence\Mapping\TimestampedEntity;
 use App\Library\Problem\Exception\RuleViolation;
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -101,14 +103,34 @@ final class HomeworkAssignment extends TimestampedEntity
 
     public function ensureEditable(): void
     {
-        if ($this->state->archivedAt !== null) {
-            throw new RuleViolation('homework.archivedNoEdit');
-        }
+        $this->state->ensureNotArchived('homework.archivedNoEdit');
     }
 
     public function edit(HomeworkText $text, Materials $resources): void
     {
         $this->text = $text;
         $this->resources = $resources->toArray();
+    }
+
+    public function publish(DateTimeImmutable $at): bool
+    {
+        $this->state->ensureNotArchived('homework.archivedNoPublish');
+
+        if ($this->lesson->state()->archivedAt !== null) {
+            throw new RuleViolation('homework.lessonArchived');
+        }
+
+        if ($this->isVisibleToParents()) {
+            return false;
+        }
+
+        $this->state = $this->state->publishedAt($at);
+
+        return true;
+    }
+
+    public function isVisibleToParents(): bool
+    {
+        return $this->state->status === HomeworkStatus::Published;
     }
 }
