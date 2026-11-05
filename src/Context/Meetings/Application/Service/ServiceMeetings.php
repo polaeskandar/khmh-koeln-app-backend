@@ -8,12 +8,15 @@ use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
+use App\Context\Meetings\Domain\Repository\StructureUsageRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\PlannedDate;
+use App\Context\Meetings\Domain\ValueObject\StructureImpact;
 use App\Library\Collections\Model\Collections;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class ServiceMeetings
 {
@@ -25,6 +28,7 @@ final readonly class ServiceMeetings
         private ScheduleRepositoryInterface $schedules,
         private SessionRepositoryInterface $sessions,
         private PlannedDates $plannedDates,
+        private StructureUsageRepositoryInterface $usage,
         private Calendar $calendar,
     ) {
     }
@@ -53,6 +57,24 @@ final readonly class ServiceMeetings
         $upcoming = new ArrayCollection($dates)->filter(static fn (PlannedDate $date): bool => $date->isUpcoming());
 
         return Collections::firstPerKey($upcoming, keyOf: self::serviceKey(...));
+    }
+
+    /**
+     * @return ReadableCollection<string, StructureImpact>
+     */
+    public function impactByService(): ReadableCollection
+    {
+        return $this->usage->byService($this->calendar->today());
+    }
+
+    /**
+     * @param list<Uuid> $stageIds
+     *
+     * @return ReadableCollection<string, StructureImpact>
+     */
+    public function impactOfStages(array $stageIds): ReadableCollection
+    {
+        return $this->usage->ofStages($stageIds, $this->calendar->today());
     }
 
     /**

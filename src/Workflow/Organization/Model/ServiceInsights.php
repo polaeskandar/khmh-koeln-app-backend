@@ -10,6 +10,7 @@ use App\Context\Meetings\Application\Service\ServiceMeetings;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\PlannedDate;
+use App\Context\Meetings\Domain\ValueObject\StructureImpact;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\Rosters;
@@ -28,12 +29,14 @@ final readonly class ServiceInsights
      * @param ReadableCollection<non-empty-string, PlannedDate> $next
      * @param ReadableCollection<int, Session> $completed
      * @param ReadableCollection<non-empty-string, SessionTally> $tallies
+     * @param ReadableCollection<string, StructureImpact> $impacts
      */
     private function __construct(
         private array $leaders,
         private ReadableCollection $next,
         private ReadableCollection $completed,
         private ReadableCollection $tallies,
+        private ReadableCollection $impacts,
     ) {
     }
 
@@ -51,12 +54,18 @@ final readonly class ServiceInsights
             $meetings->nextByService($archived),
             $completed,
             SessionTallies::onRosters($rosters, $marks, $completed),
+            $meetings->impactByService(),
         );
     }
 
     public static function ofNewService(AccountLookup $accounts): ServiceInsight
     {
-        return new ServiceInsight(self::leadersIn($accounts), next: null, trend: AttendanceTrend::none());
+        return new ServiceInsight(
+            self::leadersIn($accounts),
+            next: null,
+            trend: AttendanceTrend::none(),
+            impact: ArchiveImpact::of(null),
+        );
     }
 
     /**
@@ -75,6 +84,7 @@ final readonly class ServiceInsights
             $this->leaders,
             $next === null ? null : NextMeeting::of($next, $stages),
             AttendanceTrend::of($own, $this->tallies),
+            ArchiveImpact::of($this->impacts->get($service->id()->toRfc4122())),
         );
     }
 

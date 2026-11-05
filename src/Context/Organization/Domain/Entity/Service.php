@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Context\Organization\Domain\Entity;
 
+use App\Context\Organization\Domain\ValueObject\Archival;
 use App\Context\Organization\Domain\ValueObject\Description;
 use App\Context\Organization\Domain\ValueObject\ServiceName;
 use App\Context\Organization\Domain\ValueObject\Tone;
 use App\Library\Persistence\Mapping\TimestampedEntity;
-use App\Library\Problem\Exception\RuleViolation;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -89,6 +89,11 @@ final class Service extends TimestampedEntity
         $this->archivedAt = $at;
     }
 
+    public function restore(): void
+    {
+        $this->archivedAt = null;
+    }
+
     public function isArchived(): bool
     {
         return $this->archivedAt !== null;
@@ -96,8 +101,11 @@ final class Service extends TimestampedEntity
 
     public function ensureStagesCanChange(): void
     {
-        if ($this->isArchived()) {
-            throw new RuleViolation('services.archivedNoStageChanges', ['name' => $this->name->value]);
-        }
+        $this->archival()->ensureOpen('services.archivedNoStageChanges');
+    }
+
+    public function archival(): Archival
+    {
+        return new Archival($this->archivedAt, $this->name->value);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Organization\Domain\Entity;
 
+use App\Context\Organization\Domain\ValueObject\Archival;
 use App\Context\Organization\Domain\ValueObject\Description;
 use App\Context\Organization\Domain\ValueObject\StageName;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
@@ -95,8 +96,18 @@ final class Stage extends CreatedAtEntity
         $this->archivedAt = $at;
     }
 
+    public function restore(): void
+    {
+        $this->archivedAt = null;
+    }
+
     public function isArchived(): bool
     {
         return $this->archivedAt !== null;
+    }
+
+    public function archival(): Archival
+    {
+        return new Archival($this->archivedAt, $this->name->value);
     }
 }

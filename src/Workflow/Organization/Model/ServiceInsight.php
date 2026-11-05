@@ -15,6 +15,7 @@ final readonly class ServiceInsight
         public array $leaders,
         public ?NextMeeting $next,
         public AttendanceTrend $trend,
+        public ArchiveImpact $impact,
     ) {
     }
 }

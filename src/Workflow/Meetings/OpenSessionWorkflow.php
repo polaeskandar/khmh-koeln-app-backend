@@ -9,6 +9,8 @@ use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\SessionTransitions;
+use App\Context\Meetings\Domain\Entity\Schedule;
+use App\Context\Organization\Application\Service\ArchiveGuard;
 use App\Workflow\Meetings\Model\SessionState;
 
 final readonly class OpenSessionWorkflow
@@ -17,6 +19,7 @@ final readonly class OpenSessionWorkflow
         private AccessCheck $access,
         private SessionTransitions $transitions,
         private AccountLookup $accounts,
+        private ArchiveGuard $archive,
     ) {
     }
 
@@ -24,6 +27,15 @@ final readonly class OpenSessionWorkflow
     {
         $this->access->require(Action::Create, Resource::Attendance);
 
-        return SessionState::of($this->transitions->open($sessionId, $accountId), $this->accounts);
+        $opened = $this->transitions->open(
+            $sessionId,
+            $accountId,
+            ensureOpen: fn (Schedule $schedule) => $this->archive->ensureOpen(
+                $schedule->roster()->serviceId,
+                $schedule->roster()->stageId,
+            ),
+        );
+
+        return SessionState::of($opened, $this->accounts);
     }
 }

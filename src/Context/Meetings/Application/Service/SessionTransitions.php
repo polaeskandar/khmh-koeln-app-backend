@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Application\Service;
 
+use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Entity\SessionEvent;
 use App\Context\Meetings\Domain\Enum\SessionEventType;
@@ -22,14 +23,21 @@ final readonly class SessionTransitions
     ) {
     }
 
-    public function open(string $sessionId, string $accountId): Session
+    /**
+     * @param callable(Schedule): void $ensureOpen
+     */
+    public function open(string $sessionId, string $accountId, callable $ensureOpen): Session
     {
         $today = $this->calendar->today();
 
-        return $this->apply($sessionId, $accountId, SessionEventType::Opened, note: null, change: static fn (
+        return $this->apply($sessionId, $accountId, SessionEventType::Opened, note: null, change: static function (
             Session $session,
             Stamp $stamp,
-        ): bool => $session->open($today, $stamp));
+        ) use ($today, $ensureOpen): bool {
+            $ensureOpen($session->schedule());
+
+            return $session->open($today, $stamp);
+        });
     }
 
     public function close(string $sessionId, string $accountId): Session

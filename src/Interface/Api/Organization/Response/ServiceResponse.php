@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Interface\Api\Organization\Response;
 
 use App\Workflow\Identity\Model\AccountReference;
+use App\Workflow\Organization\Model\ArchiveImpact;
 use App\Workflow\Organization\Model\AttendanceTrend;
 use App\Workflow\Organization\Model\NextMeeting;
 use App\Workflow\Organization\Model\ServiceAbilities;
@@ -41,6 +42,7 @@ final readonly class ServiceResponse implements JsonSerializable
      *     leaders: list<AccountReference>,
      *     next: NextMeeting|null,
      *     trend: AttendanceTrend,
+     *     impact: ArchiveImpact,
      *     can: ServiceAbilities,
      * }
      */
@@ -62,6 +64,7 @@ final readonly class ServiceResponse implements JsonSerializable
             'leaders' => $this->overview->insight->leaders,
             'next' => $this->overview->insight->next,
             'trend' => $this->overview->insight->trend,
+            'impact' => $this->overview->insight->impact,
             'can' => $this->overview->can,
         ];
     }

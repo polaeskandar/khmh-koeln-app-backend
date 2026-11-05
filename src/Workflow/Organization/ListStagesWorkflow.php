@@ -7,6 +7,7 @@ namespace App\Workflow\Organization;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Meetings\Application\Service\ServiceMeetings;
 use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\People\Application\Service\Rosters;
@@ -19,6 +20,7 @@ final readonly class ListStagesWorkflow
         private ChurchServices $services,
         private ServiceStages $stages,
         private Rosters $rosters,
+        private ServiceMeetings $meetings,
     ) {
     }
 
@@ -26,6 +28,12 @@ final readonly class ListStagesWorkflow
     {
         $this->access->require(Action::Read, Resource::Services);
 
-        return StageList::current($this->services->find($serviceId), $this->stages, $this->rosters, $this->access);
+        return StageList::current(
+            $this->services->find($serviceId),
+            $this->stages,
+            $this->rosters,
+            $this->meetings,
+            $this->access,
+        );
     }
 }

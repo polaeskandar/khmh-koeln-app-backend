@@ -7,6 +7,8 @@ namespace App\Workflow\Organization\Model;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Meetings\Application\Service\ServiceMeetings;
+use App\Context\Meetings\Domain\ValueObject\StructureImpact;
 use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
@@ -19,23 +21,32 @@ final readonly class StageList
     /**
      * @param list<StageEntry> $active
      * @param list<ArchivedStageEntry> $archived
+     * @param ReadableCollection<string, ArchiveImpact> $impacts
      */
     public function __construct(
         public ServiceReference $service,
         public array $active,
         public array $archived,
+        public ReadableCollection $impacts,
         public bool $canManageStructure,
     ) {
     }
 
-    public static function current(Service $service, ServiceStages $stages, Rosters $rosters, AccessCheck $access): self
-    {
+    public static function current(
+        Service $service,
+        ServiceStages $stages,
+        Rosters $rosters,
+        ServiceMeetings $meetings,
+        AccessCheck $access,
+    ): self {
         $held = $stages->ofService($service);
+        $ids = $held->map(static fn (Stage $stage): Uuid => $stage->id())->getValues();
 
         return self::of(
             $service,
             $held,
-            $rosters->stageMembersToday($held->map(static fn (Stage $stage): Uuid => $stage->id())->getValues()),
+            $rosters->stageMembersToday($ids),
+            $meetings->impactOfStages($ids),
             canManageStructure: !$service->isArchived() && $access->allows(Action::Update, Resource::Stages),
         );
     }
@@ -43,11 +54,13 @@ final readonly class StageList
     /**
      * @param ReadableCollection<int, Stage> $stages
      * @param ReadableCollection<string, int> $members
+     * @param ReadableCollection<string, StructureImpact> $impacts
      */
     public static function of(
         Service $service,
         ReadableCollection $stages,
         ReadableCollection $members,
+        ReadableCollection $impacts,
         bool $canManageStructure,
     ): self {
         return new self(
@@ -63,6 +76,7 @@ final readonly class StageList
                 ->filter(static fn (Stage $stage): bool => $stage->isArchived())
                 ->map(ArchivedStageEntry::of(...))
                 ->getValues(),
+            $impacts->map(ArchiveImpact::of(...)),
             $canManageStructure,
         );
     }
