@@ -34,6 +34,11 @@ final readonly class AgendaRange
         return new self($today, $start, $end);
     }
 
+    public static function ahead(LocalDate $today, int $days): self
+    {
+        return new self($today, $today->addDays(1), $today->addDays($days));
+    }
+
     public function plannedFrom(): LocalDate
     {
         return $this->from->isBefore($this->today) ? $this->today : $this->from;
