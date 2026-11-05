@@ -6,11 +6,9 @@ namespace App\Workflow\ParentPortal\Model;
 
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Learning\Application\Service\PupilHomework;
-use App\Context\Learning\Domain\ValueObject\Pupil;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Context\People\Application\Service\ParentChildren;
 use App\Context\People\Domain\Entity\Membership;
-use App\Context\People\Domain\Entity\Person;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -40,10 +38,7 @@ final readonly class VisibleHomework
             return new self($family->today, []);
         }
 
-        $pupilOf = static fn (Person $child): Pupil => new Pupil($child->id(), $family->stageIdsOf($child));
-        $tasks = $homework->of(new ArrayCollection($family->children)->map($pupilOf)->getValues());
-
-        return new self($family->today, ChildHomeworks::of($family, $tasks));
+        return new self($family->today, ChildHomeworks::lookedUpIn($family, $homework));
     }
 
     public function of(Uuid $childId): ?ChildHomework

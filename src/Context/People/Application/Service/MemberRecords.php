@@ -8,6 +8,7 @@ use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
+use App\Context\People\Domain\ValueObject\Family;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -22,22 +23,28 @@ final readonly class MemberRecords
     ) {
     }
 
+    public function ownRecord(Uuid $personId): Family
+    {
+        $today = $this->calendar->today();
+        $person = $this->people->find($personId);
+        $own = new ArrayCollection($person?->status() === PersonStatus::Active ? [$person] : []);
+
+        $current = $this->people
+            ->membershipsOf($own)
+            ->filter(static fn (Membership $membership): bool => $membership->isCurrentOn($today));
+
+        return new Family($today, $own->getValues(), $current);
+    }
+
     /**
      * @return ReadableCollection<int, Membership>
      */
     public function currentMembershipsOf(Uuid $personId): ReadableCollection
     {
-        $person = $this->people->find($personId);
+        $record = $this->ownRecord($personId);
+        $person = $record->children[0] ?? null;
 
-        if ($person?->status() !== PersonStatus::Active) {
-            return new ArrayCollection();
-        }
-
-        $today = $this->calendar->today();
-
-        return $this->people
-            ->membershipsOf(new ArrayCollection([$person]))
-            ->filter(static fn (Membership $membership): bool => $membership->isCurrentOn($today));
+        return $person === null ? new ArrayCollection() : $record->membershipsOf($person);
     }
 
     /**

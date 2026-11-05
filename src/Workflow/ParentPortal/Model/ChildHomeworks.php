@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Workflow\ParentPortal\Model;
 
+use App\Context\Learning\Application\Service\PupilHomework;
+use App\Context\Learning\Domain\ValueObject\Pupil;
 use App\Context\Learning\Domain\ValueObject\PupilTasks;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\ValueObject\Family;
@@ -13,6 +15,16 @@ use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class ChildHomeworks
 {
+    /**
+     * @return list<ChildHomework>
+     */
+    public static function lookedUpIn(Family $family, PupilHomework $homework): array
+    {
+        $pupilOf = static fn (Person $child): Pupil => new Pupil($child->id(), $family->stageIdsOf($child));
+
+        return self::of($family, $homework->of(new ArrayCollection($family->children)->map($pupilOf)->getValues()));
+    }
+
     /**
      * @param list<PupilTasks> $tasks
      *
