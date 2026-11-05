@@ -1157,6 +1157,16 @@ archivedStages: [{id, name, archivedAt}], can: {manageStructure}}`; stages by po
 stage's roster today. `manageStructure` is `stages: update` on an active
 service, else `false`. 404 `notFound.service`.
 
+#### `PUT /api/services/{id}/stages/order`
+
+`stages: update`, else 403 `forbidden`. Body `{stageIds}`: exactly the service's active stages, each once, in the
+new order → 200 with the `GET /api/services/{id}/stages` body in that order. Positions become 0…n−1 in request
+order and the archived stages follow in their previous order. With the service row locked (as for adding and
+editing stages): a missing, unknown, foreign, archived or repeated id → 409 `stages.reorderStale`, nothing
+written; an archived service → 409 `services.archivedNoStageChanges {name}`; 404 `notFound.service`.
+`stageIds` not an array, an id that is not a UUID → 422 `validation.invalidType`; more than 200 →
+`validation.tooMany {max: 200}`. Sending the same order again changes nothing.
+
 #### `POST /api/services/{id}/stages`
 
 `stages: create`. Body `{name, description?}`: `stages.nameRequired`, `validation.tooLong {max: 80}` (description

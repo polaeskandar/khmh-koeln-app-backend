@@ -4,9 +4,15 @@ declare(strict_types=1);
 
 namespace App\Workflow\Organization\Model;
 
+use App\Context\Identity\Application\Service\AccessCheck;
+use App\Context\Identity\Domain\Enum\Action;
+use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
+use App\Context\People\Application\Service\Rosters;
 use Doctrine\Common\Collections\ReadableCollection;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class StageList
 {
@@ -20,6 +26,18 @@ final readonly class StageList
         public array $archived,
         public bool $canManageStructure,
     ) {
+    }
+
+    public static function current(Service $service, ServiceStages $stages, Rosters $rosters, AccessCheck $access): self
+    {
+        $held = $stages->ofService($service);
+
+        return self::of(
+            $service,
+            $held,
+            $rosters->stageMembersToday($held->map(static fn (Stage $stage): Uuid => $stage->id())->getValues()),
+            canManageStructure: !$service->isArchived() && $access->allows(Action::Update, Resource::Stages),
+        );
     }
 
     /**

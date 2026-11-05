@@ -9,10 +9,8 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
-use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\Rosters;
 use App\Workflow\Organization\Model\StageList;
-use Symfony\Component\Uid\Uuid;
 
 final readonly class ListStagesWorkflow
 {
@@ -28,16 +26,6 @@ final readonly class ListStagesWorkflow
     {
         $this->access->require(Action::Read, Resource::Services);
 
-        $service = $this->services->find($serviceId);
-        $stages = $this->stages->ofService($service);
-
-        return StageList::of(
-            $service,
-            $stages,
-            $this->rosters->stageMembersToday(
-                $stages->map(static fn (Stage $stage): Uuid => $stage->id())->getValues(),
-            ),
-            canManageStructure: !$service->isArchived() && $this->access->allows(Action::Update, Resource::Stages),
-        );
+        return StageList::current($this->services->find($serviceId), $this->stages, $this->rosters, $this->access);
     }
 }

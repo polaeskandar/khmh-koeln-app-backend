@@ -10,7 +10,6 @@ use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
 use App\Context\Organization\Domain\ValueObject\DescriptionChange;
 use App\Library\Problem\Exception\NotFound;
-use App\Library\Problem\Exception\RuleViolation;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -58,7 +57,7 @@ final readonly class ServiceStages
 
     private function editIn(Service $service, string $stageId, ?string $name, DescriptionChange $description): Stage
     {
-        self::ensureOpen($service);
+        $service->ensureStagesCanChange();
 
         $stage = $this->find($stageId);
 
@@ -71,7 +70,7 @@ final readonly class ServiceStages
 
     private function addTo(Service $service, string $name, ?string $description): Stage
     {
-        self::ensureOpen($service);
+        $service->ensureStagesCanChange();
 
         $existing = $this->stages->ofService($service);
         $active = $existing->filter(static fn (Stage $stage): bool => !$stage->isArchived());
@@ -85,12 +84,5 @@ final readonly class ServiceStages
         $this->stages->save($stage);
 
         return $stage;
-    }
-
-    private static function ensureOpen(Service $service): void
-    {
-        if ($service->isArchived()) {
-            throw new RuleViolation('services.archivedNoStageChanges', ['name' => $service->name()->value]);
-        }
     }
 }

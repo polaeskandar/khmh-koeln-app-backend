@@ -8,6 +8,7 @@ use App\Context\Organization\Domain\ValueObject\Description;
 use App\Context\Organization\Domain\ValueObject\ServiceName;
 use App\Context\Organization\Domain\ValueObject\Tone;
 use App\Library\Persistence\Mapping\TimestampedEntity;
+use App\Library\Problem\Exception\RuleViolation;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -91,5 +92,12 @@ final class Service extends TimestampedEntity
     public function isArchived(): bool
     {
         return $this->archivedAt !== null;
+    }
+
+    public function ensureStagesCanChange(): void
+    {
+        if ($this->isArchived()) {
+            throw new RuleViolation('services.archivedNoStageChanges', ['name' => $this->name->value]);
+        }
     }
 }
