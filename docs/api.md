@@ -341,25 +341,39 @@ session id changes (the old one is gone) and this session stays signed in. Every
 | `newPassword` shorter than 10 or longer than 200 characters | 422 `accounts.passwordTooShort {min: 10}` or `validation.tooLong {max: 200}` on `newPassword` |
 | 5 wrong current passwords for the account within 15 minutes | 429 `auth.tooManyAttempts` + `Retry-After`, even with the right password; only wrong ones count |
 
-### Bearer tokens (iOS and Android, after the MVP)
+### Bearer tokens (iOS and Android)
 
-Planned in #83, not available at launch; this section fixes the shape so the apps can plan for it. Tokens
-are opaque random strings, not JWTs. The API stores only their SHA-256 hash and checks the account on every
-request, so a disabled account, a password change or a password set from a link revokes all its tokens at
-once. Lifetime `API_TOKEN_LIFETIME` (proposed: 90 days). The apps keep the token in the platform's secure
-storage.
+The Capacitor apps (origins `capacitor://localhost`, `https://localhost`, from `MOBILE_APP_ORIGINS`) can't use
+the session cookie, so they sign in for an opaque bearer token; the web keeps the cookie (D1). Tokens are random
+strings, not JWTs. The API stores only their SHA-256 hash and checks the account on every request. Disabling the
+account (`app:user:disable`), a password set from a link and a password change revoke all its tokens. Lifetime
+`API_TOKEN_LIFETIME` (90 days). The apps keep the token in the platform's secure storage and send
+`Authorization: Bearer <token>`; the scheme is read in any case (`bearer`, `BEARER`).
 
-- `POST /api/auth/tokens {email, password, deviceName}` → 201 `{token, expiresAt}`, with sign-in's codes
-  and throttling (400, 401 `auth.invalidCredentials`, 403 `auth.pending`/`auth.disabled`, 429). There is no
-  `Location`: a token is only addressable as `current`.
-- `DELETE /api/auth/tokens/current` with `{}` → 204, revokes only the token sent. Without a bearer token
-  (a session cookie does not count) → 401 `auth.unauthenticated`.
-- An expired, revoked or unknown token → 401 `auth.unauthenticated`.
-- CORS allows both app origins with `Authorization` and `Content-Type`, without `Allow-Credentials`.
+A request with a bearer token, or to a path under `/api/auth/tokens`, is stateless: it never reads or sets the
+session cookie and skips the Origin check. A password change over a token therefore answers 204 without a new
+session; it revokes every token of the account, the one sent included. An expired, revoked or unknown token, or one
+of a pending or disabled account, gets 401 `auth.unauthenticated`, even with a valid session cookie.
+
+#### `POST /api/auth/tokens`
+
+Public. Body `{email, password, deviceName?}` (`deviceName` at most 100 characters, else 422
+`validation.tooLong`) → 201 `{token, expiresAt}`. The same codes and throttling as `POST /api/auth/sign-in`
+(400, 401 `auth.invalidCredentials`, 403 `auth.pending`/`auth.disabled`, 429 `auth.tooManyAttempts` with
+`Retry-After`; the attempts count together with cookie sign-ins). No session or cookie, and no `Location`: a
+token is only addressable as `current`.
 
 ```json
 {"token": "kXh2…", "expiresAt": "2027-02-06T12:00:00+01:00"}
 ```
+
+#### `DELETE /api/auth/tokens/current`
+
+Bearer token required. Body `{}` → 204, revokes only the token sent. Without a bearer token (a session cookie
+does not count) → 401 `auth.unauthenticated`.
+
+CORS allows both app origins with `Authorization` and `Content-Type`, without `Allow-Credentials`; they are not
+in the cookie Origin allowlist.
 
 ## Shared shapes
 

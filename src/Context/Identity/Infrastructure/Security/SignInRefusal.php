@@ -19,6 +19,10 @@ final readonly class SignInRefusal
 
     public static function of(AuthenticationException $exception): HttpException
     {
+        if ($exception instanceof InvalidApiToken) {
+            return new UnauthorizedHttpException('Bearer', 'auth.unauthenticated');
+        }
+
         if ($exception instanceof TooManyLoginAttemptsAuthenticationException) {
             return new TooManyRequestsHttpException(self::retryAfter($exception), 'auth.tooManyAttempts');
         }

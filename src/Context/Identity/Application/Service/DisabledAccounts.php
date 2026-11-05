@@ -17,6 +17,7 @@ final readonly class DisabledAccounts
         private LastAdministrator $lastAdministrator,
         private AdministrationLockInterface $administration,
         private Calendar $calendar,
+        private ApiTokens $apiTokens,
     ) {
     }
 
@@ -31,6 +32,7 @@ final readonly class DisabledAccounts
 
             $user->changeStatus($user->status()->disabledAt($this->calendar->now()));
             $this->users->save($user);
+            $this->apiTokens->revokeAllOf($user->id());
         });
     }
 

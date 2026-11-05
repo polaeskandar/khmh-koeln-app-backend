@@ -29,6 +29,10 @@ final readonly class SymfonySessionRenewal implements SessionRenewalInterface
     #[Override]
     public function renew(): void
     {
+        if ($this->requests->getMainRequest()?->attributes->getBoolean('_stateless') !== false) {
+            return;
+        }
+
         $user = $this->security->getUser() ?? throw new AccessDeniedException();
 
         $this->security->login($this->accounts->refreshUser($user));
