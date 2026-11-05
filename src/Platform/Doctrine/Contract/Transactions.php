@@ -12,4 +12,13 @@ interface Transactions
     public function run(callable $work): void;
 
     public function recover(): void;
+
+    /**
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function rehearse(callable $work): mixed;
 }
