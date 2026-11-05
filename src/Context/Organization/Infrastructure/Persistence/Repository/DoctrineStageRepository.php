@@ -9,6 +9,7 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
 use App\Library\Types\Model\Type;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
@@ -95,5 +96,13 @@ final readonly class DoctrineStageRepository implements StageRepositoryInterface
             'service' => $services->toArray(),
             'archivedAt' => null,
         ], ['position' => 'ASC', 'name.key' => 'ASC']));
+    }
+
+    #[Override]
+    public function archived(): ReadableCollection
+    {
+        return $this->entityManager
+            ->getRepository(Stage::class)
+            ->matching(Criteria::create()->where(Criteria::expr()->neq('archivedAt', null)));
     }
 }

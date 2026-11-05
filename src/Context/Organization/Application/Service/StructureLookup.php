@@ -6,6 +6,7 @@ namespace App\Context\Organization\Application\Service;
 
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
+use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -37,5 +38,19 @@ final readonly class StructureLookup
     public function stages(array $ids): ReadableCollection
     {
         return $this->stages->findByIds($ids);
+    }
+
+    /**
+     * @return list<Uuid>
+     */
+    public function archivedIds(): array
+    {
+        $services = $this->services->listed(ServiceFilter::Archived)->map(
+            static fn (Service $service): Uuid => $service->id(),
+        );
+
+        $stages = $this->stages->archived()->map(static fn (Stage $stage): Uuid => $stage->id());
+
+        return [...$services->getValues(), ...$stages->getValues()];
     }
 }

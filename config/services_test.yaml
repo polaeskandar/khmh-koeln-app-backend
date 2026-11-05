@@ -12,6 +12,12 @@ services:
     App\Context\Identity\Application\Service\AccountMailer:
         public: true
 
+    App\Context\Meetings\Application\Service\SessionGenerator:
+        public: true
+
+    App\Workflow\Meetings\GenerateSessionsWorkflow:
+        public: true
+
     App\Tests\Support\Context\Identity\Infrastructure\Security\SessionProbeController:
         tags: [controller.service_arguments]
 
