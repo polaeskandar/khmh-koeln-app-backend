@@ -1158,6 +1158,19 @@ merged times (`times.endTime` `meetings.endAfterStart`). The service and stage c
 sessions for today and tomorrow. 200 `{id, createdSessions}`; 404 `notFound.schedule`; an archived service or stage
 → 409 `meetings.serviceArchivedRestoreFirst {name}` / `meetings.stageArchivedRestoreFirst {name}`.
 
+#### `POST /api/schedules/{id}/occurrences/{date}/cancel`
+
+`sessions: update`. Body `{reason?}` as for a session's cancel. Cancels a date of the schedule ahead of time: its
+session is created (a `created` event by the caller) and canceled (a `canceled` event) in one transaction, so the
+generator leaves the date alone. When the date already has a session, the cancel applies to it; there is never a
+second row. 200 `{sessionId}`.
+
+Checks in this order: an impossible date → 422 `date` `validation.invalidDate`; 404 `notFound.schedule`; before
+church-today → 409 `meetings.dateInPast`; not an occurrence → 409 `meetings.noMeetingOnDate`; an inactive schedule →
+409 `meetings.scheduleInactive`; an archived service or stage → 409 `meetings.serviceArchivedRestoreFirst {name}` /
+`meetings.stageArchivedRestoreFirst {name}`; a session that is no longer `scheduled` → 409
+`meetings.onlyScheduledCanCancel`. A refused call writes nothing.
+
 ### Sessions
 
 A `SessionView`: `{id, scheduleId, occurrenceDate, title, service: ServiceRef, stage: StageRef | null, date,
