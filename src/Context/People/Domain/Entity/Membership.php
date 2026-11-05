@@ -38,7 +38,7 @@ final class Membership
     private readonly Uuid $serviceId;
 
     #[ORM\Column(type: UuidType::NAME, nullable: true)]
-    private readonly ?Uuid $stageId;
+    private ?Uuid $stageId;
 
     #[ORM\Embedded(Tenure::class, columnPrefix: false)]
     private Tenure $tenure;
@@ -80,6 +80,21 @@ final class Membership
     public function isCurrentOn(LocalDate $date): bool
     {
         return $this->tenure->includes($date);
+    }
+
+    public function moveTo(?Uuid $stageId, LocalDate $today): self
+    {
+        $ended = $this->tenure->endedFrom($today);
+
+        if ($ended === null) {
+            $this->stageId = $stageId;
+
+            return $this;
+        }
+
+        $this->tenure = $ended;
+
+        return new self($this->person, $this->serviceId, $stageId, $today);
     }
 
     public function endFrom(LocalDate $today): MembershipEnding

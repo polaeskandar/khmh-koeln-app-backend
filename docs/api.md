@@ -1225,6 +1225,23 @@ from church-today. `serviceId` `meetings.chooseService` or `meetings.serviceArch
 once are fine. 201 `{id, personId, service: ServiceRef, stage: StageRef | null, startsOn, endsOn: null}`; 404
 `notFound.person`.
 
+#### `POST /api/memberships/{id}/move`
+
+`members: update` (403 `people.changeNotAllowed`). Body `{stageId}`: a stage of the membership's service, or
+`null` for the service-level roster. Moves the person there from church-today, within the same service. The
+membership row is locked; one transaction:
+
+- one that started before today ends yesterday (Europe/Berlin) and a new one starts today, so past rosters and
+  attendance stay with the old stage;
+- one that started today changes its stage in place (no second row);
+- the same stage changes nothing.
+
+200 with the current membership `{id, personId, service: ServiceRef, stage: StageRef | null, startsOn, endsOn:
+null}` (the new one, or the changed one). 404 `notFound.membership`; 409 `people.membershipEnded`,
+`people.alreadyIn {name, where}` (also when two requests race into the unique index); 422 on `stageId`
+`meetings.chooseStage` (unknown or another service's), `meetings.stageArchived {name}`,
+`meetings.serviceArchived {name}`. A refusal changes no rows.
+
 #### `POST /api/memberships/{id}/end`
 
 `members: delete` (403 `people.removeNotAllowed`). Body `{}`. The membership row is locked; one that started
