@@ -26,4 +26,19 @@ final readonly class Progress
     {
         return new self(SessionStatus::Scheduled, cancelReason: null, opened: Stamp::none(), closed: Stamp::none());
     }
+
+    public function opened(Stamp $stamp): self
+    {
+        return new self(SessionStatus::Active, $this->cancelReason, $stamp, Stamp::none());
+    }
+
+    public function closed(Stamp $stamp): self
+    {
+        return new self(SessionStatus::Completed, $this->cancelReason, $this->opened, $stamp);
+    }
+
+    public function reopened(): self
+    {
+        return new self(SessionStatus::Active, $this->cancelReason, $this->opened, Stamp::none());
+    }
 }
