@@ -7,12 +7,10 @@ namespace App\Context\People\Application\Service;
 use App\Context\People\Domain\Entity\GuardianRelationship;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
-use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\ValueObject\Family;
 use App\Library\Time\Client\Calendar;
-use App\Library\Time\Model\LocalDate;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class ParentChildren
@@ -34,13 +32,8 @@ final readonly class ParentChildren
 
         $current = $this->people
             ->membershipsOf($children)
-            ->filter(static fn (Membership $membership): bool => self::countsOn($membership, $today));
+            ->filter(static fn (Membership $membership): bool => $membership->tenure()->includes($today));
 
-        return new Family($children->getValues(), $current);
-    }
-
-    private static function countsOn(Membership $membership, LocalDate $today): bool
-    {
-        return $membership->tenure()->includes($today) && $membership->person()->status() === PersonStatus::Active;
+        return new Family($today, $children->getValues(), $current);
     }
 }

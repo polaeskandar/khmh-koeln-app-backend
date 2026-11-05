@@ -7,10 +7,13 @@ namespace App\Workflow\ParentPortal\Model;
 use App\Context\Learning\Domain\ValueObject\Pupil;
 use App\Context\Learning\Domain\ValueObject\PupilTasks;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
+use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\ValueObject\Family;
 use App\Library\Collections\Model\Collections;
+use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class VisibleHomework
@@ -19,13 +22,14 @@ final readonly class VisibleHomework
      * @param list<ChildHomework> $children
      */
     private function __construct(
+        public LocalDate $today,
         public array $children,
     ) {
     }
 
-    public static function none(): self
+    public static function none(Family $family): self
     {
-        return new self([]);
+        return new self($family->today, []);
     }
 
     /**
@@ -43,10 +47,13 @@ final readonly class VisibleHomework
      */
     public static function forFamily(Family $family, array $tasks): self
     {
-        return new self(self::childrenOf($family, Collections::firstPerKey(
-            new ArrayCollection($tasks),
-            keyOf: self::pupilKey(...),
-        )));
+        return new self(
+            $family->today,
+            self::childrenOf($family, Collections::firstPerKey(
+                new ArrayCollection($tasks),
+                keyOf: self::pupilKey(...),
+            )),
+        );
     }
 
     public function of(Uuid $childId): ?ChildHomework
@@ -64,6 +71,25 @@ final readonly class VisibleHomework
     }
 
     /**
+     * @return ReadableCollection<int, Membership>
+     */
+    public function memberships(): ReadableCollection
+    {
+        return new ArrayCollection($this->children)->reduce(
+            /**
+             * @param ArrayCollection<int, Membership> $all
+             *
+             * @return ArrayCollection<int, Membership>
+             */
+            static fn (ArrayCollection $all, ChildHomework $child): ArrayCollection => new ArrayCollection([
+                ...$all->getValues(),
+                ...$child->memberships->getValues(),
+            ]),
+            initial: new ArrayCollection(),
+        );
+    }
+
+    /**
      * @param ArrayCollection<string, PupilTasks> $tasks
      *
      * @return list<ChildHomework>
@@ -72,18 +98,18 @@ final readonly class VisibleHomework
     {
         return Collections::mapPresent(
             new ArrayCollection($family->children),
-            static fn (Person $child): ?ChildHomework => self::childOf($child, $tasks),
+            static fn (Person $child): ?ChildHomework => self::childOf($family, $child, $tasks),
         )->getValues();
     }
 
     /**
      * @param ArrayCollection<string, PupilTasks> $tasks
      */
-    private static function childOf(Person $child, ArrayCollection $tasks): ?ChildHomework
+    private static function childOf(Family $family, Person $child, ArrayCollection $tasks): ?ChildHomework
     {
         $own = $tasks->get($child->id()->toRfc4122());
 
-        return $own === null ? null : new ChildHomework($child, $own);
+        return $own === null ? null : new ChildHomework($child, $family->membershipsOf($child), $own);
     }
 
     private static function pupilKey(PupilTasks $tasks): string
