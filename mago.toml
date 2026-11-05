@@ -289,11 +289,18 @@ must-be-readonly = true
 reason = "A response is the immutable shape an endpoint answers with."
 
 [[guard.structural.rules]]
-on = "App\\Interface\\Console\\**"
+on = "App\\Interface\\Console\\*\\*"
 target = "class"
 must-be-named = "*Command"
 must-be-final = true
 reason = "Console entry points are commands."
+
+[[guard.structural.rules]]
+on = "App\\Interface\\Console\\*\\Request\\**"
+target = "class"
+must-be-named = "*Request"
+must-be-final = true
+reason = "A console request is the #[MapInput] object Symfony fills from a command's arguments and options."
 
 [[guard.structural.rules]]
 on = "App\\Library\\*\\Model\\**"

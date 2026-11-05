@@ -4,61 +4,48 @@ declare(strict_types=1);
 
 namespace App\Interface\Console\Identity;
 
+use App\Interface\Console\Identity\Request\UserCreateRequest;
 use App\Library\Console\Client\SecretReader;
 use App\Library\Console\Exception\ConfirmationMismatch;
 use App\Library\Console\Exception\HiddenInputUnavailable;
 use App\Library\Console\Exception\TerminalRequired;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Strings\Model\Text;
-use App\Library\Types\Model\Type;
 use App\Workflow\Identity\CreateUserWorkflow;
-use Override;
-use SensitiveParameter;
+use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Attribute\MapInput;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(name: 'app:user:create', description: 'Create an approved account')]
-final class UserCreateCommand extends Command
+final readonly class UserCreateCommand
 {
     public function __construct(
-        private readonly CreateUserWorkflow $createUser,
-        private readonly SecretReader $secrets,
+        private CreateUserWorkflow $createUser,
+        private SecretReader $secrets,
     ) {
-        parent::__construct();
     }
 
-    #[Override]
-    protected function configure(): void
-    {
-        $this
-            ->addArgument('email', InputArgument::REQUIRED, 'Email address, compared in lower case')
-            ->addArgument('name', InputArgument::REQUIRED, 'Display name')
-            ->addOption('no-password', mode: InputOption::VALUE_NONE, description: 'Set the password later by link')
-            ->addOption('password-stdin', mode: InputOption::VALUE_NONE, description: 'Read the password from stdin')
-            ->addOption('role', mode: InputOption::VALUE_REQUIRED, description: 'Assign this role everywhere')
-            ->addOption('language', mode: InputOption::VALUE_REQUIRED, description: 'en, de or ar', default: 'de');
-    }
-
-    #[Override]
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        $io = new SymfonyStyle($input, $output);
-
+    public function __invoke(
+        SymfonyStyle $io,
+        InputInterface $input,
+        #[Argument(description: 'Email address, compared in lower case')]
+        string $email,
+        #[Argument(description: 'Display name')]
+        string $name,
+        #[MapInput]
+        UserCreateRequest $options,
+    ): int {
         try {
-            $password = $this->secrets->read(
-                $io,
-                $input,
-                noneOption: 'no-password',
-                standardInputOption: 'password-stdin',
-                prompt: 'Password',
+            $account = ($this->createUser)(
+                email: $email,
+                displayName: $name,
+                language: $options->language,
+                password: $this->password($io, $input, $options),
+                role: $options->role,
             );
-
-            $account = $this->create($input, $password);
         } catch (InvalidInput $invalid) {
             self::report($io, $invalid);
 
@@ -74,15 +61,13 @@ final class UserCreateCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function create(InputInterface $input, #[SensitiveParameter] ?string $password): string
+    private function password(SymfonyStyle $io, InputInterface $input, UserCreateRequest $options): ?string
     {
-        return ($this->createUser)(
-            email: Type::of($input->getArgument('email'))->toString(),
-            displayName: Type::of($input->getArgument('name'))->toString(),
-            language: Type::of($input->getOption('language'))->toString(),
-            password: $password,
-            role: Type::of($input->getOption('role'))->toStringOrNull(),
-        );
+        return match (true) {
+            $options->noPassword => null,
+            $options->passwordStdin => $this->secrets->fromStandardInput($input),
+            default => $this->secrets->typed($io, $input, prompt: 'Password'),
+        };
     }
 
     private static function report(SymfonyStyle $io, InvalidInput $invalid): void

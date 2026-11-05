@@ -13,6 +13,8 @@ final class InterfaceLayoutTest extends TestCase
 {
     private const array API_FOLDERS = ['Request' => 'Request.php', 'Response' => 'Response.php'];
 
+    private const array CONSOLE_FOLDERS = ['Request' => 'Request.php'];
+
     public function testAnApiAreaHoldsControllersRequestsAndResponses(): void
     {
         $misplaced = array_filter(
@@ -29,14 +31,20 @@ final class InterfaceLayoutTest extends TestCase
         );
     }
 
-    public function testAConsoleAreaHoldsCommands(): void
+    public function testAConsoleAreaHoldsCommandsAndTheirRequests(): void
     {
         $misplaced = array_filter(
             self::paths(self::root() . '/src/Interface/Console/*/*'),
-            static fn (string $path): bool => is_dir($path) || !str_ends_with($path, 'Command.php'),
+            static fn (string $path): bool => is_dir($path)
+                ? !self::holdsOnly($path, self::CONSOLE_FOLDERS[basename($path)] ?? null)
+                : !str_ends_with($path, 'Command.php'),
         );
 
-        self::assertSame([], array_values($misplaced), 'src/Interface/Console/<Area> holds *Command.php only.');
+        self::assertSame(
+            [],
+            array_values($misplaced),
+            'src/Interface/Console/<Area> holds *Command.php and Request/*Request.php only.',
+        );
     }
 
     public function testTheInterfaceReachesTheContextsOnlyThroughWorkflows(): void

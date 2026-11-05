@@ -154,6 +154,12 @@ global entry points (`bin/console`, `public/index.php`, `config/`) may call func
 - `created_at` and `updated_at` are set by Doctrine lifecycle callbacks of `CreatedAtEntity` and
   `TimestampedEntity`, never by hand (see [Architecture](architecture.md#code-layout)).
 - Request data enters through `#[MapRequestPayload]` DTOs with nullable properties and code messages.
+- Console commands are invokable: `#[AsCommand]` on a final class whose `__invoke()` takes its input as
+  `#[Argument]` and `#[Option]` parameters. When that would make more than five parameters, the options move
+  into one `#[MapInput]` request (`Console/<Area>/Request/*Request`, public properties with defaults). No
+  `configure()`, no `$input->getArgument()` or `getOption()`. Console requests are the only classes with public
+  writable properties, because Symfony fills them from the outside; PHP Insights' `ForbiddenPublicProperty`
+  skips `src/Interface/Console` for that reason alone.
 - Library packages don't use each other; contexts don't use each other. `mago guard`.
 
 ## 10. Tests
