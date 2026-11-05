@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
+use Symfony\Component\Uid\Uuid;
+
 final readonly class ErasureOutcome
 {
     public function __construct(
         private int $notes,
         private ?PersonErasureCounts $person,
         private ?ErasureCounts $account,
+        public ?Uuid $accountId,
     ) {
     }
 

@@ -6,9 +6,12 @@ namespace App\Interface\Api\Privacy;
 
 use App\Interface\Api\Privacy\Request\OwnErasureRequestRequest;
 use App\Interface\Api\Privacy\Response\AccountDataResponse;
+use App\Interface\Api\Privacy\Response\MemberDataResponse;
 use App\Interface\Api\Privacy\Response\OwnErasureRequestResponse;
 use App\Interface\Api\Privacy\Response\OwnErasureStatusResponse;
 use App\Workflow\Privacy\ExportAccountDataWorkflow;
+use App\Workflow\Privacy\ExportMemberActivityWorkflow;
+use App\Workflow\Privacy\ExportMemberDataWorkflow;
 use App\Workflow\Privacy\RequestOwnErasureWorkflow;
 use App\Workflow\Privacy\ShowOwnErasureRequestWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,8 +33,13 @@ final class OwnDataController extends AbstractController
         #[CurrentUser]
         UserInterface $viewer,
         ExportAccountDataWorkflow $exportAccountData,
+        ExportMemberDataWorkflow $exportMemberData,
+        ExportMemberActivityWorkflow $exportMemberActivity,
     ): JsonResponse {
-        $response = $this->json(AccountDataResponse::of($exportAccountData($viewer->getUserIdentifier())));
+        $account = $exportAccountData($viewer->getUserIdentifier());
+        $recordId = $account?->memberRecordId();
+        $memberRecord = MemberDataResponse::of($exportMemberData($recordId), $exportMemberActivity($recordId));
+        $response = $this->json(AccountDataResponse::of($account, $memberRecord));
 
         $response->headers->set('Content-Disposition', HeaderUtils::makeDisposition(
             HeaderUtils::DISPOSITION_ATTACHMENT,

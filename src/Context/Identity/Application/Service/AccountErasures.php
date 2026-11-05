@@ -7,6 +7,7 @@ namespace App\Context\Identity\Application\Service;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Interface\AdministrationLockInterface;
 use App\Context\Identity\Domain\Repository\PasswordTokenRepositoryInterface;
+use App\Context\Identity\Domain\Repository\PersonTraceRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\AccountErased;
 use App\Library\Problem\Exception\RuleViolation;
@@ -20,12 +21,23 @@ final readonly class AccountErasures
         private UserRepositoryInterface $users,
         private LastAdministrator $lastAdministrator,
         private PasswordTokenRepositoryInterface $tokens,
+        private PersonTraceRepositoryInterface $people,
     ) {
     }
 
     public function exists(Uuid $accountId): bool
     {
         return $this->users->find($accountId) !== null;
+    }
+
+    public function accountOfRecord(?Uuid $personId): ?Uuid
+    {
+        return $personId === null ? null : $this->people->accountOf($personId);
+    }
+
+    public function recordOfAccount(?Uuid $accountId): ?Uuid
+    {
+        return $accountId === null ? null : $this->users->find($accountId)?->member()->personId;
     }
 
     /**

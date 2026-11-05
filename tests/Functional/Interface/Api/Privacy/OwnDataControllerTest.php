@@ -121,7 +121,7 @@ final class OwnDataControllerTest extends ApiTestCase
         $serializer = self::getContainer()->get(SerializerInterface::class);
         self::assertInstanceOf(SerializerInterface::class, $serializer);
 
-        $encoded = $serializer->serialize(AccountDataResponse::of($export($accountId)), 'json');
+        $encoded = $serializer->serialize(AccountDataResponse::of($export($accountId), memberRecord: null), 'json');
 
         return JsonBody::asArray(json_decode($encoded, associative: true, flags: JSON_THROW_ON_ERROR), 'export');
     }

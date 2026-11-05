@@ -36,7 +36,7 @@ final readonly class EraseRequestSubjectWorkflow
             $outcome = ($this->eraseSubject)($subject, $choice);
             $this->requests->complete($requestId, $viewerId, $outcome->counts());
 
-            return $subject->accountId;
+            return $outcome->accountId;
         };
 
         $accountId = $this->requests->whileErasable($requestId, $viewerId, $erase);
