@@ -94,6 +94,41 @@ final class SessionTalliesTest extends KernelTestCase
         ]);
     }
 
+    public function testErasedCountersRaiseTheTotalsByExactlyTheirAmounts(): void
+    {
+        $service = Structure::service();
+        new Database(self::getContainer())->persisted($service);
+        $rosters = new Rosters(self::getContainer());
+        $member = $rosters->person('Mina');
+        $rosters->place($member, $service, null, '2026-09-01');
+        $schedules = new Schedules(self::getContainer());
+
+        $session = $schedules->session(
+            $schedules->weekly($service, 'Service', 7),
+            self::SUNDAY,
+            "status = 'completed', opened_at = created_at, closed_at = created_at, "
+            . 'erased_roster = 2, erased_present = 3, erased_roster_present = 1',
+        );
+
+        new Database(self::getContainer())->entityManager()->clear();
+
+        $reloaded = new Database(self::getContainer())
+            ->entityManager()
+            ->find(Session::class, $session->id());
+
+        self::assertInstanceOf(Session::class, $reloaded);
+
+        $counts = $this->tallies(new ArrayCollection([$reloaded]))->get($session->id()->toRfc4122())?->counts;
+
+        self::assertSame([3, 3, 1, 2, 2], [
+            $counts?->present,
+            $counts?->rosterSize,
+            $counts?->rosterPresent,
+            $counts?->notMarked,
+            $counts?->notOnRoster,
+        ]);
+    }
+
     public function testThirtySessionsTakeAsManyStatementsAsOneAndMatchTheSingleRoster(): void
     {
         $service = Structure::service();

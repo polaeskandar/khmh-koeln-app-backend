@@ -6,6 +6,7 @@ namespace App\Workflow\Attendance\Model;
 
 use App\Context\Attendance\Application\Service\AttendanceMarks;
 use App\Context\Attendance\Domain\Entity\Attendance;
+use App\Context\Attendance\Domain\ValueObject\ErasedAttendance;
 use App\Context\Attendance\Domain\ValueObject\SessionCounts;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Domain\Entity\Session;
@@ -63,14 +64,25 @@ final readonly class SessionTallies
             ->getValues();
 
         if (!self::isExpected($session)) {
-            return new SessionTally([], $presentIds, SessionCounts::open($presentIds));
+            return new SessionTally([], $presentIds, SessionCounts::open($presentIds, self::erasedOf($session)));
         }
 
         $rosterIds = new ArrayCollection($this->rosters->get(self::keyOf($session)->id()) ?? [])->map(
             static fn (Uuid $id): string => $id->toRfc4122(),
         )->getValues();
 
-        return new SessionTally($rosterIds, $presentIds, SessionCounts::expected($rosterIds, $presentIds));
+        return new SessionTally(
+            $rosterIds,
+            $presentIds,
+            SessionCounts::expected($rosterIds, $presentIds, self::erasedOf($session)),
+        );
+    }
+
+    private static function erasedOf(Session $session): ErasedAttendance
+    {
+        $erased = $session->erased();
+
+        return new ErasedAttendance($erased->roster, $erased->present, $erased->rosterPresent);
     }
 
     /**

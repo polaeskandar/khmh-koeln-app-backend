@@ -20,9 +20,9 @@ final readonly class SessionCounts
     /**
      * @param list<string> $presentIds
      */
-    public static function open(array $presentIds): self
+    public static function open(array $presentIds, ErasedAttendance $erased): self
     {
-        $present = new ArrayCollection($presentIds)->count();
+        $present = new ArrayCollection($presentIds)->count() + $erased->present;
 
         return new self($present, rosterSize: null, rosterPresent: 0, notMarked: 0, notOnRoster: $present);
     }
@@ -31,18 +31,20 @@ final readonly class SessionCounts
      * @param list<string> $rosterIds
      * @param list<string> $presentIds
      */
-    public static function expected(array $rosterIds, array $presentIds): self
+    public static function expected(array $rosterIds, array $presentIds, ErasedAttendance $erased): self
     {
-        $present = new ArrayCollection($presentIds);
+        $marked = new ArrayCollection($presentIds);
         $roster = new ArrayCollection($rosterIds);
-        $rosterPresent = $present->filter($roster->contains(...))->count();
+        $present = $marked->count() + $erased->present;
+        $rosterSize = $roster->count() + $erased->roster;
+        $rosterPresent = $marked->filter($roster->contains(...))->count() + $erased->rosterPresent;
 
         return new self(
-            present: $present->count(),
-            rosterSize: $roster->count(),
+            present: $present,
+            rosterSize: $rosterSize,
             rosterPresent: $rosterPresent,
-            notMarked: $roster->count() - $rosterPresent,
-            notOnRoster: $present->count() - $rosterPresent,
+            notMarked: $rosterSize - $rosterPresent,
+            notOnRoster: $present - $rosterPresent,
         );
     }
 }

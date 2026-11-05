@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Context\Attendance\Domain\ValueObject;
 
+use App\Context\Attendance\Domain\ValueObject\ErasedAttendance;
 use App\Context\Attendance\Domain\ValueObject\SessionCounts;
 use PHPUnit\Framework\TestCase;
 
@@ -13,7 +14,7 @@ final class SessionCountsTest extends TestCase
     {
         $roster = self::ids(14);
 
-        $counts = SessionCounts::expected($roster, array_slice($roster, offset: 0, length: 7));
+        $counts = SessionCounts::expected($roster, array_slice($roster, offset: 0, length: 7), new ErasedAttendance());
 
         self::assertSame([7, 14, 7, 7, 0], self::numbers($counts));
     }
@@ -22,19 +23,43 @@ final class SessionCountsTest extends TestCase
     {
         $roster = self::ids(14);
 
-        $counts = SessionCounts::expected($roster, [
-            ...array_slice($roster, offset: 0, length: 7),
-            'visitor',
-        ]);
+        $counts = SessionCounts::expected(
+            $roster,
+            [
+                ...array_slice($roster, offset: 0, length: 7),
+                'visitor',
+            ],
+            new ErasedAttendance(),
+        );
 
         self::assertSame([8, 14, 7, 7, 1], self::numbers($counts));
     }
 
     public function testAnOpenRosterHasNoSizeAndNothingUnmarked(): void
     {
-        $counts = SessionCounts::open(self::ids(23));
+        $counts = SessionCounts::open(self::ids(23), new ErasedAttendance());
 
         self::assertSame([23, null, 0, 0, 23], self::numbers($counts));
+    }
+
+    public function testErasedPeopleKeepTheirPlaceInTheTotals(): void
+    {
+        $roster = self::ids(14);
+
+        $counts = SessionCounts::expected(
+            $roster,
+            array_slice($roster, offset: 0, length: 7),
+            new ErasedAttendance(roster: 2, present: 3, rosterPresent: 1),
+        );
+
+        self::assertSame([10, 16, 8, 8, 2], self::numbers($counts));
+    }
+
+    public function testErasedVisitorsOfAnOpenRosterCountAsNotOnTheRoster(): void
+    {
+        $counts = SessionCounts::open([], new ErasedAttendance(present: 2));
+
+        self::assertSame([2, null, 0, 0, 2], self::numbers($counts));
     }
 
     /**

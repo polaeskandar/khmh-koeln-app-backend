@@ -6,6 +6,7 @@ namespace App\Context\Meetings\Domain\Entity;
 
 use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Context\Meetings\Domain\ValueObject\AttendanceRules;
+use App\Context\Meetings\Domain\ValueObject\ErasedCounts;
 use App\Context\Meetings\Domain\ValueObject\Progress;
 use App\Context\Meetings\Domain\ValueObject\Stamp;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
@@ -35,12 +36,16 @@ final class Session extends CreatedAtEntity
     #[ORM\Embedded(Progress::class, columnPrefix: false)]
     private Progress $progress;
 
+    #[ORM\Embedded(ErasedCounts::class, columnPrefix: false)]
+    private ErasedCounts $erased;
+
     public function __construct(Schedule $schedule, LocalDate $occurrenceDate)
     {
         $this->id = Uuid::v7();
         $this->schedule = $schedule;
         $this->occurrenceDate = $occurrenceDate;
         $this->progress = Progress::scheduled();
+        $this->erased = new ErasedCounts();
     }
 
     public function id(): Uuid
@@ -61,6 +66,11 @@ final class Session extends CreatedAtEntity
     public function progress(): Progress
     {
         return $this->progress;
+    }
+
+    public function erased(): ErasedCounts
+    {
+        return $this->erased;
     }
 
     public function open(LocalDate $today, Stamp $stamp): bool
