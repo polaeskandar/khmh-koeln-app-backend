@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Domain\Entity;
 
+use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\ValueObject\AccountStatus;
 use App\Context\Identity\Domain\ValueObject\PersonalDetails;
 use App\Context\Identity\Domain\ValueObject\Profile;
@@ -112,6 +113,11 @@ final class User extends CreatedAtEntity
     public function changePassword(string $passwordHash): void
     {
         $this->passwordHash = $passwordHash;
+    }
+
+    public function changeLanguage(Language $language): void
+    {
+        $this->profile = new Profile($this->profile->email, $this->profile->displayName, $language);
     }
 
     public function changeStatus(AccountStatus $status): void
