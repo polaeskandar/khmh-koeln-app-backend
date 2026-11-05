@@ -13,6 +13,15 @@ interface GuardianRelationshipRepositoryInterface
 {
     public function save(GuardianRelationship $relationship): void;
 
+    public function find(Uuid $id): ?GuardianRelationship;
+
+    /**
+     * @param positive-int $limit
+     *
+     * @return ReadableCollection<int, GuardianRelationship>
+     */
+    public function approved(int $limit): ReadableCollection;
+
     public function approvedFor(Uuid $accountId, Person $child): ?GuardianRelationship;
 
     /**
