@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Workflow\Meetings;
 
-use App\Library\Time\Model\LocalDate;
 use App\Tests\Support\Context\Meetings\Application\Service\SessionGeneration;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
@@ -12,9 +11,12 @@ use App\Workflow\Meetings\GenerateSessionsWorkflow;
 use App\Workflow\Meetings\Model\GeneratedSessions;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 
 final class GenerateSessionsWorkflowTest extends KernelTestCase
 {
+    use ClockSensitiveTrait;
+
     private const string GENERATOR_CREATIONS =
         'SELECT count(*) FROM meetings.session_event ' . "WHERE type = 'created' AND by_generator AND actor_id IS NULL";
 
@@ -109,10 +111,12 @@ final class GenerateSessionsWorkflowTest extends KernelTestCase
 
     private function generate(string $today): GeneratedSessions
     {
+        self::mockTime('2028-01-01T12:00:00+01:00');
+
         $workflow = self::getContainer()->get(GenerateSessionsWorkflow::class);
         self::assertInstanceOf(GenerateSessionsWorkflow::class, $workflow);
 
-        return $workflow(LocalDate::of($today));
+        return $workflow($today);
     }
 
     private function generation(): SessionGeneration

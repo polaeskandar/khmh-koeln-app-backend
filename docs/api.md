@@ -662,6 +662,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `meetings.stageArchived` | `name` | {name} is archived. |
 | `meetings.scheduleNameRequired` | – | Enter a name, for example “Sunday class”. |
 | `meetings.endAfterStart` | – | The meeting has to end after it starts. |
+| `meetings.generateNotAfterToday` | – | **New.** Console only: `app:sessions:generate --date` is at most church-today. |
 | `meetings.chooseRosterMode` | – | Choose who is expected. |
 | `meetings.serviceArchivedRestoreFirst` | `name` | {name} is archived. Restore it first. |
 | `meetings.stageArchivedRestoreFirst` | `name` | {name} is archived. Restore the stage first. |

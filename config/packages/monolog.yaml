@@ -1,6 +1,7 @@
 monolog:
     channels:
         - deprecation
+        - session_generator
 
 when@dev:
     monolog:
@@ -45,7 +46,7 @@ when@prod:
                 action_level: error
                 handler: nested
                 excluded_http_codes: [404, 405]
-                channels: ["!deprecation"]
+                channels: ["!deprecation", "!session_generator"]
                 buffer_size: 50
             nested:
                 type: stream
@@ -60,4 +61,10 @@ when@prod:
                 type: stream
                 channels: [deprecation]
                 path: php://stderr
+                formatter: monolog.formatter.json
+            session_generator:
+                type: stream
+                channels: [session_generator]
+                path: php://stderr
+                level: info
                 formatter: monolog.formatter.json
