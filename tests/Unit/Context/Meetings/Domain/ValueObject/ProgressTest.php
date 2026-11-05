@@ -79,6 +79,22 @@ final class ProgressTest extends TestCase
         self::assertSame('meetings.onlyCompletedCanReopen', self::refusal($scheduled->reopened(...)));
     }
 
+    public function testOnlyAScheduledSessionIsCanceledAndKeepsItsReason(): void
+    {
+        $day = LocalDate::of('2026-11-08');
+        $canceled = Progress::scheduled()->canceled('Holiday');
+        $active = Progress::scheduled()->opened(self::stamp(), $day, $day);
+
+        self::assertSame(SessionStatus::Canceled, $canceled->status);
+        self::assertSame('Holiday', $canceled->cancelReason);
+
+        foreach ([$active, $active->closed(self::stamp()), $canceled] as $progress) {
+            self::assertSame('meetings.onlyScheduledCanCancel', self::refusal(
+                static fn (): Progress => $progress->canceled('Again'),
+            ));
+        }
+    }
+
     /**
      * @param callable(): Progress $transition
      */

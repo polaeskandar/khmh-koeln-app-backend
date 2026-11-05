@@ -62,4 +62,11 @@ final readonly class Progress
             default => throw new RuleViolation('meetings.onlyCompletedCanReopen'),
         };
     }
+
+    public function canceled(?string $reason): self
+    {
+        return $this->status === SessionStatus::Scheduled
+            ? new self(SessionStatus::Canceled, $reason, $this->opened, $this->closed)
+            : throw new RuleViolation('meetings.onlyScheduledCanCancel');
+    }
 }
