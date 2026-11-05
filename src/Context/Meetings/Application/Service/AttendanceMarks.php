@@ -47,6 +47,14 @@ final readonly class AttendanceMarks
         return $this->attendance->removedMarksOf($sessionId);
     }
 
+    /**
+     * @return ReadableCollection<int, Attendance>
+     */
+    public function ofPerson(Uuid $personId): ReadableCollection
+    {
+        return $this->attendance->ofPerson($personId);
+    }
+
     public function record(Session $session, Uuid $personId, string $accountId): RecordedMark
     {
         $current = $this->attendance->currentMark($session->id(), $personId);

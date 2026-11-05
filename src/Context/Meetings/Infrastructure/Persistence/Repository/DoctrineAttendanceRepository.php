@@ -67,6 +67,14 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
     }
 
     #[Override]
+    public function ofPerson(Uuid $personId): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager->getRepository(Attendance::class)->findBy([
+            'personId' => $personId,
+        ], ['recordedAt' => 'ASC', 'id' => 'ASC']));
+    }
+
+    #[Override]
     public function currentOf(Uuid $sessionId): ReadableCollection
     {
         return $this->entityManager->getRepository(Attendance::class)->matching(Criteria::create()

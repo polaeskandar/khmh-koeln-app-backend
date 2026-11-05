@@ -11,7 +11,9 @@ use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\MeetingSlot;
 use App\Context\Meetings\Domain\ValueObject\PlannedDate;
+use App\Library\Collections\Model\Collections;
 use App\Library\Time\Model\LocalDate;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -34,6 +36,20 @@ final readonly class MeetingLookup
             ->filter(static fn (Schedule $schedule): bool => $schedule->isActive());
 
         return $this->plannedDates->between($schedules, $archived, $from, $to);
+    }
+
+    /**
+     * @param list<Uuid> $ids
+     *
+     * @return ReadableCollection<string, Session>
+     */
+    public function sessions(array $ids): ReadableCollection
+    {
+        $found = Collections::mapPresent(new ArrayCollection($ids), fn (Uuid $id): ?Session => $this->sessions->find(
+            $id,
+        ));
+
+        return Collections::firstPerKey($found, keyOf: self::sessionKey(...));
     }
 
     public function slotOfSession(Uuid $sessionId): ?MeetingSlot
@@ -71,5 +87,10 @@ final readonly class MeetingLookup
     public function sessionsOn(ReadableCollection $schedules, array $dates): ReadableCollection
     {
         return $this->sessions->ofSchedulesOn($schedules, $dates);
+    }
+
+    private static function sessionKey(Session $session): string
+    {
+        return $session->id()->toRfc4122();
     }
 }
