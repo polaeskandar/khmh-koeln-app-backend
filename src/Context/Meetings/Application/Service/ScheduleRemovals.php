@@ -8,6 +8,7 @@ use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\ScheduleUse;
+use App\Library\Problem\Exception\NotFound;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -25,6 +26,10 @@ final readonly class ScheduleRemovals
     public function remove(string $id, callable $lessonsOf): void
     {
         $this->schedules->withWriteLock(Uuid::fromString($id), function (Schedule $schedule) use ($lessonsOf): void {
+            if ($schedule->isOneOff()) {
+                throw NotFound::of('schedule');
+            }
+
             new ScheduleUse(
                 sessions: $this->sessionsOf($schedule),
                 lessons: $lessonsOf($schedule->id()),

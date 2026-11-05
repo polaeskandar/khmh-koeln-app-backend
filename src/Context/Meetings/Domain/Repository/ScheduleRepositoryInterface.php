@@ -35,6 +35,8 @@ interface ScheduleRepositoryInterface
 
     public function find(Uuid $id): ?Schedule;
 
+    public function findRecurring(Uuid $id): ?Schedule;
+
     /**
      * @param list<Uuid> $ids
      *

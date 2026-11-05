@@ -16,6 +16,11 @@ final readonly class ScheduleBrief
     ) {
     }
 
+    public static function ofRecurring(Schedule $schedule): ?self
+    {
+        return $schedule->isOneOff() ? null : self::of($schedule);
+    }
+
     public static function of(Schedule $schedule): self
     {
         return new self(

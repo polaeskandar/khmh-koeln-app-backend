@@ -16,7 +16,7 @@ final readonly class SessionDetailResponse
     public function __construct(
         public string $today,
         public SessionResponse $session,
-        public ScheduleBrief $schedule,
+        public ?ScheduleBrief $schedule,
         public array $history,
     ) {
     }

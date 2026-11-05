@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Context\Meetings\Domain\Entity;
 
 use App\Context\Meetings\Domain\Enum\RosterMode;
+use App\Context\Meetings\Domain\ValueObject\DateSpan;
 use App\Context\Meetings\Domain\ValueObject\MeetingDetails;
 use App\Context\Meetings\Domain\ValueObject\Recurrence;
 use App\Context\Meetings\Domain\ValueObject\Roster;
 use App\Context\Meetings\Domain\ValueObject\TimeSlot;
 use App\Library\Persistence\Mapping\TimestampedEntity;
+use App\Library\Time\Model\LocalDate;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
@@ -37,6 +39,9 @@ final class Schedule extends TimestampedEntity
     #[ORM\Column]
     private bool $active = true;
 
+    #[ORM\Column(name: 'one_off', options: ['default' => false])]
+    private bool $oneOff = false;
+
     public function __construct(Roster $roster, MeetingDetails $details, Recurrence $recurrence, TimeSlot $timeSlot)
     {
         $this->id = Uuid::v7();
@@ -44,6 +49,21 @@ final class Schedule extends TimestampedEntity
         $this->details = $details;
         $this->recurrence = $recurrence;
         $this->timeSlot = $timeSlot;
+    }
+
+    public static function oneOff(Roster $roster, MeetingDetails $details, LocalDate $date, TimeSlot $timeSlot): self
+    {
+        $schedule = new self(
+            $roster,
+            $details,
+            Recurrence::weekly(1, [$date->isoWeekday()], new DateSpan($date, $date)),
+            $timeSlot,
+        );
+
+        $schedule->active = false;
+        $schedule->oneOff = true;
+
+        return $schedule;
     }
 
     public function edit(MeetingDetails $details, Recurrence $recurrence, TimeSlot $timeSlot, RosterMode $mode): void
@@ -82,6 +102,11 @@ final class Schedule extends TimestampedEntity
     public function isActive(): bool
     {
         return $this->active;
+    }
+
+    public function isOneOff(): bool
+    {
+        return $this->oneOff;
     }
 
     public function activate(): bool

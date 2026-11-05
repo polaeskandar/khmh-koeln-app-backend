@@ -18,6 +18,6 @@ final readonly class CoveredSession
 
     public static function of(Session $session): self
     {
-        return new self($session->id(), $session->occurrenceDate()->toString(), $session->schedule()->details()->name);
+        return new self($session->id(), $session->occurrenceDate()->toString(), $session->details()->name);
     }
 }

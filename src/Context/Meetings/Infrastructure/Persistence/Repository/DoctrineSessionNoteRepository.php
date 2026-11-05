@@ -16,11 +16,13 @@ final readonly class DoctrineSessionNoteRepository implements SessionNoteReposit
 {
     private const string NOTES = <<<'SQL'
         SELECT s.id::text AS id, 'cancelReason' AS "where", s.cancel_reason AS text, s.occurrence_date::text AS date,
-               s.schedule_id::text AS "scheduleId", s.id::text AS "sessionId"
-        FROM meetings.meeting_session s WHERE s.schedule_id IN (:schedules) AND s.cancel_reason IS NOT NULL
+               COALESCE(s.title, m.name) AS meeting, s.id::text AS "sessionId"
+        FROM meetings.meeting_session s JOIN meetings.meeting_schedule m ON m.id = s.schedule_id
+        WHERE s.schedule_id IN (:schedules) AND s.cancel_reason IS NOT NULL
         UNION ALL
-        SELECT e.id::text, 'sessionNote', e.note, s.occurrence_date::text, s.schedule_id::text, s.id::text
+        SELECT e.id::text, 'sessionNote', e.note, s.occurrence_date::text, COALESCE(s.title, m.name), s.id::text
         FROM meetings.session_event e JOIN meetings.meeting_session s ON s.id = e.session_id
+        JOIN meetings.meeting_schedule m ON m.id = s.schedule_id
         WHERE s.schedule_id IN (:schedules) AND e.note IS NOT NULL
         ORDER BY 4, 1
         SQL;
@@ -33,7 +35,7 @@ final readonly class DoctrineSessionNoteRepository implements SessionNoteReposit
     /**
      * @param list<Uuid> $scheduleIds
      *
-     * @return list<array{id: string, where: string, text: string, date: string, scheduleId: string, sessionId: string}>
+     * @return list<array{id: string, where: string, text: string, date: string, meeting: string, sessionId: string}>
      */
     #[Override]
     public function notesOf(array $scheduleIds): array
@@ -57,7 +59,7 @@ final readonly class DoctrineSessionNoteRepository implements SessionNoteReposit
             'where' => Type::of($row['where'] ?? null)->toString(),
             'text' => Type::of($row['text'] ?? null)->toString(),
             'date' => Type::of($row['date'] ?? null)->toString(),
-            'scheduleId' => Type::of($row['scheduleId'] ?? null)->toString(),
+            'meeting' => Type::of($row['meeting'] ?? null)->toString(),
             'sessionId' => Type::of($row['sessionId'] ?? null)->toString(),
         ])->getValues();
     }

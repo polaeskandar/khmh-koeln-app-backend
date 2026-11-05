@@ -29,6 +29,16 @@ final readonly class MeetingSchedules
     /**
      * @return ReadableCollection<int, Schedule>
      */
+    public function recurring(?string $serviceId, ?string $stageId): ReadableCollection
+    {
+        return $this->listed($serviceId, $stageId)->filter(
+            static fn (Schedule $schedule): bool => !$schedule->isOneOff(),
+        );
+    }
+
+    /**
+     * @return ReadableCollection<int, Schedule>
+     */
     public function chosen(?string $scheduleId, ?string $serviceId, ?string $stageId): ReadableCollection
     {
         $id = self::idOf('scheduleId', $scheduleId);
@@ -38,7 +48,7 @@ final readonly class MeetingSchedules
 
     public function find(string $id): Schedule
     {
-        return $this->schedules->find(Uuid::fromString($id)) ?? throw NotFound::of('schedule');
+        return $this->schedules->findRecurring(Uuid::fromString($id)) ?? throw NotFound::of('schedule');
     }
 
     private static function idOf(string $field, ?string $value): ?Uuid

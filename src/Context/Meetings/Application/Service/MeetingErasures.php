@@ -63,7 +63,6 @@ final readonly class MeetingErasures
     public function notesCovering(array $places): MeetingNotes
     {
         $covering = $this->schedulesWhere(self::covers(...), $places);
-        $meetings = Collections::firstPerKey($covering, keyOf: self::scheduleKey(...));
         $ids = $covering->map(static fn (Schedule $schedule): Uuid => $schedule->id())->getValues();
 
         $notes = new ArrayCollection($this->notes->notesOf($ids))->map(
@@ -72,7 +71,7 @@ final readonly class MeetingErasures
                 $note['where'],
                 $note['text'],
                 $note['date'],
-                $meetings->get($note['scheduleId'])?->details()->name,
+                $note['meeting'],
             ),
         );
 
@@ -119,10 +118,5 @@ final readonly class MeetingErasures
     private static function sessionKey(Session $session): string
     {
         return $session->id()->toRfc4122();
-    }
-
-    private static function scheduleKey(Schedule $schedule): string
-    {
-        return $schedule->id()->toRfc4122();
     }
 }

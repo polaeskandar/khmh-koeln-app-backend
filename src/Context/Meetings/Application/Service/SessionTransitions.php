@@ -64,6 +64,20 @@ final readonly class SessionTransitions
         );
     }
 
+    public function rename(string $sessionId, string $accountId, ?string $title, ?string $location): Session
+    {
+        $name = InputText::of($title)->collapsed()->toString();
+        $place = InputText::of($location)->trimmed()->toStringOrNull();
+
+        return $this->apply(
+            $sessionId,
+            $accountId,
+            SessionEventType::Edited,
+            note: null,
+            change: static fn (Session $session): bool => $session->rename($name, $place),
+        );
+    }
+
     /**
      * @param callable(Session, Stamp): bool $change
      */

@@ -34,8 +34,8 @@ final readonly class MeetingView
             'date' => $session->occurrenceDate()->toString(),
             'startTime' => $schedule->timeSlot()->startTime->toString(),
             'endTime' => $schedule->timeSlot()->endTime?->toString(),
-            'title' => $schedule->details()->name,
-            'location' => $schedule->details()->location,
+            'title' => $session->details()->name,
+            'location' => $session->details()->location,
             'cancelReason' => $session->progress()->cancelReason,
         ]);
     }

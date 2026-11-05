@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Context\Meetings\Domain\ValueObject;
 
 use App\Context\Meetings\Domain\Enum\SessionStatus;
+use App\Library\Problem\Exception\RuleViolation;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Embeddable]
@@ -40,6 +41,13 @@ final readonly class Progress
     public function reopened(): self
     {
         return new self(SessionStatus::Active, $this->cancelReason, $this->opened, Stamp::none());
+    }
+
+    public function ensureNotCanceled(): void
+    {
+        if ($this->status === SessionStatus::Canceled) {
+            throw new RuleViolation('meetings.sessionCanceled');
+        }
     }
 
     public function canceled(?string $reason): self

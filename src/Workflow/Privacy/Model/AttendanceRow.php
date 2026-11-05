@@ -37,7 +37,7 @@ final readonly class AttendanceRow
             $removal = $mark->removal();
 
             return new self(
-                meeting: $session?->schedule()->details()->name,
+                meeting: $session?->details()->name,
                 date: $session?->occurrenceDate()->toString(),
                 markedPresentAt: ExportInstant::of($mark->recordedAt(), $calendar),
                 removedAt: ExportInstant::of($removal->at, $calendar),

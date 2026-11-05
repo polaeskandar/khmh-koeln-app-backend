@@ -32,7 +32,7 @@ final readonly class ListSchedulesWorkflow
         $this->access->require(Action::Read, Resource::Services);
 
         $today = $this->calendar->today();
-        $schedules = $this->schedules->listed($serviceId, $stageId);
+        $schedules = $this->schedules->recurring($serviceId, $stageId);
         $archived = ArchivedStructure::of($this->structure->archivedIds());
 
         return new ScheduleList($today->toString(), ScheduleSummary::listOf(

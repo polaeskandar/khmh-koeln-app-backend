@@ -11,7 +11,7 @@ interface SessionNoteRepositoryInterface
     /**
      * @param list<Uuid> $scheduleIds
      *
-     * @return list<array{id: string, where: string, text: string, date: string, scheduleId: string, sessionId: string}>
+     * @return list<array{id: string, where: string, text: string, date: string, meeting: string, sessionId: string}>
      */
     public function notesOf(array $scheduleIds): array;
 

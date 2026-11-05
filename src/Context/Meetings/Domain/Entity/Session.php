@@ -6,7 +6,9 @@ namespace App\Context\Meetings\Domain\Entity;
 
 use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Context\Meetings\Domain\ValueObject\AttendanceRules;
+use App\Context\Meetings\Domain\ValueObject\CustomDetails;
 use App\Context\Meetings\Domain\ValueObject\ErasedCounts;
+use App\Context\Meetings\Domain\ValueObject\MeetingDetails;
 use App\Context\Meetings\Domain\ValueObject\Progress;
 use App\Context\Meetings\Domain\ValueObject\Stamp;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
@@ -39,6 +41,9 @@ final class Session extends CreatedAtEntity
     #[ORM\Embedded(ErasedCounts::class, columnPrefix: false)]
     private ErasedCounts $erased;
 
+    #[ORM\Embedded(CustomDetails::class, columnPrefix: false)]
+    private CustomDetails $custom;
+
     public function __construct(Schedule $schedule, LocalDate $occurrenceDate)
     {
         $this->id = Uuid::v7();
@@ -46,6 +51,7 @@ final class Session extends CreatedAtEntity
         $this->occurrenceDate = $occurrenceDate;
         $this->progress = Progress::scheduled();
         $this->erased = new ErasedCounts();
+        $this->custom = new CustomDetails();
     }
 
     public function id(): Uuid
@@ -56,6 +62,11 @@ final class Session extends CreatedAtEntity
     public function schedule(): Schedule
     {
         return $this->schedule;
+    }
+
+    public function details(): MeetingDetails
+    {
+        return $this->custom->over($this->schedule->details());
     }
 
     public function occurrenceDate(): LocalDate
@@ -103,6 +114,16 @@ final class Session extends CreatedAtEntity
         $this->progress = $this->progress->reopened();
 
         return true;
+    }
+
+    public function rename(string $title, ?string $location): bool
+    {
+        $this->progress->ensureNotCanceled();
+        $renamed = new CustomDetails($title, $location);
+        $changed = $renamed->differsFrom($this->details());
+        $this->custom = $renamed;
+
+        return $changed;
     }
 
     public function cancel(?string $reason): bool

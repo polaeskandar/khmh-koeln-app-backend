@@ -70,6 +70,14 @@ final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInt
         return $this->entityManager->find(Schedule::class, $id);
     }
 
+    #[Override]
+    public function findRecurring(Uuid $id): ?Schedule
+    {
+        $schedule = $this->find($id);
+
+        return $schedule?->isOneOff() === false ? $schedule : null;
+    }
+
     /**
      * @param list<Uuid> $ids
      */

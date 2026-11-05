@@ -11,7 +11,7 @@ final readonly class MeetingNote
         public string $where,
         public string $text,
         public string $date,
-        public ?string $meeting,
+        public string $meeting,
     ) {
     }
 }

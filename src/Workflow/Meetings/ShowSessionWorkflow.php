@@ -40,7 +40,7 @@ final readonly class ShowSessionWorkflow
         return new SessionDetail(
             today: $this->calendar->today()->toString(),
             session: SessionView::of($session, $this->structure, $this->calendar, $can),
-            schedule: ScheduleBrief::of($session->schedule()),
+            schedule: ScheduleBrief::ofRecurring($session->schedule()),
             history: HistoryEntry::listOf($events, ActorReferences::lookedUpIn($this->accounts, $events), $can),
         );
     }
