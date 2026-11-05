@@ -10,6 +10,8 @@ use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkDraft;
 use App\Library\Problem\Exception\NotFound;
+use App\Library\Problem\Exception\RuleViolation;
+use App\Library\Time\Client\Calendar;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class HomeworkWrites
@@ -17,6 +19,7 @@ final readonly class HomeworkWrites
     public function __construct(
         private HomeworkRepositoryInterface $homework,
         private LessonRepositoryInterface $lessons,
+        private Calendar $calendar,
     ) {
     }
 
@@ -47,14 +50,42 @@ final readonly class HomeworkWrites
      */
     public function whileEditable(string $id, callable $work): object
     {
-        $taskId = Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('homework');
-
-        return $this->homework->withLock($taskId, static function (HomeworkAssignment $task) use ($work): object {
+        return $this->locked($id, static function (HomeworkAssignment $task) use ($work): object {
             $task->state()->ensureEditable();
             $task->lesson()->state()->ensureEditable();
 
             return $work($task);
         });
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param callable(HomeworkAssignment): T $work
+     *
+     * @return T
+     */
+    public function locked(string $id, callable $work): object
+    {
+        $taskId = Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('homework');
+
+        return $this->homework->withLock($taskId, $work);
+    }
+
+    public function publish(HomeworkAssignment $task): HomeworkAssignment
+    {
+        $state = $task->state()->published($this->calendar->now());
+
+        if ($task->lesson()->state()->archivedAt !== null) {
+            throw new RuleViolation('homework.lessonArchived');
+        }
+
+        if ($state !== $task->state()) {
+            $task->changeState($state);
+            $this->homework->save($task);
+        }
+
+        return $task;
     }
 
     public function edit(HomeworkAssignment $task, HomeworkDraft $draft): HomeworkAssignment

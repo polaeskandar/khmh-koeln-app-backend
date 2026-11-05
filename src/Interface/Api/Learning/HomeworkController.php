@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Interface\Api\Learning;
 
 use App\Interface\Api\Learning\Request\HomeworkRequest;
+use App\Interface\Api\Learning\Response\PublishedHomeworkResponse;
 use App\Interface\Api\Learning\Response\WrittenHomeworkResponse;
 use App\Workflow\Learning\CreateHomeworkWorkflow;
 use App\Workflow\Learning\EditHomeworkWorkflow;
+use App\Workflow\Learning\PublishHomeworkWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -40,5 +42,11 @@ final class HomeworkController extends AbstractController
         EditHomeworkWorkflow $editHomework,
     ): JsonResponse {
         return $this->json(WrittenHomeworkResponse::of($editHomework($id, $homework->choice())));
+    }
+
+    #[Route('/api/homework/{id}/publish', name: 'api_homework_publish', methods: ['POST'])]
+    public function publish(string $id, PublishHomeworkWorkflow $publishHomework): JsonResponse
+    {
+        return $this->json(PublishedHomeworkResponse::of($publishHomework($id)));
     }
 }
