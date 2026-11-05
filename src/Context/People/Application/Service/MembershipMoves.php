@@ -6,8 +6,10 @@ namespace App\Context\People\Application\Service;
 
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Repository\MembershipRepositoryInterface;
+use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\ValueObject\AlreadyIn;
 use App\Context\People\Domain\ValueObject\Placement;
+use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Time\Client\Calendar;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -17,6 +19,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class MembershipMoves
 {
     public function __construct(
+        private PersonRepositoryInterface $people,
         private MembershipRepositoryInterface $memberships,
         private Calendar $calendar,
     ) {
@@ -31,18 +34,19 @@ final readonly class MembershipMoves
      */
     public function whileMovable(string $membershipId, callable $work): object
     {
+        $id = Uuid::fromString($membershipId);
+        $personId = $this->memberships->personOf($id) ?? throw NotFound::of('membership');
         $moved = null;
 
-        $this->memberships->withWriteLock(
-            Uuid::fromString($membershipId),
-            static function (Membership $membership) use ($work, &$moved): void {
+        $this->people->withWriteLock($personId, function () use ($id, $work, &$moved): void {
+            $this->memberships->withWriteLock($id, static function (Membership $membership) use ($work, &$moved): void {
                 if ($membership->tenure()->endsOn !== null) {
                     throw new RuleViolation('people.membershipEnded');
                 }
 
                 $moved = $work($membership);
-            },
-        );
+            });
+        });
 
         return $moved ?? throw new LogicException('The membership was not moved.');
     }

@@ -58,6 +58,11 @@ final class Person extends CreatedAtEntity
         return $this->status;
     }
 
+    public function changeStatus(PersonStatus $status): void
+    {
+        $this->status = $status;
+    }
+
     public function personalDetails(): PersonalDetails
     {
         return $this->personalDetails;

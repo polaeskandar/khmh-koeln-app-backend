@@ -17,6 +17,8 @@ interface MembershipRepositoryInterface
 
     public function hasCurrent(Person $person, Uuid $serviceId, ?Uuid $stageId, LocalDate $on): bool;
 
+    public function personOf(Uuid $membershipId): ?Uuid;
+
     /**
      * @param callable(Membership): void $work
      */

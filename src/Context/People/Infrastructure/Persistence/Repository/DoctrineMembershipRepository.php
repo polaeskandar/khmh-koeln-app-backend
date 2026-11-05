@@ -9,13 +9,17 @@ use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Repository\MembershipRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Model\LocalDate;
-use Doctrine\DBAL\LockMode;
+use App\Library\Types\Model\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineMembershipRepository implements MembershipRepositoryInterface
 {
+    private const string LOCK_ROW = 'SELECT id FROM people.membership WHERE id = ? FOR UPDATE';
+
+    private const string PERSON_OF = 'SELECT person_id::text FROM people.membership WHERE id = ?';
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -57,14 +61,21 @@ final readonly class DoctrineMembershipRepository implements MembershipRepositor
     }
 
     #[Override]
+    public function personOf(Uuid $membershipId): ?Uuid
+    {
+        $connection = $this->entityManager->getConnection();
+        $personId = Type::of($connection->fetchOne(self::PERSON_OF, [$membershipId->toRfc4122()]))->toStringOrNull();
+
+        return $personId === null ? null : Uuid::fromString($personId);
+    }
+
+    #[Override]
     public function withWriteLock(Uuid $id, callable $work): void
     {
         $this->entityManager->wrapInTransaction(function () use ($id, $work): void {
-            $work(
-                $this->entityManager->find(Membership::class, $id, LockMode::PESSIMISTIC_WRITE) ?? throw NotFound::of(
-                    'membership',
-                ),
-            );
+            $this->entityManager->getConnection()->executeQuery(self::LOCK_ROW, [$id->toRfc4122()]);
+
+            $work($this->entityManager->find(Membership::class, $id) ?? throw NotFound::of('membership'));
         });
     }
 }

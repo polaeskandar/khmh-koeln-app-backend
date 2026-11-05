@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace App\Context\People\Application\Service;
 
 use App\Context\People\Domain\Entity\Membership;
+use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\MembershipEnding;
+use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\MembershipRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\ValueObject\AlreadyIn;
 use App\Context\People\Domain\ValueObject\Placement;
-use App\Library\Problem\Exception\NotFound;
+use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Time\Client\Calendar;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use LogicException;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class Memberships
@@ -26,22 +29,17 @@ final readonly class Memberships
 
     public function add(string $personId, Placement $placement, string $placeName): Membership
     {
-        $person = $this->people->find(Uuid::fromString($personId)) ?? throw NotFound::of('person');
-        $today = $this->calendar->today();
+        $added = null;
 
-        if ($this->memberships->hasCurrent($person, $placement->serviceId, $placement->stageId, $today)) {
-            throw AlreadyIn::of($person, $placeName);
-        }
+        $this->people->withWriteLock(Uuid::fromString($personId), function (Person $person) use (
+            $placement,
+            $placeName,
+            &$added,
+        ): void {
+            $added = $this->added($person, $placement, $placeName);
+        });
 
-        $membership = new Membership($person, $placement->serviceId, $placement->stageId, $today);
-
-        try {
-            $this->memberships->save($membership);
-        } catch (UniqueConstraintViolationException) {
-            throw AlreadyIn::of($person, $placeName);
-        }
-
-        return $membership;
+        return $added ?? throw new LogicException('The membership was not added.');
     }
 
     public function end(string $membershipId): void
@@ -59,5 +57,28 @@ final readonly class Memberships
 
             $this->memberships->save($membership);
         });
+    }
+
+    private function added(Person $person, Placement $placement, string $placeName): Membership
+    {
+        if ($person->status() === PersonStatus::Inactive) {
+            throw new RuleViolation('people.personInactive', ['name' => $person->name()->full()]);
+        }
+
+        $today = $this->calendar->today();
+
+        if ($this->memberships->hasCurrent($person, $placement->serviceId, $placement->stageId, $today)) {
+            throw AlreadyIn::of($person, $placeName);
+        }
+
+        $membership = new Membership($person, $placement->serviceId, $placement->stageId, $today);
+
+        try {
+            $this->memberships->save($membership);
+        } catch (UniqueConstraintViolationException) {
+            throw AlreadyIn::of($person, $placeName);
+        }
+
+        return $membership;
     }
 }

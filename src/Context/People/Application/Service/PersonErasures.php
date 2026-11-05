@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\People\Application\Service;
 
+use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonTraceRepositoryInterface;
@@ -11,9 +12,9 @@ use App\Context\People\Domain\ValueObject\ErasablePerson;
 use App\Context\People\Domain\ValueObject\ErasedElsewhere;
 use App\Context\People\Domain\ValueObject\PersonErased;
 use App\Library\Collections\Model\Collections;
-use App\Library\Problem\Exception\NotFound;
 use App\Platform\Doctrine\Contract\Transactions;
 use Doctrine\Common\Collections\ArrayCollection;
+use LogicException;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class PersonErasures
@@ -33,7 +34,13 @@ final readonly class PersonErasures
 
     public function erasable(Uuid $personId): ErasablePerson
     {
-        $person = $this->people->findForUpdate($personId) ?? throw NotFound::of('person');
+        $person = null;
+
+        $this->people->withWriteLock($personId, static function (Person $locked) use (&$person): void {
+            $person = $locked;
+        });
+
+        $person ??= throw new LogicException('The person was not locked.');
         $name = $person->name();
         $names = Collections::mapPresent(new ArrayCollection([$name->firstName, $name->displayName]), self::named(...));
 

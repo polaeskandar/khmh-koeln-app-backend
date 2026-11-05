@@ -7,6 +7,7 @@ namespace App\Context\People\Domain\ValueObject;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Strings\Model\InputText;
 use App\Library\Strings\Model\NameKey;
+use App\Library\Strings\Model\Text;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -48,6 +49,11 @@ final readonly class PersonName
             key: NameKey::of($fullName),
             searchText: InputText::of($fullName . ' ' . ($display ?? ''))->folded()->toString(),
         );
+    }
+
+    public function full(): string
+    {
+        return Text::format('%s %s', $this->firstName, $this->lastName)->toString();
     }
 
     private static function required(string $field, string $value, string $requiredCode): string
