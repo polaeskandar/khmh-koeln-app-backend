@@ -312,7 +312,10 @@ A workflow that needs a permission states it as its first step:
 `$this->access->require(Action::Update, Resource::Services)` (`Context\Identity\Application\Service\AccessCheck`).
 `AccessCheck` asks Symfony's authorization checker, and `AccessVoter` grants the `Access` when the account,
 reloaded on every request, is active and one of its roles has the permission; otherwise 403 `forbidden`. A role
-or permission change applies on the next request, without a new sign-in.
+or permission change applies on the next request, without a new sign-in. A member workflow starts the same way
+with `$personId = $this->member->require($viewerId)` (`MemberCheck`): it reloads the account and returns its own
+member record, or refuses with 403 `forbidden` when the account is inactive or not linked. The record always
+comes from the account, never from the request.
 
 ### Sessions are created the day before
 

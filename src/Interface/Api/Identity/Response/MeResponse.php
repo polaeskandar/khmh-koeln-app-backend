@@ -18,6 +18,7 @@ final readonly class MeResponse
         public array $roles,
         public array $permissions,
         public string $today,
+        public ?MemberSummaryResponse $member,
     ) {
     }
 
@@ -28,6 +29,7 @@ final readonly class MeResponse
             new ArrayCollection($current->roles)->map(RoleResponse::of(...))->getValues(),
             new ArrayCollection($current->permissions)->map(PermissionResponse::of(...))->getValues(),
             $current->today,
+            $current->member === null ? null : MemberSummaryResponse::of($current->member),
         );
     }
 }

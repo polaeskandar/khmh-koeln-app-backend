@@ -24,6 +24,9 @@ services:
     App\Tests\Support\Context\Identity\Application\Service\AccessProbeController:
         tags: [controller.service_arguments]
 
+    App\Tests\Support\Context\Identity\Application\Service\MemberProbeController:
+        tags: [controller.service_arguments]
+
     App\Tests\Support\Context\Identity\Infrastructure\Security\SpyPasswordHasherFactory:
         decorates: security.password_hasher_factory
         arguments: ['@.inner']
