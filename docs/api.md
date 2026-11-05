@@ -1508,3 +1508,17 @@ when it was published and taken back before; an already published task stays as 
 nothing. Parents only ever see published tasks. 404 `notFound.homework`, also for an id that is not a UUID; an
 archived stage or service → 409 `lessons.stageArchived {name}`; an archived task → 409
 `homework.archivedNoPublish`; an archived lesson → 409 `homework.lessonArchived`, in that order.
+
+#### `GET /api/homework/{id}/progress`
+
+`members: read` (403 `forbidden`). The progress page, the only homework read
+that names children: `{today, service: ServiceRef, stage: StageRef, homework, lesson: LessonRef, counts, rows}`; 404
+`notFound.homework`, also for an id that is not a UUID.
+
+- `homework` is the stage list's item plus `instructions` and `resources`. `counts` is `null` for
+  drafts; archived tasks keep counts and rows.
+- `rows` are `{person: PersonRef, inStage, done, completedAt, completedBy: AccountRef | null, completedAfterDueDate,
+  parentAccounts: AccountRef[]}` for everyone in "Who a task is for", by last name, then first name, in German
+  collation: alphabetical, never ranked. `completedBy` is `null` when not done or once the account is gone; an
+  undone report is not done.
+- No emails, guardian link ids, undo history or lesson notes.

@@ -7,12 +7,14 @@ namespace App\Interface\Api\Learning;
 use App\Interface\Api\Learning\Request\HomeworkRequest;
 use App\Interface\Api\Learning\Response\HomeworkDetailResponse;
 use App\Interface\Api\Learning\Response\HomeworkListResponse;
+use App\Interface\Api\Learning\Response\HomeworkProgressResponse;
 use App\Interface\Api\Learning\Response\PublishedHomeworkResponse;
 use App\Interface\Api\Learning\Response\WrittenHomeworkResponse;
 use App\Workflow\Learning\CreateHomeworkWorkflow;
 use App\Workflow\Learning\EditHomeworkWorkflow;
 use App\Workflow\Learning\ListHomeworkWorkflow;
 use App\Workflow\Learning\PublishHomeworkWorkflow;
+use App\Workflow\Learning\ShowHomeworkProgressWorkflow;
 use App\Workflow\Learning\ShowHomeworkWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -64,5 +66,11 @@ final class HomeworkController extends AbstractController
     public function publish(string $id, PublishHomeworkWorkflow $publishHomework): JsonResponse
     {
         return $this->json(PublishedHomeworkResponse::of($publishHomework($id)));
+    }
+
+    #[Route('/api/homework/{id}/progress', name: 'api_homework_progress', methods: ['GET'])]
+    public function progress(string $id, ShowHomeworkProgressWorkflow $showHomeworkProgress): JsonResponse
+    {
+        return $this->json(new HomeworkProgressResponse($showHomeworkProgress($id)));
     }
 }

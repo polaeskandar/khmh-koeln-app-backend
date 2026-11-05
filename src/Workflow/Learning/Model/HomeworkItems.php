@@ -17,15 +17,20 @@ final readonly class HomeworkItems
      */
     public static function of(TaskReports $reports, TaskAudiences $audiences): array
     {
-        $itemOf = static fn (HomeworkAssignment $task): HomeworkItem => new HomeworkItem(
-            HomeworkSummary::of($task),
-            LessonOnDate::of($task->lesson()),
-            self::countsOf($audiences, $task),
-        );
+        $itemOf = static fn (HomeworkAssignment $task): HomeworkItem => self::itemOf($audiences, $task);
 
         $newestFirst = Orderings::byKeysDescending(new ArrayCollection($reports->tasks), keysOf: self::sortKeys(...));
 
         return new ArrayCollection($newestFirst)->map($itemOf)->getValues();
+    }
+
+    public static function itemOf(TaskAudiences $audiences, HomeworkAssignment $task): HomeworkItem
+    {
+        return new HomeworkItem(
+            HomeworkSummary::of($task),
+            LessonOnDate::of($task->lesson()),
+            self::countsOf($audiences, $task),
+        );
     }
 
     public static function countsOf(TaskAudiences $audiences, HomeworkAssignment $task): ?AudienceCounts
