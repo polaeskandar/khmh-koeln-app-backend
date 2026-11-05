@@ -26,6 +26,16 @@ final readonly class MeetingSchedules
         return $this->schedules->listed(self::idOf('serviceId', $serviceId), self::idOf('stageId', $stageId));
     }
 
+    /**
+     * @return ReadableCollection<int, Schedule>
+     */
+    public function chosen(?string $scheduleId, ?string $serviceId, ?string $stageId): ReadableCollection
+    {
+        $id = self::idOf('scheduleId', $scheduleId);
+
+        return $id === null ? $this->listed($serviceId, $stageId) : $this->schedules->findByIds([$id]);
+    }
+
     public function find(string $id): Schedule
     {
         $schedule = Uuid::isValid($id) ? $this->schedules->find(Uuid::fromString($id)) : null;

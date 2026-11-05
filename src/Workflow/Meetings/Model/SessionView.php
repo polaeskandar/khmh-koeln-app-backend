@@ -30,4 +30,9 @@ final readonly class SessionView
             SessionProgress::of($session),
         );
     }
+
+    public function withoutCancelReason(): self
+    {
+        return new self($this->details, $this->roster, $this->times, $this->progress->withoutCancelReason());
+    }
 }

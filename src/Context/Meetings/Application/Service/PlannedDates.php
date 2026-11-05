@@ -6,6 +6,8 @@ namespace App\Context\Meetings\Application\Service;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
+use App\Context\Meetings\Domain\ValueObject\AgendaDates;
+use App\Context\Meetings\Domain\ValueObject\AgendaRange;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\PlannedDate;
 use App\Library\Collections\Model\Collections;
@@ -32,19 +34,47 @@ final readonly class PlannedDates
         LocalDate $to,
     ): array {
         $sessions = $this->sessions->ofSchedulesBetween($schedules, $from, $to)->map(PlannedDate::ofSession(...));
-        $taken = $sessions->map(static fn (PlannedDate $date): string => $date->key());
-
-        $planned = Collections::of(self::plannedOf(
-            GeneratingSchedules::among($schedules, $archived),
-            $taken,
-            $from,
-            $to,
-        ));
+        $planned = self::missing(GeneratingSchedules::among($schedules, $archived), $sessions, $from, $to);
 
         return Collections::sortedBy(
-            new ArrayCollection([...$sessions->getValues(), ...$planned->getValues()]),
+            new ArrayCollection([...$sessions->getValues(), ...$planned]),
             keyOf: static fn (PlannedDate $date): string => $date->sortKey(),
         );
+    }
+
+    /**
+     * @param ReadableCollection<int, Schedule> $schedules
+     */
+    public function agendaOf(
+        ReadableCollection $schedules,
+        ArchivedStructure $archived,
+        AgendaRange $range,
+    ): AgendaDates {
+        $sessions = $this->sessions->ofSchedulesBetween($schedules, $range->from, $range->to);
+
+        return new AgendaDates($sessions, self::missing(
+            GeneratingSchedules::among($schedules, $archived),
+            $sessions->map(PlannedDate::ofSession(...)),
+            $range->plannedFrom(),
+            $range->to,
+        ));
+    }
+
+    /**
+     * @param ReadableCollection<int, Schedule> $generating
+     * @param ReadableCollection<int, PlannedDate> $held
+     *
+     * @return list<PlannedDate>
+     */
+    private static function missing(
+        ReadableCollection $generating,
+        ReadableCollection $held,
+        LocalDate $from,
+        LocalDate $to,
+    ): array {
+        $taken = $held->map(static fn (PlannedDate $date): string => $date->key());
+
+        return Collections::of(self::plannedOf($generating, $taken, $from, $to))->getValues();
     }
 
     /**
