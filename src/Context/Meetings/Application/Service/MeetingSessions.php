@@ -6,8 +6,10 @@ namespace App\Context\Meetings\Application\Service;
 
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Entity\SessionEvent;
+use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\MarkingRules;
+use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -16,7 +18,21 @@ final readonly class MeetingSessions
 {
     public function __construct(
         private SessionRepositoryInterface $sessions,
+        private ScheduleRepositoryInterface $schedules,
     ) {
+    }
+
+    /**
+     * @param ReadableCollection<int, Session> $sessions
+     */
+    public function loadSchedulesOf(ReadableCollection $sessions): void
+    {
+        $this->schedules->findByIds(
+            Collections::firstPerKey(
+                $sessions->map(static fn (Session $session): Uuid => $session->schedule()->id()),
+                keyOf: static fn (Uuid $id): string => $id->toRfc4122(),
+            )->getValues(),
+        );
     }
 
     public function find(string $id): Session
