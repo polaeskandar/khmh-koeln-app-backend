@@ -15,6 +15,7 @@ use App\Library\Time\Client\Calendar;
 use DateInterval;
 use DateTimeImmutable;
 use Symfony\Component\String\ByteString;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class PasswordLinks
 {
@@ -41,11 +42,14 @@ final readonly class PasswordLinks
     {
         $user = $this->users->findByEmail($email) ?? throw NotFound::of('account');
 
-        if (!$user->status()->isActive()) {
-            throw new RuleViolation('accounts.passwordLinkUnavailable');
-        }
+        return $this->issue($this->active($user), self::LIFETIME, createdBy: null);
+    }
 
-        return $this->issue($user, self::LIFETIME);
+    public function sendToAccount(string $accountId, string $actorId): DateTimeImmutable
+    {
+        $user = $this->account($accountId);
+
+        return $this->issue($this->active($user), self::LIFETIME, createdBy: $this->account($actorId));
     }
 
     public function resetFor(string $email): void
@@ -53,15 +57,25 @@ final readonly class PasswordLinks
         $user = $this->users->findByEmail($email);
 
         if ($user?->status()->isActive() === true) {
-            $this->issue($user, self::RESET_LIFETIME);
+            $this->issue($user, self::RESET_LIFETIME, createdBy: null);
         }
     }
 
-    private function issue(User $user, string $lifetime): DateTimeImmutable
+    private function active(User $user): User
+    {
+        return $user->status()->isActive() ? $user : throw new RuleViolation('accounts.passwordLinkUnavailable');
+    }
+
+    private function account(string $id): User
+    {
+        return $this->users->find(Uuid::fromString($id)) ?? throw NotFound::of('user');
+    }
+
+    private function issue(User $user, string $lifetime, ?User $createdBy): DateTimeImmutable
     {
         $token = ByteString::fromRandom(self::TOKEN_LENGTH, self::TOKEN_ALPHABET)->toString();
         $expiresAt = $this->calendar->now()->add(new DateInterval($lifetime));
-        $this->tokens->replaceUnused(new PasswordToken($user, Checksum::sha256($token), $expiresAt, createdBy: null));
+        $this->tokens->replaceUnused(new PasswordToken($user, Checksum::sha256($token), $expiresAt, $createdBy));
 
         $this->mailer->send($user, 'password_link', [
             'url' => $this->links->to($user, 'set-password/#token=' . $token),
