@@ -7,13 +7,8 @@ namespace App\Tests\Functional\Workflow\Learning\Model;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Learning\Application\Service\HomeworkReports;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
-use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\StageRosters;
-use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
-use App\Context\People\Domain\Repository\PersonRepositoryInterface;
-use App\Context\People\Domain\Repository\RosterRepositoryInterface;
-use App\Library\Time\Client\Calendar;
 use App\Library\Time\Model\LocalDate;
 use App\Tests\Support\Context\Learning\Domain\Entity\HomeworkTasks;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
@@ -52,15 +47,7 @@ final class TaskAudiencesTest extends KernelTestCase
 
         self::assertSame(['Ending', 'Today'], $this->names($this->audiences([$task])->rowsOf($task)));
 
-        self::assertSame(2, AudienceSize::of(
-            new StageRosters(
-                self::service(RosterRepositoryInterface::class),
-                self::service(PersonRepositoryInterface::class),
-                self::service(GuardianRelationshipRepositoryInterface::class),
-            ),
-            $stage,
-            LocalDate::of('2026-11-08'),
-        ));
+        self::assertSame(2, AudienceSize::of(self::service(StageRosters::class), $stage, LocalDate::of('2026-11-08')));
 
         self::mockTime('2026-11-08T23:30:00Z');
 
@@ -230,24 +217,11 @@ final class TaskAudiencesTest extends KernelTestCase
      */
     private function audiences(array $tasks): TaskAudiences
     {
-        $structure = self::service(StructureLookup::class);
-
-        $rosters = new StageRosters(
-            self::service(RosterRepositoryInterface::class),
-            self::service(PersonRepositoryInterface::class),
-            self::service(GuardianRelationshipRepositoryInterface::class),
-        );
-
-        $reports = new HomeworkReports(
-            self::service(HomeworkRepositoryInterface::class),
-            self::service(Calendar::class),
-        );
-
         return TaskAudiences::lookedUpIn(
-            $structure,
-            $rosters,
+            self::service(StructureLookup::class),
+            self::service(StageRosters::class),
             self::service(AccountLookup::class),
-            $reports->of($tasks),
+            self::service(HomeworkReports::class)->of($tasks),
         );
     }
 

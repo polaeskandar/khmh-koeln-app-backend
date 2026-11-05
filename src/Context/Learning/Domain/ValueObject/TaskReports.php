@@ -16,12 +16,19 @@ final readonly class TaskReports
     /**
      * @param list<HomeworkAssignment> $tasks
      * @param list<HomeworkReport> $reports
+     * @param ReadableCollection<string, string> $publishedAt
      */
     public function __construct(
         public LocalDate $today,
         public array $tasks,
         private array $reports,
+        private ReadableCollection $publishedAt,
     ) {
+    }
+
+    public function publishedAtOf(HomeworkAssignment $task): ?string
+    {
+        return $this->publishedAt->get($task->id()->toRfc4122());
     }
 
     /**

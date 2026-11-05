@@ -23,7 +23,7 @@ final readonly class HomeworkView
         return new self(
             id: $task->id()->toRfc4122(),
             status: $task->state()->status->value,
-            publishedAt: $reading->publishedAt,
+            publishedAt: $reading->reports->publishedAtOf($task),
             text: HomeworkTextView::of($task),
         );
     }

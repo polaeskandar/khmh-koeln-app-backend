@@ -7,17 +7,22 @@ namespace App\Context\Learning\Application\Service;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\Entity\HomeworkCompletion;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
+use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkReading;
 use App\Context\Learning\Domain\ValueObject\HomeworkReport;
+use App\Context\Learning\Domain\ValueObject\StageHomework;
 use App\Context\Learning\Domain\ValueObject\TaskReports;
+use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class HomeworkReports
 {
     public function __construct(
         private HomeworkRepositoryInterface $homework,
+        private LessonRepositoryInterface $lessons,
         private Calendar $calendar,
     ) {
     }
@@ -29,19 +34,24 @@ final readonly class HomeworkReports
     {
         $reports = $this->homework->currentReportsOf($tasks)->map($this->reportOf(...));
 
-        return new TaskReports($this->calendar->today(), $tasks, $reports->getValues());
+        $published = Collections::mapPresent(
+            Collections::firstPerKey(new ArrayCollection($tasks), keyOf: self::taskKey(...)),
+            $this->publishedAtTextOf(...),
+        );
+
+        return new TaskReports($this->calendar->today(), $tasks, $reports->getValues(), $published);
     }
 
     public function reading(string $id): HomeworkReading
     {
         $task = $this->homework->find(Uuid::fromString($id)) ?? throw NotFound::of('homework');
-        $publishedAt = $task->state()->publishedAt;
 
-        return new HomeworkReading(
-            $task,
-            $this->of([$task]),
-            $publishedAt === null ? null : $this->calendar->formatInstant($publishedAt),
-        );
+        return new HomeworkReading($task, $this->of([$task]));
+    }
+
+    public function ofStage(Uuid $stageId): StageHomework
+    {
+        return new StageHomework($this->of($this->homework->ofStage($stageId)), $this->lessons->ofStage($stageId));
     }
 
     private function reportOf(HomeworkCompletion $completion): HomeworkReport
@@ -57,5 +67,17 @@ final readonly class HomeworkReports
             completedBy: $completion->completedBy(),
             late: $dueDate?->isBefore($completedOn) === true,
         );
+    }
+
+    private function publishedAtTextOf(HomeworkAssignment $task): ?string
+    {
+        $publishedAt = $task->state()->publishedAt;
+
+        return $publishedAt === null ? null : $this->calendar->formatInstant($publishedAt);
+    }
+
+    private static function taskKey(HomeworkAssignment $task): string
+    {
+        return $task->id()->toRfc4122();
     }
 }

@@ -52,6 +52,11 @@ final readonly class TaskAudiences
         );
     }
 
+    public function reports(): TaskReports
+    {
+        return $this->reports;
+    }
+
     public function countsOf(HomeworkAssignment $task): AudienceCounts
     {
         $audience = $this->audienceOf($task);

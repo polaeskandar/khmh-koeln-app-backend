@@ -11,7 +11,6 @@ final readonly class HomeworkReading
     public function __construct(
         public HomeworkAssignment $task,
         public TaskReports $reports,
-        public ?string $publishedAt,
     ) {
     }
 }
