@@ -95,6 +95,11 @@ final class Stage extends CreatedAtEntity
         $this->archivedAt = $at;
     }
 
+    public function restore(): void
+    {
+        $this->archivedAt = null;
+    }
+
     public function isArchived(): bool
     {
         return $this->archivedAt !== null;

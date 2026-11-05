@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace App\Context\Organization\Application\Service;
 
 use App\Context\Organization\Domain\Entity\Service;
-use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Context\Organization\Domain\ValueObject\Description;
 use App\Context\Organization\Domain\ValueObject\ServiceName;
 use App\Context\Organization\Domain\ValueObject\Tone;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
-use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\Uid\Uuid;
 
@@ -23,16 +21,6 @@ final readonly class ChurchServices
     public function __construct(
         private ServiceRepositoryInterface $services,
     ) {
-    }
-
-    /**
-     * @return ReadableCollection<int, Service>
-     */
-    public function listed(string $status): ReadableCollection
-    {
-        $filter = ServiceFilter::tryFrom($status) ?? throw InvalidInput::field('status', 'validation.invalidChoice');
-
-        return $this->services->listed($filter);
     }
 
     public function find(string $id): Service

@@ -79,6 +79,11 @@ final class Service extends TimestampedEntity
         $this->archivedAt = $at;
     }
 
+    public function restore(): void
+    {
+        $this->archivedAt = null;
+    }
+
     public function isArchived(): bool
     {
         return $this->archivedAt !== null;

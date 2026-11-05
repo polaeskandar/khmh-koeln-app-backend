@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Context\Organization\Infrastructure\Persistence\Repository;
 
 use App\Context\Organization\Domain\Entity\Service;
+use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Context\Organization\Infrastructure\Persistence\Repository\Filter\ServiceFilters;
@@ -12,13 +13,14 @@ use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
-use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineServiceRepository implements ServiceRepositoryInterface
 {
+    private const string LOCK_ROW = 'SELECT id FROM organization.service WHERE id = ? FOR UPDATE';
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -73,9 +75,14 @@ final readonly class DoctrineServiceRepository implements ServiceRepositoryInter
     public function withStructureLock(Uuid $id, callable $work): object
     {
         return $this->entityManager->wrapInTransaction(function () use ($id, $work): object {
-            $service = $this->entityManager->find(Service::class, $id, LockMode::PESSIMISTIC_WRITE);
+            $this->entityManager->getConnection()->executeQuery(self::LOCK_ROW, [$id->toRfc4122()]);
+            $loaded = $this->entityManager->getUnitOfWork()->getIdentityMap();
 
-            return $work($service ?? throw NotFound::of('service'));
+            foreach ([...($loaded[Service::class] ?? []), ...($loaded[Stage::class] ?? [])] as $entity) {
+                $this->entityManager->detach($entity);
+            }
+
+            return $work($this->entityManager->find(Service::class, $id) ?? throw NotFound::of('service'));
         });
     }
 

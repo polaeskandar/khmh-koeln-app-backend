@@ -9,6 +9,7 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -19,6 +20,16 @@ final readonly class StructureLookup
         private ServiceRepositoryInterface $services,
         private StageRepositoryInterface $stages,
     ) {
+    }
+
+    /**
+     * @return ReadableCollection<int, Service>
+     */
+    public function listed(string $status): ReadableCollection
+    {
+        $filter = ServiceFilter::tryFrom($status) ?? throw InvalidInput::field('status', 'validation.invalidChoice');
+
+        return $this->services->listed($filter);
     }
 
     /**

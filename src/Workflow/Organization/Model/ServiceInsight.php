@@ -10,6 +10,7 @@ final readonly class ServiceInsight
         public string $serviceId,
         public ?NextMeeting $next,
         public AttendanceTrend $trend,
+        public ArchiveImpact $impact,
     ) {
     }
 }

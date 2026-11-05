@@ -7,6 +7,7 @@ namespace App\Workflow\Organization;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Meetings\Application\Service\StructureUsage;
 use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Application\Service\StageOrder;
 use App\Context\Organization\Domain\Entity\Stage;
@@ -21,6 +22,7 @@ final readonly class ReorderStagesWorkflow
         private StageOrder $order,
         private ServiceStages $stages,
         private Rosters $rosters,
+        private StructureUsage $usage,
     ) {
     }
 
@@ -33,13 +35,8 @@ final readonly class ReorderStagesWorkflow
 
         $service = $this->order->reorder($serviceId, $stageIds);
         $stages = $this->stages->ofService($service);
+        $ids = $stages->map(static fn (Stage $stage): Uuid => $stage->id())->getValues();
 
-        return StageList::of(
-            $service,
-            $stages,
-            $this->rosters->stageMembersToday(
-                $stages->map(static fn (Stage $stage): Uuid => $stage->id())->getValues(),
-            ),
-        );
+        return StageList::of($service, $stages, $this->rosters->stageMembersToday($ids), $this->usage->ofStages($ids));
     }
 }
