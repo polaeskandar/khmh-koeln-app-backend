@@ -297,6 +297,22 @@ A parent:
 }
 ```
 
+#### `PATCH /api/me`
+
+Any signed-in account. Body `{language: en|de|ar}`, the only member an account can change itself → 200 with the
+`GET /api/me` body, already showing the new language. Password links and emails use it; other sessions stay signed
+in and read it on their next `GET /api/me`.
+
+```json
+{"language": "ar"}
+```
+
+| Case | Answer |
+| --- | --- |
+| No session | 401 `auth.unauthenticated` |
+| `language` missing, `null` or not `en`, `de`, `ar` | 422 `validation.invalidType` on `language` |
+| Any other member (`displayName`, `email`, …) | 422 `validation.unexpectedField` on it; nothing is saved |
+
 #### `POST /api/me/password`
 
 Any signed-in account, staff or parent. Body `{currentPassword, newPassword}` → 204 with a new session cookie: the

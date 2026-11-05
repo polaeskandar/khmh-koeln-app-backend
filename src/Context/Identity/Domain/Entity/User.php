@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Context\Identity\Domain\Entity;
 
 use App\Context\Identity\Domain\Enum\Action;
+use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\ValueObject\AccountStatus;
 use App\Context\Identity\Domain\ValueObject\PersonalDetails;
@@ -133,14 +134,14 @@ final class User extends CreatedAtEntity
         $this->passwordHash = $passwordHash;
     }
 
-    public function disable(DateTimeImmutable $at): void
+    public function changeLanguage(Language $language): void
     {
-        $this->status = $this->status->disabledAt($at);
+        $this->profile = new Profile($this->profile->email, $this->profile->displayName, $language);
     }
 
-    public function enable(): void
+    public function changeStatus(AccountStatus $status): void
     {
-        $this->status = $this->status->enabled();
+        $this->status = $status;
     }
 
     public function approvedBy(): ?self

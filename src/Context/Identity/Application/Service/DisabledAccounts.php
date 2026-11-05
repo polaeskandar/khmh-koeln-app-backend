@@ -29,7 +29,7 @@ final readonly class DisabledAccounts
                 throw new RuleViolation('roles.lastAdministrator');
             }
 
-            $user->disable($this->calendar->now());
+            $user->changeStatus($user->status()->disabledAt($this->calendar->now()));
             $this->users->save($user);
         });
     }
@@ -38,7 +38,7 @@ final readonly class DisabledAccounts
     {
         $user = $this->account($email);
 
-        $user->enable();
+        $user->changeStatus($user->status()->enabled());
         $this->users->save($user);
     }
 
