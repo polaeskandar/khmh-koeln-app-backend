@@ -318,6 +318,17 @@ homework reports about them and their guardian links. Notes written by others th
 (cancel reasons, session notes, correction notes, lesson notes in their groups) are listed for the
 administrator, who can have them emptied in the same step. A linked account loses the link.
 
+`app:privacy:erase-person` (and its `:dry-run`) runs `ErasePersonWorkflow` in one transaction. People's
+`PersonErasures` locks the person row and hands over their memberships. Meetings' `ErasedTotals` finds the
+counted sessions they were on the roster of or marked present at. Each session's counters are raised in the
+database (`erased_present = erased_present + 1`), not from a loaded session, so two erasures that share a
+session both count. Attendance, Learning and People then delete what they hold about the person.
+
+Writers that add data about a person hold a share lock on the person row before they lock the session or
+the homework task: marking someone present, and a parent reporting homework done. The erasure takes the
+person row first as well. So the locks always come in the same order, and neither write can slip in after
+the erasure has cleaned up.
+
 For an **account** (`app_user`): the account, its roles and guardian links. What the account did for the
 church stays, without saying who: attendance it recorded, sessions it closed, history entries, homework
 reports it made for a child (they are about the child), lessons and homework it prepared. The columns that

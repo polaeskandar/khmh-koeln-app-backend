@@ -1,0 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Context\Attendance\Domain\Repository;
+
+use Symfony\Component\Uid\Uuid;
+
+interface PersonTraceRepositoryInterface
+{
+    public function forget(Uuid $personId): int;
+}

@@ -7,9 +7,13 @@ namespace App\Platform\Doctrine\Contract;
 interface Transactions
 {
     /**
-     * @param callable(): void $work
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
      */
-    public function run(callable $work): void;
+    public function run(callable $work): mixed;
 
     /**
      * @template T

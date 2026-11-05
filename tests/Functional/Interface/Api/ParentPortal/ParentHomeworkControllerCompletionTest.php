@@ -12,6 +12,7 @@ use App\Tests\Support\Context\People\Domain\Entity\Families;
 use App\Tests\Support\Database;
 use App\Tests\Support\Interface\Api\ParentPortal\ParentFixture;
 use App\Tests\Support\JsonBody;
+use App\Tests\Support\Logs;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 use Symfony\Component\Uid\Uuid;
 
@@ -33,6 +34,8 @@ final class ParentHomeworkControllerCompletionTest extends ApiTestCase
         self::assertResponseStatusCodeSame(201);
         $this->assertJsonPath('completedByYou', true);
         $first = $this->responseJson();
+        $locks = new Logs(self::getContainer())->containing(' FOR ');
+        self::assertStringContainsString('people.person WHERE id = ? FOR SHARE', $locks[0] ?? '');
 
         self::mockTime('2026-11-08T12:10:00+01:00');
         $this->completion('PUT', $mina, $task);

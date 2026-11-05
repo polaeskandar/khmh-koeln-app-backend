@@ -73,6 +73,18 @@ final readonly class Attendees
             ->filter(static fn (Membership $membership): bool => $membership->isCurrentOn($today));
     }
 
+    /**
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function whileKept(string $personId, callable $work): mixed
+    {
+        return $this->people->withShareLock(Uuid::fromString($personId), $work);
+    }
+
     public function find(string $personId): Person
     {
         return $this->people->find(Uuid::fromString($personId)) ?? throw NotFound::of('person');

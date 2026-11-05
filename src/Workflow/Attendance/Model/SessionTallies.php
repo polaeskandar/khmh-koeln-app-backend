@@ -10,9 +10,7 @@ use App\Context\Attendance\Domain\ValueObject\ErasedAttendance;
 use App\Context\Attendance\Domain\ValueObject\SessionCounts;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Domain\Entity\Session;
-use App\Context\Meetings\Domain\Enum\RosterMode;
 use App\Context\People\Application\Service\Attendees;
-use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Collections\Model\Collections;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -46,8 +44,8 @@ final readonly class SessionTallies
         $tallies = new self(
             $attendees->rostersOn(
                 $sessions
-                    ->filter(self::isExpected(...))
-                    ->map(self::keyOf(...))
+                    ->filter(SessionRoster::isExpected(...))
+                    ->map(SessionRoster::keyOf(...))
                     ->getValues(),
             ),
             $marks->currentOf($sessions->map(static fn (Session $session): Uuid => $session->id())->getValues()),
@@ -63,11 +61,11 @@ final readonly class SessionTallies
             ->map(static fn (Attendance $mark): string => self::text($mark->personId()))
             ->getValues();
 
-        if (!self::isExpected($session)) {
+        if (!SessionRoster::isExpected($session)) {
             return new SessionTally([], $presentIds, SessionCounts::open($presentIds, self::erasedOf($session)));
         }
 
-        $rosterIds = new ArrayCollection($this->rosters->get(self::keyOf($session)->id()) ?? [])->map(
+        $rosterIds = new ArrayCollection($this->rosters->get(SessionRoster::keyOf($session)->id()) ?? [])->map(
             static fn (Uuid $id): string => $id->toRfc4122(),
         )->getValues();
 
@@ -91,18 +89,6 @@ final readonly class SessionTallies
     private static function idOf(Session $session): string
     {
         return $session->id()->toRfc4122();
-    }
-
-    private static function isExpected(Session $session): bool
-    {
-        return $session->schedule()->roster()->mode === RosterMode::Expected;
-    }
-
-    private static function keyOf(Session $session): RosterKey
-    {
-        $roster = $session->schedule()->roster();
-
-        return new RosterKey($roster->serviceId, $roster->stageId, $session->occurrenceDate());
     }
 
     /**

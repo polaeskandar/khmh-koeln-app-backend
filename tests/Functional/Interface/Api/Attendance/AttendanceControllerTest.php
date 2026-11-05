@@ -135,7 +135,7 @@ final class AttendanceControllerTest extends ApiTestCase
         $this->assertProblem(404, 'notFound.person');
     }
 
-    public function testAMarkIsWrittenWithTheSessionRowLockedAndParentsMayNotMark(): void
+    public function testAMarkHoldsThePersonBeforeItLocksTheSessionAndParentsMayNotMark(): void
     {
         $session = $this->session(self::ACTIVE);
 
@@ -147,7 +147,9 @@ final class AttendanceControllerTest extends ApiTestCase
         $this->signInWithRoles('servant@example.org', 'servant');
 
         $this->mark($session, $mina);
-        self::assertNotSame([], new Logs(self::getContainer())->containing('FOR UPDATE'));
+        $locks = array_slice(new Logs(self::getContainer())->containing(' FOR '), offset: -2);
+        self::assertStringContainsString('people.person WHERE id = ? FOR SHARE', $locks[0] ?? '');
+        self::assertStringContainsString('FOR UPDATE', $locks[1] ?? '');
 
         $this->signInWithRoles('parent@example.org', 'parent');
         $this->mark($session, $mina);

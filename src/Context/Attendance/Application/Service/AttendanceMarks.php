@@ -6,6 +6,7 @@ namespace App\Context\Attendance\Application\Service;
 
 use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\Attendance\Domain\Repository\AttendanceRepositoryInterface;
+use App\Context\Attendance\Domain\Repository\PersonTraceRepositoryInterface;
 use App\Context\Attendance\Domain\ValueObject\RecordedMark;
 use App\Context\Attendance\Domain\ValueObject\SessionMarks;
 use App\Library\Strings\Model\InputText;
@@ -18,6 +19,7 @@ final readonly class AttendanceMarks
     public function __construct(
         private AttendanceRepositoryInterface $attendance,
         private Calendar $calendar,
+        private PersonTraceRepositoryInterface $traces,
     ) {
     }
 
@@ -82,5 +84,10 @@ final readonly class AttendanceMarks
         );
 
         $this->attendance->save($current);
+    }
+
+    public function forget(Uuid $personId): int
+    {
+        return $this->traces->forget($personId);
     }
 }
