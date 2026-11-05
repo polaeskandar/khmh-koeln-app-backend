@@ -43,6 +43,11 @@ final readonly class OwnHomework
 
     public function requireTask(string $homeworkId): VisibleTask
     {
-        return $this->task(Uuid::fromString($homeworkId)) ?? throw NotFound::coded('homework.notAvailable');
+        return $this->task(Uuid::fromString($homeworkId)) ?? self::notAvailable();
+    }
+
+    public static function notAvailable(): never
+    {
+        throw NotFound::coded('homework.notAvailable');
     }
 }
