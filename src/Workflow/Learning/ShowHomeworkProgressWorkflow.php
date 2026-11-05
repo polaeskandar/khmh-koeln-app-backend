@@ -14,6 +14,7 @@ use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\StageRosters;
 use App\Workflow\Learning\Model\AlphabeticalRows;
+use App\Workflow\Learning\Model\AudienceAccounts;
 use App\Workflow\Learning\Model\AudienceKeys;
 use App\Workflow\Learning\Model\HomeworkItems;
 use App\Workflow\Learning\Model\HomeworkProgress;
@@ -56,7 +57,12 @@ final readonly class ShowHomeworkProgressWorkflow
         $reports = $reading->reports;
         $key = AudienceKeys::keyOf($stage, $reports->today);
         $book = $this->rosters->on([$key], $reports->reporterIds());
-        $accounts = $this->accounts->accounts(TaskAudiences::accountIdsOf($book, $reports));
+
+        $accounts = AudienceAccounts::of(
+            $book,
+            $this->accounts->accounts(TaskAudiences::accountIdsOf($book, $reports)),
+            $this->accounts->ownAccountsOf($book->personIds()),
+        );
 
         return TaskAudiences::of($reports, new ArrayCollection([$stage->id()->toRfc4122() => $key]), $book, $accounts);
     }

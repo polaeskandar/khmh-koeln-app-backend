@@ -36,6 +36,14 @@ final readonly class RosterBook
             ->getValues();
     }
 
+    /**
+     * @return list<Uuid> everyone in the book: the rosters' people and those looked up besides
+     */
+    public function personIds(): array
+    {
+        return $this->people->map(static fn (Person $person): Uuid => $person->id())->getValues();
+    }
+
     public function personOf(Uuid $id): ?Person
     {
         return $this->people->get($id->toRfc4122());

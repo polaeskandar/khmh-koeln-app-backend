@@ -96,12 +96,13 @@ final class TaskAudiencesTest extends KernelTestCase
 
         $counts = new TaskAudienceLookups(self::getContainer())->audiences([$task])->countsOf($task);
 
-        self::assertSame([2, 1, 1, 0, 1, 2], [
+        self::assertSame([2, 1, 1, 0, 1, 1, 2], [
             $counts->assigned,
             $counts->completed,
             $counts->notCompleted(),
             $counts->completedAfterDueDate,
-            $counts->withoutParentAccount,
+            $counts->open->withoutParentAccount,
+            $counts->open->withoutAccount,
             $counts->reportedTotal,
         ]);
     }
@@ -187,7 +188,11 @@ final class TaskAudiencesTest extends KernelTestCase
 
         self::assertSame(
             2,
-            new TaskAudienceLookups(self::getContainer())->audiences([$task])->countsOf($task)->withoutParentAccount,
+            new TaskAudienceLookups(self::getContainer())
+                ->audiences([$task])
+                ->countsOf($task)
+                ->open
+                ->withoutParentAccount,
         );
     }
 

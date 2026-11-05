@@ -22,6 +22,7 @@ final readonly class AudienceCountsResponse implements JsonSerializable
      *     notCompleted: int,
      *     completedAfterDueDate: int,
      *     withoutParentAccount: int,
+     *     withoutAccount: int,
      *     reportedTotal: int,
      * }
      */
@@ -35,7 +36,8 @@ final readonly class AudienceCountsResponse implements JsonSerializable
             'completed' => $counts->completed,
             'notCompleted' => $counts->notCompleted(),
             'completedAfterDueDate' => $counts->completedAfterDueDate,
-            'withoutParentAccount' => $counts->withoutParentAccount,
+            'withoutParentAccount' => $counts->open->withoutParentAccount,
+            'withoutAccount' => $counts->open->withoutAccount,
             'reportedTotal' => $counts->reportedTotal,
         ];
     }

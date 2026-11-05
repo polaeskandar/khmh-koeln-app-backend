@@ -16,6 +16,7 @@ use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\Repository\RosterRepositoryInterface;
 use App\Library\Time\Client\Calendar;
+use App\Workflow\Learning\Model\AudienceAccounts;
 use App\Workflow\Learning\Model\AudienceKeys;
 use App\Workflow\Learning\Model\TaskAudiences;
 use PHPUnit\Framework\Assert;
@@ -46,7 +47,12 @@ final readonly class TaskAudienceLookups
         );
 
         $book = $this->rosters()->on($keys->getValues(), $reports->reporterIds());
-        $accounts = $this->service(AccountLookup::class)->accounts(TaskAudiences::accountIdsOf($book, $reports));
+
+        $accounts = AudienceAccounts::of(
+            $book,
+            $this->service(AccountLookup::class)->accounts(TaskAudiences::accountIdsOf($book, $reports)),
+            $this->service(AccountLookup::class)->ownAccountsOf($book->personIds()),
+        );
 
         return TaskAudiences::of($reports, $keys, $book, $accounts);
     }

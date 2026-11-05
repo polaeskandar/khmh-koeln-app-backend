@@ -18,6 +18,7 @@ use App\Tests\Support\Context\Learning\Domain\Entity\CopticCourse;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
 use App\Tests\Support\Database;
 use App\Tests\Support\Logs;
+use App\Workflow\Learning\Model\AudienceAccounts;
 use App\Workflow\Learning\Model\AudienceKeys;
 use App\Workflow\Learning\Model\AudienceRow;
 use App\Workflow\Learning\Model\TaskAudiences;
@@ -154,7 +155,11 @@ final class OwnHomeworkTest extends KernelTestCase
             $reports,
             new ArrayCollection([$task->stageId()->toRfc4122() => $key]),
             $book,
-            self::service(AccountLookup::class)->accounts(TaskAudiences::accountIdsOf($book, $reports)),
+            AudienceAccounts::of(
+                $book,
+                self::service(AccountLookup::class)->accounts(TaskAudiences::accountIdsOf($book, $reports)),
+                self::service(AccountLookup::class)->ownAccountsOf($book->personIds()),
+            ),
         );
 
         return array_map(static fn (AudienceRow $row): string => $row->person->id, $audiences->rowsOf($task));
