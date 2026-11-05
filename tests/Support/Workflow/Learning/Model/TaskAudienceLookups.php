@@ -8,6 +8,7 @@ use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Learning\Application\Service\HomeworkReports;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
+use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\StageRosters;
 use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
@@ -33,6 +34,7 @@ final readonly class TaskAudienceLookups
     {
         $reports = new HomeworkReports(
             $this->service(HomeworkRepositoryInterface::class),
+            $this->service(LessonRepositoryInterface::class),
             $this->service(Calendar::class),
         )->of($tasks);
 

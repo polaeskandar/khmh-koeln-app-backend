@@ -1448,6 +1448,22 @@ needs the teaching date to be church-today or earlier (Europe/Berlin), else 409 
 
 ### Homework
 
+#### `GET /api/stages/{stageId}/homework`
+
+`homework: read` (403 `forbidden`). The stage's Homework tab and the new editor's lesson choice: `{today, stage:
+StageRef, archived, tabs: {published, draft, archived}, lessons: LessonRef[], defaultLessonId, audienceSize, items}`;
+404 `notFound.stage`, also for an id that is not a UUID. No instructions, notes or children's names.
+
+- `items`: every task of the stage, newest first by `dueDate`, else the lesson's date, as `{id, title, status,
+  dueDate, publishedAt, lesson: {id, title, teachingDate, archived}, counts}`. `counts` is the same as `GET
+  /api/homework/{id}` gives (`null` for drafts).
+- `tabs` counts the tasks per status; `lessons` are the stage's lessons that are not archived, newest first;
+  `defaultLessonId` is the first of them on or after today, else the newest.
+- `archived` is the stage's or its service's. Apps offer creating homework for `homework: create` while it is
+  `false`, and derive each item's actions as for `GET /api/homework/{id}`.
+
+The items cost the same number of statements whatever their number.
+
 #### `POST /api/lessons/{lessonId}/homework`
 
 `homework: create` (403 `homework.assignStageOnly`). Body `{title, instructions, dueDate?,
