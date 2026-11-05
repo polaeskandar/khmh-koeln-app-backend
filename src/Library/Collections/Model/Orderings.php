@@ -30,6 +30,20 @@ final readonly class Orderings
     }
 
     /**
+     * @template TKey of array-key
+     * @template TValue
+     *
+     * @param ReadableCollection<TKey, TValue> $items
+     * @param callable(TValue): list<string|int> $keysOf
+     *
+     * @return list<TValue>
+     */
+    public static function byKeysDescending(ReadableCollection $items, callable $keysOf): array
+    {
+        return array_reverse(self::byKeys($items, $keysOf));
+    }
+
+    /**
      * @param list<string|int> $one
      * @param list<string|int> $other
      */

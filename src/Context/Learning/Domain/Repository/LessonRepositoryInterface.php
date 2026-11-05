@@ -18,6 +18,11 @@ interface LessonRepositoryInterface
     public function find(Uuid $id): ?Lesson;
 
     /**
+     * @return ReadableCollection<int, Lesson>
+     */
+    public function ofStage(Uuid $stageId): ReadableCollection;
+
+    /**
      * @param list<Uuid> $scheduleIds
      *
      * @return ReadableCollection<int, Lesson>
