@@ -865,7 +865,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | --- | --- | --- |
 | `homework.alreadyUndone` | – | **New.** 409: this report was already undone. |
 | `homework.titleRequired` | – | Enter a title, e.g. “Learn the memory verse”. |
-| `homework.instructionsRequired` | – | Write what the parent and child should do. |
+| `homework.instructionsRequired` | – | Write what to do at home. |
 | `homework.instructionsTooLong` | – | Use at most 2,000 characters. |
 | `homework.dueBeforeLesson` | – | The due date can’t be before the lesson. |
 | `homework.changeStageOnly` | – | Only servants of this stage and service leaders can change its homework. |
@@ -921,6 +921,12 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `accounts.chooseRegisteredAs` | – | **New.** Field error on `registration.registeredAs`: choose parent or servant. |
 | `accounts.chooseLanguage` | – | **New.** Field error on `account.language`: choose English, German or Arabic. |
 | `accounts.passwordLinkUnavailable` | – | **New.** 409: password links are only for approved, enabled accounts. |
+| `accounts.groupsRequired` | – | **New.** Field error on `note` for a member: Write which groups you take part in, so the church office can link your account to your record. |
+| `accounts.choosePerson` | – | **New.** Field error on `personId`: Choose the member record this account belongs to. |
+| `accounts.personNotFound` | – | **New.** Field error on `personId`: This member record no longer exists or is inactive. |
+| `accounts.personHasAccount` | `name` | **New.** Field error on `personId`: {name} already has an account. Check that you chose the right person. |
+| `accounts.chooseAge` | – | **New.** Field error on `ageCheck`: Choose whether the member is 16 or older, or under 16 with a parent’s agreement. |
+| `accounts.notLinked` | – | **New.** 409: This account isn’t linked to a member record. |
 
 ### `privacy`
 
@@ -979,8 +985,8 @@ New codes: list them, and add them to the code catalog.
 ## Endpoints
 
 Endpoint issues add their sections here, one heading per module: Health, Auth and accounts, Services and
-stages, Members, Meetings, Attendance, Lessons, Homework, Parent portal, Guardians, Data protection. The auth
-endpoints are under [Authentication](#authentication).
+stages, Members, Meetings, Attendance, Lessons, Homework, Parent portal, Member portal, Guardians, Data
+protection. The auth endpoints are under [Authentication](#authentication).
 
 ### Health
 
@@ -1891,6 +1897,12 @@ current one. 404 `notFound.person` or `homework.notAvailable` as above; 403 `for
 Body `{}` → 204, also when nothing was reported. Either approved parent may undo; the report stays in the history
 with `undone_at`/`undone_by`, and a later `PUT` adds a new one. A child who left the stage can still be undone, but
 then the task is no longer visible.
+
+### Member portal
+
+`/api/member/*` is open to an active account linked to a member record (`person_id`), whatever its roles; the
+person always comes from the account, never from the request. The endpoints come with the member portal issues
+(#136–#141).
 
 ### Your own data
 

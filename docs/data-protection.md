@@ -47,7 +47,7 @@ No other processor receives personal data. Logs leave the server only without pe
 - **Transport:** TLS only; HSTS; the session cookie is `__Host-`, `Secure`, `HttpOnly`, `SameSite=Lax`.
 - **Backups:** daily, encrypted with age before leaving the database host; the private key is offline with two
   named people; restores only at the provider ([operations.md § Backups](operations.md#backups)).
-- **Access:** every route declares its permission (`#[RequiresAccess]`); parent routes deny by default and answer
+- **Access:** every workflow checks its permission first (`AccessCheck`); parent routes deny by default and answer
   the same 404 for anything that is not the parent's; servant notes and cancel reasons need extra permissions.
 - **Passwords:** hashed with Symfony's `auto` hasher; set through one-time links valid 24 h; sign-in is throttled.
 - **Logs:** no names, emails or children's data in production logs; request ids instead.
