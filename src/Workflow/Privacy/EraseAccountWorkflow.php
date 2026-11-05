@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Privacy;
 
 use App\Context\Identity\Application\Service\AccountErasures;
-use App\Context\People\Application\Service\PeopleExports;
+use App\Context\People\Application\Service\PersonErasures;
 use App\Library\Problem\Exception\NotFound;
 use App\Platform\Privacy\Contract\AccountReferences;
 use App\Workflow\Privacy\Model\AccountSweep;
@@ -20,7 +20,7 @@ final readonly class EraseAccountWorkflow
      */
     public function __construct(
         private AccountErasures $accounts,
-        private PeopleExports $people,
+        private PersonErasures $people,
         #[AutowireIterator(AccountReferences::TAG)]
         private iterable $references,
     ) {
@@ -31,13 +31,13 @@ final readonly class EraseAccountWorkflow
         $id = Uuid::fromString($accountId);
         $sweep = fn (): int => AccountSweep::of($this->references, $id);
 
-        if (!$this->accounts->exists($id)) {
+        if ($this->accounts->existing($id) === null) {
             $sweep();
 
             throw NotFound::of('user');
         }
 
-        $guardianLinks = $this->people->linksOfAccount($id)->count();
+        $guardianLinks = $this->people->linksOfAccount($id);
         $erased = $this->accounts->erase($id, $sweep);
 
         return ErasureCounts::of($erased, $guardianLinks, lateRows: $sweep());

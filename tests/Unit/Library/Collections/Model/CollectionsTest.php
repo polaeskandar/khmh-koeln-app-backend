@@ -48,11 +48,16 @@ final class CollectionsTest extends TestCase
         );
     }
 
-    public function testWithoutKeysRemovesTheGivenKeys(): void
+    public function testWithoutKeysAndOnlyKeysSplitByTheGivenKeys(): void
     {
         $values = new ArrayCollection(['limit' => 120, 'value' => 'Kirollos', 'hint' => 'x']);
 
         self::assertSame(['limit' => 120], Collections::withoutKeys($values, ['value', 'hint'])->toArray());
+
+        self::assertSame(
+            ['value' => 'Kirollos', 'hint' => 'x'],
+            Collections::onlyKeys($values, ['hint', 'value'])->toArray(),
+        );
     }
 
     public function testMapPresentKeepsFalseyResultsAndKeys(): void

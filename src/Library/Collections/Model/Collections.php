@@ -95,6 +95,20 @@ final readonly class Collections
      * @template TValue
      *
      * @param ReadableCollection<TKey, TValue> $items
+     * @param list<TKey> $keys
+     *
+     * @return ArrayCollection<TKey, TValue>
+     */
+    public static function onlyKeys(ReadableCollection $items, array $keys): ArrayCollection
+    {
+        return array_intersect_key($items->toArray(), array_flip($keys)) |> self::collected(...);
+    }
+
+    /**
+     * @template TKey of array-key
+     * @template TValue
+     *
+     * @param ReadableCollection<TKey, TValue> $items
      * @param callable(TValue): string $keyOf
      *
      * @return list<TValue>

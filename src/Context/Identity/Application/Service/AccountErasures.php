@@ -24,9 +24,9 @@ final readonly class AccountErasures
     ) {
     }
 
-    public function exists(Uuid $accountId): bool
+    public function existing(?Uuid $accountId): ?Uuid
     {
-        return $this->users->find($accountId) !== null;
+        return $accountId === null ? null : $this->users->find($accountId)?->id();
     }
 
     /**

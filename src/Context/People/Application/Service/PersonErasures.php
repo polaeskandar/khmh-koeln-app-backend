@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Context\People\Application\Service;
 
+use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonTraceRepositoryInterface;
 use App\Context\People\Domain\ValueObject\ErasablePerson;
 use App\Context\People\Domain\ValueObject\ErasedElsewhere;
 use App\Context\People\Domain\ValueObject\PersonErased;
+use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
 use App\Platform\Doctrine\Contract\Transactions;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -19,8 +21,32 @@ final readonly class PersonErasures
     public function __construct(
         private Transactions $transactions,
         private PersonRepositoryInterface $people,
+        private GuardianRelationshipRepositoryInterface $links,
         private PersonTraceRepositoryInterface $traces,
     ) {
+    }
+
+    public function existing(?Uuid $personId): ?Uuid
+    {
+        return $personId === null ? null : $this->people->find($personId)?->id();
+    }
+
+    public function erasable(Uuid $personId): ErasablePerson
+    {
+        $person = $this->people->findForUpdate($personId) ?? throw NotFound::of('person');
+        $name = $person->name();
+        $names = Collections::mapPresent(new ArrayCollection([$name->firstName, $name->displayName]), self::named(...));
+
+        return new ErasablePerson(
+            $person->id(),
+            $names->getValues(),
+            $this->people->membershipsOf(new ArrayCollection([$person])),
+        );
+    }
+
+    public function linksOfAccount(Uuid $accountId): int
+    {
+        return $this->links->allOfAccount($accountId)->count();
     }
 
     /**
@@ -44,10 +70,14 @@ final readonly class PersonErasures
      */
     private function erased(string $personId, callable $elsewhere): PersonErased
     {
-        $person = $this->people->findForUpdate(Uuid::fromString($personId)) ?? throw NotFound::of('person');
-        $erasable = new ErasablePerson($person->id(), $this->people->membershipsOf(new ArrayCollection([$person])));
-        $swept = $elsewhere($erasable);
+        $person = $this->erasable(Uuid::fromString($personId));
+        $swept = $elsewhere($person);
 
-        return new PersonErased($this->traces->forget($person->id()), $swept);
+        return new PersonErased($this->traces->forget($person->id), $swept);
+    }
+
+    private static function named(?string $name): ?string
+    {
+        return $name;
     }
 }

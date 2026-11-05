@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace App\Context\Identity\Infrastructure\Lock;
 
 use App\Context\Identity\Application\Service\AdministrationLockInterface;
+use App\Library\Checksum\Model\Checksum;
 use Doctrine\DBAL\Connection;
 use Override;
-use Symfony\Component\Lock\LockFactory;
-use Symfony\Component\Lock\Store\DoctrineDbalPostgreSqlStore;
 
-final readonly class SymfonyAdministrationLock implements AdministrationLockInterface
+final readonly class PostgresAdministrationLock implements AdministrationLockInterface
 {
     public const string RESOURCE = 'identity.administration';
+
+    private const string LOCK = 'SELECT pg_advisory_xact_lock(?)';
 
     public function __construct(
         private Connection $connection,
@@ -22,17 +23,9 @@ final readonly class SymfonyAdministrationLock implements AdministrationLockInte
     #[Override]
     public function whileLocked(callable $work): void
     {
-        $lock = new LockFactory(new DoctrineDbalPostgreSqlStore($this->connection))->createLock(
-            self::RESOURCE,
-            ttl: null,
-        );
-
-        $lock->acquire(blocking: true);
-
-        try {
+        $this->connection->transactional(function () use ($work): void {
+            $this->connection->executeStatement(self::LOCK, [Checksum::crc32(self::RESOURCE)]);
             $work();
-        } finally {
-            $lock->release();
-        }
+        });
     }
 }

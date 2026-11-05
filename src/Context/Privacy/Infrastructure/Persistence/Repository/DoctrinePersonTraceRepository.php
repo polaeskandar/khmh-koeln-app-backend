@@ -13,8 +13,8 @@ final readonly class DoctrinePersonTraceRepository implements PersonTraceReposit
 {
     private const string FORGET_SUBJECT = <<<'SQL'
         UPDATE privacy.data_request
-        SET person_id = NULL, erased_subject_kind = COALESCE(erased_subject_kind, 'member')
-        WHERE person_id = ?
+        SET person_id = NULL, erased_subject_kind = 'member', erased_subject_group = :group
+        WHERE person_id = :person
         SQL;
 
     public function __construct(
@@ -23,10 +23,11 @@ final readonly class DoctrinePersonTraceRepository implements PersonTraceReposit
     }
 
     #[Override]
-    public function forget(Uuid $personId): int
+    public function forget(Uuid $personId, ?string $group): int
     {
         return (int) $this->entityManager->getConnection()->executeStatement(self::FORGET_SUBJECT, [
-            $personId->toRfc4122(),
+            'person' => $personId->toRfc4122(),
+            'group' => $group,
         ]);
     }
 }

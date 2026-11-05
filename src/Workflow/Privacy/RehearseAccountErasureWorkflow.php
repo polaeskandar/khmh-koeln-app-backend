@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Privacy;
 
 use App\Context\Identity\Application\Service\AccountErasures;
-use App\Context\People\Application\Service\PeopleExports;
+use App\Context\People\Application\Service\PersonErasures;
 use App\Platform\Privacy\Contract\AccountReferences;
 use App\Workflow\Privacy\Model\AccountSweep;
 use App\Workflow\Privacy\Model\ErasureCounts;
@@ -19,7 +19,7 @@ final readonly class RehearseAccountErasureWorkflow
      */
     public function __construct(
         private AccountErasures $accounts,
-        private PeopleExports $people,
+        private PersonErasures $people,
         #[AutowireIterator(AccountReferences::TAG)]
         private iterable $references,
     ) {
@@ -28,7 +28,7 @@ final readonly class RehearseAccountErasureWorkflow
     public function __invoke(string $accountId): ErasureCounts
     {
         $id = Uuid::fromString($accountId);
-        $guardianLinks = $this->people->linksOfAccount($id)->count();
+        $guardianLinks = $this->people->linksOfAccount($id);
         $erased = $this->accounts->rehearse($id, fn (): int => AccountSweep::of($this->references, $id));
 
         return ErasureCounts::of($erased, $guardianLinks, lateRows: 0);

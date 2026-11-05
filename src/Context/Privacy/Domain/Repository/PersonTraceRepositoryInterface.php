@@ -8,5 +8,5 @@ use Symfony\Component\Uid\Uuid;
 
 interface PersonTraceRepositoryInterface
 {
-    public function forget(Uuid $personId): int;
+    public function forget(Uuid $personId, ?string $group): int;
 }

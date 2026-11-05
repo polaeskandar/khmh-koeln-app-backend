@@ -31,6 +31,7 @@ final class DataRequestsControllerTest extends ApiTestCase
                 ['POST', '/api/data-requests', $body],
                 ['GET', '/api/data-requests', []],
                 ['GET', '/api/data-requests/' . Uuid::v7()->toRfc4122(), []],
+                ['POST', '/api/data-requests/' . Uuid::v7()->toRfc4122() . '/erase', ['clearNotes' => false]],
             ] as [$method, $path, $sent]) {
                 $this->jsonRequest($method, $path, $sent);
                 $this->assertProblem(403, 'privacy.adminOnly');

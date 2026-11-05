@@ -50,10 +50,15 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
 - Interface uses workflows, never a context (`InterfaceLayoutTest`). Nothing depends on Interface.
 - Only workflows use the contexts. A workflow never calls another workflow and never uses a repository; it goes
   through the contexts' application services (`WorkflowLayoutTest`).
-- A workflow takes at most five collaborators, like any other constructor. A read that joins every context and
-  can't be split without splitting its endpoint (the attendance board and overview, a member's personal data
-  export) is the exception and says so with `// @mago-expect lint:excessive-parameter-list` on its constructor;
-  each context then offers it one service.
+- A workflow takes at most five collaborators, like any other constructor. A workflow that joins every context
+  and can't be split without splitting its endpoint is the exception and says so with
+  `// @mago-expect lint:excessive-parameter-list` on its constructor; each context then offers it one service
+  (besides `AccessCheck`). The exceptions are:
+  - the attendance board and overview;
+  - a member's personal data export;
+  - the erasures and their review. Each context takes part through its `*Erasures` service: People's
+    `PersonErasures`, Meetings' `MeetingErasures`, Attendance's `AttendanceErasures`, Learning's
+    `LearningErasures`, Privacy's `RequestErasures`, and Identity's `AccountErasures`.
 - A context never uses another context. Only a context's own `Infrastructure` uses its `Infrastructure`.
   When a rule of one context needs another context's facts, the workflow reads them and hands them over in
   the receiving context's own value object: `OfferedMeetings` maps Meetings' `MeetingSlot` into Learning's

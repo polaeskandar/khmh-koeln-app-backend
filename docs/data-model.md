@@ -318,16 +318,38 @@ homework reports about them and their guardian links. Notes written by others th
 (cancel reasons, session notes, correction notes, lesson notes in their groups) are listed for the
 administrator, who can have them emptied in the same step. A linked account loses the link.
 
-`app:privacy:erase-person` (and its `:dry-run`) runs `ErasePersonWorkflow` in one transaction. People's
-`PersonErasures` locks the person row and hands over their memberships. Meetings' `ErasedTotals` finds the
-counted sessions they were on the roster of or marked present at. Each session's counters are raised in the
-database (`erased_present = erased_present + 1`), not from a loaded session, so two erasures that share a
-session both count. Attendance, Learning and People then delete what they hold about the person.
+`app:privacy:erase-person` (and its `:dry-run`) runs `ErasePersonWorkflow` in one transaction:
+
+1. People's `PersonErasures` locks the person row and hands over their names and memberships.
+2. Meetings' `MeetingErasures` finds the counted sessions they were on the roster of or marked present at.
+   Each session's counters are raised in the database (`erased_present = erased_present + 1`), not from a
+   loaded session, so two erasures that share a session both count.
+3. Every request about the member keeps only `erased_subject_kind` `member` and `erased_subject_group`, the
+   member's last stage or else its service.
+4. Attendance, Learning and People delete what they hold about the person.
+
+An erasure request does the same from the app (`EraseRequestSubjectWorkflow`), and its review
+(`ReviewRequestErasureWorkflow`) rehearses it in a transaction that is rolled back. The notes that name the
+member are found by the member's first and display name as a whole word:
+
+- cancel reasons and session notes in the meetings of the member's stages, and in their services' meetings
+  without a stage;
+- other members' removal reasons in those meetings;
+- lesson notes of the member's stages.
+
+**Lock order.** Every erasure takes its locks in the same order, so two of them, or an erasure and a write,
+wait for each other instead of deadlocking:
+
+1. the data request (from the app);
+2. the person;
+3. role administration, as a transaction lock that is held until the outermost transaction commits, so a
+   second erasure sees the first one's result before it checks for the last administrator;
+4. the account;
+5. the rows that point at them.
 
 Writers that add data about a person hold a share lock on the person row before they lock the session or
-the homework task: marking someone present, and a parent reporting homework done. The erasure takes the
-person row first as well. So the locks always come in the same order, and neither write can slip in after
-the erasure has cleaned up.
+the homework task: marking someone present, and a parent reporting homework done. So neither write can slip
+in after the erasure has cleaned up.
 
 For an **account** (`app_user`): the account, its roles and guardian links. What the account did for the
 church stays, without saying who: attendance it recorded, sessions it closed, history entries, homework

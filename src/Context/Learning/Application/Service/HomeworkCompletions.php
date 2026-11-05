@@ -7,7 +7,6 @@ namespace App\Context\Learning\Application\Service;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\Repository\HomeworkReportRepositoryInterface;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
-use App\Context\Learning\Domain\Repository\PersonTraceRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\CompletionOutcome;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Library\Problem\Exception\NotFound;
@@ -23,7 +22,6 @@ final readonly class HomeworkCompletions
         private HomeworkRepositoryInterface $homework,
         private HomeworkReportRepositoryInterface $reports,
         private Calendar $calendar,
-        private PersonTraceRepositoryInterface $traces,
     ) {
     }
 
@@ -66,10 +64,5 @@ final readonly class HomeworkCompletions
         $this->reports->undo($visible->task->id(), $childId, $this->calendar->now(), $by);
 
         return $visible;
-    }
-
-    public function forget(Uuid $childId): int
-    {
-        return $this->traces->forget($childId);
     }
 }

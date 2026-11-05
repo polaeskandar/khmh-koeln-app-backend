@@ -13,8 +13,19 @@ interface DataRequestRepositoryInterface
 
     public function find(Uuid $id): ?DataRequest;
 
+    public function reloaded(Uuid $id): ?DataRequest;
+
     /**
      * @return list<DataRequest>
      */
     public function all(): array;
+
+    /**
+     * @template T of object
+     *
+     * @param callable(DataRequest): T $work
+     *
+     * @return T
+     */
+    public function withWriteLock(Uuid $id, callable $work): object;
 }
