@@ -10,7 +10,7 @@ final readonly class SessionDetails
 {
     public function __construct(
         public string $id,
-        public string $scheduleId,
+        public ?string $scheduleId,
         public string $occurrenceDate,
         public string $title,
         public ?string $location,
@@ -20,10 +20,11 @@ final readonly class SessionDetails
     public static function of(Session $session): self
     {
         $plan = $session->plan();
+        $schedule = $session->schedule();
 
         return new self(
             id: $session->id()->toRfc4122(),
-            scheduleId: $session->schedule()->id()->toRfc4122(),
+            scheduleId: $schedule->isOneOff() ? null : $schedule->id()->toRfc4122(),
             occurrenceDate: $session->occurrenceDate()->toString(),
             title: $plan->title,
             location: $plan->location,

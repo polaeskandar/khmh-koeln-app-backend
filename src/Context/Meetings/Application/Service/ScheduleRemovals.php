@@ -28,6 +28,10 @@ final readonly class ScheduleRemovals
         $scheduleId = Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('schedule');
 
         $this->schedules->withWriteLock($scheduleId, function (Schedule $schedule) use ($lessonsOf): void {
+            if ($schedule->isOneOff()) {
+                throw NotFound::of('schedule');
+            }
+
             new ScheduleUse(
                 sessions: $this->sessionsOf($schedule),
                 lessons: $lessonsOf($schedule->id()),

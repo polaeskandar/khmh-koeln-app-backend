@@ -13,7 +13,7 @@ final readonly class SessionDetail
         public string $today,
         public SessionView $session,
         public SessionState $state,
-        public ScheduleBrief $schedule,
+        public ?ScheduleBrief $schedule,
         public array $history,
     ) {
     }

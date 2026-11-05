@@ -21,7 +21,7 @@ final readonly class SessionResponse implements JsonSerializable
     /**
      * @return array{
      *     id: string,
-     *     scheduleId: string,
+     *     scheduleId: string|null,
      *     occurrenceDate: string,
      *     title: string,
      *     service: ServiceReference|null,

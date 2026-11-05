@@ -758,6 +758,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `meetings.noMeetingOnDate` | – | The schedule has no meeting on that date. |
 | `meetings.scheduleInactive` | – | This schedule is inactive. Activate it first. |
 | `meetings.dateInPast` | – | **New.** The date is before church-today. |
+| `meetings.titleRequired` | – | **New.** Field error: enter a title for the session. |
 
 ### `recurrence`
 
@@ -1375,15 +1376,42 @@ characters → 422 `reason` `validation.tooLong {max: 200}`; a session that is n
 ### Sessions
 
 A `SessionView`: `{id, scheduleId, occurrenceDate, title, service: ServiceRef, stage: StageRef | null, date,
-startTime, endTime, startsAt, endsAt, location, status, rosterMode, cancelReason}`. Title, place, roster mode and times are the session's own (see `POST /api/schedules`); `startsAt`/`endsAt` are the instants in
+startTime, endTime, startsAt, endsAt, location, status, rosterMode, cancelReason}`. Title, place, roster mode and times are the session's own (see `POST /api/schedules`; title and place change with
+`PUT /api/sessions/{id}/details`). A one-off session has `scheduleId: null`; `startsAt`/`endsAt` are the instants in
 Europe/Berlin with their offset (`+01:00` in winter, `+02:00` in summer). `cancelReason` is `null` unless the
 viewer may read attendance (`attendance: read`), because it may name children (D7). Apps offer managing and
 reopening for `sessions: update` and recording for `attendance: create`.
 
+#### `POST /api/sessions`
+
+`sessions: create`, else 403 `forbidden`. A one-off meeting outside any schedule. Body `{roster: {serviceId,
+stageId | null, mode}, title, location | null, startsAt, endsAt | null}` (`roster` as for `POST /api/schedules`)
+→ 201 `{id}`. The session is `scheduled` on
+the church date of `startsAt`, with a `created` event by the viewer; the generator never touches it, and it is
+not listed among the schedules. Two one-offs on one date are fine.
+
+| Field | Codes |
+| --- | --- |
+| `roster.serviceId` | `meetings.chooseService`, `meetings.serviceArchived {name}` |
+| `roster.stageId` | `meetings.chooseStage`, `meetings.stageArchived {name}` |
+| `title` | `meetings.titleRequired`, `validation.tooLong {max: 120}` |
+| `location` | `validation.tooLong {max: 120}`; blank → `null` |
+| `startsAt` | `validation.chooseDate`, `validation.invalidDate` (an instant with offset), `meetings.dateInPast` (a church date before today; later today is fine) |
+| `endsAt` | `validation.invalidDate`, `meetings.endAfterStart` (not after `startsAt`, on another church day, or not later on the Europe/Berlin clock to the minute, as within one minute or across the autumn clock change) |
+| `roster.mode` | `meetings.chooseRosterMode` (`expected` or `open`) |
+
+#### `PUT /api/sessions/{id}/details`
+
+`sessions: update`, else 403 `forbidden`. Body `{title, location | null}`, the whole resource → 200 `{id}`: the
+session's own title and place, with the session row locked and an `edited` event when something changed; the schedule keeps its
+name and place. `title` `meetings.titleRequired`, `validation.tooLong {max: 120}`; `location` ≤ 120, blank →
+`null`. A canceled session → 409 `meetings.sessionCanceled`; 404 `notFound.session`, also for an id that is not a
+UUID.
+
 #### `GET /api/sessions/{id}`
 
 `services: read`. `{today, session: SessionView, state: {id, status, openedAt, closedAt, closedBy: AccountRef |
-null}, schedule: {id, name, recurrence, active}, history}`; 404
+null}, schedule: {id, name, recurrence, active} | null, history}` (`schedule: null` for a one-off); 404
 `notFound.session`, also for an id that is not a UUID. `history` holds every event, oldest first, as `{type, at, actor: AccountRef, byGenerator,
 note}`. `actor: null` is the generator when `byGenerator`, otherwise a former account. `note` follows the same
 rule as `cancelReason`.
