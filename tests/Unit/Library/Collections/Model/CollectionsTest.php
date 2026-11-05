@@ -67,4 +67,14 @@ final class CollectionsTest extends TestCase
             )->toArray(),
         );
     }
+
+    public function testSortedByOrdersByTheKeyAndReindexes(): void
+    {
+        $sorted = Collections::sortedBy(
+            new ArrayCollection(['x' => 'b2', 'y' => 'a9', 'z' => 'b1']),
+            keyOf: static fn (string $item): string => $item,
+        );
+
+        self::assertSame(['a9', 'b1', 'b2'], $sorted);
+    }
 }

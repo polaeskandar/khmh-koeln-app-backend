@@ -38,4 +38,22 @@ final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInt
             static fn (mixed $id): Uuid => Uuid::fromString(Type::of($id)->toString()),
         )->getValues();
     }
+
+    #[Override]
+    public function find(Uuid $id): ?Schedule
+    {
+        return $this->entityManager->find(Schedule::class, $id);
+    }
+
+    #[Override]
+    public function listed(?Uuid $serviceId, ?Uuid $stageId): ReadableCollection
+    {
+        $criteria = new ArrayCollection(['roster.serviceId' => $serviceId, 'roster.stageId' => $stageId])->filter(
+            static fn (?Uuid $id): bool => $id !== null,
+        );
+
+        return new ArrayCollection($this->entityManager->getRepository(Schedule::class)->findBy($criteria->toArray(), [
+            'details.name' => 'ASC',
+        ]));
+    }
 }
