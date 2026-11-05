@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Repository\ActiveAccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
+use Doctrine\Common\Collections\ReadableCollection;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class ParentAccounts
 {
@@ -17,6 +20,7 @@ final readonly class ParentAccounts
     public function __construct(
         private UserRepositoryInterface $users,
         private RoleRepositoryInterface $roles,
+        private ActiveAccountRepositoryInterface $activeAccounts,
     ) {
     }
 
@@ -30,6 +34,33 @@ final readonly class ParentAccounts
         $account = $this->byEmail($email);
 
         return $account->status()->isActive() ? $account : throw new RuleViolation('guardians.accountInactive');
+    }
+
+    public function active(string $id): User
+    {
+        $account = $this->users->find(Uuid::fromString($id)) ?? throw NotFound::of('user');
+
+        return $account->status()->isActive() ? $account : throw new RuleViolation('guardians.accountInactive');
+    }
+
+    /**
+     * @param list<Uuid> $ids
+     *
+     * @return ReadableCollection<int, User>
+     */
+    public function accounts(array $ids): ReadableCollection
+    {
+        return $this->users->findByIds($ids);
+    }
+
+    /**
+     * @param positive-int $limit
+     *
+     * @return list<array{id: string, name: string, email: string}>
+     */
+    public function activeListed(int $limit): array
+    {
+        return $this->activeAccounts->listed($limit);
     }
 
     public function giveParentRole(User $account): void
