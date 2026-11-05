@@ -1446,3 +1446,19 @@ that names children: `{today, service: ServiceRef, stage: StageRef, homework, le
   collation: alphabetical, never ranked. `completedBy` is `null` when not done or once the account is gone; an
   undone report is not done.
 - No emails, guardian link ids, undo history or lesson notes.
+
+### Parent portal
+
+Parent routes need `parentPortal: read` (else 403 `forbidden`) and only ever read through `VisibleHomework`
+("Who a task is for" in `docs/data-model.md`): the viewer's own approved children, published homework, the
+lesson's passage and memory verse. Lesson plans, servant notes, attendance, other children and other families
+are never part of a parent response.
+
+#### `GET /api/parent/children`
+
+`{today, items: ChildSummary[]}` by first name; `items: []` without approved links. A `ChildSummary` is `{id,
+name, fullName, initials, stage, service, toDo, done}`: `name` is the display name, else the first name;
+`initials` are the first letters of `name` and the last name; `stage` and `service` are the names of the
+current placement (the first by service name, then stage position), else `null`; `done` counts visible tasks
+with a current report and `toDo` the rest.
+
