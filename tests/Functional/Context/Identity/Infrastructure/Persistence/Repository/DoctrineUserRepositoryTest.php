@@ -46,4 +46,26 @@ final class DoctrineUserRepositoryTest extends KernelTestCase
 
         self::assertSame($sara->id()->toRfc4122(), $locked);
     }
+
+    public function testTheWriteLockReadsAnAlreadyLoadedAccountAfresh(): void
+    {
+        $database = new Database(self::getContainer());
+        $repository = new DoctrineUserRepository($database->entityManager());
+        $sara = Accounts::approved('sara@example.org');
+        $repository->save($sara);
+
+        $database->connection()->update(
+            'identity.app_user',
+            ['password_hash' => 'changed meanwhile'],
+            ['id' => $sara->id()->toRfc4122()],
+        );
+
+        $seen = null;
+
+        $repository->withWriteLock($sara->id(), static function (User $locked) use (&$seen): void {
+            $seen = $locked->passwordHash();
+        });
+
+        self::assertSame('changed meanwhile', $seen);
+    }
 }

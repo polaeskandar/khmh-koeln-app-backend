@@ -61,6 +61,11 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
     {
         $this->entityManager->wrapInTransaction(function () use ($id, $work): void {
             $this->entityManager->getConnection()->executeQuery(self::LOCK_ROW, [$id->toRfc4122()]);
+            $loaded = $this->entityManager->getUnitOfWork()->tryGetById($id->toRfc4122(), User::class);
+
+            if ($loaded !== false) {
+                $this->entityManager->detach($loaded);
+            }
 
             $work($this->entityManager->find(User::class, $id) ?? throw NotFound::of('user'));
         });
