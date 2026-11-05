@@ -36,6 +36,15 @@ final readonly class Memberships
 
     public function add(Person $person, Placement $placement, string $placeName): Membership
     {
+        return $this->people->withWriteLock($person->id(), fn (Person $locked): Membership => $this->added(
+            $locked,
+            $placement,
+            $placeName,
+        ));
+    }
+
+    private function added(Person $person, Placement $placement, string $placeName): Membership
+    {
         if ($person->status() !== PersonStatus::Active) {
             throw new RuleViolation('people.personInactive', ['name' => self::nameOf($person)]);
         }

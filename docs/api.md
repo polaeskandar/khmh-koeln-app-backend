@@ -1241,12 +1241,25 @@ editable members are its name, replaced whole, so a display name left out, `null
 rules, no namesake check. 200 `PersonView`; 404
 `notFound.person`, also for an id that is not a UUID.
 
+#### `POST /api/people/{id}/deactivate` and `POST /api/people/{id}/reactivate`
+
+`members: update` (403 `people.changeNotAllowed`). Body `{}` → 200 `PersonView` (`{id, firstName, lastName,
+displayName, status}`); 404 `notFound.person`. Both are idempotent: a person already in that status comes back
+unchanged.
+
+- **Deactivate:** with the person row locked, in one transaction, sets `inactive` and ends every open membership
+  as `POST /api/memberships/{id}/end` does (one that started before today ends yesterday, so past rosters and
+  attendance keep the person; one that started today is deleted). An inactive person has no open membership and
+  is left out of the directory.
+- **Reactivate:** sets `active` only; the person is on no roster until someone adds a membership.
+
 #### `POST /api/people/{id}/memberships`
 
 `members: update` (403 `people.changeNotAllowed`). Body `{serviceId, stageId?}`: puts the person on that roster
 from church-today. `serviceId` `meetings.chooseService` or `meetings.serviceArchived {name}`; `stageId`
 `meetings.chooseStage` or `meetings.stageArchived {name}`. The person is looked up first: 404 `notFound.person`,
-also for an id that is not a UUID, and 409 `people.personInactive {name}` for an inactive person. A current or
+also for an id that is not a UUID, and 409 `people.personInactive {name}` for an inactive person (the person row is locked, so this can't race a
+deactivation). A current or
 not-yet-started open membership on the same roster → 409 `people.alreadyIn {name, where}` (also when two requests
 race into the unique index); rosters of several stages at once are fine. 201 `{id, personId, service: ServiceRef,
 stage: StageRef | null, startsOn, endsOn: null}`, without `Location`: memberships have no `GET` route.
@@ -1255,7 +1268,8 @@ stage: StageRef | null, startsOn, endsOn: null}`, without `Location`: membership
 
 `members: update` (403 `people.changeNotAllowed`). Body `{stageId}`: a stage of the membership's service, or
 `null` for the service-level roster. Moves the person there from church-today, within the same service. The
-membership row is locked; one transaction:
+person row and then the membership row are locked, the order adding a membership and deactivating the person
+take too, so they wait for each other instead of deadlocking; one transaction:
 
 - one that started before today ends yesterday (Europe/Berlin) and a new one starts today, so past rosters and
   attendance stay with the old stage;

@@ -9,6 +9,7 @@ use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Repository\MembershipRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Model\LocalDate;
+use App\Library\Types\Model\Type;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
@@ -16,6 +17,8 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineMembershipRepository implements MembershipRepositoryInterface
 {
+    private const string PERSON_OF = 'SELECT person_id::text FROM people.membership WHERE id = ?';
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -54,6 +57,15 @@ final readonly class DoctrineMembershipRepository implements MembershipRepositor
             ->setMaxResults(1)
             ->executeQuery()
             ->fetchOne() !== false;
+    }
+
+    #[Override]
+    public function personOf(Uuid $membershipId): ?Uuid
+    {
+        $connection = $this->entityManager->getConnection();
+        $personId = Type::of($connection->fetchOne(self::PERSON_OF, [$membershipId->toRfc4122()]))->toStringOrNull();
+
+        return $personId === null ? null : Uuid::fromString($personId);
     }
 
     #[Override]
