@@ -708,6 +708,8 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 
 | Code | Params | Meaning (English reference text) |
 | --- | --- | --- |
+| `people.addNotAllowed` | – | **New.** Adding people needs the members permission. |
+| `people.changeNotAllowed` | – | **New.** Changing people needs the members permission. |
 | `people.firstNameRequired` | – | Enter a first name. |
 | `people.lastNameRequired` | – | Enter a last name. |
 | `people.editOutsideServices` | `name` | You can only edit people in the services you serve in. {name} is not in any of them. |
@@ -1060,6 +1062,32 @@ order they were created.
 the first, last or display name. Field errors on `q`: fewer than 2 characters besides spaces →
 `people.searchTooShort {min: 2}`; more than 100 characters → `validation.tooLong {max: 100}`; bytes that are not
 UTF-8 → `validation.invalidType`. `%` and `_` match themselves.
+
+### People
+
+A `PersonView` is `{id, firstName, lastName, displayName, status}`; a `MembershipView` is `{id, serviceId,
+stageId, startsOn, endsOn}`.
+
+#### `POST /api/people`
+
+`members: create` (403 `people.addNotAllowed`). Body `{firstName, lastName, displayName?, placement?: {serviceId,
+stageId?}, confirmDuplicate?}`. Names are cleaned first (spaces collapsed): `people.firstNameRequired`,
+`people.lastNameRequired`, `validation.tooLong {max: 80}` (display name 120); blank first and last names are
+reported together. A placement puts the person on a roster from church-today: `placement.serviceId`
+`meetings.chooseService` (unknown) or `meetings.serviceArchived {name}`; `placement.stageId`
+`meetings.chooseStage` (unknown or another service's) or `meetings.stageArchived {name}`. Without a placement the
+person is on no roster.
+
+Anyone with the same cleaned first and last name, ignoring case and display names, in any status, is a namesake:
+409 `people.duplicate {count, name}` with `candidates` (the directory's items for the active namesakes), unless
+`confirmDuplicate: true`. The person and the membership are written in one transaction. 201 `{person:
+PersonView, membership: MembershipView | null}`.
+
+#### `PATCH /api/people/{id}`
+
+`members: update` (403 `people.changeNotAllowed`). Body `{firstName?, lastName?, displayName?}`; a member left out
+keeps its value, `""` clears the display name. Same name rules, no namesake check. 200 `PersonView`; 404
+`notFound.person`.
 
 ### Schedules
 
