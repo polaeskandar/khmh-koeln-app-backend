@@ -106,6 +106,7 @@ docker run --rm --env-file prod.env khmk-api php bin/console app:migrations:migr
 - [Code style](docs/code-style.md)
 - [Testing](docs/testing.md)
 - [Operations](docs/operations.md), with the [release and rollback procedure](docs/operations.md#release)
+- [Data protection](docs/data-protection.md): inventory, measures and request procedures
 - [Launch checklist](docs/launch-checklist.md)
 
 Commits follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat: …`, `fix: …`).
