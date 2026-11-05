@@ -21,8 +21,21 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Entity]
 #[ORM\Table(name: 'data_request', schema: 'privacy')]
 #[ORM\Index(name: 'data_request_status_due_idx', columns: ['status', 'due_on'])]
+#[ORM\UniqueConstraint(
+    name: 'data_request_open_app_erasure_unique',
+    columns: ['app_user_id'],
+    options: ['where' => self::OPEN_APP_ERASURE],
+)]
 final class DataRequest extends CreatedAtEntity
 {
+    private const string ERASURE = "((kind)::text = 'erasure'::text)";
+
+    private const string APP = "((channel)::text = 'app'::text)";
+
+    private const string OPEN = "((status)::text = 'open'::text)";
+
+    private const string OPEN_APP_ERASURE = '(' . self::ERASURE . ' AND ' . self::APP . ' AND ' . self::OPEN . ')';
+
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
     private Uuid $id;
