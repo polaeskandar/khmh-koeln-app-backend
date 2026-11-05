@@ -13,6 +13,10 @@ services:
         resource: '../src/'
         exclude:
             - '../src/Platform/Kernel/Service/Kernel.php'
+            - '../src/Context/*/Domain/Attribute/'
             - '../src/Context/*/Domain/Entity/'
             - '../src/Context/*/Domain/ValueObject/'
             - '../src/Context/*/Infrastructure/Persistence/Migrations/'
+            - '../src/Interface/Api/*/Request/'
+            - '../src/Interface/Api/*/Response/'
+            - '../src/Workflow/*/Model/'
