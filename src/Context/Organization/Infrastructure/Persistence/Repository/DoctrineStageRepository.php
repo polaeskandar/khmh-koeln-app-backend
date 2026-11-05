@@ -41,6 +41,17 @@ final readonly class DoctrineStageRepository implements StageRepositoryInterface
             ]) > 0;
     }
 
+    /**
+     * @param list<Uuid> $ids
+     */
+    #[Override]
+    public function findByIds(array $ids): ReadableCollection
+    {
+        return new ArrayCollection(
+            $ids === [] ? [] : $this->entityManager->getRepository(Stage::class)->findBy(['id' => $ids]),
+        );
+    }
+
     #[Override]
     public function find(Uuid $id): ?Stage
     {

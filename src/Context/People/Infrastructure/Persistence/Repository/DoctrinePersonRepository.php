@@ -6,7 +6,12 @@ namespace App\Context\People\Infrastructure\Persistence\Repository;
 
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
+use App\Library\Strings\Model\Text;
+use App\Library\Types\Model\ListOf;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 
@@ -27,5 +32,46 @@ final readonly class DoctrinePersonRepository implements PersonRepositoryInterfa
         }
 
         $this->entityManager->flush();
+    }
+
+    /**
+     * @param list<string> $words
+     */
+    #[Override]
+    public function searchActive(array $words, int $limit): ReadableCollection
+    {
+        $query = $this->entityManager
+            ->createQueryBuilder()
+            ->select('p')
+            ->from(Person::class, 'p')
+            ->where('p.status = :active')
+            ->setParameter('active', PersonStatus::Active)
+            ->orderBy('p.name.lastName')
+            ->addOrderBy('p.name.firstName')
+            ->setMaxResults($limit);
+
+        foreach ($words as $index => $word) {
+            $query->andWhere(Text::format("p.name.searchText LIKE :word%d ESCAPE '!'", $index)->toString());
+            $query->setParameter('word' . $index, '%' . self::escaped($word) . '%');
+        }
+
+        return new ArrayCollection(ListOf::instances($query->getQuery()->getResult(), Person::class));
+    }
+
+    #[Override]
+    public function membershipsOf(ReadableCollection $people): ReadableCollection
+    {
+        if ($people->isEmpty()) {
+            return new ArrayCollection();
+        }
+
+        return new ArrayCollection($this->entityManager
+            ->getRepository(Membership::class)
+            ->findBy(['person' => $people->toArray()]));
+    }
+
+    private static function escaped(string $word): string
+    {
+        return Text::of($word)->replaceMatches('/([!%_])/', replacement: '!$1')->toString();
     }
 }

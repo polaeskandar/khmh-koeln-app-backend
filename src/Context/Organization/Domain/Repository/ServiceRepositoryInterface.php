@@ -14,6 +14,13 @@ interface ServiceRepositoryInterface
     public function save(Service $service): void;
 
     /**
+     * @param list<Uuid> $ids
+     *
+     * @return ReadableCollection<int, Service>
+     */
+    public function findByIds(array $ids): ReadableCollection;
+
+    /**
      * @return ReadableCollection<int, int>
      */
     public function tonesInUse(): ReadableCollection;
