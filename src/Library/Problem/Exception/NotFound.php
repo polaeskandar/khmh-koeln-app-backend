@@ -12,4 +12,9 @@ final class NotFound extends RuntimeException
     {
         return new self('notFound.' . $thing);
     }
+
+    public static function coded(string $code): self
+    {
+        return new self($code);
+    }
 }
