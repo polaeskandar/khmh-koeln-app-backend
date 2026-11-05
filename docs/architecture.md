@@ -221,6 +221,8 @@ recipient's address and name. Mail is queued and sent after the response (`kerne
 template, never the address, and is not raised. There is no Messenger worker for mail.
 ### Data protection (DSGVO)
 
+The inventory, processors, measures and the office's procedures are in [data-protection.md](data-protection.md).
+
 The app stores as little as the work needs: names, groups, attendance, homework reports, and for members
 and accounts an optional birth date and postal address. No photos and no grades. Staff see a member's
 birth date and address only within their services (administrators everywhere), parents their own
