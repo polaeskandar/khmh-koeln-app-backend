@@ -7,6 +7,7 @@ namespace App\Context\Meetings\Application\Service;
 use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Repository\AttendanceRepositoryInterface;
+use App\Context\Meetings\Domain\Repository\PersonTraceRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\RecordedMark;
 use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Library\Time\Client\Calendar;
@@ -18,6 +19,7 @@ final readonly class AttendanceMarks
     public function __construct(
         private AttendanceRepositoryInterface $attendance,
         private Calendar $calendar,
+        private PersonTraceRepositoryInterface $traces,
     ) {
     }
 
@@ -53,6 +55,11 @@ final readonly class AttendanceMarks
     public function ofPerson(Uuid $personId): ReadableCollection
     {
         return $this->attendance->ofPerson($personId);
+    }
+
+    public function forget(Uuid $personId): int
+    {
+        return $this->traces->forget($personId);
     }
 
     public function record(Session $session, Uuid $personId, string $accountId): RecordedMark

@@ -1,0 +1,23 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Context\Meetings\Domain\ValueObject;
+
+use Symfony\Component\Uid\Uuid;
+
+final readonly class RosterPlace
+{
+    public function __construct(
+        public Uuid $serviceId,
+        public ?Uuid $stageId,
+    ) {
+    }
+
+    public function holds(Roster $roster): bool
+    {
+        $stage = $roster->stageId?->toRfc4122();
+
+        return $stage === $this->stageId?->toRfc4122() && $roster->serviceId->equals($this->serviceId);
+    }
+}

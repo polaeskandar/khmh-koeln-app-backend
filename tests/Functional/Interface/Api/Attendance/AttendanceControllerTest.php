@@ -154,7 +154,7 @@ final class AttendanceControllerTest extends ApiTestCase
         $this->assertProblem(404, 'notFound.person');
     }
 
-    public function testAMarkIsWrittenWithTheSessionRowLockedAndParentsMayNotMark(): void
+    public function testAMarkHoldsThePersonBeforeItLocksTheSessionAndParentsMayNotMark(): void
     {
         $session = $this->session(self::ACTIVE);
 
@@ -181,6 +181,10 @@ final class AttendanceControllerTest extends ApiTestCase
         };
 
         $this->mark($session, $mina);
+
+        $locks = array_slice(new Logs(self::getContainer())->containing(' FOR '), offset: -2);
+        self::assertStringContainsString('people.person WHERE id = ? FOR SHARE', $locks[0] ?? '');
+        self::assertStringContainsString('FOR UPDATE', $locks[1] ?? '');
 
         self::assertTrue($insideTheLock(
             new Logs(self::getContainer())->lines(),

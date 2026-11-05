@@ -15,6 +15,17 @@ interface PersonRepositoryInterface
 
     public function find(Uuid $id): ?Person;
 
+    public function findForUpdate(Uuid $id): ?Person;
+
+    /**
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function withShareLock(Uuid $id, callable $work): mixed;
+
     /**
      * @param list<Uuid> $ids
      *

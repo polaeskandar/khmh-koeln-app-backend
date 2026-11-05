@@ -36,4 +36,16 @@ final readonly class ParentChildren
 
         return new Family($today, $children->getValues(), $current);
     }
+
+    /**
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function whileKept(string $childId, callable $work): mixed
+    {
+        return Uuid::isValid($childId) ? $this->people->withShareLock(Uuid::fromString($childId), $work) : $work();
+    }
 }
