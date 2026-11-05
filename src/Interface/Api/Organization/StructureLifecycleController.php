@@ -8,17 +8,20 @@ use App\Interface\Api\Organization\Response\ServiceResponse;
 use App\Interface\Api\Organization\Response\StageResponse;
 use App\Workflow\Organization\ArchiveServiceWorkflow;
 use App\Workflow\Organization\ArchiveStageWorkflow;
+use App\Workflow\Organization\DeleteServiceWorkflow;
+use App\Workflow\Organization\DeleteStageWorkflow;
 use App\Workflow\Organization\RestoreServiceWorkflow;
 use App\Workflow\Organization\RestoreStageWorkflow;
 use App\Workflow\Organization\ShowServiceWorkflow;
 use App\Workflow\Organization\ShowStageWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Requirement\Requirement;
 
 #[Route('/api', requirements: ['id' => Requirement::UUID])]
-final class ArchiveController extends AbstractController
+final class StructureLifecycleController extends AbstractController
 {
     public function __construct(
         private readonly ShowServiceWorkflow $showService,
@@ -48,6 +51,22 @@ final class ArchiveController extends AbstractController
         $archiveStage($id);
 
         return $this->json(new StageResponse(($this->showStage)($id)));
+    }
+
+    #[Route('/services/{id}', name: 'api_services_delete', methods: ['DELETE'])]
+    public function deleteService(string $id, DeleteServiceWorkflow $deleteService): Response
+    {
+        $deleteService($id);
+
+        return new Response(status: Response::HTTP_NO_CONTENT);
+    }
+
+    #[Route('/stages/{id}', name: 'api_stages_delete', methods: ['DELETE'])]
+    public function deleteStage(string $id, DeleteStageWorkflow $deleteStage): Response
+    {
+        $deleteStage($id);
+
+        return new Response(status: Response::HTTP_NO_CONTENT);
     }
 
     #[Route('/stages/{id}/restore', name: 'api_stages_restore', methods: ['POST'])]

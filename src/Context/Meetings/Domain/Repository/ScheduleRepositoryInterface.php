@@ -35,7 +35,10 @@ interface ScheduleRepositoryInterface
 
     public function find(Uuid $id): ?Schedule;
 
-    public function findRecurring(Uuid $id): ?Schedule;
+    /**
+     * @return ReadableCollection<int, Schedule>
+     */
+    public function lockedOf(?Uuid $serviceId, ?Uuid $stageId): ReadableCollection;
 
     /**
      * @param list<Uuid> $ids

@@ -8,6 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\PlacementChoices;
+use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\MembershipMoves;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\ValueObject\Placement;
@@ -18,6 +19,7 @@ final readonly class MoveMembershipWorkflow
     public function __construct(
         private AccessCheck $access,
         private PlacementChoices $placements,
+        private StructureLookup $structure,
         private MembershipMoves $moves,
     ) {
     }
@@ -33,6 +35,14 @@ final readonly class MoveMembershipWorkflow
     }
 
     private function moved(Membership $membership, ?string $stageId): AddedMembership
+    {
+        return $this->structure->whileKept(
+            [$membership->serviceId()->toRfc4122()],
+            fn (): AddedMembership => $this->movedTo($membership, $stageId),
+        );
+    }
+
+    private function movedTo(Membership $membership, ?string $stageId): AddedMembership
     {
         $chosen = $this->placements->inService($membership->serviceId()->toRfc4122(), $stageId, field: 'stageId');
         $place = $chosen->stage?->name()->value ?? $chosen->service->name()->value;

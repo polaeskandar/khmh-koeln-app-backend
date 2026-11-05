@@ -19,6 +19,14 @@ final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInt
 
     private const string SHARE_ROW = 'SELECT id FROM meetings.meeting_schedule WHERE id = ? FOR SHARE';
 
+    private const string LOCK_OWNED = <<<'SQL'
+        SELECT id FROM meetings.meeting_schedule
+        WHERE (CAST(:service AS uuid) IS NULL OR service_id = :service)
+          AND (CAST(:stage AS uuid) IS NULL OR stage_id = :stage)
+        ORDER BY id
+        FOR UPDATE
+        SQL;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -71,11 +79,14 @@ final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInt
     }
 
     #[Override]
-    public function findRecurring(Uuid $id): ?Schedule
+    public function lockedOf(?Uuid $serviceId, ?Uuid $stageId): ReadableCollection
     {
-        $schedule = $this->find($id);
+        $this->entityManager->getConnection()->executeQuery(self::LOCK_OWNED, [
+            'service' => $serviceId?->toRfc4122(),
+            'stage' => $stageId?->toRfc4122(),
+        ]);
 
-        return $schedule?->isOneOff() === false ? $schedule : null;
+        return $this->listed($serviceId, $stageId);
     }
 
     /**

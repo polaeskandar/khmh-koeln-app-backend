@@ -17,7 +17,7 @@ use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 
-final class ArchiveControllerTest extends ApiTestCase
+final class StructureLifecycleControllerTest extends ApiTestCase
 {
     use ClockSensitiveTrait;
 

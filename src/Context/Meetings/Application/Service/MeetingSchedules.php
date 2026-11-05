@@ -62,7 +62,9 @@ final readonly class MeetingSchedules
 
     public function find(string $id): Schedule
     {
-        return $this->schedules->findRecurring(Uuid::fromString($id)) ?? throw NotFound::of('schedule');
+        $schedule = $this->schedules->find(Uuid::fromString($id));
+
+        return $schedule?->isOneOff() === false ? $schedule : throw NotFound::of('schedule');
     }
 
     private static function idOf(string $field, ?string $value): ?Uuid

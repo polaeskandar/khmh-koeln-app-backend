@@ -710,6 +710,8 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `services.notArchived` | `name` | {name} is not archived. |
 | `services.takingAttendance` | `name` | {name} is taking attendance right now. Close the open sessions first. |
 | `services.hasHistory` | `name`, `count` | {name} has meeting history ({count, plural, one {# session} other {# sessions}}). Archive it instead of deleting it. |
+| `services.hasLessons` | `name`, `count` | **New.** {name} has {count, plural, one {# lesson} other {# lessons}}. Archive it instead of deleting it. |
+| `services.hasMembers` | `name`, `count` | **New.** {count, plural, one {# person was} other {# people were}} in {name}. Archive it instead of deleting it. |
 | `services.archivedNoStageChanges` | `name` | {name} is archived. Restore it before changing its stages. |
 
 ### `stages`
@@ -724,6 +726,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `stages.notArchived` | `name` | {name} is not archived. |
 | `stages.takingAttendance` | `name` | {name} is taking attendance right now. Close the session first. |
 | `stages.hasHistory` | `name`, `count` | {name} has meeting history ({count, plural, one {# session} other {# sessions}}). Archive it instead of deleting it. |
+| `stages.hasLessons` | `name`, `count` | **New.** {name} has {count, plural, one {# lesson} other {# lessons}}. Archive it instead of deleting it. |
 | `stages.hasMembers` | `count`, `name` | {count, plural, one {# person is} other {# people are}} still in {name}. Move them to another stage first, or archive the stage. |
 
 ### `meetings`
@@ -1150,6 +1153,23 @@ service row locked; a stage of an archived service → 409 `services.archivedNoS
   archived ones follow). Memberships stay open; opening its sessions → 409 `meetings.stageArchivedRestoreFirst`.
 - **Restore:** 409 `stages.notArchived {name}`; the stage goes after the active stages; its schedules stay
   inactive.
+
+#### `DELETE /api/services/{id}` and `DELETE /api/stages/{id}`
+
+For a service or stage created by mistake and never used; anything with history is archived instead. Body `{}` →
+204; 404 `notFound.service` / `notFound.stage`. Services need `services: delete` (else 403
+`services.adminOnlyDelete`), stages `stages: delete` (else 403 `forbidden`; a stage of an archived service → 409
+`services.archivedNoStageChanges {name}`).
+
+Refused with 409 `{name, count}`, nothing deleted:
+
+- `services.hasHistory` / `stages.hasHistory`: any session of its schedules, canceled and one-off ones included;
+- `services.hasLessons` / `stages.hasLessons`: any lesson of its stages, archived ones included;
+- `services.hasMembers` / `stages.hasMembers`: any membership, open or ended.
+
+Otherwise, in one transaction with the service row locked, its schedules, stages and the service itself are
+deleted; a deleted stage's service renumbers its remaining stages. Writes that add a membership, a schedule, a
+one-off session or a lesson to it wait for the deletion and then find it gone.
 
 #### `GET /api/services?status=active|archived|all`
 

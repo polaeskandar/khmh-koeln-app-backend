@@ -9,7 +9,9 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
+use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -44,6 +46,38 @@ final readonly class StructureLookup
     public function stage(string $id): Stage
     {
         return $this->stages->find(Uuid::fromString($id)) ?? throw NotFound::of('stage');
+    }
+
+    /**
+     * @template T
+     *
+     * @param list<?string> $serviceIds
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function whileKept(array $serviceIds, callable $work): mixed
+    {
+        $ids = Collections::mapPresent(
+            new ArrayCollection($serviceIds),
+            static fn (?string $id): ?Uuid => Uuid::isValid($id ?? '') ? Uuid::fromString($id ?? '') : null,
+        );
+
+        return $this->services->withShareLock($ids->getValues(), $work);
+    }
+
+    /**
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function whileStageKept(string $stageId, callable $work): mixed
+    {
+        $serviceId = $this->stages->serviceIdOf(Uuid::fromString($stageId)) ?? throw NotFound::of('stage');
+
+        return $this->services->withShareLock([$serviceId], $work);
     }
 
     /**

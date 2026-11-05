@@ -27,6 +27,16 @@ final readonly class Memberships
     ) {
     }
 
+    public function countInService(Uuid $serviceId): int
+    {
+        return $this->memberships->countInService($serviceId);
+    }
+
+    public function countInStage(Uuid $stageId): int
+    {
+        return $this->memberships->countInStage($stageId);
+    }
+
     public function add(string $personId, Placement $placement, string $placeName): Membership
     {
         $added = null;

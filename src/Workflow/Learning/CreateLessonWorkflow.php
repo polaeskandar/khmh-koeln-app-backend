@@ -33,6 +33,11 @@ final readonly class CreateLessonWorkflow
     {
         $this->access->require(Action::Create, Resource::Lessons, refusal: 'lessons.prepareStageOnly');
 
+        return $this->structure->whileStageKept($stageId, fn (): WrittenLesson => $this->created($stageId, $choice));
+    }
+
+    private function created(string $stageId, LessonChoice $choice): WrittenLesson
+    {
         $stage = LessonStages::opened($this->structure->stage($stageId));
         $draft = $choice->draft();
 

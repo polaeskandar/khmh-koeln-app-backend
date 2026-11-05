@@ -12,6 +12,7 @@ use App\Context\Meetings\Domain\Enum\RosterMode;
 use App\Context\Meetings\Domain\ValueObject\OneOffDraft;
 use App\Context\Meetings\Domain\ValueObject\Roster;
 use App\Context\Organization\Application\Service\PlacementChoices;
+use App\Context\Organization\Application\Service\StructureLookup;
 use App\Workflow\Meetings\Model\OneOffChoice;
 
 final readonly class CreateOneOffSessionWorkflow
@@ -19,6 +20,7 @@ final readonly class CreateOneOffSessionWorkflow
     public function __construct(
         private AccessCheck $access,
         private PlacementChoices $placements,
+        private StructureLookup $structure,
         private OneOffSessions $oneOffs,
     ) {
     }
@@ -27,6 +29,14 @@ final readonly class CreateOneOffSessionWorkflow
     {
         $this->access->require(Action::Create, Resource::Sessions);
 
+        return $this->structure->whileKept([$oneOff->roster->serviceId], fn (): string => $this->created(
+            $oneOff,
+            $accountId,
+        ));
+    }
+
+    private function created(OneOffChoice $oneOff, string $accountId): string
+    {
         $roster = $oneOff->roster;
         $chosen = $this->placements->of($roster->serviceId, $roster->stageId, fieldPrefix: 'roster.');
 

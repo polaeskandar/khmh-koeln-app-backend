@@ -12,7 +12,7 @@ use Symfony\Component\Uid\Uuid;
 
 final class DoctrineStageRepositoryTest extends KernelTestCase
 {
-    public function testAStageBelongsOnlyToItsOwnService(): void
+    public function testAStageNamesOnlyItsOwnService(): void
     {
         $database = new Database(self::getContainer());
         $repository = new DoctrineStageRepository($database->entityManager());
@@ -23,8 +23,8 @@ final class DoctrineStageRepositoryTest extends KernelTestCase
 
         $repository->save($beginners);
 
-        self::assertTrue($repository->belongsTo($beginners->id(), $sundaySchool->id()));
-        self::assertFalse($repository->belongsTo($beginners->id(), $youth->id()));
-        self::assertFalse($repository->belongsTo(Uuid::v7(), $sundaySchool->id()));
+        self::assertTrue($repository->serviceIdOf($beginners->id())?->equals($sundaySchool->id()));
+        self::assertFalse($repository->serviceIdOf($beginners->id())?->equals($youth->id()));
+        self::assertNull($repository->serviceIdOf(Uuid::v7()));
     }
 }

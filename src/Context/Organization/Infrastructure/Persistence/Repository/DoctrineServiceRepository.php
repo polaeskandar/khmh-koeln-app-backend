@@ -12,6 +12,7 @@ use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
@@ -19,6 +20,8 @@ use Symfony\Component\Uid\Uuid;
 final readonly class DoctrineServiceRepository implements ServiceRepositoryInterface
 {
     private const string LOCK_ROW = 'SELECT id FROM organization.service WHERE id = ? FOR UPDATE';
+
+    private const string SHARE_ROWS = 'SELECT id FROM organization.service WHERE id IN (:ids) ORDER BY id FOR SHARE';
 
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -33,15 +36,22 @@ final readonly class DoctrineServiceRepository implements ServiceRepositoryInter
     }
 
     #[Override]
+    public function remove(Service $service): void
+    {
+        $this->entityManager->remove($service);
+        $this->entityManager->flush();
+    }
+
+    #[Override]
     public function tonesInUse(): ReadableCollection
     {
         $stored = new ArrayCollection($this->entityManager->getRepository(Service::class)->findAll())->map(
-            self::toneOf(...),
+            ServiceTones::of(...),
         );
 
         $pending = Collections::mapPresent(
             new ArrayCollection($this->entityManager->getUnitOfWork()->getScheduledEntityInsertions()),
-            self::pendingToneOf(...),
+            ServiceTones::pendingOf(...),
         );
 
         return new ArrayCollection([...$stored->toArray(), ...$pending->toArray()]);
@@ -85,19 +95,30 @@ final readonly class DoctrineServiceRepository implements ServiceRepositoryInter
         });
     }
 
+    /**
+     * @param list<Uuid> $ids
+     */
+    #[Override]
+    public function withShareLock(array $ids, callable $work): mixed
+    {
+        return $this->entityManager->wrapInTransaction(function () use ($ids, $work): mixed {
+            $this->entityManager->getConnection()->executeQuery(
+                self::SHARE_ROWS,
+                [
+                    'ids' => new ArrayCollection($ids)->map(
+                        static fn (Uuid $id): string => $id->toRfc4122(),
+                    )->getValues(),
+                ],
+                ['ids' => ArrayParameterType::STRING],
+            );
+
+            return $work();
+        });
+    }
+
     #[Override]
     public function listed(ServiceFilter $filter): ReadableCollection
     {
         return $this->entityManager->getRepository(Service::class)->matching(ServiceFilters::criteria($filter));
-    }
-
-    private static function pendingToneOf(object $entity): ?int
-    {
-        return $entity instanceof Service ? self::toneOf($entity) : null;
-    }
-
-    private static function toneOf(Service $service): int
-    {
-        return $service->tone()->value;
     }
 }
