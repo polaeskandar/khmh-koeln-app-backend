@@ -1239,6 +1239,20 @@ current mark: `scheduled` → 409 `attendance.openFirst`; `completed` → 409 `a
 `notFound.person` (also for ids that are not UUIDs); marking an inactive person → 409 `attendance.personInactive {name}` (removing ignores the
 person's status). A refused call writes nothing.
 
+#### `GET /api/attendance/overview`
+
+`attendance: read`. The staff home until the dashboard (#108): `{today, sessions, earlier, closed, openCount}`. A
+card is the session's `SessionView` plus `openedAt`, `closedAt`, `closedBy: AccountRef | null` and `counts:
+Counts`. Sessions of archived services are left out.
+
+- `sessions`: today's sessions of every status, by start time, service name and stage position.
+- `earlier`: sessions still `scheduled` or `active` from 21 days ago to yesterday, oldest first.
+- `closed`: the 6 most recently closed sessions, newest first.
+- `earlier` and `closed` are empty without `attendance: create`.
+- `openCount`: the `active` cards in `sessions` and `earlier`, for the badge.
+
+The cards cost the same number of statements whatever their number.
+
 ### The meeting a lesson is for
 
 Lesson reads carry a `meeting`, one of:
