@@ -16,6 +16,8 @@ final readonly class AccountStatus
         public ?DateTimeImmutable $approvedAt,
         #[ORM\Column(name: 'disabled_at', type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
         public ?DateTimeImmutable $disabledAt,
+        #[ORM\Column(name: 'auth_version', options: ['default' => 0])]
+        public int $authVersion = 0,
     ) {
     }
 
@@ -27,6 +29,20 @@ final readonly class AccountStatus
     public static function approvedAt(DateTimeImmutable $at): self
     {
         return new self(approvedAt: $at, disabledAt: null);
+    }
+
+    public function disabledAt(DateTimeImmutable $at): self
+    {
+        if ($this->isDisabled()) {
+            return $this;
+        }
+
+        return new self($this->approvedAt, $at, $this->authVersion + 1);
+    }
+
+    public function enabled(): self
+    {
+        return new self($this->approvedAt, disabledAt: null, authVersion: $this->authVersion);
     }
 
     public function isActive(): bool
@@ -42,17 +58,5 @@ final readonly class AccountStatus
     public function isDisabled(): bool
     {
         return $this->disabledAt !== null;
-    }
-
-    public function equals(self $other): bool
-    {
-        $sameApproval = self::sameInstant($this->approvedAt, $other->approvedAt);
-
-        return $sameApproval && self::sameInstant($this->disabledAt, $other->disabledAt);
-    }
-
-    private static function sameInstant(?DateTimeImmutable $one, ?DateTimeImmutable $other): bool
-    {
-        return $one?->getTimestamp() === $other?->getTimestamp();
     }
 }
