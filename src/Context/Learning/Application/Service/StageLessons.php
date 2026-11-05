@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Context\Learning\Application\Service;
+
+use App\Context\Learning\Domain\Entity\Lesson;
+use App\Context\Learning\Domain\Enum\LessonTab;
+use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
+use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
+use App\Context\Learning\Domain\ValueObject\LessonListing;
+use App\Context\Learning\Domain\ValueObject\LessonTabs;
+use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Time\Client\Calendar;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Uid\Uuid;
+
+final readonly class StageLessons
+{
+    public function __construct(
+        private LessonRepositoryInterface $lessons,
+        private HomeworkRepositoryInterface $homework,
+        private Calendar $calendar,
+    ) {
+    }
+
+    public function listed(Uuid $stageId, string $tab, ?string $query): LessonListing
+    {
+        $chosen = LessonTab::tryFrom($tab) ?? throw InvalidInput::field('tab', 'validation.invalidChoice');
+        $today = $this->calendar->today();
+        $tabs = new LessonTabs($this->lessons->ofStage($stageId), $today);
+        $shown = $tabs->shown($chosen, $query);
+        $ids = new ArrayCollection($shown)->map(static fn (Lesson $lesson): Uuid => $lesson->id())->getValues();
+
+        return new LessonListing($today, $tabs->counts(), $shown, $this->homework->countsByLesson($ids));
+    }
+}

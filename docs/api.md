@@ -1364,6 +1364,25 @@ or of another stage → 404
 
 The options cost the same number of statements whatever the number of lessons.
 
+#### `GET /api/stages/{stageId}/lessons?tab=upcoming|previous|archived&q=`
+
+`lessons: read`. The stage's Lessons tab: `{service: ServiceRef, stage: StageRef, archived, today, tabs: {upcoming,
+previous, archived}, servants: AccountRef[], items: LessonRow[]}`; 404 `notFound.stage`, also for an id that is not a
+UUID; another `tab` → 422 `validation.invalidChoice`.
+
+- `upcoming` (default): lessons not archived with `teachingDate` from today on, oldest first; `previous`: not
+  archived and before today, newest first; `archived`: newest first.
+- `q` keeps the rows whose title or passage holds every word, ignoring case and accents. `tabs` counts each tab
+  without `q`.
+- A `LessonRow` is `{id, title, passage, teachingDate, status, responsible: AccountRef | null, meeting:
+  MeetingView, homework: {total, published, drafts}}`. `responsible` is `null` once the account is gone; `homework`
+  counts the lesson's tasks that are not archived.
+- `archived` is `true` when the stage or its service is archived; apps offer creating a lesson for `lessons:
+  create` while it is `false` (`POST` answers 409 `lessons.stageArchived` otherwise). `servants` are the lesson
+  preparers.
+
+The rows cost the same number of statements whatever their number.
+
 #### `POST /api/stages/{stageId}/lessons`
 
 `lessons: create` (403 `lessons.prepareStageOnly`). Body:

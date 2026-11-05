@@ -58,6 +58,12 @@ final readonly class DoctrineLessonRepository implements LessonRepositoryInterfa
         return $this->entityManager->find(Lesson::class, $id);
     }
 
+    #[Override]
+    public function ofStage(Uuid $stageId): ReadableCollection
+    {
+        return new ArrayCollection($this->entityManager->getRepository(Lesson::class)->findBy(['stageId' => $stageId]));
+    }
+
     /**
      * @param list<Uuid> $scheduleIds
      */

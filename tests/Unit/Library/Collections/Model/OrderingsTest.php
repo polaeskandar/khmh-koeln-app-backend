@@ -17,5 +17,10 @@ final class OrderingsTest extends TestCase
         $ordered = Orderings::byKeys($rows, keysOf: static fn (array $row): array => $row);
 
         self::assertSame([['a', 9], ['a', 10], ['ab', 1], ['b', 2]], $ordered);
+
+        self::assertSame(
+            [['b', 2], ['ab', 1], ['a', 10], ['a', 9]],
+            Orderings::byKeysDescending($rows, keysOf: static fn (array $row): array => $row),
+        );
     }
 }
