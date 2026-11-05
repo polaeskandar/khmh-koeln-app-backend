@@ -28,6 +28,7 @@ final class PrivacyEraseAccountCommandTest extends KernelTestCase
     private const array OWNED = [
         'people.guardian_relationship.user_id',
         'organization.registration_service.account_id',
+        'learning.lesson_collaborator.user_id',
     ];
 
     public function testAServantsWorkStaysWithoutTheServant(): void

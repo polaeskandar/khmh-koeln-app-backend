@@ -8,11 +8,15 @@ use App\Context\Learning\Domain\ValueObject\TextDraft;
 
 final readonly class LessonDetailsChoice
 {
+    /**
+     * @param list<string>|null $collaboratorIds
+     */
     public function __construct(
         public ?string $title,
         public ?string $summary,
         public ?string $passage,
         public ?string $memoryVerse,
+        public ?array $collaboratorIds,
     ) {
     }
 

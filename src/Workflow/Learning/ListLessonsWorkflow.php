@@ -39,7 +39,7 @@ final readonly class ListLessonsWorkflow
             today: $listing->today->toString(),
             tabs: $listing->tabs,
             abilities: LessonAbilities::grantedBy($this->access, $this->accounts, $stage),
-            items: LessonRows::lookedUpIn($this->meetings, $this->accounts, $listing),
+            items: LessonRows::lookedUpIn($this->meetings, $this->accounts, $this->lessons, $listing),
         );
     }
 }

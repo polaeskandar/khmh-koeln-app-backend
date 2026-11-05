@@ -25,7 +25,7 @@ final readonly class LessonDetailResponse implements JsonSerializable
      *     service: ServiceReference,
      *     stage: StageSummary,
      *     today: string,
-     *     lesson: array<string, string|list<array{label: string, url: string|null}>|object|null>,
+     *     lesson: array<string, string|list<array{label: string, url: string|null}|AccountReference>|object|null>,
      *     homework: LessonHomework,
      *     can: array{
      *         manage: bool,
@@ -70,6 +70,7 @@ final readonly class LessonDetailResponse implements JsonSerializable
      *     teachingDate: string,
      *     status: string,
      *     responsible: AccountReference|null,
+     *     collaborators: list<AccountReference>,
      *     meeting: MeetingViewResponse,
      *     scheduleId: string|null,
      *     summary: string|null,

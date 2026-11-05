@@ -8,9 +8,13 @@ use App\Workflow\Identity\Model\AccountReference;
 
 final readonly class LessonRow
 {
+    /**
+     * @param list<AccountReference> $collaborators
+     */
     public function __construct(
         public LessonSummary $lesson,
         public ?AccountReference $responsible,
+        public array $collaborators,
         public MeetingView $meeting,
         public LessonHomework $homework,
     ) {

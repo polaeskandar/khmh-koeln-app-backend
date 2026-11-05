@@ -1610,8 +1610,9 @@ archived}, servants: AccountRef[], can: {create}, items: LessonRow[]}`; 404 `not
   archived and before today, newest first; `archived`: newest first.
 - `q` keeps the rows whose title or passage holds every word, ignoring case and accents. `tabs` counts each tab
   without `q`.
-- A `LessonRow` is `{id, title, passage, teachingDate, status, responsible: AccountRef | null, meeting:
-  MeetingView, homework: {total, published, drafts}}`. `responsible` is `null` once the account is gone; `homework`
+- A `LessonRow` is `{id, title, passage, teachingDate, status, responsible: AccountRef | null, collaborators:
+  AccountRef[], meeting: MeetingView, homework: {total, published, drafts}}`. `collaborators` are the helping
+  servants by name, loaded in one batch for the list. `responsible` is `null` once the account is gone; `homework`
   counts the lesson's tasks that are not archived.
 - `servants` are the lesson preparers; `can.create` is `lessons: create` while the stage and its service are not
   archived.
@@ -1660,7 +1661,11 @@ collapsed and the texts trimmed (empty → `null`); material rows with neither l
 Field errors: `details.title` `lessons.titleRequired`, `validation.tooLong {max: 160}`; `details.summary` 1000,
 `details.passage` 200, `details.memoryVerse` 500 and each `plan.*` text 4000 (`validation.tooLong`);
 `plan.materials.{i}.label`/`.url` as in `materials`; `meeting` as in "The meeting a lesson is for";
-`responsibleId` `lessons.chooseResponsible` when it is missing or not a lesson preparer; `status`
+`details.collaboratorIds` (optional, the helping servants): repeated ids and the responsible are dropped, in
+whatever case the UUIDs are written; at most
+20 (`validation.tooMany {max: 20}`); a new id that is not a lesson preparer → `lessons.helpersInStage`; ids already
+on the lesson stay accepted after the person lost the role; on `PATCH` a sent list replaces the helpers, in the
+lesson's transaction with its row locked, and omitting it keeps them. `responsibleId` `lessons.chooseResponsible` when it is missing or not a lesson preparer; `status`
 `validation.invalidChoice`. Two saves racing for one meeting → the loser gets `meeting`
 `lessons.meetingHasLesson {title}`.
 

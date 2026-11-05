@@ -15,7 +15,7 @@ use App\Context\Organization\Application\Service\StructureLookup;
 use App\Workflow\Learning\Model\LessonChoice;
 use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Learning\Model\OfferedMeetings;
-use App\Workflow\Learning\Model\ResponsibleChoices;
+use App\Workflow\Learning\Model\TeamChoices;
 use App\Workflow\Learning\Model\WrittenLesson;
 
 final readonly class CreateLessonWorkflow
@@ -47,7 +47,7 @@ final readonly class CreateLessonWorkflow
                 $stage,
                 $draft,
                 OfferedMeetings::lookedUpIn($this->meetings, $draft->meeting),
-                ResponsibleChoices::lookedUpIn($this->accounts, $choice->responsibleId),
+                TeamChoices::lookedUpIn($this->accounts, $choice),
             ),
         ));
     }

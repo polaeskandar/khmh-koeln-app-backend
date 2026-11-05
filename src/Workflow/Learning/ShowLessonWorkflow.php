@@ -36,7 +36,10 @@ final readonly class ShowLessonWorkflow
         $lesson = $reading->lesson;
         $stage = $this->structure->stage($lesson->stageId()->toRfc4122());
         $can = LessonDetailAbilities::grantedBy($this->access, $lesson, $stage, $reading->today, $this->lessons);
-        $row = LessonRows::of($this->meetings, $this->accounts, [$lesson], $reading->homework)->rowOf($lesson);
+
+        $row = LessonRows::of($this->meetings, $this->accounts, $this->lessons, [$lesson], $reading->homework)->rowOf(
+            $lesson,
+        );
 
         return new LessonDetail(
             stage: LessonStageView::of($stage),

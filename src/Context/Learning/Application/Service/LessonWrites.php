@@ -9,13 +9,15 @@ use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\LessonDraft;
 use App\Context\Learning\Domain\ValueObject\LessonStage;
+use App\Context\Learning\Domain\ValueObject\LessonTeam;
 use App\Context\Learning\Domain\ValueObject\MeetingChoice;
 use App\Context\Learning\Domain\ValueObject\MeetingLink;
 use App\Context\Learning\Domain\ValueObject\OfferedMeeting;
-use App\Context\Learning\Domain\ValueObject\ResponsibleChoice;
+use App\Context\Learning\Domain\ValueObject\TeamChoice;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
+use App\Platform\Doctrine\Contract\Transactions;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class LessonWrites
@@ -23,6 +25,8 @@ final readonly class LessonWrites
     public function __construct(
         private LessonRepositoryInterface $lessons,
         private LessonMeetings $meetings,
+        private LessonTeams $teams,
+        private Transactions $transactions,
         private Calendar $calendar,
     ) {
     }
@@ -35,17 +39,13 @@ final readonly class LessonWrites
         return $lesson;
     }
 
-    public function create(
-        LessonStage $stage,
-        LessonDraft $draft,
-        ?OfferedMeeting $offered,
-        ResponsibleChoice $responsible,
-    ): Lesson {
+    public function create(LessonStage $stage, LessonDraft $draft, ?OfferedMeeting $offered, TeamChoice $team): Lesson
+    {
         $text = $draft->text->merged(stored: null);
         $link = $this->meetings->link($stage->id, $draft->meeting ?? new MeetingChoice(), $offered);
-        $lesson = new Lesson($stage->id, $link, $text, $responsible->chosen(current: null));
+        $chosen = $this->teams->chosen($team, lesson: null);
 
-        return $this->described($lesson, $draft);
+        return $this->saved(new Lesson($stage->id, $link, $text, $chosen->responsible), $draft, $chosen);
     }
 
     public function edit(
@@ -53,13 +53,14 @@ final readonly class LessonWrites
         LessonStage $stage,
         LessonDraft $draft,
         ?OfferedMeeting $offered,
-        ResponsibleChoice $responsible,
+        TeamChoice $team,
     ): Lesson {
         $text = $draft->text->merged($lesson->text());
         $link = $this->relinked($lesson, $stage, $draft->meeting, $offered);
-        $lesson->edit($text, $link, $responsible->chosen($lesson->responsibleId()));
+        $chosen = $this->teams->chosen($team, $lesson);
+        $lesson->edit($text, $link, $chosen->responsible);
 
-        return $this->described($lesson, $draft);
+        return $this->saved($lesson, $draft, $chosen);
     }
 
     public function changeStatus(Lesson $lesson, string $status): Lesson
@@ -89,13 +90,17 @@ final readonly class LessonWrites
         return $link;
     }
 
-    private function described(Lesson $lesson, LessonDraft $draft): Lesson
+    private function saved(Lesson $lesson, LessonDraft $draft, LessonTeam $team): Lesson
     {
         $lesson->describe($draft->plan->merged($lesson->plan()), $draft->plan->materials($lesson->materials()));
         $status = LessonStatus::from($draft->status ?? $lesson->state()->status->value);
         $lesson->changeStatus($status, $this->calendar->today(), $this->calendar->now());
-        $this->lessons->save($lesson);
 
-        return $lesson;
+        return $this->transactions->run(function () use ($lesson, $team): Lesson {
+            $this->lessons->save($lesson);
+            $this->teams->store($lesson, $team);
+
+            return $lesson;
+        });
     }
 }

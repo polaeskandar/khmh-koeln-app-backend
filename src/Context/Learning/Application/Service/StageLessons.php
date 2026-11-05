@@ -26,6 +26,7 @@ final readonly class StageLessons
         private LessonRepositoryInterface $lessons,
         private HomeworkRepositoryInterface $homework,
         private LessonHomeworkRepositoryInterface $lessonHomework,
+        private LessonTeams $teams,
         private Calendar $calendar,
     ) {
     }
@@ -41,6 +42,16 @@ final readonly class StageLessons
     public function hasPublishedHomework(Lesson $lesson): bool
     {
         return $this->lessonHomework->hasPublished($lesson->id());
+    }
+
+    /**
+     * @param list<Lesson> $lessons
+     *
+     * @return array<string, list<string>>
+     */
+    public function helpersOf(array $lessons): array
+    {
+        return $this->teams->helpersOf($lessons);
     }
 
     public function listed(Uuid $stageId, string $tab, ?string $query): LessonListing
