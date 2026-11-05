@@ -37,6 +37,17 @@ final readonly class MeetingSchedules
         return $this->withPresent($dates);
     }
 
+    /**
+     * @param ReadableCollection<int, Schedule> $schedules
+     */
+    public function agendaFor(
+        ReadableCollection $schedules,
+        ArchivedStructure $archived,
+        AgendaRange $range,
+    ): AgendaDates {
+        return $this->plannedDates->agendaOf($schedules, $archived, $range);
+    }
+
     public function upcomingOf(ArchivedStructure $archived, AgendaRange $range): AgendaDates
     {
         $schedules = $archived->inOpenServices($this->schedules->listed(serviceId: null, stageId: null));

@@ -12,7 +12,6 @@ use App\Context\People\Domain\ValueObject\Family;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class MemberRecords
@@ -34,17 +33,6 @@ final readonly class MemberRecords
             ->filter(static fn (Membership $membership): bool => $membership->tenure()->includes($today));
 
         return new Family($today, $own->getValues(), $current);
-    }
-
-    /**
-     * @return ReadableCollection<int, Membership>
-     */
-    public function currentMembershipsOf(Uuid $personId): ReadableCollection
-    {
-        $record = $this->ownRecord($personId);
-        $person = $record->children[0] ?? null;
-
-        return $person === null ? new ArrayCollection() : $record->membershipsOf($person);
     }
 
     /**

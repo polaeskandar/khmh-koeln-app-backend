@@ -34,6 +34,11 @@ final readonly class AgendaRange
         return new self($today, $start, $end);
     }
 
+    public static function days(LocalDate $today, int $count): self
+    {
+        return new self($today, $today, $today->addDays($count - 1));
+    }
+
     public static function ahead(LocalDate $today, int $days): self
     {
         return new self($today, $today->addDays(1), $today->addDays($days));
