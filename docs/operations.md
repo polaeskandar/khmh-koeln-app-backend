@@ -47,7 +47,6 @@ flowchart LR
 | Exactly one API container, reachable only through the proxy | Must | Sign-in throttling counts per instance (#19); `trusted_proxies` (#41) |
 | TLS certificates renewed automatically by the proxy (FrankenPHP/Caddy, Let's Encrypt), HSTS | Must | `__Host-` session cookie (`Secure`), one origin |
 | Encrypted disks for the server and the backup volume | Must | DSGVO Art. 32 |
-| An operator shell (SSH) whose command output is not logged | Must | `app:user:password-link` prints one-time links (#30) |
 | Security updates of the OS applied automatically, reboots scheduled | Must | The server faces the internet |
 | Deploy by image tag, with rollback to the previous tag | Should | Release and rollback procedure (#43) |
 | Snapshots of the server | Should | Fast rebuild after a failure |

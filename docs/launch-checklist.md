@@ -66,8 +66,8 @@ and dates are readable, nothing is cut off. German checks: the formal "Sie", no 
 | Sign in as the first administrator with a wrong password | "Wrong email or password", without saying which; no session |
 | Sign in with the right password | The staff home (attendance overview) opens; the account menu shows "QA Admin" |
 | Sign out | The sign-in page opens; the browser's back button shows no staff data |
-| Open "Forgot password?" | A page explains that the church office hands out a one-time link; there is no form and no promise of an email |
-| On the server, run `bin/console app:user:password-link qa-admin@example.org` | It prints a link valid for 24 hours; nothing about it appears in the logs (spot check 4) |
+| Open "Forgot password?" | A page explains that the church office sends a one-time link by email; there is no form |
+| On the server, run `bin/console app:user:password-link qa-admin@example.org` | The QA mailbox gets an email with a link valid for 24 hours; the command prints only the address and the expiry, and nothing about the link appears in the logs (spot check 4) |
 | Open the link, set a new password, sign in with it | The password is saved; signing in with the old one fails, with the new one succeeds |
 | Open the same link again | "This link no longer works; ask the church office for a new one" |
 
