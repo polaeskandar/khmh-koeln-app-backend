@@ -243,7 +243,10 @@ Emails use the same rule: `AccountMailer::send($user, $template, $params)` rende
 `translations/emails.{en,de,ar}.yaml` in the account's language. The only personal data in an email is the
 recipient's address and name. Mail is queued and sent after the response (`kernel.terminate`,
 `console.terminate`), so no request waits for the mail server; a failure is logged with the account id and
-template, never the address, and is not raised. There is no Messenger worker for mail.
+template, never the address, and is not raised. There is no Messenger worker for mail. Work whose duration
+would reveal something runs there too: Platform's `AfterResponse` (`TerminateQueue`) runs it at
+`kernel.terminate`, before the mail is sent, and logs a failure. The password reset uses it, so an unknown
+address answers as fast as a known one.
 ### Data protection (DSGVO)
 
 The inventory, processors, measures and the office's procedures are in [data-protection.md](data-protection.md).
