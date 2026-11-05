@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Context\Learning\Infrastructure\Persistence\Repository;
 
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
-use App\Context\Learning\Domain\Entity\HomeworkCompletion;
+use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkCounts;
 use App\Library\Collections\Model\Collections;
@@ -99,26 +99,39 @@ final readonly class DoctrineHomeworkRepository implements HomeworkRepositoryInt
     }
 
     /**
-     * @param list<HomeworkAssignment> $tasks
+     * @param list<Uuid> $stageIds
+     *
+     * @return list<HomeworkAssignment>
      */
     #[Override]
-    public function currentReportsOf(array $tasks): ReadableCollection
+    public function publishedInStages(array $stageIds): array
     {
-        if ($tasks === []) {
-            return new ArrayCollection();
+        if ($stageIds === []) {
+            return [];
         }
 
         $query = $this->entityManager
             ->createQueryBuilder()
-            ->select('c')
-            ->from(HomeworkCompletion::class, 'c')
-            ->where('c.assignment IN (:tasks)')
-            ->andWhere('c.undoneAt IS NULL')
-            ->orderBy('c.completedAt')
-            ->setParameter('tasks', $tasks)
+            ->select('h', 'l')
+            ->from(HomeworkAssignment::class, 'h')
+            ->join('h.lesson', 'l')
+            ->where('h.stageId IN (:stages)')
+            ->andWhere('h.state.status = :published')
+            ->setParameter('stages', self::ids($stageIds), ArrayParameterType::STRING)
+            ->setParameter('published', HomeworkStatus::Published)
             ->getQuery();
 
-        return new ArrayCollection(ListOf::instances($query->getResult(), HomeworkCompletion::class));
+        return ListOf::instances($query->getResult(), HomeworkAssignment::class);
+    }
+
+    /**
+     * @param list<Uuid> $ids
+     *
+     * @return list<string>
+     */
+    private static function ids(array $ids): array
+    {
+        return new ArrayCollection($ids)->map(static fn (Uuid $id): string => $id->toRfc4122())->getValues();
     }
 
     /**
@@ -135,10 +148,6 @@ final readonly class DoctrineHomeworkRepository implements HomeworkRepositoryInt
             ->where('lesson_id IN (:lessons)')
             ->andWhere('archived_at IS NULL')
             ->groupBy('lesson_id')
-            ->setParameter(
-                'lessons',
-                new ArrayCollection($lessonIds)->map(static fn (Uuid $id): string => $id->toRfc4122())->getValues(),
-                ArrayParameterType::STRING,
-            );
+            ->setParameter('lessons', self::ids($lessonIds), ArrayParameterType::STRING);
     }
 }

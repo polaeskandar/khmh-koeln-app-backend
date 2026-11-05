@@ -288,7 +288,10 @@ In numbers (`TaskAudiences`), for church-today in Europe/Berlin:
   `completedAfterDueDate` = in-stage reports whose Berlin date is after `due_date` (never without one);
   `withoutParentAccount` = in-stage children with no report and no approved guardian link to an active account;
   `reportedTotal` = every current report.
-- The parent portal (#90) uses the same condition for the tasks a parent's child sees.
+- The parent portal (`VisibleHomework`) uses the same condition for the tasks a parent's child sees: the
+  viewer is an active account with an approved link to the child, the task is `published`, and the child is in
+  its stage today (active, membership current) or has a current report. Every parent read and write goes through
+  it, with the viewer, never a bare child id.
 
 ## Data protection
 

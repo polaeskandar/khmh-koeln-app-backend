@@ -7,6 +7,7 @@ namespace App\Tests\Support\Workflow\Learning\Model;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Learning\Application\Service\HomeworkReports;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Repository\HomeworkReportRepositoryInterface;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Organization\Application\Service\StructureLookup;
@@ -34,6 +35,7 @@ final readonly class TaskAudienceLookups
     {
         $reports = new HomeworkReports(
             $this->service(HomeworkRepositoryInterface::class),
+            $this->service(HomeworkReportRepositoryInterface::class),
             $this->service(LessonRepositoryInterface::class),
             $this->service(Calendar::class),
         )->of($tasks);
