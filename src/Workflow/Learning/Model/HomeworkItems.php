@@ -18,11 +18,11 @@ final readonly class HomeworkItems
      */
     public static function of(TaskAudiences $audiences, AccessCheck $access, Stage $stage): array
     {
-        $itemOf = static fn (HomeworkAssignment $task): HomeworkItem => new HomeworkItem(
-            HomeworkSummary::of($task, $audiences->reports()),
-            LessonOnDate::of($task->lesson()),
-            self::countsOf($audiences, $task),
-            HomeworkAbilities::grantedBy($access, $task, $stage),
+        $itemOf = static fn (HomeworkAssignment $task): HomeworkItem => self::itemOf(
+            $audiences,
+            $access,
+            $stage,
+            $task,
         );
 
         $newestFirst = Collections::sortedDescendingBy(
@@ -31,6 +31,20 @@ final readonly class HomeworkItems
         );
 
         return new ArrayCollection($newestFirst)->map($itemOf)->getValues();
+    }
+
+    public static function itemOf(
+        TaskAudiences $audiences,
+        AccessCheck $access,
+        Stage $stage,
+        HomeworkAssignment $task,
+    ): HomeworkItem {
+        return new HomeworkItem(
+            HomeworkSummary::of($task, $audiences->reports()),
+            LessonOnDate::of($task->lesson()),
+            self::countsOf($audiences, $task),
+            HomeworkAbilities::grantedBy($access, $task, $stage),
+        );
     }
 
     public static function countsOf(TaskAudiences $audiences, HomeworkAssignment $task): ?AudienceCounts
