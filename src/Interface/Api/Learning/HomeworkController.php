@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Interface\Api\Learning;
 
 use App\Interface\Api\Learning\Request\HomeworkRequest;
+use App\Interface\Api\Learning\Response\ChangedHomeworkResponse;
 use App\Interface\Api\Learning\Response\HomeworkDetailResponse;
 use App\Interface\Api\Learning\Response\HomeworkListResponse;
 use App\Interface\Api\Learning\Response\HomeworkProgressResponse;
-use App\Interface\Api\Learning\Response\PublishedHomeworkResponse;
 use App\Interface\Api\Learning\Response\WrittenHomeworkResponse;
 use App\Workflow\Learning\CreateHomeworkWorkflow;
 use App\Workflow\Learning\EditHomeworkWorkflow;
@@ -65,7 +65,7 @@ final class HomeworkController extends AbstractController
     #[Route('/api/homework/{id}/publish', name: 'api_homework_publish', methods: ['POST'])]
     public function publish(string $id, PublishHomeworkWorkflow $publishHomework): JsonResponse
     {
-        return $this->json(PublishedHomeworkResponse::of($publishHomework($id)));
+        return $this->json(ChangedHomeworkResponse::of($publishHomework($id)));
     }
 
     #[Route('/api/homework/{id}/progress', name: 'api_homework_progress', methods: ['GET'])]

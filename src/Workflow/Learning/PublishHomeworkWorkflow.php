@@ -10,8 +10,8 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\HomeworkWrites;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Workflow\Learning\Model\ChangedHomework;
 use App\Workflow\Learning\Model\LessonStages;
-use App\Workflow\Learning\Model\PublishedHomework;
 
 final readonly class PublishHomeworkWorkflow
 {
@@ -22,11 +22,11 @@ final readonly class PublishHomeworkWorkflow
     ) {
     }
 
-    public function __invoke(string $id): PublishedHomework
+    public function __invoke(string $id): ChangedHomework
     {
         $this->access->require(Action::Update, Resource::Homework, refusal: 'homework.changeStageOnly');
 
-        return PublishedHomework::of($this->homework->locked($id, $this->published(...)));
+        return ChangedHomework::of($this->homework->locked($id, $this->published(...)));
     }
 
     private function published(HomeworkAssignment $task): HomeworkAssignment
