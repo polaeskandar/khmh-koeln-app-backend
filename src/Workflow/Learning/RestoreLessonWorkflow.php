@@ -10,6 +10,7 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\LessonArchives;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Workflow\Learning\Model\LessonStages;
+use App\Workflow\Learning\Model\WrittenLesson;
 
 final readonly class RestoreLessonWorkflow
 {
@@ -20,13 +21,13 @@ final readonly class RestoreLessonWorkflow
     ) {
     }
 
-    public function __invoke(string $id): string
+    public function __invoke(string $id): WrittenLesson
     {
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.changeStageOnly');
 
         $lesson = $this->archives->find($id);
         LessonStages::opened($this->structure->stage($lesson->stageId()->toRfc4122()));
 
-        return $this->archives->restore($lesson)->id()->toRfc4122();
+        return WrittenLesson::of($this->archives->restore($lesson));
     }
 }

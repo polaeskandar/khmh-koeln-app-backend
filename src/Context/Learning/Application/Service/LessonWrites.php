@@ -17,7 +17,7 @@ use App\Context\Learning\Domain\ValueObject\TeamChoice;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\VersionChecks;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class LessonWrites
@@ -26,18 +26,19 @@ final readonly class LessonWrites
         private LessonRepositoryInterface $lessons,
         private LessonMeetings $meetings,
         private LessonTeams $teams,
-        private Transactions $transactions,
+        private VersionChecks $versions,
         private Calendar $calendar,
     ) {
     }
 
-    public function editable(string $id): Lesson
+    public function editable(string $id, ?int $version): Lesson
     {
         $lesson = (Uuid::isValid($id) ? $this->lessons->find(Uuid::fromString($id)) : null) ?? throw NotFound::of(
             'lesson',
         );
 
         $lesson->state()->ensureEditable();
+        $this->versions->ensureCurrent($lesson, $version, 'lessons.changedMeanwhile');
 
         return $lesson;
     }
@@ -98,11 +99,6 @@ final readonly class LessonWrites
         $status = $draft->status === null ? $unchanged : LessonStatus::from($draft->status);
         $lesson->changeState($lesson->state()->withStatus($status, $this->calendar->now()));
 
-        return $this->transactions->run(function () use ($lesson, $team): Lesson {
-            $this->lessons->save($lesson);
-            $this->teams->store($lesson, $team);
-
-            return $lesson;
-        });
+        return $this->teams->savedWith($lesson, $team);
     }
 }

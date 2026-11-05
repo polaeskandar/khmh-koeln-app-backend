@@ -42,6 +42,10 @@ final class HomeworkAssignment extends TimestampedEntity
     #[ORM\Embedded(HomeworkState::class, columnPrefix: false)]
     private HomeworkState $state;
 
+    #[ORM\Version]
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
+    private int $version = 1;
+
     #[ORM\Column(name: 'created_by', type: UuidType::NAME, nullable: true)]
     private ?Uuid $createdBy;
 
@@ -82,6 +86,11 @@ final class HomeworkAssignment extends TimestampedEntity
     public function resources(): array
     {
         return $this->resources;
+    }
+
+    public function version(): int
+    {
+        return $this->version;
     }
 
     public function state(): HomeworkState

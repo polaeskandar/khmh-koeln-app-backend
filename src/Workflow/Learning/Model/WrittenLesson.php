@@ -11,11 +11,12 @@ final readonly class WrittenLesson
     public function __construct(
         public string $id,
         public string $status,
+        public int $version,
     ) {
     }
 
     public static function of(Lesson $lesson): self
     {
-        return new self($lesson->id()->toRfc4122(), $lesson->state()->status->value);
+        return new self($lesson->id()->toRfc4122(), $lesson->state()->status->value, $lesson->version());
     }
 }

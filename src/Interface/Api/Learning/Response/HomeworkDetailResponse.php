@@ -28,6 +28,7 @@ final readonly class HomeworkDetailResponse implements JsonSerializable
      *     publishedAt: DateTimeImmutable|null,
      *     instructions: string|null,
      *     resources: list<array{label: string, url: string|null}>,
+     *     version: int,
      *     minDueDate: string,
      *     lesson: array<string, string|bool|null>,
      *     service: ServiceReference,
@@ -89,6 +90,7 @@ final readonly class HomeworkDetailResponse implements JsonSerializable
      *     publishedAt: DateTimeImmutable|null,
      *     instructions: string|null,
      *     resources: list<array{label: string, url: string|null}>,
+     *     version: int,
      * }
      */
     private function task(): array
@@ -103,6 +105,7 @@ final readonly class HomeworkDetailResponse implements JsonSerializable
             'publishedAt' => $task->publishedAt,
             'instructions' => $task->text->instructions,
             'resources' => $task->text->resources,
+            'version' => $task->version,
         ];
     }
 }

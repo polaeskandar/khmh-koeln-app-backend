@@ -11,11 +11,12 @@ final readonly class WrittenHomework
     public function __construct(
         public string $id,
         public string $status,
+        public int $version,
     ) {
     }
 
     public static function of(HomeworkAssignment $task): self
     {
-        return new self($task->id()->toRfc4122(), $task->state()->status->value);
+        return new self($task->id()->toRfc4122(), $task->state()->status->value, $task->version());
     }
 }

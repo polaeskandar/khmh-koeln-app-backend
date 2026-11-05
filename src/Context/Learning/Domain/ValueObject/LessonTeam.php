@@ -14,6 +14,7 @@ final readonly class LessonTeam
     public function __construct(
         public Uuid $responsible,
         public array $helpers,
+        public bool $helpersChanged,
     ) {
     }
 }

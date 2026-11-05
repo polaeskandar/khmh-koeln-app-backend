@@ -27,7 +27,7 @@ final readonly class ChangeLessonStatusWorkflow
     {
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.changeStageOnly');
 
-        $lesson = $this->lessons->editable($id);
+        $lesson = $this->lessons->editable($id, version: null);
         LessonStages::opened($this->structure->stage($lesson->stageId()->toRfc4122()));
 
         return LessonStatusView::of($this->statuses->change($lesson, $status));

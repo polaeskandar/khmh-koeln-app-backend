@@ -13,6 +13,7 @@ final readonly class LessonArchiveState
         public string $id,
         public ?DateTimeImmutable $archivedAt,
         public int $homeworkArchived,
+        public int $version,
     ) {
     }
 
@@ -22,6 +23,7 @@ final readonly class LessonArchiveState
             id: $archived->lesson->id()->toRfc4122(),
             archivedAt: $archived->lesson->state()->archivedAt,
             homeworkArchived: $archived->homeworkArchived,
+            version: $archived->lesson->version(),
         );
     }
 }

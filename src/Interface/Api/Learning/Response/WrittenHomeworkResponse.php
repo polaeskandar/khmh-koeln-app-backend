@@ -11,11 +11,12 @@ final readonly class WrittenHomeworkResponse
     public function __construct(
         public string $id,
         public string $status,
+        public int $version,
     ) {
     }
 
     public static function of(WrittenHomework $homework): self
     {
-        return new self($homework->id, $homework->status);
+        return new self($homework->id, $homework->status, $homework->version);
     }
 }

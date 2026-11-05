@@ -12,6 +12,7 @@ final readonly class LessonStateView
     public function __construct(
         public ?DateTimeImmutable $completedAt,
         public ?DateTimeImmutable $archivedAt,
+        public int $version,
     ) {
     }
 
@@ -19,6 +20,6 @@ final readonly class LessonStateView
     {
         $state = $lesson->state();
 
-        return new self($state->completedAt, $state->archivedAt);
+        return new self($state->completedAt, $state->archivedAt, $lesson->version());
     }
 }
