@@ -55,7 +55,7 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   (`mago guard`). Read models carry no permission flags: clients take what the viewer may do from the
   `permissions` of `GET /api/me`.
 - A context never uses another context. Only a context's own `Infrastructure` uses its `Infrastructure`.
-- `Domain` holds the model only, and business logic lives in `Application/Service`. Entities hold state and
+- `Domain` holds the model only (`SourceLayoutTest`), and business logic lives in `Application/Service`. Entities hold state and
   nothing else: the constructor assigns the value objects, entities and ids it is given (plus fixed starting
   values such as a new session's `scheduled` progress), getters return them or answer a question about that
   state (`isArchived()`), and changes replace a value or add or remove an item. An entity never validates or
@@ -122,6 +122,9 @@ Errors (the contract is in [API contract](api.md#problems)):
   reaches its constraint; every constraint message is a code (`#[Assert\NotBlank(message:
   'services.nameRequired')]`). `ConstraintMessagesAreCodesTest` fails for a message that is not in the code
   catalog.
+- A request checks only the shape of the input: presence, types, formats and choices. Rules that weigh values
+  against each other belong to the context, which throws `InvalidInput` with the request's field path; for
+  example `RecurrenceRules` (Meetings) checks a `RecurrenceDraft` and reports `recurrence.interval`.
 - Adding a code: add it to its module in the code catalog of `docs/api.md`, and its en/de/ar texts as
   `errors.<code>` in the frontend.
 

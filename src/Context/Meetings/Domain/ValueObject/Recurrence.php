@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Context\Meetings\Domain\ValueObject;
 
 use App\Context\Meetings\Domain\Enum\Frequency;
+use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -36,11 +37,11 @@ final readonly class Recurrence
         return new self(Frequency::Weekly, $interval, self::maskOf($weekdays), monthWeek: null, span: $span);
     }
 
-    public static function monthly(int $monthWeek, int $weekday, DateSpan $span): self
+    public static function monthly(int $monthWeek, int $weekday, DateSpan $span, int $interval = 1): self
     {
         return new self(
             Frequency::Monthly,
-            interval: 1,
+            interval: $interval,
             weekdayMask: self::maskOf([$weekday]),
             monthWeek: $monthWeek,
             span: $span,
@@ -55,6 +56,26 @@ final readonly class Recurrence
         return new ArrayCollection(self::ISO_WEEKDAYS)
             ->filter($this->includes(...))
             ->getValues();
+    }
+
+    public function occursOn(LocalDate $date): bool
+    {
+        $onAWeekday = $this->span->includes($date) && $this->includes($date->isoWeekday());
+
+        return $onAWeekday && Cycles::match($this, $date);
+    }
+
+    /**
+     * @return list<LocalDate>
+     */
+    public function occurrencesBetween(LocalDate $from, LocalDate $to): array
+    {
+        return Occurrences::between($this, $from, $to);
+    }
+
+    public function nextOccurrence(LocalDate $from): ?LocalDate
+    {
+        return Occurrences::next($this, $from);
     }
 
     private function includes(int $weekday): bool
