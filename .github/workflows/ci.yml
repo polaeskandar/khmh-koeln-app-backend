@@ -181,7 +181,7 @@ jobs:
           ! grep -q Restorova "$backups/$object"
           if docker run --rm -v "$backups:/backups" --entrypoint pg_restore khmk-backup --list "/backups/$object"; then exit 1; fi
           $PSQL 'CREATE DATABASE khmk_restore'
-          restored="${DATABASE_URL/\/khmk?/\/khmk_restore?}"
+          restored="${DATABASE_URL%%\?*}_restore?${DATABASE_URL#*\?}"
           "${backup[@]}" -i -e RESTORE_DATABASE_URL="$restored" --entrypoint restore.sh khmk-backup < "$RUNNER_TEMP/key.txt" > "$RUNNER_TEMP/restored.txt"
           rm "$RUNNER_TEMP/key.txt"
           rows="SELECT format('%I.%I', schemaname, relname) || ' ' || (xpath('/row/c/text()',
