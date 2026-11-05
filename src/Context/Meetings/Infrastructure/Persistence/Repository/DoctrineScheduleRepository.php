@@ -6,6 +6,7 @@ namespace App\Context\Meetings\Infrastructure\Persistence\Repository;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
+use App\Library\Problem\Exception\NotFound;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,6 +15,10 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInterface
 {
+    private const string LOCK_ROW = 'SELECT id FROM meetings.meeting_schedule WHERE id = ? FOR UPDATE';
+
+    private const string SHARE_ROW = 'SELECT id FROM meetings.meeting_schedule WHERE id = ? FOR SHARE';
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -24,6 +29,33 @@ final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInt
     {
         $this->entityManager->persist($schedule);
         $this->entityManager->flush();
+    }
+
+    #[Override]
+    public function remove(Schedule $schedule): void
+    {
+        $this->entityManager->remove($schedule);
+        $this->entityManager->flush();
+    }
+
+    #[Override]
+    public function withWriteLock(Uuid $id, callable $work): void
+    {
+        $this->entityManager->wrapInTransaction(function () use ($id, $work): void {
+            $this->entityManager->getConnection()->executeQuery(self::LOCK_ROW, [$id->toRfc4122()]);
+
+            $work($this->entityManager->find(Schedule::class, $id) ?? throw NotFound::of('schedule'));
+        });
+    }
+
+    #[Override]
+    public function withShareLock(Uuid $id, callable $work): mixed
+    {
+        return $this->entityManager->wrapInTransaction(function () use ($id, $work): mixed {
+            $this->entityManager->getConnection()->executeQuery(self::SHARE_ROW, [$id->toRfc4122()]);
+
+            return $work();
+        });
     }
 
     #[Override]

@@ -57,6 +57,20 @@ final readonly class ScheduleWrites
         return $this->saved($schedule, $archived);
     }
 
+    public function activate(Schedule $schedule, ArchivedStructure $archived): ScheduleWritten
+    {
+        return $schedule->activate() ? $this->saved($schedule, $archived) : new ScheduleWritten($schedule, 0);
+    }
+
+    public function deactivate(Schedule $schedule): Schedule
+    {
+        if ($schedule->deactivate()) {
+            $this->schedules->save($schedule);
+        }
+
+        return $schedule;
+    }
+
     private function saved(Schedule $schedule, ArchivedStructure $archived): ScheduleWritten
     {
         $created = 0;

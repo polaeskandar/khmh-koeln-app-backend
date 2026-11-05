@@ -12,6 +12,22 @@ interface ScheduleRepositoryInterface
 {
     public function save(Schedule $schedule): void;
 
+    public function remove(Schedule $schedule): void;
+
+    /**
+     * @param callable(Schedule): void $work
+     */
+    public function withWriteLock(Uuid $id, callable $work): void;
+
+    /**
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function withShareLock(Uuid $id, callable $work): mixed;
+
     /**
      * @return ReadableCollection<int, Schedule>
      */

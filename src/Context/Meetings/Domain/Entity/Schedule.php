@@ -83,4 +83,20 @@ final class Schedule extends TimestampedEntity
     {
         return $this->active;
     }
+
+    public function activate(): bool
+    {
+        $changed = !$this->active;
+        $this->active = true;
+
+        return $changed;
+    }
+
+    public function deactivate(): bool
+    {
+        $changed = $this->active;
+        $this->active = false;
+
+        return $changed;
+    }
 }

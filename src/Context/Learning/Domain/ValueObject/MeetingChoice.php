@@ -38,6 +38,11 @@ final readonly class MeetingChoice
         return self::idOf($this->scheduleId ?? '');
     }
 
+    public function scheduleWithoutSession(): ?Uuid
+    {
+        return $this->sessionId === null && $this->scheduleId !== null ? $this->schedule() : null;
+    }
+
     public function day(): LocalDate
     {
         try {

@@ -229,14 +229,18 @@ roles. A parent account without any approved child sees an empty portal.
 | `guardian_relationship` | Links a parent account to a child: `parent` or `guardian`. In the `people` schema. | `approved` → `revoked` (the row stays). Only administrators create links. At most one non-revoked link per account and child (partial UNIQUE `(user_id, person_id) WHERE status <> 'revoked'`). `person_id` references `person` with `ON DELETE CASCADE`; `user_id`, `approved_by` and `revoked_by` are plain account ids (no foreign keys across schemas): deleting or erasing an account deletes its links in the workflow (#82). CHECKs on `relationship`, `status` and `(status = 'revoked') = (revoked_at IS NOT NULL)`. |
 
 `learning.lesson` (`Lesson`): `stage_id` (Organization) and `schedule_id` (Meetings) are plain ids without foreign
-keys, checked by the use cases; `teaching_date`; `responsible_id` is an account id nulled by the erasure process
+keys, checked by the workflows; `teaching_date`; `responsible_id` is an account id nulled by the erasure process
 (D6). Text: `title` ≤160, `summary` ≤1000, `passage` ≤200, `memory_verse` ≤500; plan: `objectives`,
 `teaching_points`, `activities`, `notes` ≤4000 each; `materials` is a jsonb list of `{label, url}` (≤10 rows, label
 ≤120, `http(s)` links only; empty rows dropped, a link without a label is its own label); `status`,
 `completed_at`, `archived_at`, timestamps. CHECKs: status enum, `(status = 'completed') = (completed_at IS NOT
 NULL)`, `btrim(title) <> ''`, `jsonb_array_length(materials) <= 10`. Partial UNIQUE `(schedule_id, teaching_date)
-WHERE archived_at IS NULL` (lessons without a schedule never clash); index `(stage_id, teaching_date)`. The use
-cases refuse to delete a stage or schedule that lessons point to, since no foreign key crosses schemas.
+WHERE archived_at IS NULL` (lessons without a schedule never clash); index `(stage_id, teaching_date)`. The
+workflows refuse to delete a stage or schedule that lessons point to, since no foreign key crosses schemas. A lesson
+linked to a schedule date holds a share lock on the schedule row while it is written, and `DeleteScheduleWorkflow`
+locks the row for update before it counts the schedule's sessions and lessons, so a deletion and a new lesson wait
+for each other and no lesson is left pointing at a deleted schedule. A lesson linked to a session needs no lock: a
+schedule with sessions can't be deleted, and the generator creates sessions under the same row lock.
 
 Lesson status: `draft` → `ready` → `completed` (taught). Completed is only possible on or after the teaching
 date, and each step can be undone. Lessons are archived; a draft lesson can be deleted while none of its

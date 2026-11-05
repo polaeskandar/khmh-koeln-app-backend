@@ -9,6 +9,7 @@ use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\LessonWrites;
+use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Workflow\Learning\Model\LessonChoice;
@@ -36,12 +37,15 @@ final readonly class EditLessonWorkflow
         $stage = LessonStages::opened($this->structure->stage($lesson->stageId()->toRfc4122()));
         $draft = $choice->draft();
 
-        return WrittenLesson::of($this->lessons->edit(
-            $lesson,
-            $stage,
-            $draft,
-            OfferedMeetings::lookedUpIn($this->meetings, $draft->meeting),
-            ResponsibleChoices::lookedUpIn($this->accounts, $choice->responsibleId),
+        return WrittenLesson::of($this->meetings->whileScheduleKept(
+            $draft->meeting?->scheduleWithoutSession(),
+            fn (): Lesson => $this->lessons->edit(
+                $lesson,
+                $stage,
+                $draft,
+                OfferedMeetings::lookedUpIn($this->meetings, $draft->meeting),
+                ResponsibleChoices::lookedUpIn($this->accounts, $choice->responsibleId),
+            ),
         ));
     }
 }

@@ -741,6 +741,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `meetings.serviceArchivedRestoreFirst` | `name` | {name} is archived. Restore it first. |
 | `meetings.stageArchivedRestoreFirst` | `name` | {name} is archived. Restore the stage first. |
 | `meetings.scheduleHasSessions` | `count` | {count, plural, one {# session was} other {# sessions were}} already created from this schedule. Deactivate it instead: no new sessions are created and the history stays. |
+| `meetings.scheduleHasLessons` | `count` | **New.** 409: {count, plural, one {# lesson is} other {# lessons are}} planned for this schedule. Deactivate it instead. |
 | `meetings.sessionCanceled` | – | This session was canceled. |
 | `meetings.attendanceClosed` | – | Attendance for this session is closed. Reopen it to make corrections. |
 | `meetings.opensOnTheDay` | – | Attendance opens on the day of the session. |
@@ -1313,6 +1314,20 @@ merged times (`times.endTime` `meetings.endAfterStart`). The service and stage c
 `validation.unexpectedField`). Sessions that exist keep their details (D10); an active schedule gets its missing
 sessions for today and tomorrow. 200 `{id, createdSessions}`; 404 `notFound.schedule`; an archived service or stage
 → 409 `meetings.serviceArchivedRestoreFirst {name}` / `meetings.stageArchivedRestoreFirst {name}`.
+
+#### `POST /api/schedules/{id}/activate`, `POST /api/schedules/{id}/deactivate` and `DELETE /api/schedules/{id}`
+
+Body `{}`; 404 `notFound.schedule`. Both status changes are idempotent and set `updatedAt` only when they change
+something.
+
+- **Activate** (`sessions: update`): 200 `{id, createdSessions}`. 409 `meetings.serviceArchivedRestoreFirst {name}`
+  / `meetings.stageArchivedRestoreFirst {name}` while the service or stage is archived. An inactive schedule
+  becomes active and the generator creates its missing sessions for today and tomorrow at once
+  (`createdSessions`); an active one answers `createdSessions: 0`.
+- **Deactivate** (`sessions: update`): 200 `{id}`. Every existing session stays, today's and tomorrow's included;
+  the generator creates no new ones.
+- **Delete** (`sessions: delete`): 204, only for a schedule that never produced a session of any status (409
+  `meetings.scheduleHasSessions {count}`) and has no lessons (409 `meetings.scheduleHasLessons {count}`).
 
 #### `POST /api/schedules/{id}/occurrences/{date}/cancel`
 
