@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Context\Privacy\Infrastructure\Persistence\Repository;
 
 use App\Context\Privacy\Domain\Entity\DataRequest;
+use App\Context\Privacy\Domain\Enum\RequestChannel;
+use App\Context\Privacy\Domain\Enum\RequestKind;
+use App\Context\Privacy\Domain\Enum\RequestStatus;
 use App\Context\Privacy\Domain\Repository\DataRequestRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,6 +34,19 @@ final readonly class DoctrineDataRequestRepository implements DataRequestReposit
     public function find(Uuid $id): ?DataRequest
     {
         return $this->entityManager->find(DataRequest::class, $id);
+    }
+
+    #[Override]
+    public function openAppErasureOf(Uuid $accountId): ?DataRequest
+    {
+        return $this->entityManager
+            ->getRepository(DataRequest::class)
+            ->findOneBy([
+                'subject.accountId' => $accountId,
+                'kind' => RequestKind::Erasure,
+                'receipt.channel' => RequestChannel::App,
+                'status' => RequestStatus::Open,
+            ]);
     }
 
     /**

@@ -13,6 +13,8 @@ interface DataRequestRepositoryInterface
 
     public function find(Uuid $id): ?DataRequest;
 
+    public function openAppErasureOf(Uuid $accountId): ?DataRequest;
+
     /**
      * @return list<DataRequest>
      */
