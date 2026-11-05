@@ -706,6 +706,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | --- | --- | --- |
 | `people.addNotAllowed` | – | **New.** Adding people needs the members permission. |
 | `people.changeNotAllowed` | – | **New.** Changing people needs the members permission. |
+| `people.removeNotAllowed` | – | **New.** Ending memberships needs the members permission. |
 | `people.firstNameRequired` | – | Enter a first name. |
 | `people.lastNameRequired` | – | Enter a last name. |
 | `people.editOutsideServices` | `name` | You can only edit people in the services you serve in. {name} is not in any of them. |
@@ -1089,6 +1090,22 @@ PersonView, membership: MembershipView | null}`.
 `members: update` (403 `people.changeNotAllowed`). Body `{firstName?, lastName?, displayName?}`; a member left out
 keeps its value, `""` clears the display name. Same name rules, no namesake check. 200 `PersonView`; 404
 `notFound.person`.
+
+#### `POST /api/people/{id}/memberships`
+
+`members: update` (403 `people.changeNotAllowed`). Body `{serviceId, stageId?}`: puts the person on that roster
+from church-today. `serviceId` `meetings.chooseService` or `meetings.serviceArchived {name}`; `stageId`
+`meetings.chooseStage` or `meetings.stageArchived {name}`. A current membership on the same roster → 409
+`people.alreadyIn {name, where}` (also when two requests race into the unique index); rosters of several stages at
+once are fine. 201 `{id, personId, service: ServiceRef, stage: StageRef | null, startsOn, endsOn: null}`; 404
+`notFound.person`.
+
+#### `POST /api/memberships/{id}/end`
+
+`members: delete` (403 `people.removeNotAllowed`). Body `{}`. The membership row is locked; one that started
+before today ends yesterday (Europe/Berlin), so past rosters keep the person; one that started today is deleted.
+Allowed in archived services and stages. 204; 404 `notFound.membership`; already ended → 409
+`people.membershipEnded`. There is no `DELETE` route.
 
 ### Schedules
 

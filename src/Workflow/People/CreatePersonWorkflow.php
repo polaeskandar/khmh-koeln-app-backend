@@ -49,7 +49,7 @@ final readonly class CreatePersonWorkflow
 
     private function placementOf(PlacementChoice $choice): Placement
     {
-        $chosen = $this->placements->of($choice->serviceId, $choice->stageId);
+        $chosen = $this->placements->of($choice->serviceId, $choice->stageId, fieldPrefix: 'placement.');
 
         return new Placement($chosen->service->id(), $chosen->stage?->id());
     }
