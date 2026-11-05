@@ -136,30 +136,36 @@ Sources: [Ubicloud on Hetzner](https://ubicloud.com/blog/open-and-portable-manag
 
 ## Configuration
 
-The variables the application reads. `.env` holds the development defaults; production sets real values in the
-environment (#41).
+The variables the application reads, all of them (`EnvironmentVariablesAreDocumentedTest` fails for an
+undocumented one). The production image bakes the defaults of `.env` into `.env.local.php`; values set in the
+container's environment win. Secrets live only in the host's secret store, never in the repository or the image;
+the Symfony secrets vault is not used.
 
 | Variable | Example | Secret | Purpose |
 | --- | --- | --- | --- |
 | `APP_ENV` | `prod` | No | Symfony environment: `dev`, `test` or `prod` |
 | `APP_SECRET` | 32 random hex bytes | Yes | Signs CSRF tokens and other Symfony secrets |
 | `APP_SHARE_DIR` | `var/share` | No | Directory for data shared across deploys |
-| `DEFAULT_URI` | `https://app.khmk-koeln.com` | No | Base URL for links generated outside a request (console) |
 | `DATABASE_URL` | `postgresql://app:…@db:5432/khmk?serverVersion=18&charset=utf8` | Yes | PostgreSQL connection |
+| `LOCK_DSN` | `flock` | No | Store of Symfony's default lock factory (the `symfony/lock` recipe's value). The administration lock (#22) is a PostgreSQL advisory lock on the Doctrine connection and doesn't read it. |
 | `MESSENGER_TRANSPORT_DSN` | `doctrine://default` | No | Queue of the Messenger worker |
 | `SESSION_LIFETIME` | `2592000` | No | Seconds a sign-in session lasts (30 days); also the PostgreSQL session garbage-collection age |
 | `FRONTEND_URL` | `https://app.khmk-koeln.com` | No | The web app's URL; its origin is the one origin allowed to send unsafe requests |
 | `CORS_ALLOW_ORIGIN` | empty (production), `http://localhost:3000` (`.env.dev`) | No | Comma-separated extra origins for local development: they may send unsafe requests and get credentialed CORS. Each entry is an exact `scheme://host[:port]`; `*` or anything else stops the application. Empty in production. |
-| `TRUSTED_PROXIES` | `10.0.0.0/8` or `REMOTE_ADDR` | No | Proxies whose `X-Forwarded-For`, `-Proto` and `-Port` are trusted, so sign-in limits count the real client (#41). Empty: forwarded headers are ignored. |
+| `TRUSTED_PROXIES` | `10.0.0.0/8` or `REMOTE_ADDR` | No | Only the reverse proxy's address or private range. Its `X-Forwarded-For`, `-Proto` and `-Port` are trusted, so sign-in limits count the real client; `X-Forwarded-Host` is not, so the proxy passes the public `Host` through. Empty: forwarded headers are ignored. |
 | `MAILER_DSN` | `mailgun+api://KEY:DOMAIN@default?region=eu` | Yes | Where email goes. Production: Mailgun's EU region (with a DPA, Art. 28) through `symfony/mailgun-mailer`. `.env` and tests use `null://null` (nothing is sent); `.env.dev` uses `log://default`, which writes each email (recipient, subject, text) to stderr instead of sending it. `bin/console app:mail:test <email>` checks the setting with a real account. |
 | `MAILER_FROM` | `KHMK Köln <no-reply@khmk-koeln.com>` | No | Sender of every email. The sending domain needs Mailgun's SPF and DKIM records. |
+| `TRUSTED_HOSTS` | `^(app\.khmk-koeln\.com\|localhost\|127\.0\.0\.1\|<probe host>)$` | No | Production only: a regular expression of the `Host` values the API answers; anything else gets 400. Add the platform's health-probe host. |
+| `DEFAULT_URI` | `https://app.khmk-koeln.com` | No | Base URL for links generated outside a request (console) |
+| `TEST_TOKEN` | `1` | No | Test only: the PHPUnit runner's suffix for parallel test databases |
 
 Sign-in limits (5 attempts per email and client, 25 per client, per 15 minutes) are kept in the
 `cache.rate_limiter` pool, which is the application cache on the local filesystem. That is right for one API
 instance. A second instance needs a shared pool (Redis, or the database through `cache.adapter.doctrine_dbal`),
 or each instance counts on its own.
 
-Later issues add their variables here.
+The session cookie in production is `__Host-khmk_session`: always `Secure` (not `auto`), `HttpOnly`,
+`SameSite=Lax`, `Path=/`, no `Domain`. Every `/api` response, errors included, carries `Cache-Control: no-store`.
 
 ## Logging
 
