@@ -7,7 +7,11 @@ namespace App\Context\Learning\Infrastructure\Persistence\Repository;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\Entity\HomeworkCompletion;
 use App\Context\Learning\Domain\Repository\HomeworkReportRepositoryInterface;
+use App\Context\Learning\Domain\ValueObject\CurrentReport;
 use App\Library\Types\Model\ListOf;
+use App\Library\Types\Model\Type;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\DBAL\ArrayParameterType;
@@ -17,6 +21,17 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineHomeworkReportRepository implements HomeworkReportRepositoryInterface
 {
+    private const string REPORT = <<<'SQL'
+        INSERT INTO learning.homework_completion (id, assignment_id, person_id, completed_at, completed_by)
+        VALUES (:id, :task, :person, :at, :by)
+        ON CONFLICT (assignment_id, person_id) WHERE undone_at IS NULL DO NOTHING
+        SQL;
+
+    private const string UNDO = <<<'SQL'
+        UPDATE learning.homework_completion SET undone_at = :at, undone_by = :by
+        WHERE assignment_id = :task AND person_id = :person AND undone_at IS NULL
+        SQL;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -71,5 +86,55 @@ final readonly class DoctrineHomeworkReportRepository implements HomeworkReportR
             ->getQuery();
 
         return new ArrayCollection(ListOf::instances($query->getResult(), HomeworkCompletion::class));
+    }
+
+    #[Override]
+    public function reportDone(Uuid $taskId, Uuid $personId, DateTimeImmutable $at, ?Uuid $by): bool
+    {
+        return $this->entityManager->getConnection()->executeStatement(self::REPORT, [
+            'id' => Uuid::v7()->toRfc4122(),
+            'task' => $taskId->toRfc4122(),
+            'person' => $personId->toRfc4122(),
+            'at' => $at->format(DateTimeInterface::ATOM),
+            'by' => $by?->toRfc4122(),
+        ]) === 1;
+    }
+
+    #[Override]
+    public function currentReport(Uuid $taskId, Uuid $personId): ?CurrentReport
+    {
+        $row = $this->entityManager
+            ->getConnection()
+            ->createQueryBuilder()
+            ->select('completed_at', 'completed_by')
+            ->from('learning.homework_completion')
+            ->where('assignment_id = :task')
+            ->andWhere('person_id = :person')
+            ->andWhere('undone_at IS NULL')
+            ->setParameter('task', $taskId->toRfc4122())
+            ->setParameter('person', $personId->toRfc4122())
+            ->fetchAssociative();
+
+        if ($row === false) {
+            return null;
+        }
+
+        $by = Type::of($row['completed_by'] ?? null)->toStringOrNull();
+
+        return new CurrentReport(
+            new DateTimeImmutable(Type::of($row['completed_at'] ?? null)->toString()),
+            $by === null ? null : Uuid::fromString($by),
+        );
+    }
+
+    #[Override]
+    public function undo(Uuid $taskId, Uuid $personId, DateTimeImmutable $at, ?Uuid $by): void
+    {
+        $this->entityManager->getConnection()->executeStatement(self::UNDO, [
+            'task' => $taskId->toRfc4122(),
+            'person' => $personId->toRfc4122(),
+            'at' => $at->format(DateTimeInterface::ATOM),
+            'by' => $by?->toRfc4122(),
+        ]);
     }
 }
