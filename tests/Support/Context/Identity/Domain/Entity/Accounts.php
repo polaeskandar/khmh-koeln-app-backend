@@ -41,6 +41,7 @@ final readonly class Accounts
             'password_hash' => 'not-a-real-hash',
             'language' => 'de',
             'approved_at' => '2026-11-08 12:00:00+01',
+            'email_confirmed_at' => '2026-11-08 12:00:00+01',
             'created_at' => '2026-11-08 12:00:00+01',
             ...$columns,
         ];

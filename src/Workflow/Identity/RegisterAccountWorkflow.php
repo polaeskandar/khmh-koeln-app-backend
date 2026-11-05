@@ -16,6 +16,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use SensitiveParameter;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class RegisterAccountWorkflow
 {
@@ -36,7 +37,7 @@ final readonly class RegisterAccountWorkflow
             : new ArrayCollection();
 
         try {
-            $this->transactions->run(fn () => $this->store(
+            $accountId = $this->transactions->run(fn (): ?Uuid => $this->store(
                 $profile,
                 $account->password,
                 $registeredAs,
@@ -46,6 +47,8 @@ final readonly class RegisterAccountWorkflow
         } catch (UniqueConstraintViolationException) {
             return;
         }
+
+        $this->accounts->sendConfirmation($accountId);
     }
 
     private function profileOf(AccountDetails $account): Profile
@@ -63,7 +66,7 @@ final readonly class RegisterAccountWorkflow
         RegisteredAs $registeredAs,
         RegistrationDetails $registration,
         ReadableCollection $services,
-    ): void {
+    ): ?Uuid {
         $accountId = $this->accounts->registerUnlessTaken(
             $profile,
             $password,
@@ -72,10 +75,10 @@ final readonly class RegisterAccountWorkflow
             $registration->privacyVersion,
         );
 
-        if ($accountId === null) {
-            return;
+        if ($accountId !== null) {
+            $this->services->record($accountId, $services);
         }
 
-        $this->services->record($accountId, $services);
+        return $accountId;
     }
 }

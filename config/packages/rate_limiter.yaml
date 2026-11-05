@@ -28,6 +28,14 @@ framework:
             policy: fixed_window
             limit: 3
             interval: '1 hour'
+        registration_email:
+            policy: fixed_window
+            limit: 3
+            interval: '1 hour'
+        email_confirmation:
+            policy: fixed_window
+            limit: 10
+            interval: '1 hour'
 
 when@test:
     framework:
@@ -45,4 +53,8 @@ when@test:
             forgot_password_client:
                 storage_service: app.test.rate_limits
             forgot_password_email:
+                storage_service: app.test.rate_limits
+            registration_email:
+                storage_service: app.test.rate_limits
+            email_confirmation:
                 storage_service: app.test.rate_limits

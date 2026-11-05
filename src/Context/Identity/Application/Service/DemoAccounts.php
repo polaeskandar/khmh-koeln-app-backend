@@ -35,12 +35,16 @@ final readonly class DemoAccounts
             $this->approved->create($email, $name, Language::German->value, $this->password, $role);
         }
 
-        $this->registration->registerUnlessTaken(
+        $nadia = $this->registration->registerUnlessTaken(
             $this->registration->profile('Nadia', 'Mansour', 'nadia@example.org', Language::German->value),
             $this->password,
             RegisteredAs::Parent,
             note: 'Mother of Sophia Mansour, Kindergarten',
             privacyVersion: $this->privacyNoticeVersion,
         );
+
+        if ($nadia !== null) {
+            $this->registration->markEmailConfirmed($nadia);
+        }
     }
 }
