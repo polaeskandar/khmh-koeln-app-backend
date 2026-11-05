@@ -37,6 +37,11 @@ final readonly class HomeworkState
         };
     }
 
+    public function archived(DateTimeImmutable $at): self
+    {
+        return new self(HomeworkStatus::Archived, $this->publishedAt, $this->archivedAt ?? $at);
+    }
+
     public function ensureEditable(): void
     {
         if ($this->archivedAt !== null) {

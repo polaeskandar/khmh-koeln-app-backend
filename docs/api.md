@@ -1702,7 +1702,8 @@ today, lesson, homework}`; 404 `notFound.lesson`, also for an id that is not a U
 - `notes` may name children, so it is `null` unless the caller may read members (`members: read`).
 - Apps derive the actions from `GET /api/me`: editing needs `lessons: update` and homework `homework: update`, both
   while `archived` is `false` and the lesson's `archivedAt` is `null`; marking it taught also needs a `ready` lesson
-  whose `teachingDate` is `today` or earlier.
+  whose `teachingDate` is `today` or earlier. Archiving, restoring and deleting need `lessons: update` while
+  `archived` is `false`; deleting also a `draft` none of whose homework was ever published.
 
 #### `POST /api/stages/{stageId}/lessons`
 
@@ -1741,6 +1742,19 @@ own meeting stays valid, and an unchanged `responsibleId` is kept even when that
 clears a completion. Moving a completed lesson after today → 422 `meeting` `lessons.taughtAfterDate`. Same field
 errors as `POST`. 200 `{id, status}`; 404 `notFound.lesson`, also for an id that is not a UUID; an archived lesson
 → 409 `lessons.archived`; an archived stage → 409 `lessons.stageArchived {name}`.
+
+#### `POST /api/lessons/{id}/archive`, `POST /api/lessons/{id}/restore` and `DELETE /api/lessons/{id}`
+
+`lessons: update` (403 `lessons.changeStageOnly`), body `{}`; 404 `notFound.lesson`, also for an id that is not a
+UUID; an archived stage or service → 409 `lessons.stageArchived {name}`.
+
+- **Archive** → 200 `{id, archivedAt, homeworkArchived}`; `archivedAt` is an instant in Europe/Berlin. One transaction archives the lesson and its homework
+  that is not archived yet at one instant; parents no longer see the tasks, the reports stay. Repeating it → 200
+  with the first `archivedAt` and `homeworkArchived: 0`.
+- **Restore** → 200 `{id, archivedAt: null}` (also when it was not archived). If another lesson now holds the
+  meeting → 409 `lessons.meetingHasLesson {title}`. The homework stays archived.
+- **Delete** → 204. Only a `draft` (409 `lessons.deleteDraftsOnly`); with its tasks locked, any task with
+  `publishedAt` → 409 `lessons.homeworkPublished`. Otherwise the tasks and the lesson go in one transaction.
 
 #### `POST /api/lessons/{id}/status`
 

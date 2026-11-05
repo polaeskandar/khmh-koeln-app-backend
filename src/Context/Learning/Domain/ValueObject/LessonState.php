@@ -34,6 +34,11 @@ final readonly class LessonState
         return new self($this->status, $this->completedAt, $this->archivedAt ?? $at);
     }
 
+    public function restored(): self
+    {
+        return new self($this->status, $this->completedAt, archivedAt: null);
+    }
+
     public function ensureEditable(): void
     {
         if ($this->archivedAt !== null) {
