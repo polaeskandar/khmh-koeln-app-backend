@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Domain\Entity;
 
+use App\Context\Meetings\Domain\ValueObject\ErasedCounts;
 use App\Context\Meetings\Domain\ValueObject\Progress;
 use App\Context\Meetings\Domain\ValueObject\SessionPlan;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
@@ -35,6 +36,9 @@ final class Session extends CreatedAtEntity
     #[ORM\Embedded(Progress::class, columnPrefix: false)]
     private Progress $progress;
 
+    #[ORM\Embedded(ErasedCounts::class, columnPrefix: false)]
+    private ErasedCounts $erased;
+
     public function __construct(Schedule $schedule, LocalDate $occurrenceDate, SessionPlan $plan)
     {
         $this->id = Uuid::v7();
@@ -42,6 +46,7 @@ final class Session extends CreatedAtEntity
         $this->occurrenceDate = $occurrenceDate;
         $this->plan = $plan;
         $this->progress = Progress::scheduled();
+        $this->erased = new ErasedCounts();
     }
 
     public function id(): Uuid
@@ -67,6 +72,11 @@ final class Session extends CreatedAtEntity
     public function progress(): Progress
     {
         return $this->progress;
+    }
+
+    public function erased(): ErasedCounts
+    {
+        return $this->erased;
     }
 
     public function changeProgress(Progress $progress): void
