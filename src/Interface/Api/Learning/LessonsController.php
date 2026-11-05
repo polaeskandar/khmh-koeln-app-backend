@@ -7,6 +7,7 @@ namespace App\Interface\Api\Learning;
 use App\Interface\Api\Learning\Request\LessonListQueryRequest;
 use App\Interface\Api\Learning\Request\LessonRequest;
 use App\Interface\Api\Learning\Request\LessonStatusRequest;
+use App\Interface\Api\Learning\Response\LessonDetailResponse;
 use App\Interface\Api\Learning\Response\LessonListResponse;
 use App\Interface\Api\Learning\Response\LessonStatusResponse;
 use App\Interface\Api\Learning\Response\WrittenLessonResponse;
@@ -14,6 +15,7 @@ use App\Workflow\Learning\ChangeLessonStatusWorkflow;
 use App\Workflow\Learning\CreateLessonWorkflow;
 use App\Workflow\Learning\EditLessonWorkflow;
 use App\Workflow\Learning\ListLessonsWorkflow;
+use App\Workflow\Learning\ShowLessonWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -43,6 +45,12 @@ final class LessonsController extends AbstractController
         $written = $createLesson($stageId, $lesson->lesson());
 
         return $this->json(WrittenLessonResponse::of($written), status: Response::HTTP_CREATED);
+    }
+
+    #[Route('/api/lessons/{id}', name: 'api_lessons_show', methods: ['GET'])]
+    public function show(string $id, ShowLessonWorkflow $showLesson): JsonResponse
+    {
+        return $this->json(new LessonDetailResponse($showLesson($id)));
     }
 
     #[Route('/api/lessons/{id}', name: 'api_lessons_edit', methods: ['PUT'])]

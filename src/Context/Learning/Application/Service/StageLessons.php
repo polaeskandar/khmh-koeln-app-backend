@@ -8,9 +8,12 @@ use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Enum\LessonTab;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
+use App\Context\Learning\Domain\ValueObject\HomeworkCounts;
 use App\Context\Learning\Domain\ValueObject\LessonListing;
+use App\Context\Learning\Domain\ValueObject\LessonReading;
 use App\Context\Learning\Domain\ValueObject\LessonTabs;
 use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
@@ -33,5 +36,16 @@ final readonly class StageLessons
         $ids = new ArrayCollection($shown)->map(static fn (Lesson $lesson): Uuid => $lesson->id())->getValues();
 
         return new LessonListing($today, $tabs->counts(), $shown, $this->homework->countsByLesson($ids));
+    }
+
+    public function reading(string $id): LessonReading
+    {
+        $lesson = (Uuid::isValid($id) ? $this->lessons->find(Uuid::fromString($id)) : null) ?? throw NotFound::of(
+            'lesson',
+        );
+
+        $counts = $this->homework->countsByLesson([$lesson->id()])->get($lesson->id()->toRfc4122());
+
+        return new LessonReading($lesson, $counts ?? new HomeworkCounts(), $this->calendar->today());
     }
 }
