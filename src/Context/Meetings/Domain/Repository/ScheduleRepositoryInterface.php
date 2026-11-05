@@ -15,6 +15,22 @@ interface ScheduleRepositoryInterface
 
     public function replanUpcoming(Schedule $schedule, LocalDate $from): void;
 
+    public function remove(Schedule $schedule): void;
+
+    /**
+     * @param callable(Schedule): void $work
+     */
+    public function withWriteLock(Uuid $id, callable $work): void;
+
+    /**
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T
+     */
+    public function withShareLock(Uuid $id, callable $work): mixed;
+
     /**
      * @return list<Uuid>
      */

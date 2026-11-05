@@ -17,6 +17,8 @@ interface LessonRepositoryInterface
 
     public function find(Uuid $id): ?Lesson;
 
+    public function countForSchedule(Uuid $scheduleId): int;
+
     /**
      * @return ReadableCollection<int, Lesson>
      */
