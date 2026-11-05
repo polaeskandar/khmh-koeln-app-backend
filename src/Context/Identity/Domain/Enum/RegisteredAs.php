@@ -8,4 +8,5 @@ enum RegisteredAs: string
 {
     case Parent = 'parent';
     case Servant = 'servant';
+    case Member = 'member';
 }

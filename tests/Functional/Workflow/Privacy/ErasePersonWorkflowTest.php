@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Workflow\Privacy;
 
+use App\Context\Identity\Application\Service\PersonTraces;
 use App\Context\Learning\Application\Service\LearningErasures;
 use App\Context\Meetings\Application\Service\MeetingErasures;
 use App\Context\Meetings\Domain\Entity\Attendance;
@@ -17,6 +18,7 @@ use App\Context\People\Infrastructure\Persistence\Repository\DoctrinePersonRepos
 use App\Context\Privacy\Application\Service\RequestErasures;
 use App\Platform\Doctrine\Contract\Transactions;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
@@ -45,6 +47,22 @@ final class ErasePersonWorkflowTest extends ApiTestCase
         $this->assertProblem(404, 'notFound.person');
     }
 
+    public function testErasingAPersonRemovesTheLinkOfTheirOwnAccount(): void
+    {
+        self::mockTime('2026-11-08T10:00:00+01:00');
+        [$mina] = $this->sessionWith(['Mina'], self::DONE);
+
+        $this->linkAccountTo($mina);
+        self::service(ErasePersonWorkflow::class)($mina);
+
+        self::assertSame(
+            ['person_id' => null, 'age_check' => null, 'guardian_consent_note' => null],
+            new Database(self::getContainer())
+                ->connection()
+                ->fetchAssociative('SELECT person_id, age_check, guardian_consent_note FROM identity.app_user'),
+        );
+    }
+
     public function testErasuresAddToTheCountersInsteadOfOverwritingThem(): void
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
@@ -70,6 +88,7 @@ final class ErasePersonWorkflowTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         [$mina] = $this->sessionWith(['Mina'], self::DONE);
+        $this->linkAccountTo($mina);
         $entityManager = new Database(self::getContainer())->entityManager();
 
         $failing = new class implements PersonTraceRepositoryInterface {
@@ -86,6 +105,7 @@ final class ErasePersonWorkflowTest extends ApiTestCase
                 new DoctrinePersonRepository($entityManager),
                 self::service(RosterRepositoryInterface::class),
                 $failing,
+                [self::service(PersonTraces::class)],
             ),
             self::service(MeetingErasures::class),
             self::service(LearningErasures::class),
@@ -103,6 +123,19 @@ final class ErasePersonWorkflowTest extends ApiTestCase
         $connection = new Database(self::getContainer())->connection();
         self::assertSame(1, $connection->fetchOne('SELECT count(*) FROM meetings.attendance'));
         self::assertSame(0, $connection->fetchOne('SELECT sum(erased_present) FROM meetings.meeting_session'));
+        self::assertSame($mina, $connection->fetchOne('SELECT person_id::text FROM identity.app_user'));
+    }
+
+    private function linkAccountTo(string $personId): void
+    {
+        new Database(self::getContainer())
+            ->connection()
+            ->insert('identity.app_user', Accounts::row([
+                'email' => 'mina@example.org',
+                'person_id' => $personId,
+                'age_check' => 'guardianConsent',
+                'guardian_consent_note' => 'Father agreed.',
+            ]));
     }
 
     /**
