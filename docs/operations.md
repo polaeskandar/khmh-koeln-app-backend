@@ -180,6 +180,8 @@ the Symfony secrets vault is not used.
 | `TRUSTED_HOSTS` | see below | No | Production only: a regular expression of the `Host` values the API answers; anything else gets 400. Add the platform's health-probe host, and keep `127.0.0.1`, which the image's own health check calls. Empty would turn the check off, so the image refuses to start without it. |
 | `DEFAULT_URI` | `https://app.khmk-koeln.com` | No | Base URL for links generated outside a request (console) |
 | `TEST_TOKEN` | `1` | No | Test only: the PHPUnit runner's suffix for parallel test databases |
+| `DEMO_PASSWORD` | `khmk-demo-2026` (`.env.dev`, `.env.test`) | No | `dev`/`test` only: the password of every demo account. Never set it in production. |
+| `ALLOW_DEMO_SEED` | `0` | No | `dev`/`test` only: `1` lets `composer db:seed` (`app:demo:seed`) purge and load the demo data into a database that is not local. The command does not exist in `prod`. |
 
 The production `TRUSTED_HOSTS`, with the probe host added at the end:
 

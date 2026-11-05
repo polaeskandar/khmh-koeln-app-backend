@@ -60,6 +60,10 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   When a rule of one context needs another context's facts, the workflow reads them and hands them over in
   the receiving context's own value object: `OfferedMeetings` maps Meetings' `MeetingSlot` into Learning's
   `OfferedMeeting`, and `ArchivedStructure` carries Organization's archived ids into Meetings.
+- The demo data (`composer db:seed`) follows the same split: each context seeds its own records with a
+  `Demo<Records>` application service, and `SeedDemoDataWorkflow` hands Organization's demo groups to People and
+  Meetings by name and id. `DemoDatabase` refuses a database that is not local, then purges and loads in one
+  transaction.
 - `Domain` holds the model only (`SourceLayoutTest`), and business logic lives in `Application/Service`. Entities hold state and
   nothing else: the constructor assigns the value objects, entities and ids it is given (plus fixed starting
   values such as a new session's `scheduled` progress), getters return them or answer a question about that

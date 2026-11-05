@@ -21,6 +21,28 @@ docker compose exec api bin/console ...   # Symfony console
 docker compose down --volumes && docker compose up -d   # start over with an empty database
 ```
 
+## Demo data
+
+`docker compose exec api composer db:seed` replaces the local data with fictional accounts, services, people and
+schedules for trying the screens; the roles and permissions stay. It exists only in `dev` and `test`, and refuses a
+database that is not on this machine or the Compose `database` service (`demo.localDatabaseOnly`) unless
+`ALLOW_DEMO_SEED=1`. The sessions of today and tomorrow are generated; run it again to start over.
+
+Every account signs in with the password `khmk-demo-2026` (`DEMO_PASSWORD` in `.env.dev`):
+
+| Account | Name | Role |
+| --- | --- | --- |
+| `mariam@example.org` | Mariam Fahmy | Administrator |
+| `christine@example.org` | Christine Adel | Service leader |
+| `daniel@example.org` | Daniel Michael | Servant |
+| `hoda@example.org` | Hoda Farag | Parent |
+| `nadia@example.org` | Nadia Mansour | none: a pending parent registration naming Sophia Mansour |
+
+- **Sunday School:** Kindergarten (12 children, with Sophia Mansour), 1st Class (11, with Mimi Gerges), 2nd Class
+  (10), 3rd Class (14, with Mina Hanna), 4th Class (13), 5th & 6th Class (10). Each stage has a Sunday class at
+  12:00–13:15; 3rd Class also practises Monday to Saturday at 17:00–18:00, so every day has a session to open.
+- **Youth Meeting:** no stages, 24 members with a second Mina Hanna, meeting on Fridays at 19:00–21:00.
+
 Local overrides go in `.env.local` (git-ignored), never in `.env`. The variables are listed in
 [Operations](docs/operations.md#configuration).
 
