@@ -1104,6 +1104,43 @@ nobody to manage roles.
 `app:user:password-link` does. The link itself is never returned, stored or logged. 404 `notFound.user`; 409
 `accounts.passwordLinkUnavailable` for a pending or disabled account.
 
+### Parent access
+
+The administrators' page for giving and revoking a parent's access to a child, the same links that
+`app:guardian:link` and `app:guardian:revoke` manage on the console.
+
+#### `GET /api/guardian-links`
+
+`users: read`, else 403 `forbidden`. `{items, accounts, today}`:
+
+- `items`: approved links as `{id, relationship, parent: {id, name, email}, child: {id, firstName, lastName,
+  displayName, groups}, approvedAt, approvedBy: AccountRef | null}`, by parent name, then the child's last and first
+  name (German collation). `relationship` is `parent` or `guardian`; `groups` are the child's current memberships, as
+  in the people directory; `approvedBy` is `null` for console links and once the account is gone. Revoked links
+  are left out.
+- `accounts`: the accounts a link can name, `{id, name, email}` by name: approved and not disabled, staff
+  included. Pending and disabled accounts are left out.
+- At most 1000 links and 1000 accounts; there is no search or paging.
+
+#### `POST /api/guardian-links`
+
+`users: update`, else 403 `guardians.adminOnlyGrant`. Body `{userId, personId, relationship?}` (`relationship`
+defaults to `parent`) → 201 with the new item. One transaction stores an approved link (`approvedBy` = the viewer)
+and gives the account the `parent` role unless it already holds it. Pick the child from `GET
+/api/people/directory`.
+
+- 422 field errors: `userId`/`personId` missing or not a UUID → `validation.invalidChoice`; `relationship` →
+  `validation.invalidChoice {choices}`; an inactive person → `personId` `accounts.childNotFound`.
+- 404 `notFound.user`, `notFound.person`.
+- 409 `guardians.accountInactive` for a pending or disabled account; 409 `guardians.alreadyHasAccess {parent, child}`
+  when the pair is already linked, also when another request stores the same link between the check and the insert.
+
+#### `POST /api/guardian-links/{id}/revoke`
+
+`users: update`, else 403 `guardians.adminOnlyRemove`. Body `{}` → 204. The link stops counting from the parent's
+next request; the `parent` role stays. Repeating it changes nothing, so the first `revokedAt` stays; the same pair
+can be linked again afterwards. 404 `notFound.guardian`, also for an id that is not a UUID.
+
 ### Services
 
 A service row:

@@ -31,6 +31,33 @@ final readonly class DoctrineGuardianRelationshipRepository implements GuardianR
     }
 
     #[Override]
+    public function find(Uuid $id): ?GuardianRelationship
+    {
+        return $this->entityManager->find(GuardianRelationship::class, $id);
+    }
+
+    /**
+     * @param positive-int $limit
+     */
+    #[Override]
+    public function approved(int $limit): ReadableCollection
+    {
+        $query = $this->entityManager
+            ->createQueryBuilder()
+            ->select('g', 'p')
+            ->from(GuardianRelationship::class, 'g')
+            ->join('g.child', 'p')
+            ->where('g.status = :approved')
+            ->setParameter('approved', GuardianStatus::Approved)
+            ->orderBy('g.approvedAt', 'DESC')
+            ->addOrderBy('g.id', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery();
+
+        return new ArrayCollection(ListOf::instances($query->getResult(), GuardianRelationship::class));
+    }
+
+    #[Override]
     public function approvedFor(Uuid $accountId, Person $child): ?GuardianRelationship
     {
         return $this->entityManager
