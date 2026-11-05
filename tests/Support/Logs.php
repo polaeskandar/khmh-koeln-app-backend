@@ -44,6 +44,26 @@ final readonly class Logs
         return array_values(array_map($encode, $this->handler()->getRecords()));
     }
 
+    public function writesInsideLock(string $lockedTable, string ...$writes): bool
+    {
+        $lines = $this->lines();
+
+        $at =
+            static fn (string $needle): array => array_keys(array_filter($lines, static fn (string $line): bool => str_contains(
+                $line,
+                $needle,
+            )));
+
+        $lock = array_values(array_intersect($at('FOR UPDATE'), $at($lockedTable)))[0] ?? -1;
+        $written = array_map($at, $writes);
+        $indexes = array_merge(...$written);
+        $later = array_filter($at('Committing transaction'), static fn (int $index): bool => $index > $lock);
+        $commit = array_values($later)[0] ?? -1;
+        $everyWrite = !in_array([], $written, strict: true);
+
+        return $lock >= 0 && $everyWrite && $indexes !== [] && $lock < min($indexes) && max($indexes) < $commit;
+    }
+
     /**
      * @return list<LogRecord>
      */

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Meetings;
 
-use App\Interface\Api\Meetings\Request\ReopenSessionRequest;
+use App\Interface\Api\Meetings\Request\ReasonRequest;
 use App\Interface\Api\Meetings\Response\SessionDetailResponse;
 use App\Interface\Api\Meetings\Response\SessionStateResponse;
+use App\Workflow\Meetings\CancelSessionWorkflow;
 use App\Workflow\Meetings\CloseSessionWorkflow;
 use App\Workflow\Meetings\OpenSessionWorkflow;
 use App\Workflow\Meetings\ReopenSessionWorkflow;
@@ -49,9 +50,21 @@ final class SessionsController extends AbstractController
         #[CurrentUser]
         UserInterface $user,
         #[MapRequestPayload]
-        ReopenSessionRequest $request,
+        ReasonRequest $request,
         ReopenSessionWorkflow $reopenSession,
     ): JsonResponse {
         return $this->json(SessionStateResponse::of($reopenSession($id, $user->getUserIdentifier(), $request->reason)));
+    }
+
+    #[Route('/{id}/cancel', name: 'api_sessions_cancel', methods: ['POST'])]
+    public function cancel(
+        string $id,
+        #[CurrentUser]
+        UserInterface $user,
+        #[MapRequestPayload]
+        ReasonRequest $request,
+        CancelSessionWorkflow $cancelSession,
+    ): JsonResponse {
+        return $this->json(SessionStateResponse::of($cancelSession($id, $user->getUserIdentifier(), $request->reason)));
     }
 }

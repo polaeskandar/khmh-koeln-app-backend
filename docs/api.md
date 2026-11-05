@@ -1221,12 +1221,12 @@ The filters take ids and narrow the schedules; `scheduleId` wins over the others
 or more than 120 days after it; ids `validation.invalidType` (an empty value included). The items cost the same number
 of statements whatever their number.
 
-#### `POST /api/sessions/{id}/open`, `/close`, `/reopen`
+#### `POST /api/sessions/{id}/open`, `/close`, `/reopen`, `/cancel`
 
 Each answers 200 `{id, status, openedAt, closedAt, closedBy: AccountRef | null}` (its own shape, not a
 `SessionView`), runs in the session write lock
-and appends `opened`, `closed` or `reopened` to the history only when something changed, so a phone's retry is
-harmless. 404 `notFound.session`, also for an id that is not a UUID.
+and appends `opened`, `closed`, `reopened` or `canceled` to the history only when something changed, so a phone's
+retry is harmless (except a repeated cancel, below). 404 `notFound.session`, also for an id that is not a UUID.
 
 - **Open** (`attendance: create`): `scheduled` → `active` from the session's date in Europe/Berlin on (also
   late). Before that day → 409 `meetings.opensOnTheDay`; already `active` → 200 unchanged; `canceled` → 409
@@ -1237,6 +1237,10 @@ harmless. 404 `notFound.session`, also for an id that is not a UUID.
   null, ≤200: `validation.tooLong` `{max: 200}`), kept as the event's note. `completed` → `active`,
   `closedAt`/`closedBy` cleared, `openedAt` kept; already `active` → 200 unchanged; otherwise 409
   `meetings.onlyCompletedCanReopen`.
+- **Cancel** (`sessions: update`): body `{reason?}` (trimmed, blank → null, ≤200: `validation.tooLong` `{max: 200}`),
+  kept as `cancelReason` and as the event's note. `scheduled` → `canceled`; otherwise 409
+  `meetings.onlyScheduledCanCancel`, a repeat included. The schedule is untouched and the generator never recreates
+  the date.
 
 ### Attendance marks
 

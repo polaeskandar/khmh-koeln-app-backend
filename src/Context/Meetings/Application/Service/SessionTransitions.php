@@ -10,7 +10,7 @@ use App\Context\Meetings\Domain\Enum\SessionEventType;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\Actor;
 use App\Context\Meetings\Domain\ValueObject\Progress;
-use App\Context\Meetings\Domain\ValueObject\ReopenReason;
+use App\Context\Meetings\Domain\ValueObject\SessionReason;
 use App\Context\Meetings\Domain\ValueObject\Stamp;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
@@ -48,8 +48,21 @@ final readonly class SessionTransitions
             $sessionId,
             $accountId,
             SessionEventType::Reopened,
-            note: ReopenReason::of($reason)->value,
+            note: SessionReason::of($reason)->value,
             change: static fn (Session $session): Progress => $session->progress()->reopened(),
+        );
+    }
+
+    public function cancel(string $sessionId, string $accountId, ?string $reason): Session
+    {
+        $note = SessionReason::of($reason)->value;
+
+        return $this->apply(
+            $sessionId,
+            $accountId,
+            SessionEventType::Canceled,
+            note: $note,
+            change: static fn (Session $session): Progress => $session->progress()->canceled($note),
         );
     }
 
