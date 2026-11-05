@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Context\Learning\Domain\Repository;
 
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
-use App\Context\Learning\Domain\Entity\HomeworkCompletion;
 use App\Context\Learning\Domain\ValueObject\HomeworkCounts;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -29,11 +28,11 @@ interface HomeworkRepositoryInterface
     public function countsByLesson(array $lessonIds): ReadableCollection;
 
     /**
-     * @param list<HomeworkAssignment> $tasks
+     * @param list<Uuid> $stageIds
      *
-     * @return ReadableCollection<int, HomeworkCompletion>
+     * @return list<HomeworkAssignment>
      */
-    public function currentReportsOf(array $tasks): ReadableCollection;
+    public function publishedInStages(array $stageIds): array;
 
     /**
      * @template T of object

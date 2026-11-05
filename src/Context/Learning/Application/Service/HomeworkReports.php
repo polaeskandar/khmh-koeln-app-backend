@@ -6,6 +6,7 @@ namespace App\Context\Learning\Application\Service;
 
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\Entity\HomeworkCompletion;
+use App\Context\Learning\Domain\Repository\HomeworkReportRepositoryInterface;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkReading;
@@ -22,6 +23,7 @@ final readonly class HomeworkReports
 {
     public function __construct(
         private HomeworkRepositoryInterface $homework,
+        private HomeworkReportRepositoryInterface $completions,
         private LessonRepositoryInterface $lessons,
         private Calendar $calendar,
     ) {
@@ -32,7 +34,7 @@ final readonly class HomeworkReports
      */
     public function of(array $tasks): TaskReports
     {
-        $reports = $this->homework->currentReportsOf($tasks)->map($this->reportOf(...));
+        $reports = $this->completions->currentReportsOf($tasks)->map($this->reportOf(...));
 
         $published = Collections::mapPresent(
             Collections::firstPerKey(new ArrayCollection($tasks), keyOf: self::taskKey(...)),
