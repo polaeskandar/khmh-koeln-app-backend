@@ -27,7 +27,17 @@ final class HomeworkControllerProgressAccessTest extends ApiTestCase
         self::assertSame(['today', 'service', 'stage', 'homework', 'lesson', 'counts', 'rows'], array_keys($progress));
 
         self::assertSame(
-            ['person', 'inStage', 'done', 'completedAt', 'completedBy', 'completedAfterDueDate', 'parentAccounts'],
+            [
+                'person',
+                'inStage',
+                'done',
+                'completedAt',
+                'completedBy',
+                'completedAfterDueDate',
+                'parentAccounts',
+                'ownAccount',
+                'reportedBySelf',
+            ],
             array_keys($this->rows()[0] ?? []),
         );
 

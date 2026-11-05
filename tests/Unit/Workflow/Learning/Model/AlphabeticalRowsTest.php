@@ -36,6 +36,7 @@ final class AlphabeticalRowsTest extends TestCase
             inStage: true,
             report: null,
             parentAccounts: [],
+            ownAccount: false,
         );
     }
 }

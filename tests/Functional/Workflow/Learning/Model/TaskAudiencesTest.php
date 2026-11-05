@@ -88,12 +88,13 @@ final class TaskAudiencesTest extends KernelTestCase
 
         $counts = $this->audiences([$task])->countsOf($task);
 
-        self::assertSame([2, 1, 1, 0, 1, 2], [
+        self::assertSame([2, 1, 1, 0, 1, 1, 2], [
             $counts->assigned,
             $counts->completed,
             $counts->notCompleted(),
             $counts->completedAfterDueDate,
-            $counts->withoutParentAccount,
+            $counts->open->withoutParentAccount,
+            $counts->open->withoutAccount,
             $counts->reportedTotal,
         ]);
     }
@@ -172,7 +173,7 @@ final class TaskAudiencesTest extends KernelTestCase
             array_map(static fn (AudienceRow $row): int => count($row->parentAccounts), $rows),
         );
 
-        self::assertSame(2, $this->audiences([$task])->countsOf($task)->withoutParentAccount);
+        self::assertSame(2, $this->audiences([$task])->countsOf($task)->open->withoutParentAccount);
     }
 
     public function testTwentyTasksCostAsManyStatementsAsOne(): void

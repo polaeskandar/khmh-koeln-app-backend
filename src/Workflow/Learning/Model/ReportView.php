@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Identity\Domain\Entity\User;
 use App\Context\Learning\Domain\ValueObject\HomeworkReport;
+use App\Context\People\Domain\Entity\Person;
 use App\Workflow\Identity\Model\AccountReference;
-use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class ReportView
 {
@@ -15,24 +14,23 @@ final readonly class ReportView
         public string $completedAt,
         public ?AccountReference $completedBy,
         public bool $completedAfterDueDate,
+        public bool $bySelf,
     ) {
     }
 
-    /**
-     * @param ReadableCollection<string, User> $accounts
-     */
-    public static function of(?HomeworkReport $report, ReadableCollection $accounts): ?self
+    public static function of(?HomeworkReport $report, AudienceAccounts $accounts, Person $person): ?self
     {
         if ($report === null) {
             return null;
         }
 
-        $completer = $accounts->get($report->completedBy?->toRfc4122() ?? '');
+        $completer = $accounts->users->get($report->completedBy?->toRfc4122() ?? '');
 
         return new self(
             $report->completedAt,
             $completer === null ? null : AccountReference::of($completer),
             $report->late,
+            bySelf: $accounts->isOwnAccount($person, $report->completedBy),
         );
     }
 }

@@ -17,6 +17,7 @@ final readonly class AudienceRow
         public bool $inStage,
         public ?ReportView $report,
         public array $parentAccounts,
+        public bool $ownAccount,
     ) {
     }
 }

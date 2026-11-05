@@ -324,11 +324,16 @@ In numbers (`TaskAudiences`), for church-today in Europe/Berlin:
 - `assigned` = in the stage; `completed` = in the stage with a current report; `notCompleted` = the rest;
   `completedAfterDueDate` = in-stage reports whose Berlin date is after `due_date` (never without one);
   `withoutParentAccount` = in-stage children with no report and no approved guardian link to an active account;
-  `reportedTotal` = every current report.
-- The parent portal (`VisibleHomework`) uses the same condition for the tasks a parent's child sees: the
-  viewer is an active account with an approved link to the child, the task is `published`, and the child is in
-  its stage today (active, membership current) or has a current report. Every parent read and write goes through
-  it, with the viewer, never a bare child id.
+  `withoutAccount` = in-stage people with no report, no such parent account and no active account of their own
+  (members, #142), so it equals `withoutParentAccount` where nobody has an own account; `reportedTotal` = every
+  current report.
+- A row's `ownAccount` says the person has an active account of their own, also for someone listed only because
+  of a report after leaving; `reportedBySelf` says that account made the current report.
+- The parent portal (`VisibleHomework`) and the member portal (`OwnHomework`) use the same condition for the tasks
+  a child or a member sees: the task is `published`, and the person is in its stage today (active, membership
+  current) or has a current report. For a parent the viewer is an active account with an approved link to the
+  child; for a member it is the active account linked to the record (`MemberCheck`). Every read and write goes
+  through it, with the viewer, never a bare person id.
 
 ## Data protection
 

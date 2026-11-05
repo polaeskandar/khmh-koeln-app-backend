@@ -17,4 +17,11 @@ interface MemberAccountRepositoryInterface
      * @return list<string> the ids of those records that an account is linked to
      */
     public function linkedAmong(array $personIds): array;
+
+    /**
+     * @param list<Uuid> $personIds
+     *
+     * @return array<string, string> the approved, enabled account linked to each of those records, by person id
+     */
+    public function activeAccountsOf(array $personIds): array;
 }

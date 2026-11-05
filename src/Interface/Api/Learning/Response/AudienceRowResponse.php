@@ -26,6 +26,8 @@ final readonly class AudienceRowResponse implements JsonSerializable
      *     completedBy: AccountReference|null,
      *     completedAfterDueDate: bool,
      *     parentAccounts: list<AccountReference>,
+     *     ownAccount: bool,
+     *     reportedBySelf: bool,
      * }
      */
     #[Override]
@@ -42,6 +44,8 @@ final readonly class AudienceRowResponse implements JsonSerializable
             'completedBy' => $report?->completedBy,
             'completedAfterDueDate' => $report->completedAfterDueDate ?? false,
             'parentAccounts' => $row->parentAccounts,
+            'ownAccount' => $row->ownAccount,
+            'reportedBySelf' => $report->bySelf ?? false,
         ];
     }
 }
