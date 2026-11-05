@@ -219,18 +219,36 @@ Origin check also skips). The contract for both is in the [API contract](api.md#
 
 ### Accounts need an administrator's approval
 
-Parents and servants register themselves: name, email, password, whether they are a parent or a servant,
-and a note (their children's names and classes, or where they serve), after accepting the privacy notice.
+Parents, servants and members register themselves: name, email, password, whether they are a parent, a
+servant or a member, and a note (their children's names and classes, where they serve, or the groups they take
+part in), after accepting the privacy notice.
 The account exists from then on but can't be used: signing in with the right password only shows that it
 is waiting. An administrator approves it in Settings › Account requests, and the approval is where access
 is decided: a parent's account is linked to the children the office has checked (approved guardian links),
-a servant gets the servant role. Declining deletes the account and
-everything the person entered. Accounts the office creates itself are approved at once.
+a servant gets the servant role, a member's account is linked to their own member record (see "Members can have
+an account of their own"). Declining deletes the account and everything the person entered. Accounts the office
+creates itself are approved at once.
 
 Sign-in answers "wrong email or password" without saying which, and "forgot password" always answers the
 same, so neither can be used to find out who has an account. Before an administrator sees a registration,
 the person should confirm their email address through a link (not in the prototype). Disabled accounts
 can't sign in and keep their history.
+
+### Members can have an account of their own
+
+After the launch, people on a roster (a youth, an adult in the Coptic course, an older child whose parents
+agreed) can get an account of their own. An administrator links an approved account to the person's own member
+record after checking who it belongs to, at most one account per record. Under 16 this needs the agreement of a
+parent or guardian (DSGVO Art. 8): the administrator records how the age was checked with the approval
+(`age_check`: 16 or older, or a guardian's consent) and, for a consent, how it was given (an optional note).
+Staff and parents can be members too: a mother who takes the Coptic course keeps her parent portal and gets her
+own groups next to it.
+
+Members receive their own groups, when and where they meet, their servants, the last lesson's passage and
+memory verse, the next two weeks' meetings (canceled ones without the reason) and the published homework of
+their stages, which they tick off themselves. They never see attendance, notes for the servants, cancel
+reasons, lesson plans or other members. Only an administrator sets or removes the link; an account that is only
+a member's goes back to the account requests when its link is removed.
 
 ### Three languages, right to left included
 
@@ -296,10 +314,12 @@ seeded defaults are:
 
 Parents see only the children an administrator linked to their account (#23), and receive only what they
 need: published homework, the passage and memory verse, never lesson plans, notes, attendance or other
-families. The frontend only hides what a person can't do; the API checks every request. People's
-`GuardianVoter` grants `ACT_FOR_CHILD` on a child to an account with an approved guardian link. It checks only
-the link, because a token always belongs to an active account: Identity refuses pending and disabled accounts at
-sign-in and ends their sessions on the next request.
+families. The member portal needs no permission: it is open to an active account linked to a member record and
+shows only that record's own groups and homework, so a staff or parent account can be a member as well. The
+frontend only hides what a person can't do; the API checks every request. People's `GuardianVoter` grants
+`ACT_FOR_CHILD` on a child to an account with an approved guardian link. It checks only the link, because a
+token always belongs to an active account: Identity refuses pending and disabled accounts at sign-in and ends
+their sessions on the next request.
 
 A workflow that needs a permission states it as its first step:
 `$this->access->require(Action::Update, Resource::Services)` (`Context\Identity\Application\Service\AccessCheck`).
@@ -322,7 +342,8 @@ and corrections keep their history.
 
 ### Homework is reported, not graded
 
-Parents tick a task off; undo is possible. Staff see who reported what. There are no grades, scores or
+Parents tick a task off for their child, and members with an account of their own tick off their own; undo is
+possible, and both see the same report. Staff see who reported what. There are no grades, scores or
 rankings, and the wording stays gentle ("Was due yesterday", never "overdue").
 
 ## Open questions for tickets
@@ -337,4 +358,7 @@ rankings, and the wording stays gentle ("Was due yesterday", never "overdue").
   addresses; how long members who left and
   disabled accounts are kept; how long backups keep erased data; the data processing agreement with the
   host; whether a data protection impact assessment is needed.
+- Member accounts, with the church's adviser: whether a noted agreement of a parent or guardian is enough for
+  members under 16 or a signed form is needed; the legal basis for member accounts; the privacy notice draft's
+  new member items (what member accounts store, what members see, how long members who leave are kept).
 - Hosting, deployment, backups and monitoring: requirements and shortlist in [Operations](operations.md).

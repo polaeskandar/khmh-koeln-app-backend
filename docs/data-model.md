@@ -53,7 +53,9 @@ erDiagram
 ```
 
 Every child, member and visitor is a **person**. Only people who sign in have an **account** (`app_user`):
-staff (administrators, service leaders, servants) and parents. Children never have accounts.
+staff (administrators, service leaders, servants), parents, and members who asked for an account of their own.
+An administrator links a member's account to their own person record, at most one account per record; under 16
+only with a parent's or guardian's agreement. Younger children never have accounts of their own.
 
 ## Services, stages and people
 
@@ -190,14 +192,17 @@ command that runs the workflow, with its lock, is #53.
 
 | Table | Purpose | Key rules |
 | --- | --- | --- |
-| `app_user` | A sign-in account: email, display name, password hash, language (`en`, `de`, `ar`), optional link to a person, optional `birth_date` and postal address (`street`, `postal_code`, `city`, all three or none; visible to the person and administrators). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. `approved_at`/`approved_by` stay null until an administrator approves the account; until then it can't sign in. While waiting it keeps what the person wrote when registering (`registered_as` parent or servant, `registration_note`, and for servants the services they serve in, `organization.registration_service`); these are cleared once an administrator decides. Declining deletes the row. Disabled accounts (`disabled_at`) can't sign in and keep their history. |
+| `app_user` | A sign-in account: email, display name, password hash, language (`en`, `de`, `ar`), optional link to the person's own member record (`person_id`), optional `birth_date` and postal address (`street`, `postal_code`, `city`, all three or none; visible to the person and administrators). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. `approved_at`/`approved_by` stay null until an administrator approves the account; until then it can't sign in. While waiting it keeps what the person wrote when registering (`registered_as` parent, servant or member, `registration_note`, and for servants the services they serve in, `organization.registration_service`); these are cleared once an administrator decides. Declining deletes the row. Disabled accounts (`disabled_at`) can't sign in and keep their history. |
 | `role` | A named set of permissions. Administrators create, rename and delete roles and choose their permissions from the catalog; the defaults are Administrator, Service leader, Servant and Parent. | Name unique, ignoring case and extra spaces. |
 | `permission` | One action (`create`, `read`, `update`, `delete`) on one resource (`users`, `roles`, `services`, `stages`, `sessions`, `attendance`, `members`, `lessons`, `homework`, `parentPortal`). | One row per action and resource; seeded. |
 
 `app_user` lives in the `identity` schema. The email is stored trimmed and in lower case (CHECK `email =
 lower(btrim(email))`, UNIQUE), so lookups normalize the typed address the same way. CHECKs keep `language` to
-`en`, `de`, `ar` and `registered_as` to `parent`, `servant`; the
-registration fields are empty once `approved_at` is set; the address is all three parts or none (street ≤120,
+`en`, `de`, `ar` and `registered_as` to `parent`, `servant`, `member`; the
+registration fields are empty once `approved_at` is set; `person_id` is a plain id of a People person (no
+foreign key across schemas), partial UNIQUE `(person_id) WHERE person_id IS NOT NULL`; `age_check`
+(`sixteenOrOlder`, `guardianConsent`) and `guardian_consent_note` (≤200) are set only with `person_id`, and the
+note only with `guardianConsent`; the address is all three parts or none (street ≤120,
 postal code ≤10, city ≤80, cleaned, blank → null). A servant who registers names every service they serve in. Those rows live with
 the services: `organization.registration_service (account_id, service_id)`, primary key over both, `service_id`
 references `service` with `ON DELETE CASCADE`, `account_id` is a plain id of an Identity account. The registration
@@ -250,7 +255,7 @@ roles. A parent account without any approved child sees an empty portal.
 | --- | --- | --- |
 | `lesson` | What is taught at one meeting of a stage: title, summary, passage, memory verse, objectives, teaching points, activities, materials, notes for the servants. A responsible servant and helpers (`lesson_collaborator`). | Linked to its meeting by `(schedule_id, teaching_date)`, the same key as the session, so it can be prepared weeks before the session exists. At most one non-archived lesson per meeting. |
 | `homework_assignment` | A small task for the children of the lesson's stage: title, instructions for parents, optional due date, resources. | `stage_id` is the lesson's stage. The due date can't be before the lesson. `published_at` stays set once it was published. |
-| `homework_completion` | A parent's report that one child did one task. | At most one current report per task and child (`undone_at` null). Reporting twice keeps the first report. Undo sets `undone_at` and `undone_by`. Only an approved guardian of the child can report, and only while the task is published. |
+| `homework_completion` | A report that one person did one task, by an approved guardian or by the member's own account. | At most one current report per task and person (`undone_at` null). Reporting twice keeps the first report, whoever made it. Undo sets `undone_at` and `undone_by`. Only an approved guardian of the person or the account linked to the person's own record can report, and only while the task is published. |
 | `guardian_relationship` | Links a parent account to a child: `parent` or `guardian`. In the `people` schema. | `approved` → `revoked` (the row stays). Only administrators create links. At most one non-revoked link per account and child (partial UNIQUE `(user_id, person_id) WHERE status <> 'revoked'`). `person_id` references `person` with `ON DELETE CASCADE`; `user_id`, `approved_by` and `revoked_by` are plain account ids (no foreign keys across schemas): deleting or erasing an account deletes its links in the workflow (#82). CHECKs on `relationship`, `status` and `(status = 'revoked') = (revoked_at IS NOT NULL)`. |
 
 `learning.lesson` (`Lesson`): `stage_id` (Organization) and `schedule_id` (Meetings) are plain ids without foreign
@@ -280,7 +285,7 @@ erasure process), timestamps. CHECKs: status enum, published needs `published_at
 (archived_at IS NOT NULL)`, non-blank title, non-blank instructions ≤2000, ≤10 resources. Indexes `(stage_id,
 status)` and `lesson_id`. Lifecycle changes and parents' reports take the task row `FOR UPDATE`
 (`HomeworkRepositoryInterface::withLock()`), so "back to draft" and a new report never interleave. The due date is
-checked against the lesson's date by the use case (#60), because it spans two rows.
+checked against the lesson's date by the workflow (#60), because it spans two rows.
 
 `learning.homework_completion` (`HomeworkCompletion`): `assignment_id` (RESTRICT), `person_id` (People, plain id),
 `completed_at`, `completed_by`, `undone_at`, `undone_by` (account ids nulled by erasure). Partial UNIQUE
@@ -297,6 +302,15 @@ The parent read models contain only the parent's own approved children, their cu
 homework (title, instructions, due date, resources) and the lesson's title, date, passage and memory verse. Lesson plans,
 notes for the servants, attendance, other children and other families are never part of them. "Done" means
 a parent ticked it off; it says nothing about how well the child learned, and nothing is graded or ranked.
+
+### What members receive
+
+A member's read models contain only their own record's groups (current memberships in active services and
+stages), the schedules and servants of those groups, the last lesson's title, date, passage and memory verse,
+the next two weeks' meetings (canceled ones without the reason) and the published homework of their stages
+with the same audience and reports as the parent portal. The person always comes from the account's `person_id`,
+never from the request. Attendance, notes for the servants, cancel reasons, lesson plans and other members are
+never part of them.
 
 ### Who a task is for
 
