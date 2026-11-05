@@ -7,6 +7,7 @@ namespace App\Context\Identity\Infrastructure\Persistence\Repository;
 use App\Context\Identity\Domain\Entity\PasswordToken;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Repository\PasswordTokenRepositoryInterface;
+use App\Library\Types\Model\Integers;
 use App\Library\Types\Model\Type;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
@@ -20,6 +21,21 @@ final readonly class DoctrinePasswordTokenRepository implements PasswordTokenRep
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
+    }
+
+    #[Override]
+    public function countFor(Uuid $userId): int
+    {
+        return Integers::of(
+            $this->entityManager
+                ->getConnection()
+                ->createQueryBuilder()
+                ->select('count(*)')
+                ->from('identity.password_token')
+                ->where('user_id = :user')
+                ->setParameter('user', $userId->toRfc4122())
+                ->fetchOne(),
+        );
     }
 
     #[Override]

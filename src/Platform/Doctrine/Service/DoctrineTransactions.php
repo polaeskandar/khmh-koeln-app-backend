@@ -22,4 +22,18 @@ final readonly class DoctrineTransactions implements Transactions
             $work();
         });
     }
+
+    #[Override]
+    public function rehearse(callable $work): mixed
+    {
+        $connection = $this->entityManager->getConnection();
+        $connection->beginTransaction();
+
+        try {
+            return $work();
+        } finally {
+            $connection->rollBack();
+            $this->entityManager->clear();
+        }
+    }
 }

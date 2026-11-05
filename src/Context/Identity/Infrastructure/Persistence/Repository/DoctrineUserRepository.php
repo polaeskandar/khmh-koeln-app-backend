@@ -13,13 +13,14 @@ use App\Library\Problem\Exception\NotFound;
 use App\Library\Types\Model\ListOf;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
-use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineUserRepository implements UserRepositoryInterface
 {
+    private const string LOCK_ROW = 'SELECT id FROM identity.app_user WHERE id = ? FOR UPDATE';
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -59,9 +60,9 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
     public function withWriteLock(Uuid $id, callable $work): void
     {
         $this->entityManager->wrapInTransaction(function () use ($id, $work): void {
-            $work(
-                $this->entityManager->find(User::class, $id, LockMode::PESSIMISTIC_WRITE) ?? throw NotFound::of('user'),
-            );
+            $this->entityManager->getConnection()->executeQuery(self::LOCK_ROW, [$id->toRfc4122()]);
+
+            $work($this->entityManager->find(User::class, $id) ?? throw NotFound::of('user'));
         });
     }
 
