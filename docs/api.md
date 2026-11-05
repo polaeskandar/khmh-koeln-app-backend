@@ -1445,3 +1445,27 @@ needs the teaching date to be church-today or earlier (Europe/Berlin), else 409 
 `lessons.stageArchived {name}`; 404 also for an id that is not a UUID. `completedAt` is an instant in Europe/Berlin.
 `PUT`'s `status` (`draft` or `ready`) clears a completion the same way.
 
+
+### Homework
+
+#### `POST /api/lessons/{lessonId}/homework`
+
+`homework: create` (403 `homework.assignStageOnly`). Body `{title, instructions, dueDate?,
+resources?: [{label, url?}]}` → 201 `{id, status: "draft"}`: a draft in the lesson's stage, created by the caller.
+The title's spaces are collapsed; the instructions are trimmed and keep their line breaks; empty resource rows are
+dropped.
+
+Every invalid field comes in one 422: `title` `homework.titleRequired`, `validation.tooLong {max: 120}`;
+`instructions` `homework.instructionsRequired`, `homework.instructionsTooLong` (2000); `dueDate`
+`validation.invalidDate`, `homework.dueBeforeLesson` (before the lesson's teaching date); `resources`
+`materials.tooMany` and `resources.{i}.label`/`.url` as in `materials`. 404 `notFound.lesson`, also for an id that
+is not a UUID; an archived lesson
+→ 409 `lessons.archived`; an archived stage or service → 409 `lessons.stageArchived {name}`.
+
+#### `PUT /api/homework/{id}`
+
+`homework: update` (403 `homework.changeStageOnly`). The same body, the whole editable task: a `dueDate` left out,
+`null` or `""` is cleared, and `resources` left out is an empty list. An unchanged due date stays valid after the
+lesson moved past it. The task is locked while it changes; a published task keeps its status, `publishedAt` and
+reports. 200 `{id, status}`; 404 `notFound.homework`, also for an id that is not a UUID; an archived task → 409
+`homework.archivedNoEdit`; the lesson, stage and service rules as for `POST`.

@@ -92,4 +92,10 @@ final class HomeworkAssignment extends TimestampedEntity
     {
         return $this->createdBy;
     }
+
+    public function edit(HomeworkText $text, Materials $resources): void
+    {
+        $this->text = $text;
+        $this->resources = $resources->toArray();
+    }
 }
