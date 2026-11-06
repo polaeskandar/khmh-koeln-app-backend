@@ -19,7 +19,8 @@ final readonly class LastAdministrator
 
     public function is(User $user): bool
     {
-        $administers = $user->status()->isActive() && $user->can(Action::Update, Resource::Roles);
+        $administers = RolePermissions::activeAccountHas($user, Action::Update, Resource::Roles);
+
         $othersDo = $this->users->hasOtherActiveAccountThatCan($user, Action::Update, Resource::Roles);
 
         return $administers && !$othersDo;
@@ -27,8 +28,8 @@ final readonly class LastAdministrator
 
     public function wouldLoseIt(User $user, Role $role): bool
     {
-        $roleAdministers = $role->allows(Action::Update, Resource::Roles);
-        $keepsIt = $user->canWithout($role, Action::Update, Resource::Roles);
+        $roleAdministers = RolePermissions::roleAllows($role, Action::Update, Resource::Roles);
+        $keepsIt = RolePermissions::accountHasWithout($user, $role, Action::Update, Resource::Roles);
 
         return $roleAdministers && !$keepsIt && $this->is($user);
     }

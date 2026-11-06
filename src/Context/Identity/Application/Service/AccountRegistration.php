@@ -9,6 +9,7 @@ use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\Enum\RegisteredAs;
 use App\Context\Identity\Domain\Interface\PasswordHasherInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\ValueObject\AccountStatus;
 use App\Context\Identity\Domain\ValueObject\DisplayName;
 use App\Context\Identity\Domain\ValueObject\Email;
 use App\Context\Identity\Domain\ValueObject\PlainPassword;
@@ -69,7 +70,7 @@ final readonly class AccountRegistration
             privacyVersion: $this->privacyNoticeVersion,
         );
 
-        $user = User::registered($profile, $passwordHash, $registration);
+        $user = new User($profile, $passwordHash, AccountStatus::pending(), $registration, roles: []);
         $this->users->save($user);
 
         return $user->id();

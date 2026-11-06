@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Domain\Entity;
 
-use App\Context\Identity\Domain\Enum\Action;
-use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\ValueObject\RoleName;
 use App\Library\Persistence\Mapping\TimestampedEntity;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -61,19 +59,8 @@ final class Role extends TimestampedEntity
         return $this->permissions;
     }
 
-    public function allows(Action $action, Resource $resource): bool
-    {
-        return !$this->permissions
-            ->filter(static fn (Permission $permission): bool => $permission->isFor($action, $resource))
-            ->isEmpty();
-    }
-
     public function grant(Permission $permission): void
     {
-        if ($this->permissions->contains($permission)) {
-            return;
-        }
-
         $this->permissions->add($permission);
     }
 

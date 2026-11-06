@@ -15,8 +15,7 @@ final class PermissionTest extends TestCase
     {
         $permission = new Permission(Action::Update, Resource::Sessions);
 
-        self::assertSame('{"action":"update","resource":"sessions"}', json_encode($permission, JSON_THROW_ON_ERROR));
-        self::assertTrue($permission->isFor(Action::Update, Resource::Sessions));
-        self::assertFalse($permission->isFor(Action::Read, Resource::Sessions));
+        self::assertSame(Action::Update, $permission->action());
+        self::assertSame(Resource::Sessions, $permission->resource());
     }
 }

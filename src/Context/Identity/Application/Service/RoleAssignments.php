@@ -31,6 +31,10 @@ final readonly class RoleAssignments
             throw new RuleViolation('roles.accountPending');
         }
 
+        if ($user->roles()->contains($role)) {
+            throw new RuleViolation('roles.alreadyHasRole', ['name' => $user->profile()->displayName->value]);
+        }
+
         $user->assign($role);
         $this->users->save($user);
     }
@@ -43,6 +47,10 @@ final readonly class RoleAssignments
 
             if ($this->lastAdministrator->wouldLoseIt($user, $role)) {
                 throw new RuleViolation('roles.lastAdministrator');
+            }
+
+            if (!$user->roles()->contains($role)) {
+                throw new RuleViolation('roles.notHeld', ['name' => $user->profile()->displayName->value]);
             }
 
             $user->unassign($role);

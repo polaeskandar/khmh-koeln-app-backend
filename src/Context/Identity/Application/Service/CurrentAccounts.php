@@ -40,7 +40,7 @@ final readonly class CurrentAccounts
     {
         foreach (Resource::cases() as $resource) {
             foreach (Action::cases() as $action) {
-                if (!$user->can($action, $resource)) {
+                if (!RolePermissions::accountHas($user, $action, $resource)) {
                     continue;
                 }
 

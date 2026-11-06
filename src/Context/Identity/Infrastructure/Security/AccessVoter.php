@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Infrastructure\Security;
 
+use App\Context\Identity\Application\Service\RolePermissions;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\Access;
@@ -39,7 +40,8 @@ final class AccessVoter extends Voter
         ?Vote $vote = null,
     ): bool {
         $user = $this->accountOf($token);
-        $granted = $user !== null && $subject->isAllowedFor($user);
+
+        $granted = $user !== null && RolePermissions::activeAccountHas($user, $subject->action, $subject->resource);
 
         if (!$granted) {
             $vote?->addReason(Text::format('No active role of the account grants this %s.', $attribute)->toString());

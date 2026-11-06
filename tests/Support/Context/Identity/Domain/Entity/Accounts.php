@@ -6,9 +6,11 @@ namespace App\Tests\Support\Context\Identity\Domain\Entity;
 
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Language;
+use App\Context\Identity\Domain\ValueObject\AccountStatus;
 use App\Context\Identity\Domain\ValueObject\DisplayName;
 use App\Context\Identity\Domain\ValueObject\Email;
 use App\Context\Identity\Domain\ValueObject\Profile;
+use App\Context\Identity\Domain\ValueObject\Registration;
 use DateTimeImmutable;
 use Symfony\Component\Uid\Uuid;
 
@@ -16,10 +18,12 @@ final readonly class Accounts
 {
     public static function approved(string $email, string $passwordHash = 'not-a-real-hash'): User
     {
-        return User::approved(
+        return new User(
             new Profile(Email::of($email), DisplayName::of('Sara Hanna'), Language::German),
             passwordHash: $passwordHash,
-            approvedAt: new DateTimeImmutable('2026-11-08T12:00:00+01:00'),
+            status: AccountStatus::approvedAt(new DateTimeImmutable('2026-11-08T12:00:00+01:00')),
+            registration: Registration::none(),
+            roles: [],
         );
     }
 
