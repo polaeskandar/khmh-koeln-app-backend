@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Support\Context\People\Domain\Entity;
 
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\ValueObject\PersonName;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Database;
@@ -37,7 +38,7 @@ final readonly class Families
 
     public function child(string $firstName = 'Kirollos'): Person
     {
-        $child = new Person($firstName, 'Iskander', null);
+        $child = new Person(PersonName::of($firstName, 'Iskander', null));
         $this->database()->persisted($child);
 
         return $child;

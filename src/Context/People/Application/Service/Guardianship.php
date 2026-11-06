@@ -32,7 +32,9 @@ final readonly class Guardianship
             return;
         }
 
-        $this->links->save(GuardianRelationship::approved($accountId, $child, $kind, $this->calendar->now(), by: null));
+        $this->links->save(
+            new GuardianRelationship($accountId, $child, $kind, approvedAt: $this->calendar->now(), approvedBy: null),
+        );
     }
 
     public function revoke(Uuid $accountId, Person $child): void
