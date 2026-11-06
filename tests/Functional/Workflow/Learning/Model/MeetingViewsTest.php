@@ -34,13 +34,21 @@ final class MeetingViewsTest extends KernelTestCase
         $database->connection()->executeStatement('UPDATE meetings.meeting_schedule SET active = false WHERE id = ?', [$inactive->id()->toRfc4122()]);
         $database->entityManager()->clear();
 
-        $views = MeetingViews::lookedUpIn($this->meetings(), new ArrayCollection([
+        $lessons = new ArrayCollection([
             $this->lesson($sunday->id(), '2026-11-15'),
             $this->lesson($sunday->id(), '2026-11-08'),
             $this->lesson($sunday->id(), '2026-11-22'),
             $this->lesson($inactive->id(), '2026-11-29'),
             $this->lesson(null, '2026-12-06'),
-        ]));
+        ]);
+
+        $found = $this->meetings()->schedules(MeetingViews::scheduleIdsOf($lessons));
+
+        $views = MeetingViews::of(
+            $found,
+            $this->meetings()->sessionsOn($found, MeetingViews::datesOf($lessons)),
+            $lessons,
+        );
 
         self::assertSame(
             ['planned', 'session', 'session', 'not-on-schedule', 'none'],
