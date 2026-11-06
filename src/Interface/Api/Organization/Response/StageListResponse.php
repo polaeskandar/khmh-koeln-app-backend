@@ -14,20 +14,16 @@ final readonly class StageListResponse
     /**
      * @param list<StageEntry> $stages
      * @param list<ArchivedStageEntry> $archivedStages
-     * @param array{manageStructure: bool} $can
      */
     public function __construct(
         public ServiceReference $service,
         public array $stages,
         public array $archivedStages,
-        public array $can,
     ) {
     }
 
     public static function of(StageList $list): self
     {
-        return new self($list->service, $list->active, $list->archived, [
-            'manageStructure' => $list->canManageStructure,
-        ]);
+        return new self($list->service, $list->active, $list->archived);
     }
 }

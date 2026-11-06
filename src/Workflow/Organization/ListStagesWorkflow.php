@@ -26,10 +26,6 @@ final readonly class ListStagesWorkflow
 
         $service = $this->services->find($serviceId);
 
-        return StageList::of(
-            $service,
-            $this->stages->ofService($service),
-            canManageStructure: !$service->isArchived() && $this->access->allows(Action::Update, Resource::Stages),
-        );
+        return StageList::of($service, $this->stages->ofService($service));
     }
 }
