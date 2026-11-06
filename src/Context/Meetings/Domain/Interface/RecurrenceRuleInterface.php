@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Context\Meetings\Application\Service\RecurrenceRule;
+namespace App\Context\Meetings\Domain\Interface;
 
 use App\Context\Meetings\Domain\ValueObject\RecurrenceDraft;
 

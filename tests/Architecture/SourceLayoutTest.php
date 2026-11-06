@@ -15,7 +15,15 @@ final class SourceLayoutTest extends TestCase
 
     private const array CONTEXT_LAYERS = ['Application', 'Domain', 'Infrastructure'];
 
-    private const array DOMAIN_KINDS = ['Attribute', 'Entity', 'Enum', 'Exception', 'Repository', 'ValueObject'];
+    private const array DOMAIN_KINDS = [
+        'Attribute',
+        'Entity',
+        'Enum',
+        'Exception',
+        'Interface',
+        'Repository',
+        'ValueObject',
+    ];
 
     private const array LIBRARY_KINDS = ['Client', 'Exception', 'Mapping', 'Model'];
 
