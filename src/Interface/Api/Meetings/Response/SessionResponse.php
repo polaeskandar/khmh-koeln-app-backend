@@ -6,7 +6,8 @@ namespace App\Interface\Api\Meetings\Response;
 
 use App\Workflow\Meetings\Model\SessionView;
 use App\Workflow\Organization\Model\ServiceReference;
-use App\Workflow\Organization\Model\StageSummary;
+use App\Workflow\Organization\Model\StageReference;
+use DateTimeImmutable;
 use JsonSerializable;
 use Override;
 
@@ -24,17 +25,16 @@ final readonly class SessionResponse implements JsonSerializable
      *     occurrenceDate: string,
      *     title: string,
      *     service: ServiceReference|null,
-     *     stage: StageSummary|null,
+     *     stage: StageReference|null,
      *     date: string,
      *     startTime: string,
      *     endTime: string|null,
-     *     startsAt: string,
-     *     endsAt: string|null,
+     *     startsAt: DateTimeImmutable,
+     *     endsAt: DateTimeImmutable|null,
      *     location: string|null,
      *     status: string,
      *     rosterMode: string,
      *     cancelReason: string|null,
-     *     can: array{manage: bool, record: bool, reopen: bool},
      * }
      */
     #[Override]
@@ -59,19 +59,17 @@ final readonly class SessionResponse implements JsonSerializable
      *     date: string,
      *     startTime: string,
      *     endTime: string|null,
-     *     startsAt: string,
-     *     endsAt: string|null,
+     *     startsAt: DateTimeImmutable,
+     *     endsAt: DateTimeImmutable|null,
      *     location: string|null,
      *     status: string,
      *     rosterMode: string,
      *     cancelReason: string|null,
-     *     can: array{manage: bool, record: bool, reopen: bool},
      * }
      */
     private function timesAndState(): array
     {
         $times = $this->view->times;
-        $can = $this->view->can;
 
         return [
             'date' => $times->date,
@@ -83,7 +81,6 @@ final readonly class SessionResponse implements JsonSerializable
             'status' => $this->view->progress->status,
             'rosterMode' => $this->view->roster->mode,
             'cancelReason' => $this->view->progress->cancelReason,
-            'can' => ['manage' => $can->manage, 'record' => $can->record, 'reopen' => $can->reopen],
         ];
     }
 }
