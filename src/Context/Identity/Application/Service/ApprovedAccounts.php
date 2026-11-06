@@ -10,10 +10,12 @@ use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\Interface\PasswordHasherInterface;
 use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\ValueObject\AccountStatus;
 use App\Context\Identity\Domain\ValueObject\DisplayName;
 use App\Context\Identity\Domain\ValueObject\Email;
 use App\Context\Identity\Domain\ValueObject\PlainPassword;
 use App\Context\Identity\Domain\ValueObject\Profile;
+use App\Context\Identity\Domain\ValueObject\Registration;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Time\Client\Calendar;
 use SensitiveParameter;
@@ -43,10 +45,11 @@ final readonly class ApprovedAccounts
             throw InvalidInput::field('email', 'accounts.emailTaken');
         }
 
-        $user = User::approved(
+        $user = new User(
             $profile,
             passwordHash: $this->passwordHash($password),
-            approvedAt: $this->calendar->now(),
+            status: AccountStatus::approvedAt($this->calendar->now()),
+            registration: Registration::none(),
             roles: $this->rolesNamed($role),
         );
 

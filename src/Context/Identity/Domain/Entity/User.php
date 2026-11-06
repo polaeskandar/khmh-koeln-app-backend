@@ -4,15 +4,11 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Domain\Entity;
 
-use App\Context\Identity\Domain\Enum\Action;
-use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\ValueObject\AccountStatus;
 use App\Context\Identity\Domain\ValueObject\PersonalDetails;
 use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Identity\Domain\ValueObject\Registration;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
-use App\Library\Problem\Exception\RuleViolation;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -57,38 +53,23 @@ final class User extends CreatedAtEntity
     #[ORM\InverseJoinColumn(name: 'role_id', onDelete: 'CASCADE')]
     private Collection $roles;
 
-    private function __construct(Profile $profile, string $passwordHash, AccountStatus $status)
-    {
-        $this->id = Uuid::v7();
-        $this->profile = $profile;
-        $this->passwordHash = $passwordHash;
-        $this->registration = Registration::none();
-        $this->personalDetails = PersonalDetails::none();
-        $this->status = $status;
-        $this->roles = new ArrayCollection();
-    }
-
     /**
      * @param list<Role> $roles
      */
-    public static function approved(
+    public function __construct(
         Profile $profile,
         string $passwordHash,
-        DateTimeImmutable $approvedAt,
-        array $roles = [],
-    ): self {
-        $user = new self($profile, $passwordHash, AccountStatus::approvedAt($approvedAt));
-        $user->roles = new ArrayCollection($roles);
-
-        return $user;
-    }
-
-    public static function registered(Profile $profile, string $passwordHash, Registration $registration): self
-    {
-        $user = new self($profile, $passwordHash, AccountStatus::pending());
-        $user->registration = $registration;
-
-        return $user;
+        AccountStatus $status,
+        Registration $registration,
+        array $roles,
+    ) {
+        $this->id = Uuid::v7();
+        $this->profile = $profile;
+        $this->passwordHash = $passwordHash;
+        $this->registration = $registration;
+        $this->personalDetails = PersonalDetails::none();
+        $this->status = $status;
+        $this->roles = new ArrayCollection($roles);
     }
 
     public function id(): Uuid
@@ -121,14 +102,9 @@ final class User extends CreatedAtEntity
         return $this->status;
     }
 
-    public function disable(DateTimeImmutable $at): void
+    public function changeStatus(AccountStatus $status): void
     {
-        $this->status = $this->status->disabledAt($at);
-    }
-
-    public function enable(): void
-    {
-        $this->status = $this->status->enabled();
+        $this->status = $status;
     }
 
     public function approvedBy(): ?self
@@ -146,29 +122,11 @@ final class User extends CreatedAtEntity
 
     public function assign(Role $role): void
     {
-        if ($this->roles->contains($role)) {
-            throw new RuleViolation('roles.alreadyHasRole', ['name' => $this->profile->displayName->value]);
-        }
-
         $this->roles->add($role);
     }
 
     public function unassign(Role $role): void
     {
-        if (!$this->roles->removeElement($role)) {
-            throw new RuleViolation('roles.notHeld', ['name' => $this->profile->displayName->value]);
-        }
-    }
-
-    public function canWithout(Role $left, Action $action, Resource $resource): bool
-    {
-        return !$this->roles
-            ->filter(static fn (Role $role): bool => $role !== $left && $role->allows($action, $resource))
-            ->isEmpty();
-    }
-
-    public function can(Action $action, Resource $resource): bool
-    {
-        return !$this->roles->filter(static fn (Role $role): bool => $role->allows($action, $resource))->isEmpty();
+        $this->roles->removeElement($role);
     }
 }

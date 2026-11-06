@@ -14,25 +14,23 @@ use PHPUnit\Framework\TestCase;
 
 final class RoleTest extends TestCase
 {
-    public function testARoleAllowsWhatItsPermissionsAllow(): void
+    public function testARoleHoldsItsNameAndGrantedPermissions(): void
     {
         $readServices = new Permission(Action::Read, Resource::Services);
-        $role = Roles::named('  Choir   leader ', $readServices, $readServices);
+        $role = Roles::named('  Choir   leader ', $readServices);
 
         self::assertSame('Choir leader', $role->name()->value);
         self::assertSame([$readServices], $role->permissions()->getValues());
-        self::assertTrue($role->allows(Action::Read, Resource::Services));
-        self::assertFalse($role->allows(Action::Update, Resource::Services));
     }
 
-    public function testARevokedPermissionNoLongerAllows(): void
+    public function testARevokedPermissionIsGone(): void
     {
         $readServices = new Permission(Action::Read, Resource::Services);
         $role = Roles::named('Choir leader', $readServices);
 
         $role->revoke($readServices);
 
-        self::assertFalse($role->allows(Action::Read, Resource::Services));
+        self::assertTrue($role->permissions()->isEmpty());
     }
 
     public function testARoleNeedsAName(): void

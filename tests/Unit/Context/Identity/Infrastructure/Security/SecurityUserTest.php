@@ -57,7 +57,7 @@ final class SecurityUserTest extends TestCase
         $user = Accounts::approved('sara@example.org');
         $stored = self::restored(serialize(SecurityUser::of($user)));
 
-        $user->disable(new DateTimeImmutable('2026-11-09T12:00:00+01:00'));
+        $user->changeStatus($user->status()->disabledAt(new DateTimeImmutable('2026-11-09T12:00:00+01:00')));
 
         self::assertFalse($stored->isEqualTo(SecurityUser::of($user)));
     }

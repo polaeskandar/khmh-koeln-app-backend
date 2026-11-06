@@ -7,15 +7,13 @@ namespace App\Context\Identity\Domain\Entity;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use Doctrine\ORM\Mapping as ORM;
-use JsonSerializable;
-use Override;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'permission', schema: 'identity')]
 #[ORM\UniqueConstraint(name: 'permission_resource_action_unique', columns: ['resource', 'action'])]
-final class Permission implements JsonSerializable
+final class Permission
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
@@ -47,19 +45,5 @@ final class Permission implements JsonSerializable
     public function resource(): Resource
     {
         return $this->resource;
-    }
-
-    public function isFor(Action $action, Resource $resource): bool
-    {
-        return $this->action === $action && $this->resource === $resource;
-    }
-
-    /**
-     * @return array{action: string, resource: string}
-     */
-    #[Override]
-    public function jsonSerialize(): array
-    {
-        return ['action' => $this->action->value, 'resource' => $this->resource->value];
     }
 }
