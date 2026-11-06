@@ -53,6 +53,12 @@ final readonly class DoctrineSessionRepository implements SessionRepositoryInter
     public function withWriteLock(Uuid $id, callable $work): object
     {
         return $this->entityManager->wrapInTransaction(function () use ($id, $work): object {
+            $loaded = $this->entityManager->getUnitOfWork()->tryGetById(['id' => $id], Session::class);
+
+            if ($loaded !== false) {
+                $this->entityManager->detach($loaded);
+            }
+
             $session = $this->entityManager->find(Session::class, $id, LockMode::PESSIMISTIC_WRITE);
 
             return $work($session ?? throw NotFound::of('session'));

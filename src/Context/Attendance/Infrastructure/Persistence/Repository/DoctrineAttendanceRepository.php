@@ -43,7 +43,7 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
     {
         return new ArrayCollection($this->entityManager->getRepository(Attendance::class)->findBy([
             'sessionId' => $sessionId,
-        ], ['recordedAt' => 'ASC']));
+        ], ['recordedAt' => 'ASC', 'id' => 'ASC']));
     }
 
     /**

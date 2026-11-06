@@ -8,7 +8,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use Override;
 
-final class Version20261101205843 extends AbstractMigration
+final class Version20261106234757 extends AbstractMigration
 {
     #[Override]
     public function up(Schema $schema): void
@@ -34,7 +34,7 @@ final class Version20261101205843 extends AbstractMigration
         $this->addSql('CREATE INDEX attendance_session_idx ON attendance.attendance (session_id)');
         $this->addSql('CREATE INDEX attendance_person_idx ON attendance.attendance (person_id)');
         $this->addSql(<<<'SQL'
-                CREATE UNIQUE INDEX uniq_attendance_current ON attendance.attendance (session_id, person_id)
+                CREATE UNIQUE INDEX attendance_current_unique ON attendance.attendance (session_id, person_id)
                 WHERE
                   (removed_at IS NULL)
             SQL);
