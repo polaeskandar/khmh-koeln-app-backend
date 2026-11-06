@@ -6,13 +6,16 @@ namespace App\Context\Meetings\Infrastructure\Persistence\Repository;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
+use App\Library\Types\Model\Type;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInterface
 {
+    private const string ACTIVE_IDS = 'SELECT id FROM meetings.meeting_schedule WHERE active ORDER BY id';
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -25,9 +28,14 @@ final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInt
         $this->entityManager->flush();
     }
 
+    /**
+     * @return list<Uuid>
+     */
     #[Override]
-    public function active(): ReadableCollection
+    public function activeIds(): array
     {
-        return new ArrayCollection($this->entityManager->getRepository(Schedule::class)->findBy(['active' => true]));
+        return new ArrayCollection($this->entityManager->getConnection()->fetchFirstColumn(self::ACTIVE_IDS))->map(
+            static fn (mixed $id): Uuid => Uuid::fromString(Type::of($id)->toString()),
+        )->getValues();
     }
 }

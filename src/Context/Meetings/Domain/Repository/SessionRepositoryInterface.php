@@ -6,13 +6,22 @@ namespace App\Context\Meetings\Domain\Repository;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\ValueObject\Actor;
+use App\Context\Meetings\Domain\ValueObject\GenerationResult;
 use App\Library\Time\Model\LocalDate;
 use DateTimeImmutable;
+use Symfony\Component\Uid\Uuid;
 
 interface SessionRepositoryInterface
 {
     /**
-     * @param list<LocalDate> $dates
+     * @param callable(Schedule): list<LocalDate> $datesOf
      */
-    public function createMissing(Schedule $schedule, array $dates, Actor $actor, DateTimeImmutable $at): int;
+    public function createMissing(
+        Uuid $scheduleId,
+        callable $datesOf,
+        Actor $actor,
+        DateTimeImmutable $at,
+    ): GenerationResult;
+
+    public function reset(): void;
 }
