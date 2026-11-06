@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Context\Attendance\Domain\Entity;
 
 use App\Context\Attendance\Domain\ValueObject\Removal;
-use App\Library\Problem\Exception\RuleViolation;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -42,28 +41,19 @@ final class Attendance
     #[ORM\Embedded(Removal::class, columnPrefix: false)]
     private Removal $removal;
 
-    private function __construct(Uuid $sessionId, Uuid $personId, DateTimeImmutable $at, ?Uuid $by)
+    public function __construct(Uuid $sessionId, Uuid $personId, DateTimeImmutable $recordedAt, ?Uuid $recordedBy)
     {
         $this->id = Uuid::v7();
         $this->sessionId = $sessionId;
         $this->personId = $personId;
-        $this->recordedAt = $at;
-        $this->recordedBy = $by;
+        $this->recordedAt = $recordedAt;
+        $this->recordedBy = $recordedBy;
         $this->removal = Removal::none();
     }
 
-    public static function record(Uuid $sessionId, Uuid $personId, DateTimeImmutable $at, ?Uuid $by): self
+    public function remove(Removal $removal): void
     {
-        return new self($sessionId, $personId, $at, $by);
-    }
-
-    public function remove(?Uuid $by, DateTimeImmutable $at, ?string $reason): void
-    {
-        if (!$this->isCurrent()) {
-            throw new RuleViolation('attendance.alreadyRemoved');
-        }
-
-        $this->removal = Removal::of($at, $by, $reason);
+        $this->removal = $removal;
     }
 
     public function isCurrent(): bool

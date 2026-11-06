@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Context\Attendance\Domain\Entity;
 
 use App\Context\Attendance\Domain\Entity\Attendance;
+use App\Context\Attendance\Domain\ValueObject\Removal;
 use App\Tests\Support\Database;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -16,33 +17,25 @@ final class AttendanceTest extends KernelTestCase
     public function testAPersonHasOneCurrentMarkPerSession(): void
     {
         [$session, $person] = [Uuid::v7(), Uuid::v7()];
-        $removed = Attendance::record($session, $person, new DateTimeImmutable('2026-11-08T12:00:00+01:00'), null);
-        $removed->remove(null, new DateTimeImmutable('2026-11-08T12:01:00+01:00'), 'Wrong child');
+        $removed = new Attendance($session, $person, new DateTimeImmutable('2026-11-08T12:00:00+01:00'), null);
+        $removed->remove(Removal::of(new DateTimeImmutable('2026-11-08T12:01:00+01:00'), null, 'Wrong child'));
 
-        $this->database()->persisted($removed, Attendance::record(
-            $session,
-            $person,
-            new DateTimeImmutable('2026-11-08T12:02:00+01:00'),
-            null,
+        $this->database()->persisted(
+            $removed,
+            new Attendance($session, $person, new DateTimeImmutable('2026-11-08T12:02:00+01:00'), null),
+        );
+
+        $this->database()->assertRefused(Database::UNIQUE_VIOLATION, fn () => $this->database()->persisted(
+            new Attendance($session, $person, new DateTimeImmutable('2026-11-08T12:03:00+01:00'), null),
         ));
-
-        $this->database()->assertRefused(Database::UNIQUE_VIOLATION, fn () => $this->database()->persisted(Attendance::record(
-            $session,
-            $person,
-            new DateTimeImmutable('2026-11-08T12:03:00+01:00'),
-            null,
-        )));
     }
 
     #[DataProvider('violations')]
     public function testEachCheckRefusesItsRow(string $set): void
     {
-        $this->database()->persisted(Attendance::record(
-            Uuid::v7(),
-            Uuid::v7(),
-            new DateTimeImmutable('2026-11-08T12:00:00+01:00'),
-            null,
-        ));
+        $this->database()->persisted(
+            new Attendance(Uuid::v7(), Uuid::v7(), new DateTimeImmutable('2026-11-08T12:00:00+01:00'), null),
+        );
 
         $this->database()->assertRefused(Database::CHECK_VIOLATION, 'UPDATE attendance.attendance SET ' . $set);
     }
