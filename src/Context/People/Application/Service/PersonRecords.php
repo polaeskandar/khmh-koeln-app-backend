@@ -10,6 +10,7 @@ use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\ValueObject\Enrolment;
 use App\Context\People\Domain\ValueObject\PersonName;
 use App\Context\People\Domain\ValueObject\Placement;
+use App\Context\People\Domain\ValueObject\Tenure;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -38,11 +39,16 @@ final readonly class PersonRecords
 
     public function create(PersonName $name, ?Placement $placement): Enrolment
     {
-        $person = new Person($name->firstName, $name->lastName, $name->displayName);
+        $person = new Person($name);
 
         $membership = $placement === null
             ? null
-            : new Membership($person, $placement->serviceId, $placement->stageId, $this->calendar->today());
+            : new Membership(
+                $person,
+                $placement->serviceId,
+                $placement->stageId,
+                Tenure::from($this->calendar->today()),
+            );
 
         $this->people->save($person, ...$membership === null ? [] : [$membership]);
 
@@ -51,17 +57,13 @@ final readonly class PersonRecords
 
     public function rename(string $id, ?string $firstName, ?string $lastName, ?string $displayName): Person
     {
-        $person = $this->people->find(Uuid::fromString($id)) ?? throw NotFound::of('person');
-        $name = $person->name();
+        $person = Uuid::isValid($id) ? $this->people->find(Uuid::fromString($id)) : null;
+        $found = $person ?? throw NotFound::of('person');
 
-        $person->rename(
-            $firstName ?? $name->firstName,
-            $lastName ?? $name->lastName,
-            $displayName ?? $name->displayName,
-        );
+        $found->rename($this->nameOf($firstName, $lastName, $displayName));
 
-        $this->people->save($person);
+        $this->people->save($found);
 
-        return $person;
+        return $found;
     }
 }

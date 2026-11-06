@@ -1083,11 +1083,11 @@ Anyone with the same cleaned first and last name, ignoring case and display name
 `confirmDuplicate: true`. The person and the membership are written in one transaction. 201 `{person:
 PersonView, membership: MembershipView | null}`.
 
-#### `PATCH /api/people/{id}`
+#### `PUT /api/people/{id}`
 
-`members: update` (403 `people.changeNotAllowed`). Body `{firstName?, lastName?, displayName?}`; a member left out
-keeps its value, `""` clears the display name. Same name rules, no namesake check. 200 `PersonView`; 404
-`notFound.person`.
+`members: update` (403 `people.changeNotAllowed`). Body `{firstName, lastName, displayName?}`, the whole name: a
+display name left out, `null` or `""` clears it. Same name rules, no namesake check. 200 `PersonView`; 404
+`notFound.person`, also for an id that is not a UUID.
 
 ### Schedules
 
