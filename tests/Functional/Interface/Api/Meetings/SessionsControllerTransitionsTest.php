@@ -108,6 +108,15 @@ final class SessionsControllerTransitionsTest extends ApiTestCase
         $this->assertProblem(403, 'forbidden');
     }
 
+    public function testAMalformedSessionIdIsNotFound(): void
+    {
+        $this->signInWithRoles('servant@example.org', 'servant');
+
+        $this->jsonRequest('POST', '/api/sessions/not-a-uuid/open');
+
+        $this->assertProblem(404, 'notFound.session');
+    }
+
     private function session(string $date): Session
     {
         $service = Structure::service('Sunday School ' . $date);

@@ -6,14 +6,15 @@ namespace App\Interface\Api\Meetings\Response;
 
 use App\Workflow\Identity\Model\AccountReference;
 use App\Workflow\Meetings\Model\SessionState;
+use DateTimeImmutable;
 
 final readonly class SessionStateResponse
 {
     public function __construct(
         public string $id,
         public string $status,
-        public ?string $openedAt,
-        public ?string $closedAt,
+        public ?DateTimeImmutable $openedAt,
+        public ?DateTimeImmutable $closedAt,
         public ?AccountReference $closedBy,
     ) {
     }

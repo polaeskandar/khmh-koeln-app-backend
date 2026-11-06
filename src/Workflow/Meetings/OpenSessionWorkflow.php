@@ -24,6 +24,8 @@ final readonly class OpenSessionWorkflow
     {
         $this->access->require(Action::Create, Resource::Attendance);
 
-        return SessionState::of($this->transitions->open($sessionId, $accountId), $this->accounts);
+        $session = $this->transitions->open($sessionId, $accountId);
+
+        return SessionState::of($session, $this->accounts->account($session->progress()->closed->by));
     }
 }
