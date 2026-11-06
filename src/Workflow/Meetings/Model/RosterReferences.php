@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Workflow\Meetings\Model;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
-use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Library\Collections\Model\Collections;
@@ -27,21 +26,38 @@ final readonly class RosterReferences
     }
 
     /**
-     * @param ReadableCollection<int, Schedule> $schedules
+     * @param ReadableCollection<int, Service> $services
+     * @param ReadableCollection<int, Stage> $stages
      */
-    public static function lookedUpIn(StructureLookup $structure, ReadableCollection $schedules): self
+    public static function of(ReadableCollection $services, ReadableCollection $stages): self
     {
-        $serviceIds = $schedules->map(static fn (Schedule $schedule): Uuid => $schedule->roster()->serviceId);
+        return new self(
+            Collections::firstPerKey($services, keyOf: self::serviceKey(...)),
+            Collections::firstPerKey($stages, keyOf: self::stageKey(...)),
+        );
+    }
 
-        $stageIds = Collections::mapPresent(
+    /**
+     * @param ReadableCollection<int, Schedule> $schedules
+     *
+     * @return list<Uuid>
+     */
+    public static function serviceIdsOf(ReadableCollection $schedules): array
+    {
+        return $schedules->map(static fn (Schedule $schedule): Uuid => $schedule->roster()->serviceId)->getValues();
+    }
+
+    /**
+     * @param ReadableCollection<int, Schedule> $schedules
+     *
+     * @return list<Uuid>
+     */
+    public static function stageIdsOf(ReadableCollection $schedules): array
+    {
+        return Collections::mapPresent(
             $schedules,
             static fn (Schedule $schedule): ?Uuid => $schedule->roster()->stageId,
-        );
-
-        return new self(
-            Collections::firstPerKey($structure->services($serviceIds->getValues()), keyOf: self::serviceKey(...)),
-            Collections::firstPerKey($structure->stages($stageIds->getValues()), keyOf: self::stageKey(...)),
-        );
+        )->getValues();
     }
 
     public function serviceOf(Schedule $schedule): ?ServiceReference

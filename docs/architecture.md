@@ -50,6 +50,8 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
 - Interface uses workflows, never a context (`InterfaceLayoutTest`). Nothing depends on Interface.
 - Only workflows use the contexts. A workflow never calls another workflow and never uses a repository; it goes
   through the contexts' application services (`WorkflowLayoutTest`).
+- Workflow models are built from values. The workflow calls the contexts' services and clients such as the
+  `Calendar` and passes what they return; a model never receives a service (`mago guard`).
 - Only workflows manage access. A workflow injects `AccessCheck` and calls `require()` itself. Models,
   controllers and context services never use `AccessCheck`, neither injected nor passed as an argument
   (`mago guard`). Read models carry no permission flags: clients take what the viewer may do from the
