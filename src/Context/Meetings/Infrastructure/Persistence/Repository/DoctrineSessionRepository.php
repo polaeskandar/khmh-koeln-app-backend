@@ -10,17 +10,22 @@ use App\Context\Meetings\Domain\Entity\SessionEvent;
 use App\Context\Meetings\Domain\Enum\SessionEventType;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\Actor;
+use App\Context\Meetings\Domain\ValueObject\GenerationResult;
 use App\Library\Time\Model\LocalDate;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Override;
-use Throwable;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineSessionRepository implements SessionRepositoryInterface
 {
     private const string LOCK_SCHEDULE = 'SELECT id FROM meetings.meeting_schedule WHERE id = ? FOR UPDATE';
+
+    private const string SESSION_EXISTS = <<<'SQL'
+        SELECT 1 FROM meetings.meeting_session WHERE schedule_id = ? AND occurrence_date = ?
+        SQL;
 
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -29,38 +34,47 @@ final readonly class DoctrineSessionRepository implements SessionRepositoryInter
     }
 
     /**
-     * @param list<LocalDate> $dates
+     * @param callable(Schedule): list<LocalDate> $datesOf
      */
     #[Override]
-    public function createMissing(Schedule $schedule, array $dates, Actor $actor, DateTimeImmutable $at): int
-    {
-        try {
-            return $this->entityManager->wrapInTransaction(
-                fn (): int => $this->createUnderLock($schedule, $dates, $actor, $at),
-            );
-        } catch (Throwable $failure) {
-            $this->doctrine->resetManager();
+    public function createMissing(
+        Uuid $scheduleId,
+        callable $datesOf,
+        Actor $actor,
+        DateTimeImmutable $at,
+    ): GenerationResult {
+        return $this->entityManager->wrapInTransaction(
+            fn (): GenerationResult => $this->createUnderLock($scheduleId, $datesOf, $actor, $at),
+        );
+    }
 
-            throw $failure;
-        }
+    #[Override]
+    public function reset(): void
+    {
+        $this->doctrine->resetManager();
     }
 
     /**
-     * @param list<LocalDate> $dates
+     * @param callable(Schedule): list<LocalDate> $datesOf
      */
-    private function createUnderLock(Schedule $schedule, array $dates, Actor $actor, DateTimeImmutable $at): int
-    {
-        $this->entityManager->getConnection()->executeQuery(self::LOCK_SCHEDULE, [$schedule->id()->toRfc4122()]);
-        $locked = $this->entityManager->find(Schedule::class, $schedule->id());
+    private function createUnderLock(
+        Uuid $scheduleId,
+        callable $datesOf,
+        Actor $actor,
+        DateTimeImmutable $at,
+    ): GenerationResult {
+        $this->entityManager->getConnection()->executeQuery(self::LOCK_SCHEDULE, [$scheduleId->toRfc4122()]);
+        $schedule = $this->entityManager->find(Schedule::class, $scheduleId);
 
-        if ($locked === null) {
-            return 0;
+        if ($schedule === null) {
+            return new GenerationResult();
         }
 
-        $missing = new ArrayCollection($dates)->filter(fn (LocalDate $date): bool => !$this->exists($locked, $date));
+        $dates = new ArrayCollection($datesOf($schedule));
+        $missing = $dates->filter(fn (LocalDate $date): bool => !$this->exists($scheduleId, $date));
 
         foreach ($missing as $date) {
-            $session = new Session($locked, $date);
+            $session = new Session($schedule, $date);
             $this->entityManager->persist($session);
 
             $this->entityManager->persist(
@@ -68,15 +82,14 @@ final readonly class DoctrineSessionRepository implements SessionRepositoryInter
             );
         }
 
-        return $missing->count();
+        return new GenerationResult(created: $missing->count(), existing: $dates->count() - $missing->count());
     }
 
-    private function exists(Schedule $schedule, LocalDate $date): bool
+    private function exists(Uuid $scheduleId, LocalDate $date): bool
     {
-        $found = $this->entityManager
-            ->getRepository(Session::class)
-            ->findOneBy(['schedule' => $schedule, 'occurrenceDate' => $date]);
-
-        return $found !== null;
+        return $this->entityManager->getConnection()->fetchOne(self::SESSION_EXISTS, [
+            $scheduleId->toRfc4122(),
+            $date->toString(),
+        ]) !== false;
     }
 }

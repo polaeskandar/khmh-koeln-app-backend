@@ -13,8 +13,8 @@ use App\Context\Meetings\Domain\ValueObject\GenerationResult;
 use App\Library\Time\Client\Calendar;
 use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\ReadableCollection;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Uid\Uuid;
 use Throwable;
 
 final readonly class SessionGenerator
@@ -29,44 +29,50 @@ final readonly class SessionGenerator
 
     public function generate(LocalDate $today, ArchivedStructure $archived): GenerationResult
     {
-        return $this->generateAmong($archived->generating($this->schedules->active()), $today);
+        return new ArrayCollection($this->schedules->activeIds())->reduce(fn (
+            GenerationResult $sum,
+            Uuid $id,
+        ): GenerationResult => $sum->plus($this->safely($id, $today, $archived)), initial: new GenerationResult());
     }
 
     public function generateFor(Schedule $schedule, LocalDate $today, ArchivedStructure $archived): GenerationResult
     {
-        return $this->generateAmong($archived->generating(new ArrayCollection([$schedule])), $today);
+        return $this->forSchedule($schedule->id(), $today, $archived);
     }
 
-    /**
-     * @param ReadableCollection<int, Schedule> $schedules
-     */
-    private function generateAmong(ReadableCollection $schedules, LocalDate $today): GenerationResult
+    private function safely(Uuid $id, LocalDate $today, ArchivedStructure $archived): GenerationResult
     {
-        return $schedules->reduce(fn (
-            GenerationResult $sum,
-            Schedule $schedule,
-        ): GenerationResult => $sum->plus($this->forSchedule($schedule, $today)), initial: new GenerationResult());
-    }
-
-    private function forSchedule(Schedule $schedule, LocalDate $today): GenerationResult
-    {
-        $dates = new ArrayCollection([$today, $today->addDays(1)])->filter($schedule->recurrence()->occursOn(...));
-
         try {
-            $created = $this->sessions->createMissing(
-                $schedule,
-                $dates->getValues(),
-                Actor::generator(),
-                $this->calendar->now(),
-            );
+            return $this->forSchedule($id, $today, $archived);
         } catch (Throwable) {
-            $this->logger->error('Session generation failed for a schedule.', [
-                'scheduleId' => $schedule->id()->toRfc4122(),
-            ]);
+            $this->sessions->reset();
+            $this->logger->error('Session generation failed for a schedule.', ['scheduleId' => $id->toRfc4122()]);
 
             return new GenerationResult(failed: 1);
         }
+    }
 
-        return new GenerationResult(created: $created, existing: $dates->count() - $created);
+    private function forSchedule(Uuid $id, LocalDate $today, ArchivedStructure $archived): GenerationResult
+    {
+        return $this->sessions->createMissing(
+            $id,
+            static fn (Schedule $schedule): array => self::datesOf($schedule, $today, $archived),
+            Actor::generator(),
+            $this->calendar->now(),
+        );
+    }
+
+    /**
+     * @return list<LocalDate>
+     */
+    private static function datesOf(Schedule $schedule, LocalDate $today, ArchivedStructure $archived): array
+    {
+        if (!$schedule->isActive() || $archived->holds($schedule->roster())) {
+            return [];
+        }
+
+        return new ArrayCollection([$today, $today->addDays(1)])
+            ->filter($schedule->recurrence()->occursOn(...))
+            ->getValues();
     }
 }

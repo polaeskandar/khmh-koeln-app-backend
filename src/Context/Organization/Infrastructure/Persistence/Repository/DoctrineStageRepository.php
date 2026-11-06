@@ -7,9 +7,9 @@ namespace App\Context\Organization\Infrastructure\Persistence\Repository;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
+use App\Context\Organization\Infrastructure\Persistence\Repository\Filter\StageFilters;
 use App\Library\Types\Model\Type;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
@@ -101,8 +101,8 @@ final readonly class DoctrineStageRepository implements StageRepositoryInterface
     #[Override]
     public function archived(): ReadableCollection
     {
-        return $this->entityManager
-            ->getRepository(Stage::class)
-            ->matching(Criteria::create()->where(Criteria::expr()->neq('archivedAt', null)));
+        return new ArrayCollection(
+            $this->entityManager->getRepository(Stage::class)->matching(StageFilters::archived())->toArray(),
+        );
     }
 }

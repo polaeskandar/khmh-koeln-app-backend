@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Domain\ValueObject;
 
-use App\Context\Meetings\Domain\Entity\Schedule;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class ArchivedStructure
@@ -27,20 +25,9 @@ final readonly class ArchivedStructure
         return new self(new ArrayCollection($ids)->map(static fn (Uuid $id): string => $id->toRfc4122())->getValues());
     }
 
-    /**
-     * @param ReadableCollection<int, Schedule> $schedules
-     *
-     * @return ReadableCollection<int, Schedule>
-     */
-    public function generating(ReadableCollection $schedules): ReadableCollection
-    {
-        return $schedules->filter(fn (Schedule $schedule): bool => $schedule->isActive() && !$this->holds($schedule));
-    }
-
-    private function holds(Schedule $schedule): bool
+    public function holds(Roster $roster): bool
     {
         $ids = new ArrayCollection($this->ids);
-        $roster = $schedule->roster();
 
         return $ids->contains($roster->serviceId->toRfc4122()) || $ids->contains($roster->stageId?->toRfc4122());
     }
