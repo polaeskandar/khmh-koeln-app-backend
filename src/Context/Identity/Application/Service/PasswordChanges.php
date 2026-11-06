@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Interface\PasswordHasherInterface;
 use App\Context\Identity\Domain\Repository\PasswordTokenRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\PlainPassword;
 use App\Library\Checksum\Model\Checksum;
