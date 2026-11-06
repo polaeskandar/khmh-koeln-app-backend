@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Interface\Api\Organization;
 
 use App\Context\Organization\Domain\Entity\Service;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -51,7 +52,7 @@ final class ServicesControllerDescriptionTest extends ApiTestCase
 
     private function describedService(): Service
     {
-        $service = new Service('Sunday School', 'Every Sunday after the liturgy');
+        $service = Structure::service('Sunday School', description: 'Every Sunday after the liturgy');
         new Database(self::getContainer())->persisted($service);
         $this->signInWithRoles('leader@example.org', 'service_leader');
 

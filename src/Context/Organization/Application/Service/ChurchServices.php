@@ -7,7 +7,9 @@ namespace App\Context\Organization\Application\Service;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
+use App\Context\Organization\Domain\ValueObject\Description;
 use App\Context\Organization\Domain\ValueObject\ServiceName;
+use App\Context\Organization\Domain\ValueObject\Tone;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -16,6 +18,8 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class ChurchServices
 {
+    private const int DESCRIPTION_LENGTH = 2000;
+
     public function __construct(
         private ServiceRepositoryInterface $services,
     ) {
@@ -40,9 +44,10 @@ final readonly class ChurchServices
 
     public function create(string $name, ?string $description): Service
     {
-        $service = new Service($name, $description);
+        [$serviceName, $serviceDescription] = self::details($name, $description);
+        $service = new Service($serviceName, $serviceDescription, Tone::leastUsed($this->services->tonesInUse()));
 
-        $this->ensureFree($service->name(), $service);
+        $this->ensureFree($serviceName, $service);
         $this->save($service);
 
         return $service;
@@ -51,13 +56,24 @@ final readonly class ChurchServices
     public function edit(string $id, string $name, ?string $description): Service
     {
         $service = $this->find($id);
-        [$serviceName, $serviceDescription] = Service::details($name, $description);
+        [$serviceName, $serviceDescription] = self::details($name, $description);
 
         $this->ensureFree($serviceName, $service);
         $service->edit($serviceName, $serviceDescription);
         $this->save($service);
 
         return $service;
+    }
+
+    /**
+     * @return array{ServiceName, Description}
+     */
+    private static function details(string $name, ?string $description): array
+    {
+        return InvalidInput::both(
+            static fn (): ServiceName => ServiceName::of($name),
+            static fn (): Description => Description::of($description, max: self::DESCRIPTION_LENGTH),
+        );
     }
 
     private function save(Service $service): void
@@ -73,12 +89,14 @@ final readonly class ChurchServices
 
     private function ensureFree(ServiceName $name, Service $service): void
     {
-        $holder = $this->services->findByNameKey($name->key);
+        $holder = $this->services->findByNameKey($name->key) ?? $service;
 
-        if ($holder === null || $holder === $service) {
+        if ($holder === $service) {
             return;
         }
 
-        throw $holder->nameTaken();
+        $code = $holder->isArchived() ? 'services.nameTakenArchived' : 'services.nameTaken';
+
+        throw InvalidInput::field('name', $code, ['name' => $holder->name()->value]);
     }
 }

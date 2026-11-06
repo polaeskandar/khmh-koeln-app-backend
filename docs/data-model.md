@@ -73,9 +73,9 @@ staff (administrators, service leaders, servants) and parents. Children never ha
   (`varchar(80)`). **Descriptions** are the embeddable `Description`: trimmed, at most 2000 and 500
   characters, and blank is stored as null. `description` is `text` with a CHECK on its length, because
   one embeddable serves both tables.
-- **Tone** is the embeddable `Tone` (`tone`), the colour slot (1–8) the apps draw a service in. A
-  `prePersist` entity listener (`ToneListener`) gives a new service the slot the fewest services use,
-  archived ones included, the lowest slot on a tie. It never changes afterwards.
+- **Tone** is the embeddable `Tone` (`tone`), the colour slot (1–8) the apps draw a service in.
+  `ChurchServices::create()` gives a new service the slot the fewest services use, archived and pending ones
+  included, the lowest slot on a tie. It never changes afterwards.
 - **Constraints**: UNIQUE `service(name_key)` and `stage(service_id, name_key)`, archived rows included,
   so an archived name is restored instead of created again; UNIQUE `stage(id, service_id)`; CHECK
   `tone` 1–8, non-blank names, description lengths and `position >= 0`; `stage.service_id` references `service` with

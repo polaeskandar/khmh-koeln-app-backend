@@ -40,12 +40,12 @@ final class Stage extends CreatedAtEntity
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $archivedAt = null;
 
-    public function __construct(Service $service, string $name, ?string $description, int $position)
+    public function __construct(Service $service, StageName $name, Description $description, int $position)
     {
         $this->id = Uuid::v7();
         $this->service = $service;
-        $this->name = StageName::of($name);
-        $this->description = Description::of($description, max: 500);
+        $this->name = $name;
+        $this->description = $description;
         $this->position = $position;
     }
 

@@ -6,6 +6,8 @@ namespace App\Tests\Functional\Context\Organization\Application\Service;
 
 use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Domain\Entity\Service;
+use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
+use App\Tests\Support\Database;
 use App\Tests\Support\Library\Problem\Exception\ThrownFieldErrors;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PreFlushEventArgs;
@@ -15,6 +17,21 @@ use Symfony\Component\Uid\Uuid;
 
 final class ChurchServicesTest extends KernelTestCase
 {
+    public function testANewServiceTakesTheToneFewestServicesUseArchivedOnesIncluded(): void
+    {
+        $choir = Structure::service(name: 'Choir');
+        $choir->archive(Structure::now());
+        new Database(self::getContainer())->persisted($choir);
+        $services = self::getContainer()->get(ChurchServices::class);
+        self::assertInstanceOf(ChurchServices::class, $services);
+
+        $sundaySchool = $services->create('Sunday School', description: null);
+        $youth = $services->create('Youth', description: null);
+
+        self::assertSame(2, $sundaySchool->tone()->value);
+        self::assertSame(3, $youth->tone()->value);
+    }
+
     public function testANameARacingServiceTookIsReportedWithThatServicesState(): void
     {
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);

@@ -34,7 +34,8 @@ Follow `docs/architecture.md` § Code layout. Calls go one way, Interface → Wo
   in `src/Workflow/<Area>/Model/`. Workflows are the only code that uses the contexts, and the only code that
   manages access: a workflow calls `AccessCheck::require()` itself. Read models carry no permission flags;
   clients read what the viewer may do from `GET /api/me`.
-- `src/Context/<Context>/` holds the bounded contexts: business logic in `Application/Service`, the model in
+- `src/Context/<Context>/` holds the bounded contexts: business logic in `Application/Service` (never in an
+  entity, which only holds state; see `docs/architecture.md` § Code layout), the model in
   `Domain/{Entity,ValueObject,Enum,Repository,Interface,Exception,Attribute}`, adapters in `Infrastructure`
   (`Persistence/Repository` holds only `Doctrine*Repository` classes, their query filters live in
   `Persistence/Repository/Filter/*Filters`). A context never uses another context.
