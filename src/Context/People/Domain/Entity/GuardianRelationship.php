@@ -52,7 +52,7 @@ final class GuardianRelationship extends CreatedAtEntity
     #[ORM\Column(type: UuidType::NAME, nullable: true)]
     private ?Uuid $revokedBy = null;
 
-    private function __construct(
+    public function __construct(
         Uuid $accountId,
         Person $child,
         GuardianKind $relationship,
@@ -67,22 +67,8 @@ final class GuardianRelationship extends CreatedAtEntity
         $this->approvedBy = $approvedBy;
     }
 
-    public static function approved(
-        Uuid $accountId,
-        Person $child,
-        GuardianKind $relationship,
-        DateTimeImmutable $at,
-        ?Uuid $by,
-    ): self {
-        return new self($accountId, $child, $relationship, $at, $by);
-    }
-
     public function revoke(DateTimeImmutable $at, ?Uuid $by): void
     {
-        if ($this->status === GuardianStatus::Revoked) {
-            return;
-        }
-
         $this->status = GuardianStatus::Revoked;
         $this->revokedAt = $at;
         $this->revokedBy = $by;
