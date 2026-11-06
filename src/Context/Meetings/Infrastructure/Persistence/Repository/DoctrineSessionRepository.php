@@ -21,6 +21,7 @@ use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Override;
 use Symfony\Component\Uid\Uuid;
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Workflow\Learning\Model;
 
 use App\Context\Learning\Domain\Entity\Lesson;
-use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Library\Collections\Model\Collections;
@@ -26,26 +25,46 @@ final readonly class MeetingViews
     }
 
     /**
+     * @param ReadableCollection<int, Schedule> $schedules
+     * @param ReadableCollection<int, Session> $sessions
      * @param ReadableCollection<int, Lesson> $lessons
      *
      * @return list<MeetingView>
      */
-    public static function lookedUpIn(MeetingLookup $meetings, ReadableCollection $lessons): array
-    {
-        $scheduleIds = Collections::mapPresent(
-            $lessons,
-            static fn (Lesson $lesson): ?Uuid => $lesson->link()->scheduleId,
-        );
-
-        $schedules = $meetings->schedules($scheduleIds->getValues());
-        $dates = $lessons->map(static fn (Lesson $lesson): LocalDate => $lesson->link()->teachingDate)->getValues();
-
+    public static function of(
+        ReadableCollection $schedules,
+        ReadableCollection $sessions,
+        ReadableCollection $lessons,
+    ): array {
         $views = new self(
             Collections::firstPerKey($schedules, keyOf: self::scheduleKey(...)),
-            Collections::firstPerKey($meetings->sessionsOn($schedules, $dates), keyOf: self::sessionKey(...)),
+            Collections::firstPerKey($sessions, keyOf: self::sessionKey(...)),
         );
 
         return $lessons->map($views->viewOf(...))->getValues();
+    }
+
+    /**
+     * @param ReadableCollection<int, Lesson> $lessons
+     *
+     * @return list<Uuid>
+     */
+    public static function scheduleIdsOf(ReadableCollection $lessons): array
+    {
+        return Collections::mapPresent(
+            $lessons,
+            static fn (Lesson $lesson): ?Uuid => $lesson->link()->scheduleId,
+        )->getValues();
+    }
+
+    /**
+     * @param ReadableCollection<int, Lesson> $lessons
+     *
+     * @return list<LocalDate>
+     */
+    public static function datesOf(ReadableCollection $lessons): array
+    {
+        return $lessons->map(static fn (Lesson $lesson): LocalDate => $lesson->link()->teachingDate)->getValues();
     }
 
     private function viewOf(Lesson $lesson): MeetingView

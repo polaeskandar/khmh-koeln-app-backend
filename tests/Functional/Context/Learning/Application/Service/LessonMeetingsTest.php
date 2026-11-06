@@ -148,6 +148,12 @@ final class LessonMeetingsTest extends KernelTestCase
         $lessons = self::getContainer()->get(LessonMeetings::class);
         self::assertInstanceOf(LessonMeetings::class, $lessons);
 
-        return $lessons->link($stageId, $choice, OfferedMeetings::lookedUpIn($meetings, $choice), $editing);
+        $slot = match (true) {
+            $choice->sessionId !== null => $meetings->slotOfSession($choice->session()),
+            $choice->scheduleId !== null => $meetings->slotOfSchedule($choice->schedule(), $choice->day()),
+            default => null,
+        };
+
+        return $lessons->link($stageId, $choice, OfferedMeetings::of($slot), $editing);
     }
 }
