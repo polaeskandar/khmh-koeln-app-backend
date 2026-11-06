@@ -39,6 +39,8 @@ final readonly class MarkPresentWorkflow
 
         $recorded = $this->sessions->whileMarkable($sessionId, $record);
 
-        return new MarkResult(MarkView::of($recorded->mark, $this->marks, $this->accounts), $recorded->created);
+        $mark = $recorded->mark;
+
+        return new MarkResult(MarkView::of($mark, $this->accounts->account($mark->recordedBy())), $recorded->created);
     }
 }

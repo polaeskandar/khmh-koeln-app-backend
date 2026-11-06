@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Workflow\Attendance\Model;
 
-use App\Context\Attendance\Application\Service\AttendanceMarks;
 use App\Context\Attendance\Domain\Entity\Attendance;
-use App\Context\Identity\Application\Service\AccountLookup;
+use App\Context\Identity\Domain\Entity\User;
 use App\Workflow\Identity\Model\AccountReference;
+use DateTimeImmutable;
 
 final readonly class MarkView
 {
@@ -15,21 +15,18 @@ final readonly class MarkView
         public string $id,
         public string $sessionId,
         public string $personId,
-        public string $recordedAt,
+        public DateTimeImmutable $recordedAt,
         public ?AccountReference $recordedBy,
     ) {
     }
 
-    public static function of(Attendance $mark, AttendanceMarks $marks, AccountLookup $accounts): self
+    public static function of(Attendance $mark, ?User $recorder): self
     {
-        $recordedBy = $mark->recordedBy();
-        $recorder = $recordedBy === null ? null : $accounts->account($recordedBy);
-
         return new self(
             $mark->id()->toRfc4122(),
             $mark->sessionId()->toRfc4122(),
             $mark->personId()->toRfc4122(),
-            $marks->recordedAtOf($mark),
+            $mark->recordedAt(),
             $recorder === null ? null : AccountReference::of($recorder),
         );
     }

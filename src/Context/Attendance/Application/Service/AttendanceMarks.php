@@ -6,7 +6,7 @@ namespace App\Context\Attendance\Application\Service;
 
 use App\Context\Attendance\Domain\Repository\AttendanceRepositoryInterface;
 use App\Context\Attendance\Domain\ValueObject\RecordedMark;
-use App\Library\Strings\Model\InputText;
+use App\Context\Attendance\Domain\ValueObject\Removal;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -29,11 +29,6 @@ final readonly class AttendanceMarks
         return $this->attendance->presentBySession($sessionIds);
     }
 
-    public function recordedAtOf(Attendance $mark): string
-    {
-        return $this->calendar->formatInstant($mark->recordedAt());
-    }
-
     public function record(Uuid $sessionId, Uuid $personId, string $accountId): RecordedMark
     {
         $current = $this->attendance->currentMark($sessionId, $personId);
@@ -42,7 +37,7 @@ final readonly class AttendanceMarks
             return new RecordedMark($current, created: false);
         }
 
-        $mark = Attendance::record($sessionId, $personId, $this->calendar->now(), Uuid::fromString($accountId));
+        $mark = new Attendance($sessionId, $personId, $this->calendar->now(), Uuid::fromString($accountId));
         $this->attendance->save($mark);
 
         return new RecordedMark($mark, created: true);
@@ -56,11 +51,7 @@ final readonly class AttendanceMarks
             return;
         }
 
-        $current->remove(
-            Uuid::fromString($accountId),
-            $this->calendar->now(),
-            InputText::of($reason)->trimmed()->toStringOrNull(),
-        );
+        $current->remove(Removal::of($this->calendar->now(), Uuid::fromString($accountId), $reason));
 
         $this->attendance->save($current);
     }

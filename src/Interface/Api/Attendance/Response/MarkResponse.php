@@ -6,6 +6,7 @@ namespace App\Interface\Api\Attendance\Response;
 
 use App\Workflow\Attendance\Model\MarkView;
 use App\Workflow\Identity\Model\AccountReference;
+use DateTimeImmutable;
 
 final readonly class MarkResponse
 {
@@ -13,7 +14,7 @@ final readonly class MarkResponse
         public string $id,
         public string $sessionId,
         public string $personId,
-        public string $recordedAt,
+        public DateTimeImmutable $recordedAt,
         public ?AccountReference $recordedBy,
     ) {
     }
