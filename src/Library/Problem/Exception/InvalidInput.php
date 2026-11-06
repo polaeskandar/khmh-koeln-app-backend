@@ -31,36 +31,30 @@ final class InvalidInput extends RuntimeException
     }
 
     /**
-     * @template First of object
-     * @template Second of object
-     *
-     * @param callable(): First $first
-     * @param callable(): Second $second
-     *
-     * @return array{First, Second}
+     * @param callable(): object ...$checks
      */
-    public static function both(callable $first, callable $second): array
+    public static function all(callable ...$checks): void
     {
-        try {
-            $one = $first();
-        } catch (InvalidInput $invalid) {
-            throw $invalid->withErrorsOf($second);
-        }
+        $fieldErrors = array_merge(...array_map(self::errorsOf(...), array_values($checks)));
 
-        return [$one, $second()];
+        if ($fieldErrors !== []) {
+            throw new self($fieldErrors);
+        }
     }
 
     /**
      * @param callable(): object $check
+     *
+     * @return array<string, array{code: string, params?: array<string, string|int|float|bool|null>}>
      */
-    private function withErrorsOf(callable $check): self
+    private static function errorsOf(callable $check): array
     {
         try {
             $check();
         } catch (InvalidInput $invalid) {
-            return new self([...$this->fieldErrors, ...$invalid->fieldErrors]);
+            return $invalid->fieldErrors;
         }
 
-        return $this;
+        return [];
     }
 }
