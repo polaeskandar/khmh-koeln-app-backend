@@ -197,6 +197,18 @@ final class AccountRequestsControllerApprovalTest extends ApiTestCase
         $this->assertProblem(409, 'accounts.alreadyApproved');
     }
 
+    public function testAMalformedAccountIdIsNotFound(): void
+    {
+        $this->signInWithRoles('admin@example.org', 'administrator');
+
+        $this->jsonRequest('POST', '/api/account-requests/not-a-uuid/approve', [
+            'as' => 'servant',
+            'roleIds' => [self::SERVANT_ROLE],
+        ]);
+
+        $this->assertProblem(404, 'notFound.user');
+    }
+
     /**
      * @param array<string, mixed> $body
      */
