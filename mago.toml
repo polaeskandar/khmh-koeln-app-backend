@@ -207,6 +207,16 @@ allow-from = ["App\\Platform\\**", "App\\Tests\\**"]
 reason = "Platform commands are entry points, not dependencies."
 
 [[guard.perimeter.restrictions]]
+dependency = "App\\Context\\*\\Application\\Service\\**"
+deny-from = ["App\\Workflow\\*\\Model\\**"]
+reason = "A workflow model is built from values; only the workflow calls the contexts' services."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Library\\*\\Client\\**"
+deny-from = ["App\\Workflow\\*\\Model\\**"]
+reason = "A workflow model is built from values; the workflow asks clients such as the Calendar."
+
+[[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Identity\\Application\\Service\\AccessCheck"
 allow-from = ["App\\Workflow\\*", "App\\Tests\\**"]
 reason = "Workflows manage access; models, controllers and context services never check it."

@@ -9,6 +9,7 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\MeetingSchedules;
 use App\Context\Meetings\Application\Service\ScheduleOutlooks;
+use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Library\Time\Client\Calendar;
@@ -16,6 +17,7 @@ use App\Workflow\Meetings\Model\DatedSchedule;
 use App\Workflow\Meetings\Model\RosterReferences;
 use App\Workflow\Meetings\Model\ScheduleSummary;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class ShowScheduleWorkflow
 {
@@ -38,7 +40,18 @@ final readonly class ShowScheduleWorkflow
 
         return new DatedSchedule($today->toString(), ScheduleSummary::of(
             $this->outlooks->one($schedule, $archived, $today),
-            RosterReferences::lookedUpIn($this->structure, new ArrayCollection([$schedule])),
+            $this->rosterReferencesOf(new ArrayCollection([$schedule])),
         ));
+    }
+
+    /**
+     * @param ReadableCollection<int, Schedule> $schedules
+     */
+    private function rosterReferencesOf(ReadableCollection $schedules): RosterReferences
+    {
+        return RosterReferences::of(
+            $this->structure->services(RosterReferences::serviceIdsOf($schedules)),
+            $this->structure->stages(RosterReferences::stageIdsOf($schedules)),
+        );
     }
 }
