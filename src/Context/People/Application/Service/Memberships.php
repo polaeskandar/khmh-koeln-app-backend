@@ -6,10 +6,10 @@ namespace App\Context\People\Application\Service;
 
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
-use App\Context\People\Domain\Enum\MembershipEnding;
 use App\Context\People\Domain\Repository\MembershipRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\ValueObject\Placement;
+use App\Context\People\Domain\ValueObject\Tenure;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\Text;
@@ -28,14 +28,15 @@ final readonly class Memberships
 
     public function add(string $personId, Placement $placement, string $placeName): Membership
     {
-        $person = $this->people->find(Uuid::fromString($personId)) ?? throw NotFound::of('person');
+        $found = Uuid::isValid($personId) ? $this->people->find(Uuid::fromString($personId)) : null;
+        $person = $found ?? throw NotFound::of('person');
         $today = $this->calendar->today();
 
         if ($this->memberships->hasCurrent($person, $placement->serviceId, $placement->stageId, $today)) {
             throw self::alreadyIn($person, $placeName);
         }
 
-        $membership = new Membership($person, $placement->serviceId, $placement->stageId, $today);
+        $membership = new Membership($person, $placement->serviceId, $placement->stageId, Tenure::from($today));
 
         try {
             $this->memberships->save($membership);
@@ -44,23 +45,6 @@ final readonly class Memberships
         }
 
         return $membership;
-    }
-
-    public function end(string $membershipId): void
-    {
-        $today = $this->calendar->today();
-
-        $this->memberships->withWriteLock(Uuid::fromString($membershipId), function (Membership $membership) use (
-            $today,
-        ): void {
-            if ($membership->endFrom($today) === MembershipEnding::DeleteInstead) {
-                $this->memberships->remove($membership);
-
-                return;
-            }
-
-            $this->memberships->save($membership);
-        });
     }
 
     private static function alreadyIn(Person $person, string $placeName): RuleViolation

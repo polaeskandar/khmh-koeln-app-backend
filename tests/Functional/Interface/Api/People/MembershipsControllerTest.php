@@ -71,6 +71,9 @@ final class MembershipsControllerTest extends ApiTestCase
         $this->add(Uuid::v7()->toRfc4122(), $school, null);
         $this->assertProblem(404, 'notFound.person');
 
+        $this->add('not-a-uuid', $school, null);
+        $this->assertProblem(404, 'notFound.person');
+
         $this->add($mina->id()->toRfc4122(), $school, $old);
         $this->assertFieldError('stageId', 'meetings.stageArchived', ['name' => 'Old Class']);
 
@@ -111,6 +114,9 @@ final class MembershipsControllerTest extends ApiTestCase
         $this->assertProblem(409, 'people.membershipEnded');
 
         $this->end(Uuid::v7()->toRfc4122());
+        $this->assertProblem(404, 'notFound.membership');
+
+        $this->end('not-a-uuid');
         $this->assertProblem(404, 'notFound.membership');
 
         $this->jsonRequest('DELETE', '/api/memberships/' . $this->membershipOf($mina->id()->toRfc4122()));

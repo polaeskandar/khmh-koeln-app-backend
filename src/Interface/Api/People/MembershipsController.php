@@ -13,16 +13,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\Requirement\Requirement;
 
 final class MembershipsController extends AbstractController
 {
-    #[Route(
-        '/api/people/{id}/memberships',
-        name: 'api_people_memberships_add',
-        requirements: ['id' => Requirement::UUID],
-        methods: ['POST'],
-    )]
+    #[Route('/api/people/{id}/memberships', name: 'api_people_memberships_add', methods: ['POST'])]
     public function add(
         string $id,
         #[MapRequestPayload]
@@ -35,12 +29,7 @@ final class MembershipsController extends AbstractController
         );
     }
 
-    #[Route(
-        '/api/memberships/{id}/end',
-        name: 'api_memberships_end',
-        requirements: ['id' => Requirement::UUID],
-        methods: ['POST'],
-    )]
+    #[Route('/api/memberships/{id}/end', name: 'api_memberships_end', methods: ['POST'])]
     public function end(string $id, EndMembershipWorkflow $endMembership): Response
     {
         $endMembership($id);
