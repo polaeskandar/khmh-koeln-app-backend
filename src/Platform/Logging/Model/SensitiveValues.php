@@ -13,7 +13,7 @@ final readonly class SensitiveValues
     public static function entry(mixed $value, string|int $key): mixed
     {
         if (SensitiveKeys::matches($key)) {
-            return SensitiveKeys::REDACTED;
+            return SensitiveKeys::redacted($key, $value);
         }
 
         if ($value instanceof Throwable) {

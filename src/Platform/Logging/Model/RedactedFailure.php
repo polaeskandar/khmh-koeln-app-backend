@@ -26,7 +26,7 @@ final class RedactedFailure extends RuntimeException implements HttpExceptionInt
         ?Throwable $previous,
     ) {
         $message = Text::format('%s: %s', $original::class, SensitiveText::clean($original->getMessage()));
-        parent::__construct($message->toString(), previous: $previous);
+        parent::__construct($message->toString(), (int) $original->getCode(), $previous);
 
         $this->file = $original->getFile();
         $this->line = $original->getLine();

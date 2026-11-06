@@ -9,8 +9,11 @@ use App\Platform\Logging\Model\SensitiveText;
 use App\Platform\Logging\Model\SensitiveValues;
 use Monolog\Attribute\AsMonologProcessor;
 use Monolog\LogRecord;
+use Symfony\Component\DependencyInjection\Attribute\When;
 
 #[AsMonologProcessor]
+#[When(env: 'prod')]
+#[When(env: 'test')]
 final readonly class RedactingProcessor
 {
     public function __invoke(LogRecord $record): LogRecord

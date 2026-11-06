@@ -8,18 +8,28 @@ use App\Library\Strings\Model\Text;
 
 final readonly class SensitiveText
 {
-    private const string URL_QUERY = '#((?:https?://|/)[^\s?"\']*)\?[^\s"\']*#';
+    private const string URL_EXTRAS = '~((?:https?://|/)[^\s?#"\']*)[?#][^\s"\']*~';
 
-    private const string KEY_DETAIL = '/DETAIL:\s+Key \(.*?\)=\(.*?\)[^\n]*/s';
+    private const string DETAIL = '/DETAIL:[^\n]*/';
 
-    private const string BOUND_PARAMS = '/with params \[.*?\]/s';
+    private const string EMAIL = '/[^\s"\'<>@()\[\]]+@[^\s"\'<>@()\[\]]+\.[A-Za-z]{2,}/';
+
+    private const string COMMAND_ARGUMENTS = '/^(\S+).*$/s';
 
     public static function clean(string $text): string
     {
         return Text::of($text)
-            ->replaceMatches(self::URL_QUERY, replacement: '$1')
-            ->replaceMatches(self::KEY_DETAIL, replacement: 'DETAIL: [redacted]')
-            ->replaceMatches(self::BOUND_PARAMS, replacement: 'with params [redacted]')
+            ->replaceMatches(self::URL_EXTRAS, replacement: '$1')
+            ->replaceMatches(self::DETAIL, replacement: 'DETAIL: [redacted]')
+            ->replaceMatches(self::EMAIL, replacement: '[email]')
             ->toString();
+    }
+
+    public static function commandName(string $commandLine): string
+    {
+        return Text::of($commandLine)->replaceMatches(
+            self::COMMAND_ARGUMENTS,
+            replacement: '$1 [redacted]',
+        )->toString();
     }
 }

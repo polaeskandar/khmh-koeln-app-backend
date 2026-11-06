@@ -163,18 +163,23 @@ Later issues add their variables here.
 ## Logging
 
 Production writes JSON lines to stderr (`main` through `fingers_crossed`, `deprecation` separately); the host
-collects them. Debug and info records are buffered (50) and written only when an error-level record arrives,
-so personal data must never reach a record at all:
+collects them. In web requests, debug and info records are buffered (50) and written only when an error-level
+record arrives. Console processes also write through the `console` handler, unbuffered and in JSON, at the
+verbosity they run with (the worker's `-vv` writes info records). Personal data must therefore never reach a
+record at all:
 
-- `RedactingProcessor` runs on every channel before any handler. It replaces the value of any context or `extra`
-  key that names personal or secret data (`q`, and any key containing `email`, `password`, `token`, `cookie`,
-  `name`, `note`, `params`, `command`, `secret`, `authorization` or `reason`) with `[redacted]`, at any depth.
-- It strips query strings from URLs in the message, the context and `extra`.
-- It removes PostgreSQL's `DETAIL:  Key (...)=(...)` lines and bound parameters from messages and from logged
-  exceptions, including every `previous` one. A logged exception becomes a `RedactedFailure` that keeps the
-  original class name and HTTP status, so `excluded_http_codes` still sees it.
-- Expected refusals don't flush the buffer: 400, 401, 403, 404, 405, 409, 415, 422 and 429 are excluded, and
-  their exceptions (and the coded `RuleViolation`, `NotFound`, `InvalidInput`) are logged at info. 5xx errors
+- `RedactingProcessor` runs on every channel before any handler, in `prod` and `test` (in `dev` the mail log
+  stays readable). It replaces the value of any context or `extra` key that names personal or secret data (`q`,
+  and any key containing `email`, `password`, `token`, `cookie`, `name`, `note`, `params`, `secret`,
+  `authorization` or `reason`) with `[redacted]`, at any depth; diagnostic keys such as `token_class` and
+  `firewall_name` stay. A `command` keeps its name and loses its arguments.
+- It strips query strings and fragments from URLs, every PostgreSQL `DETAIL:` line (key values and failing rows)
+  and email addresses, in the message, the context, `extra` and logged exceptions, including every `previous`
+  one. A logged exception becomes a `RedactedFailure` whose message starts with the original class name and that
+  keeps the original code and HTTP status, so `excluded_http_codes` still sees it.
+- Expected refusals don't flush the buffer: 400, 401, 403, 404, 405, 409, 415, 422 and 429 are excluded. The
+  coded `RuleViolation`, `NotFound` and `InvalidInput` are logged at info; other exceptions with these statuses
+  (such as Symfony's 401 for a missing sign-in) are logged at error level but still don't flush. 5xx errors
   stay critical and flush. The test environment mirrors these handler settings.
 
 Logs are kept 14 days unless the data protection adviser decides otherwise by Tue 3 Nov. Access logs of the
