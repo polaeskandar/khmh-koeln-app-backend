@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Workflow\People\Model;
 
-use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Domain\Entity\Membership;
@@ -34,19 +33,6 @@ final readonly class Placements
         return new self(
             Collections::firstPerKey($services, keyOf: self::serviceKey(...)),
             Collections::firstPerKey($stages, keyOf: self::stageKey(...)),
-        );
-    }
-
-    /**
-     * @param ReadableCollection<int, Membership> $memberships
-     */
-    public static function lookedUpIn(StructureLookup $structure, ReadableCollection $memberships): self
-    {
-        return self::of(
-            $structure->services($memberships->map(static fn (Membership $held) => $held->serviceId())->getValues()),
-            $structure->stages(
-                Collections::mapPresent($memberships, static fn (Membership $held) => $held->stageId())->getValues(),
-            ),
         );
     }
 

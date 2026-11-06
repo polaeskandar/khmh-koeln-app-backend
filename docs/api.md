@@ -1068,9 +1068,8 @@ UTF-8 → `validation.invalidType`. `%` and `_` match themselves.
 
 #### `GET /api/people?status=active|inactive|all&serviceId=&stageId=&q=&page=`
 
-`members: read`. `{today, items: [PersonRow], page, pageSize: 25, total, can: {add}}`, by last, then first name
-(German order). A `PersonRow` is `{person: PersonView, placements: [Placement], pastPlacements: [Placement],
-can: {edit}}`; a `Placement` is `{membershipId, service: ServiceRef, stage: StageRef | null, startsOn, endsOn}`,
+`members: read`. `{today, items: [PersonRow], page, pageSize: 25, total}`, by last, then first name
+(German order). A `PersonRow` is `{person: PersonView, placements: [Placement], pastPlacements: [Placement]}`; a `Placement` is `{membershipId, service: ServiceRef, stage: StageRef | null, startsOn, endsOn}`,
 current ones (`endsOn` null or from today) under `placements`, ended ones under `pastPlacements`. Roles hold
 everywhere, so every person is listed.
 

@@ -23,7 +23,6 @@ final readonly class PeoplePageResponse implements JsonSerializable
      *     page: int,
      *     pageSize: int,
      *     total: int,
-     *     can: array{add: bool},
      * }
      */
     #[Override]
@@ -37,7 +36,6 @@ final readonly class PeoplePageResponse implements JsonSerializable
             'page' => $pages->page,
             'pageSize' => $pages->pageSize,
             'total' => $pages->total,
-            'can' => ['add' => $this->page->canAdd],
         ];
     }
 }

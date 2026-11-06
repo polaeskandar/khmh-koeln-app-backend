@@ -13,7 +13,6 @@ final readonly class PeoplePage
         public string $today,
         public array $items,
         public PageInfo $pages,
-        public bool $canAdd,
     ) {
     }
 }
