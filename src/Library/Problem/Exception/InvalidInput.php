@@ -29,4 +29,38 @@ final class InvalidInput extends RuntimeException
     {
         return self::field($field, 'validation.tooLong', ['max' => $max]);
     }
+
+    /**
+     * @template First of object
+     * @template Second of object
+     *
+     * @param callable(): First $first
+     * @param callable(): Second $second
+     *
+     * @return array{First, Second}
+     */
+    public static function both(callable $first, callable $second): array
+    {
+        try {
+            $one = $first();
+        } catch (InvalidInput $invalid) {
+            throw $invalid->withErrorsOf($second);
+        }
+
+        return [$one, $second()];
+    }
+
+    /**
+     * @param callable(): object $check
+     */
+    private function withErrorsOf(callable $check): self
+    {
+        try {
+            $check();
+        } catch (InvalidInput $invalid) {
+            return new self([...$this->fieldErrors, ...$invalid->fieldErrors]);
+        }
+
+        return $this;
+    }
 }

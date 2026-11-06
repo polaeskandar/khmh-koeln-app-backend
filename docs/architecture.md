@@ -50,6 +50,10 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
 - Interface uses workflows, never a context (`InterfaceLayoutTest`). Nothing depends on Interface.
 - Only workflows use the contexts. A workflow never calls another workflow and never uses a repository; it goes
   through the contexts' application services (`WorkflowLayoutTest`).
+- Only workflows manage access. A workflow injects `AccessCheck` and calls `require()` itself. Models,
+  controllers and context services never use `AccessCheck`, neither injected nor passed as an argument
+  (`mago guard`). Read models carry no permission flags: clients take what the viewer may do from the
+  `permissions` of `GET /api/me`.
 - A context never uses another context. Only a context's own `Infrastructure` uses its `Infrastructure`.
 - `Domain` holds the model only; business logic that is not a single entity's or value object's own behavior
   lives in `Application/Service`.
@@ -71,6 +75,8 @@ Naming:
 | Application service | `Context/<C>/Application/Service/` | what it manages (`RoleAssignments`, `AccountRegistration`), never `*Service`, `*Manager` or `*Helper` | final readonly |
 | Port | `Context/<C>/Domain/Interface/` | `*Interface` | interface |
 | Repository | `Context/<C>/Domain/Repository/` | `*RepositoryInterface` | interface |
+| Doctrine repository | `Context/<C>/Infrastructure/Persistence/Repository/` | `Doctrine<Entity>Repository`, nothing else in the folder | final readonly |
+| Repository filter | `Context/<C>/Infrastructure/Persistence/Repository/Filter/` | `<Entity>Filters` | final readonly, static methods that build the Doctrine `Criteria` of a listing |
 | Exception | `Context/<C>/Domain/Exception/` | `*Exception` | class |
 | Enum | `Context/<C>/Domain/Enum/` | a noun | backed enum |
 | Value object | `Context/<C>/Domain/ValueObject/` | a noun | final readonly |

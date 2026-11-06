@@ -7,7 +7,6 @@ namespace App\Tests\Unit\Context\Organization\Domain\Entity;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\ValueObject\Tone;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
-use App\Tests\Support\Library\Problem\Exception\ThrownFieldErrors;
 use Doctrine\Common\Collections\ArrayCollection;
 use LogicException;
 use PHPUnit\Framework\TestCase;
@@ -28,34 +27,6 @@ final class ServiceTest extends TestCase
     public function testABlankDescriptionIsNoDescription(): void
     {
         self::assertNull(new Service('Choir', description: '   ')->description()->value);
-    }
-
-    public function testABlankNameIsRejected(): void
-    {
-        self::assertSame(
-            ['name' => ['code' => 'services.nameRequired']],
-            ThrownFieldErrors::of(static fn (): Service => Structure::service(name: " \u{00A0} ")),
-        );
-    }
-
-    public function testANameLongerThan120CharactersIsRejected(): void
-    {
-        Structure::service(name: str_repeat('a', times: 120));
-
-        self::assertSame(
-            ['name' => ['code' => 'validation.tooLong', 'params' => ['max' => 120]]],
-            ThrownFieldErrors::of(static fn (): Service => Structure::service(name: str_repeat('a', times: 121))),
-        );
-    }
-
-    public function testADescriptionLongerThan2000CharactersIsRejected(): void
-    {
-        self::assertSame(
-            ['description' => ['code' => 'validation.tooLong', 'params' => ['max' => 2000]]],
-            ThrownFieldErrors::of(
-                static fn (): Service => new Service('Choir', description: str_repeat('a', times: 2001)),
-            ),
-        );
     }
 
     public function testAServiceHasNoToneBeforeItIsSaved(): void

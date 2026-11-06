@@ -9,7 +9,6 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
-use App\Workflow\Organization\Model\ServiceAbilities;
 use App\Workflow\Organization\Model\ServiceOverview;
 
 final readonly class ShowServiceWorkflow
@@ -27,10 +26,6 @@ final readonly class ShowServiceWorkflow
 
         $service = $this->services->find($id);
 
-        return ServiceOverview::of(
-            $service,
-            $this->stages->activeOf($service),
-            ServiceAbilities::grantedBy($this->access),
-        );
+        return ServiceOverview::of($service, $this->stages->activeOf($service));
     }
 }

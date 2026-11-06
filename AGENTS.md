@@ -31,10 +31,13 @@ Follow `docs/architecture.md` § Code layout. Calls go one way, Interface → Wo
 - `src/Interface/{Api,Console}/<Area>/` holds entry points (`*Controller`, invokable `*Command`), their
   `Request/*Request` and, for the API, `Response/*Response`. Nothing else, and no context class.
 - `src/Workflow/<Area>/<Verb><Subject>Workflow.php` holds one process each, run by `__invoke()`, with its models
-  in `src/Workflow/<Area>/Model/`. Workflows are the only code that uses the contexts.
+  in `src/Workflow/<Area>/Model/`. Workflows are the only code that uses the contexts, and the only code that
+  manages access: a workflow calls `AccessCheck::require()` itself. Read models carry no permission flags;
+  clients read what the viewer may do from `GET /api/me`.
 - `src/Context/<Context>/` holds the bounded contexts: business logic in `Application/Service`, the model in
-  `Domain/{Entity,ValueObject,Enum,Repository,Interface,Exception,Attribute}`, adapters in `Infrastructure`. A context
-  never uses another context.
+  `Domain/{Entity,ValueObject,Enum,Repository,Interface,Exception,Attribute}`, adapters in `Infrastructure`
+  (`Persistence/Repository` holds only `Doctrine*Repository` classes, their query filters live in
+  `Persistence/Repository/Filter/*Filters`). A context never uses another context.
 - The runtime is in `src/Platform`.
 
 `composer check` enforces the boundaries (`mago guard` and `tests/Architecture`). Schema changes go through

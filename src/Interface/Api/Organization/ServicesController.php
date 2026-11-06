@@ -4,23 +4,19 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Organization;
 
-use App\Interface\Api\Organization\Request\CreateServiceRequest;
-use App\Interface\Api\Organization\Request\EditServiceRequest;
+use App\Interface\Api\Organization\Request\ServiceRequest;
 use App\Interface\Api\Organization\Response\ServiceListResponse;
 use App\Interface\Api\Organization\Response\ServiceResponse;
 use App\Workflow\Organization\CreateServiceWorkflow;
 use App\Workflow\Organization\EditServiceWorkflow;
 use App\Workflow\Organization\ListServicesWorkflow;
-use App\Workflow\Organization\Model\DetailChanges;
 use App\Workflow\Organization\ShowServiceWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\Requirement\Requirement;
 
 #[Route('/api/services')]
 final class ServicesController extends AbstractController
@@ -34,7 +30,7 @@ final class ServicesController extends AbstractController
         return $this->json(ServiceListResponse::of($listServices($status)));
     }
 
-    #[Route('/{id}', name: 'api_services_show', requirements: ['id' => Requirement::UUID], methods: ['GET'])]
+    #[Route('/{id}', name: 'api_services_show', methods: ['GET'])]
     public function show(string $id, ShowServiceWorkflow $showService): JsonResponse
     {
         return $this->json(new ServiceResponse($showService($id)));
@@ -43,7 +39,7 @@ final class ServicesController extends AbstractController
     #[Route('', name: 'api_services_create', methods: ['POST'])]
     public function create(
         #[MapRequestPayload]
-        CreateServiceRequest $service,
+        ServiceRequest $service,
         CreateServiceWorkflow $createService,
     ): JsonResponse {
         $created = $createService($service->name ?? '', $service->description);
@@ -55,21 +51,13 @@ final class ServicesController extends AbstractController
         );
     }
 
-    #[Route('/{id}', name: 'api_services_edit', requirements: ['id' => Requirement::UUID], methods: ['PATCH'])]
+    #[Route('/{id}', name: 'api_services_edit', methods: ['PUT'])]
     public function edit(
         string $id,
-        Request $request,
         #[MapRequestPayload]
-        EditServiceRequest $changes,
+        ServiceRequest $service,
         EditServiceWorkflow $editService,
     ): JsonResponse {
-        return $this->json(new ServiceResponse($editService(
-            $id,
-            new DetailChanges(
-                name: $changes->name,
-                description: $changes->description,
-                describes: $request->getPayload()->has('description'),
-            ),
-        )));
+        return $this->json(new ServiceResponse($editService($id, $service->name ?? '', $service->description)));
     }
 }

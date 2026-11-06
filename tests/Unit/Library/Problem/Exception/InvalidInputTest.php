@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Library\Problem\Exception;
 
 use App\Library\Problem\Exception\InvalidInput;
+use App\Tests\Support\Library\Problem\Exception\ThrownFieldErrors;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 final class InvalidInputTest extends TestCase
 {
@@ -32,5 +34,41 @@ final class InvalidInputTest extends TestCase
         );
 
         self::assertSame('checkFields', $invalid->getMessage());
+    }
+
+    public function testBothReportsTheFieldErrorsOfBothFailingChecks(): void
+    {
+        self::assertSame(
+            [
+                'name' => ['code' => 'services.nameRequired'],
+                'description' => ['code' => 'validation.tooLong', 'params' => ['max' => 2000]],
+            ],
+            ThrownFieldErrors::of(static fn (): array => InvalidInput::both(
+                static fn (): object => throw InvalidInput::field('name', 'services.nameRequired'),
+                static fn (): object => throw InvalidInput::tooLong('description', max: 2000),
+            )),
+        );
+    }
+
+    public function testBothReportsTheOneFailingCheck(): void
+    {
+        self::assertSame(
+            ['description' => ['code' => 'validation.tooLong', 'params' => ['max' => 2000]]],
+            ThrownFieldErrors::of(static fn (): array => InvalidInput::both(
+                static fn (): object => new stdClass(),
+                static fn (): object => throw InvalidInput::tooLong('description', max: 2000),
+            )),
+        );
+    }
+
+    public function testBothReturnsBothValuesWhenTheyPass(): void
+    {
+        $first = new stdClass();
+        $second = new stdClass();
+
+        self::assertSame(
+            [$first, $second],
+            InvalidInput::both(static fn (): object => $first, static fn (): object => $second),
+        );
     }
 }

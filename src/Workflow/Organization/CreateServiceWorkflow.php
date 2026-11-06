@@ -8,16 +8,14 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ChurchServices;
-use App\Context\Organization\Application\Service\ServiceStages;
-use App\Workflow\Organization\Model\ServiceAbilities;
 use App\Workflow\Organization\Model\ServiceOverview;
+use Doctrine\Common\Collections\ArrayCollection;
 
 final readonly class CreateServiceWorkflow
 {
     public function __construct(
         private AccessCheck $access,
         private ChurchServices $services,
-        private ServiceStages $stages,
     ) {
     }
 
@@ -25,12 +23,6 @@ final readonly class CreateServiceWorkflow
     {
         $this->access->require(Action::Create, Resource::Services, refusal: 'services.adminOnlyCreate');
 
-        $service = $this->services->create($name, $description);
-
-        return ServiceOverview::of(
-            $service,
-            $this->stages->activeOf($service),
-            ServiceAbilities::grantedBy($this->access),
-        );
+        return ServiceOverview::of($this->services->create($name, $description), new ArrayCollection());
     }
 }

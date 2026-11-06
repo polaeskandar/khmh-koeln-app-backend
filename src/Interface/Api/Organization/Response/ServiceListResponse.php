@@ -12,11 +12,9 @@ final readonly class ServiceListResponse
 {
     /**
      * @param list<ServiceResponse> $items
-     * @param array{create: bool} $can
      */
     public function __construct(
         public array $items,
-        public array $can,
     ) {
     }
 
@@ -26,7 +24,6 @@ final readonly class ServiceListResponse
             new ArrayCollection($list->items)->map(
                 static fn (ServiceOverview $overview): ServiceResponse => new ServiceResponse($overview),
             )->getValues(),
-            ['create' => $list->canCreate],
         );
     }
 }

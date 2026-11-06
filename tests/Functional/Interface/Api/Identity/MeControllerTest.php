@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Interface\Api\Identity;
 
 use App\Tests\Support\ApiTestCase;
-use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
-use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
@@ -17,7 +15,7 @@ final class MeControllerTest extends ApiTestCase
 
     public function testTheAccountComesWithItsRolesPermissionsAndExactlyTheDocumentedKeys(): void
     {
-        $id = $this->signedInWith('daniel@example.org', 'servant', 'parent');
+        $id = $this->signInWithRoles('daniel@example.org', 'servant', 'parent');
 
         $this->jsonRequest('GET', '/api/me');
 
@@ -41,7 +39,7 @@ final class MeControllerTest extends ApiTestCase
 
     public function testAnAccountWithoutRolesHasEmptyLists(): void
     {
-        $this->signedInWith('someone@example.org');
+        $this->signInWithRoles('someone@example.org');
 
         $this->jsonRequest('GET', '/api/me');
 
@@ -52,7 +50,7 @@ final class MeControllerTest extends ApiTestCase
     public function testTodayIsTheChurchDate(): void
     {
         self::mockTime('2026-11-07T23:30:00Z');
-        $this->signedInWith('someone@example.org');
+        $this->signInWithRoles('someone@example.org');
 
         $this->jsonRequest('GET', '/api/me');
 
@@ -68,7 +66,7 @@ final class MeControllerTest extends ApiTestCase
 
     public function testDisablingTheAccountEndsTheSession(): void
     {
-        $id = $this->signedInWith('someone@example.org', 'servant');
+        $id = $this->signInWithRoles('someone@example.org', 'servant');
 
         new Database(self::getContainer())
             ->connection()
@@ -77,14 +75,5 @@ final class MeControllerTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/me');
 
         $this->assertProblem(401, 'auth.unauthenticated');
-    }
-
-    private function signedInWith(string $email, string ...$roles): string
-    {
-        $id = new SignInAccounts(self::getContainer())->add($email);
-        new RoleGrants(self::getContainer())->grant($id, ...$roles);
-        $this->signInAs($email, SignInAccounts::TYPED);
-
-        return $id;
     }
 }
