@@ -115,6 +115,30 @@ final class SchedulesControllerTest extends ApiTestCase
         $this->assertFieldError('serviceId', 'validation.invalidType');
     }
 
+    public function testAStageFilterMatchesItsSchedulesAndAnArchivedStageGeneratesNothing(): void
+    {
+        $school = Structure::service('Sunday School');
+        $third = Structure::stage($school, '3rd Class', position: 2);
+        $old = Structure::stage($school, 'Old Class', position: 3);
+        $old->archive(Structure::now());
+        $this->database()->persisted($school, $third, $old);
+        $schedules = new Schedules(self::getContainer());
+        $schedules->weekly($school, 'b Class meeting', 7, stage: $third);
+        $schedules->weekly($school, 'A old class meeting', 7, stage: $old);
+        $schedules->weekly($school, 'service-wide', 7);
+        $this->signInWithRoles('servant@example.org', 'servant');
+
+        $this->jsonRequest('GET', '/api/schedules?stageId=' . $third->id()->toRfc4122());
+        $this->assertJsonPath('items.0.name', 'b Class meeting');
+        self::assertCount(1, JsonBody::asArray($this->responseJson()['items'] ?? null, 'items'));
+
+        $this->jsonRequest('GET', '/api/schedules?serviceId=' . $school->id()->toRfc4122());
+        $this->assertJsonPath('items.0.name', 'A old class meeting');
+        $this->assertJsonPath('items.0.generating', false);
+        $this->assertJsonPath('items.0.stage.archived', true);
+        $this->assertJsonPath('items.1.name', 'b Class meeting');
+    }
+
     private function service(string $name): Service
     {
         $service = Structure::service($name);

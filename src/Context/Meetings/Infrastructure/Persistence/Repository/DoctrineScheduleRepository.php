@@ -6,11 +6,13 @@ namespace App\Context\Meetings\Infrastructure\Persistence\Repository;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
+use App\Library\Types\Model\ListOf;
 use App\Library\Types\Model\Type;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
+use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInterface
@@ -49,12 +51,22 @@ final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInt
     #[Override]
     public function listed(?Uuid $serviceId, ?Uuid $stageId): ReadableCollection
     {
-        $criteria = new ArrayCollection(['roster.serviceId' => $serviceId, 'roster.stageId' => $stageId])->filter(
-            static fn (?Uuid $id): bool => $id !== null,
-        );
+        $query = $this->entityManager
+            ->createQueryBuilder()
+            ->select('s')
+            ->addSelect('LOWER(s.details.name) AS HIDDEN nameKey')
+            ->from(Schedule::class, 's')
+            ->orderBy('nameKey')
+            ->addOrderBy('s.id');
 
-        return new ArrayCollection($this->entityManager->getRepository(Schedule::class)->findBy($criteria->toArray(), [
-            'details.name' => 'ASC',
-        ]));
+        if ($serviceId !== null) {
+            $query->andWhere('s.roster.serviceId = :service')->setParameter('service', $serviceId, UuidType::NAME);
+        }
+
+        if ($stageId !== null) {
+            $query->andWhere('s.roster.stageId = :stage')->setParameter('stage', $stageId, UuidType::NAME);
+        }
+
+        return new ArrayCollection(ListOf::instances($query->getQuery()->getResult(), Schedule::class));
     }
 }

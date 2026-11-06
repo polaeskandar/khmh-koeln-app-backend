@@ -989,8 +989,8 @@ A `ScheduleSummary`:
 
 | Member | Type |
 | --- | --- |
-| `id`, `name`, `description`, `location` | the schedule's details |
-| `service`, `stage` | `ServiceRef`, `StageRef \| null` |
+| `id`, `name`, `description`, `location` | the schedule's details; `description` and `location` may be `null` |
+| `service`, `stage` | `ServiceRef \| null` (`null` once the service is deleted), `StageRef \| null` |
 | `recurrence` | `Recurrence` |
 | `startTime`, `endTime` | `HH:MM`, `endTime` may be `null` |
 | `rosterMode` | `expected` or `open` |
@@ -1002,8 +1002,9 @@ A `ScheduleSummary`:
 
 #### `GET /api/schedules?serviceId=&stageId=`
 
-`services: read`. `{today, items: [ScheduleSummary]}`, active and inactive, by name. The filters take ids
-(`validation.invalidType` otherwise).
+`services: read`. `{today, items: [ScheduleSummary]}`, active and inactive, by name ignoring case. Each filter
+takes an id; anything else, an empty value included, is a 422 field error `validation.invalidType`. `stageId`
+returns only the schedules of that stage, not its service's service-wide schedules.
 
 #### `GET /api/schedules/{id}`
 

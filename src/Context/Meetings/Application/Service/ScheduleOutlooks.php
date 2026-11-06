@@ -66,7 +66,7 @@ final readonly class ScheduleOutlooks
         ArchivedStructure $archived,
         LocalDate $today,
     ): ReadableCollection {
-        $horizon = $today->addDays(Occurrences::HORIZON_DAYS);
+        $horizon = $today->addDays(Occurrences::HORIZON_DAYS - 1);
 
         return new ArrayCollection($this->plannedDates->between($generating, $archived, $today, $horizon))->filter(
             static fn (PlannedDate $date): bool => $date->isUpcoming(),

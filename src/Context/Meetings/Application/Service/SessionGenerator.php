@@ -67,7 +67,7 @@ final readonly class SessionGenerator
      */
     private static function datesOf(Schedule $schedule, LocalDate $today, ArchivedStructure $archived): array
     {
-        if (!$schedule->isActive() || $archived->holds($schedule->roster())) {
+        if (!GeneratingSchedules::generates($schedule, $archived)) {
             return [];
         }
 
