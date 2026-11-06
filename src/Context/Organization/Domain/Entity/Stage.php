@@ -74,10 +74,10 @@ final class Stage extends CreatedAtEntity
         return $this->position;
     }
 
-    public function edit(string $name, ?string $description): void
+    public function edit(StageName $name, Description $description): void
     {
-        $this->name = StageName::of($name);
-        $this->description = Description::of($description, max: 500);
+        $this->name = $name;
+        $this->description = $description;
     }
 
     public function moveTo(int $position): void

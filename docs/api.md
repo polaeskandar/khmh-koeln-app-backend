@@ -921,26 +921,27 @@ services. 200 with the service row; 404 `notFound.service`.
 #### `GET /api/services/{id}/stages`
 
 `services: read`. `{service: ServiceRef, stages: [{id, name, description, position}], archivedStages: [{id, name,
-archivedAt}], can: {manageStructure}}`; stages by position. `manageStructure` is `stages: update` on an active
-service, else `false`. 404 `notFound.service`.
+archivedAt}]}`; stages by position. Apps offer structure changes for `stages: create`/`stages: update` while
+`service.archived` is `false`. 404 `notFound.service`, also for an id that is not a UUID.
 
 #### `POST /api/services/{id}/stages`
 
 `stages: create`. Body `{name, description?}`: `stages.nameRequired`, `validation.tooLong {max: 80}` (description
-500); a name another stage of this service has, ignoring case and spaces → `stages.nameTaken {name}` or
+500), every failing field at once; a name another stage of this service has, ignoring case and spaces →
+`stages.nameTaken {name}` or
 `stages.nameTakenArchived {name}`. The stage goes after the active stages and before the archived ones. An archived
 service → 409 `services.archivedNoStageChanges {name}`. Writes to one service's stages run one at a time (the
 service row is locked). 201 with `Location` and the body of its `GET`.
 
 #### `GET /api/stages/{id}`
 
-`services: read`. `{id, name, description, position, archived, service: ServiceRef, can: {manageStructure,
-manageMembers}}`. Both flags are `false` on an archived service; `manageMembers` (`members: update`) is also
-`false` on an archived stage. 404 `notFound.stage`.
+`services: read`. `{id, name, description, position, archived, service: ServiceRef}`. Apps offer structure
+changes for `stages: update` on an active service, and member changes for `members: update` on an active stage of
+an active service. 404 `notFound.stage`, also for an id that is not a UUID.
 
-#### `PATCH /api/stages/{id}`
+#### `PUT /api/stages/{id}`
 
-`stages: update`. Body `{name?, description?}`; a member left out keeps its value, `description: null` clears the
-description, and the position stays. Same rules as `POST`. The stage is read once its service is locked, so an
+`stages: update`. Body `{name, description?}`, the whole editable stage: a description left out or `null` clears it,
+a missing or `null` name → `stages.nameRequired`, and the position stays. Same rules as `POST`. The stage is read once its service is locked, so an
 edit that waited for another one works on the committed stage. 200 with the stage.
 

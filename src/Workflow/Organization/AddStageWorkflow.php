@@ -22,6 +22,6 @@ final readonly class AddStageWorkflow
     {
         $this->access->require(Action::Create, Resource::Stages);
 
-        return StageDetails::of($this->stages->add($serviceId, $name, $description), $this->access);
+        return StageDetails::of($this->stages->add($serviceId, $name, $description));
     }
 }

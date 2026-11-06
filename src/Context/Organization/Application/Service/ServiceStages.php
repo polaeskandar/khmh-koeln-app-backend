@@ -8,9 +8,9 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
-use App\Context\Organization\Domain\ValueObject\DescriptionChange;
+use App\Context\Organization\Domain\ValueObject\Description;
+use App\Context\Organization\Domain\ValueObject\StageName;
 use App\Library\Problem\Exception\NotFound;
-use App\Library\Problem\Exception\RuleViolation;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -20,7 +20,7 @@ final readonly class ServiceStages
     public function __construct(
         private StageRepositoryInterface $stages,
         private ServiceRepositoryInterface $services,
-        private StageNames $names,
+        private StageChecks $checks,
     ) {
     }
 
@@ -52,50 +52,60 @@ final readonly class ServiceStages
 
     public function find(string $id): Stage
     {
-        return $this->stages->find(Uuid::fromString($id)) ?? throw NotFound::of('stage');
+        $stage = Uuid::isValid($id) ? $this->stages->find(Uuid::fromString($id)) : null;
+
+        return $stage ?? throw NotFound::of('stage');
     }
 
     public function add(string $serviceId, string $name, ?string $description): Stage
     {
-        return $this->services->withStructureLock(
-            Uuid::fromString($serviceId),
-            fn (Service $service): Stage => $this->addTo($service, $name, $description),
-        );
-    }
+        StageChecks::check($name, $description);
+        $id = Uuid::isValid($serviceId) ? Uuid::fromString($serviceId) : throw NotFound::of('service');
 
-    public function edit(string $stageId, ?string $name, DescriptionChange $description): Stage
-    {
-        $serviceId = $this->stages->serviceIdOf(Uuid::fromString($stageId)) ?? throw NotFound::of('stage');
-
-        return $this->services->withStructureLock($serviceId, fn (Service $service): Stage => $this->editIn(
+        return $this->services->withStructureLock($id, fn (Service $service): Stage => $this->addTo(
             $service,
-            $stageId,
-            $name,
-            $description,
+            StageName::of($name),
+            StageChecks::description($description),
         ));
     }
 
-    private function editIn(Service $service, string $stageId, ?string $name, DescriptionChange $description): Stage
+    public function edit(string $stageId, string $name, ?string $description): Stage
     {
-        self::ensureOpen($service);
+        StageChecks::check($name, $description);
+        $serviceId = Uuid::isValid($stageId) ? $this->stages->serviceIdOf(Uuid::fromString($stageId)) : null;
+
+        return $this->services->withStructureLock(
+            $serviceId ?? throw NotFound::of('stage'),
+            fn (Service $service): Stage => $this->editIn(
+                $service,
+                $stageId,
+                StageName::of($name),
+                StageChecks::description($description),
+            ),
+        );
+    }
+
+    private function editIn(Service $service, string $stageId, StageName $name, Description $description): Stage
+    {
+        StageChecks::ensureOpen($service);
 
         $stage = $this->find($stageId);
 
-        $stage->edit($name ?? $stage->name()->value, $description->appliedTo($stage->description()->value));
-        $this->names->ensureFreeFor($stage);
+        $this->checks->ensureFree($service, $name, $stage);
+        $stage->edit($name, $description);
         $this->stages->save($stage);
 
         return $stage;
     }
 
-    private function addTo(Service $service, string $name, ?string $description): Stage
+    private function addTo(Service $service, StageName $name, Description $description): Stage
     {
-        self::ensureOpen($service);
+        StageChecks::ensureOpen($service);
+        $this->checks->ensureFree($service, $name, stage: null);
 
         $existing = $this->stages->ofService($service);
         $active = $existing->filter(static fn (Stage $stage): bool => !$stage->isArchived());
         $stage = new Stage($service, $name, $description, $active->count());
-        $this->names->ensureFreeFor($stage);
 
         foreach ($existing->filter(static fn (Stage $held): bool => $held->isArchived()) as $archived) {
             $archived->moveTo($archived->position() + 1);
@@ -104,12 +114,5 @@ final readonly class ServiceStages
         $this->stages->save($stage);
 
         return $stage;
-    }
-
-    private static function ensureOpen(Service $service): void
-    {
-        if ($service->isArchived()) {
-            throw new RuleViolation('services.archivedNoStageChanges', ['name' => $service->name()->value]);
-        }
     }
 }

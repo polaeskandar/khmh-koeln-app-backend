@@ -18,14 +18,13 @@ final readonly class StageList
         public ServiceReference $service,
         public array $active,
         public array $archived,
-        public bool $canManageStructure,
     ) {
     }
 
     /**
      * @param ReadableCollection<int, Stage> $stages
      */
-    public static function of(Service $service, ReadableCollection $stages, bool $canManageStructure): self
+    public static function of(Service $service, ReadableCollection $stages): self
     {
         return new self(
             ServiceReference::of($service),
@@ -37,7 +36,6 @@ final readonly class StageList
                 ->filter(static fn (Stage $stage): bool => $stage->isArchived())
                 ->map(ArchivedStageEntry::of(...))
                 ->getValues(),
-            $canManageStructure,
         );
     }
 }

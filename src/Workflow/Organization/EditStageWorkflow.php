@@ -8,7 +8,6 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ServiceStages;
-use App\Workflow\Organization\Model\DetailChanges;
 use App\Workflow\Organization\Model\StageDetails;
 
 final readonly class EditStageWorkflow
@@ -19,12 +18,10 @@ final readonly class EditStageWorkflow
     ) {
     }
 
-    public function __invoke(string $stageId, DetailChanges $changes): StageDetails
+    public function __invoke(string $stageId, string $name, ?string $description): StageDetails
     {
         $this->access->require(Action::Update, Resource::Stages);
 
-        $stage = $this->stages->edit($stageId, $changes->name, $changes->descriptionChange());
-
-        return StageDetails::of($stage, $this->access);
+        return StageDetails::of($this->stages->edit($stageId, $name, $description));
     }
 }

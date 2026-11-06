@@ -10,17 +10,14 @@ use App\Interface\Api\Organization\Response\StageResponse;
 use App\Workflow\Organization\AddStageWorkflow;
 use App\Workflow\Organization\EditStageWorkflow;
 use App\Workflow\Organization\ListStagesWorkflow;
-use App\Workflow\Organization\Model\DetailChanges;
 use App\Workflow\Organization\ShowStageWorkflow;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\Requirement\Requirement;
 
-#[Route('/api', requirements: ['id' => Requirement::UUID])]
+#[Route('/api')]
 final class StagesController extends AbstractController
 {
     #[Route('/services/{id}/stages', name: 'api_stages_list', methods: ['GET'])]
@@ -47,21 +44,13 @@ final class StagesController extends AbstractController
         return $this->json(new StageResponse($showStage($id)));
     }
 
-    #[Route('/stages/{id}', name: 'api_stages_edit', methods: ['PATCH'])]
+    #[Route('/stages/{id}', name: 'api_stages_edit', methods: ['PUT'])]
     public function edit(
         string $id,
-        Request $request,
         #[MapRequestPayload]
-        StageRequest $changes,
+        StageRequest $stage,
         EditStageWorkflow $editStage,
     ): JsonResponse {
-        return $this->json(new StageResponse($editStage(
-            $id,
-            new DetailChanges(
-                name: $changes->name,
-                description: $changes->description,
-                describes: $request->getPayload()->has('description'),
-            ),
-        )));
+        return $this->json(new StageResponse($editStage($id, $stage->name ?? '', $stage->description)));
     }
 }
