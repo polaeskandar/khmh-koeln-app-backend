@@ -32,9 +32,9 @@ final readonly class ScheduleOutlooks
      */
     public function of(ReadableCollection $schedules, ArchivedStructure $archived, LocalDate $today): array
     {
-        $generating = $archived
-            ->generating($schedules)
-            ->filter(static fn (Schedule $schedule): bool => !$schedule->recurrence()->span->endsBefore($today));
+        $generating = GeneratingSchedules::among($schedules, $archived)->filter(
+            static fn (Schedule $schedule): bool => !$schedule->recurrence()->span->endsBefore($today),
+        );
 
         $upcoming = $this->upcoming($generating, $archived, $today);
         $counts = $this->sessions->countsBySchedule($schedules);
