@@ -22,7 +22,19 @@ final readonly class HomeworkTaskResponse implements JsonSerializable
 
     /**
      * @return array{
-     *     task: array<string, string|bool|DateTimeImmutable|list<array{label: string, url: string|null}>|null>,
+     *     task: array{
+     *         id: string,
+     *         title: string,
+     *         lessonTitle: string,
+     *         stage: string|null,
+     *         dueDate: string|null,
+     *         done: bool,
+     *         completedAt: DateTimeImmutable|null,
+     *         completedByYou: bool,
+     *         completedBy: string|null,
+     *         instructions: string|null,
+     *         resources: list<array{label: string, url: string|null}>,
+     *     },
      *     lesson: array{title: string, teachingDate: string, passage: string|null, memoryVerse: string|null},
      * }
      */

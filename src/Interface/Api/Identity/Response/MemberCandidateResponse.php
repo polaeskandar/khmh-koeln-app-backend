@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Interface\Api\Identity\Response;
 
 use App\Workflow\Identity\Model\MemberCandidate;
+use App\Workflow\People\Model\PersonGroup;
 use JsonSerializable;
 use Override;
 
@@ -21,7 +22,14 @@ final readonly class MemberCandidateResponse implements JsonSerializable
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *     id: string,
+     *     firstName: string,
+     *     lastName: string,
+     *     displayName: string|null,
+     *     groups: list<PersonGroup>,
+     *     hasAccount: bool,
+     * }
      */
     #[Override]
     public function jsonSerialize(): array

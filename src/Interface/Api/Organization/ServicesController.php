@@ -11,6 +11,8 @@ use App\Workflow\Organization\CreateServiceWorkflow;
 use App\Workflow\Organization\EditServiceWorkflow;
 use App\Workflow\Organization\ListServicesWorkflow;
 use App\Workflow\Organization\ShowServiceWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,6 +24,13 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ServicesController extends AbstractController
 {
     #[Route('', name: 'api_services_list', methods: ['GET'])]
+    #[OA\Get(summary: 'Services list.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: ServiceListResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function list(
         ListServicesWorkflow $listServices,
         #[MapQueryParameter]
@@ -31,12 +40,26 @@ final class ServicesController extends AbstractController
     }
 
     #[Route('/{id}', name: 'api_services_show', methods: ['GET'])]
+    #[OA\Get(summary: 'Services show.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: ServiceResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function show(string $id, ShowServiceWorkflow $showService): JsonResponse
     {
         return $this->json(new ServiceResponse($showService($id)));
     }
 
     #[Route('', name: 'api_services_create', methods: ['POST'])]
+    #[OA\Post(summary: 'Services create.')]
+    #[OA\Response(
+        response: 201,
+        description: 'Created.',
+        content: new OA\JsonContent(ref: new Model(type: ServiceResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function create(
         #[MapRequestPayload]
         ServiceRequest $service,
@@ -52,6 +75,13 @@ final class ServicesController extends AbstractController
     }
 
     #[Route('/{id}', name: 'api_services_edit', methods: ['PUT'])]
+    #[OA\Put(summary: 'Services edit.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: ServiceResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function edit(
         string $id,
         #[MapRequestPayload]

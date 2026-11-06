@@ -8,6 +8,8 @@ use App\Interface\Api\Attendance\Request\RemovalRequest;
 use App\Interface\Api\Attendance\Response\MarkResponse;
 use App\Workflow\Attendance\MarkPresentWorkflow;
 use App\Workflow\Attendance\RemoveMarkWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +22,19 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 final class AttendanceController extends AbstractController
 {
     #[Route('', name: 'api_attendance_mark', methods: ['PUT'])]
+    #[OA\Put(summary: 'Attendance mark.')]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: MarkResponse::class)),
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Created.',
+        content: new OA\JsonContent(ref: new Model(type: MarkResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function mark(
         string $sessionId,
         string $personId,
@@ -36,6 +51,9 @@ final class AttendanceController extends AbstractController
     }
 
     #[Route('', name: 'api_attendance_remove', methods: ['DELETE'])]
+    #[OA\Delete(summary: 'Attendance remove.')]
+    #[OA\Response(response: 204, description: 'Done; no body.')]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function remove(
         string $sessionId,
         string $personId,

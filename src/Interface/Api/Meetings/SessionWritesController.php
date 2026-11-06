@@ -8,6 +8,7 @@ use App\Interface\Api\Meetings\Request\OneOffSessionRequest;
 use App\Interface\Api\Meetings\Request\SessionDetailsRequest;
 use App\Workflow\Meetings\CreateOneOffSessionWorkflow;
 use App\Workflow\Meetings\RenameSessionWorkflow;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +21,15 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 final class SessionWritesController extends AbstractController
 {
     #[Route('', name: 'api_sessions_create', methods: ['POST'])]
+    #[OA\Post(summary: 'Sessions create.')]
+    #[OA\Response(
+        response: 201,
+        description: 'Created.',
+        content: new OA\JsonContent(required: ['id'], properties: [
+            new OA\Property(property: 'id', type: 'string', format: 'uuid'),
+        ]),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function create(
         #[CurrentUser]
         UserInterface $user,
@@ -33,6 +43,15 @@ final class SessionWritesController extends AbstractController
     }
 
     #[Route('/{id}/details', name: 'api_sessions_details', methods: ['PUT'])]
+    #[OA\Put(summary: 'Session details.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(required: ['id'], properties: [
+            new OA\Property(property: 'id', type: 'string', format: 'uuid'),
+        ]),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function rename(
         string $id,
         #[CurrentUser]

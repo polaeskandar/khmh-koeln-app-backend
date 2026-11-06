@@ -13,6 +13,7 @@
         "doctrine/doctrine-bundle": "^3.3",
         "doctrine/migrations": "^3.9",
         "doctrine/orm": "^3.7",
+        "nelmio/api-doc-bundle": "^5.13.2",
         "nelmio/cors-bundle": "^2.6",
         "nesbot/carbon": "^3.15",
         "phpdocumentor/type-resolver": "^2.1",
@@ -41,7 +42,8 @@
         "symfony/twig-bundle": "8.1.*",
         "symfony/uid": "8.1.*",
         "symfony/validator": "8.1.*",
-        "symfony/yaml": "8.1.*"
+        "symfony/yaml": "8.1.*",
+        "zircote/swagger-php": "^6.20.2"
     },
     "config": {
         "allow-plugins": {
@@ -120,6 +122,9 @@
         "db:seed": [
             "@php bin/console app:demo:seed --no-interaction"
         ],
+        "api:doc": [
+            "@php bin/console nelmio:apidoc:dump --format=json --no-pretty > docs/openapi.json"
+        ],
         "members:import": [
             "@php bin/console app:members:import"
         ],
@@ -160,6 +165,7 @@
         "carthage-software/mago": "^1.59",
         "dama/doctrine-test-bundle": "^8.7",
         "nunomaduro/phpinsights": "^2.15",
+        "opis/json-schema": "^2.6.1",
         "phpunit/phpunit": "^13.4.5",
         "ramsey/conventional-commits": "^1.7",
         "symfony/browser-kit": "8.1.*",

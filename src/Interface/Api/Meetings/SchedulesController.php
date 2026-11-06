@@ -8,6 +8,8 @@ use App\Interface\Api\Meetings\Response\DatedScheduleResponse;
 use App\Interface\Api\Meetings\Response\ScheduleListResponse;
 use App\Workflow\Meetings\ListSchedulesWorkflow;
 use App\Workflow\Meetings\ShowScheduleWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
@@ -17,6 +19,13 @@ use Symfony\Component\Routing\Attribute\Route;
 final class SchedulesController extends AbstractController
 {
     #[Route('', name: 'api_schedules_list')]
+    #[OA\Get(summary: 'Schedules list.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: ScheduleListResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function list(
         ListSchedulesWorkflow $listSchedules,
         #[MapQueryParameter]
@@ -28,6 +37,13 @@ final class SchedulesController extends AbstractController
     }
 
     #[Route('/{id}', name: 'api_schedules_show')]
+    #[OA\Get(summary: 'Schedules show.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: DatedScheduleResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function show(string $id, ShowScheduleWorkflow $showSchedule): JsonResponse
     {
         return $this->json(DatedScheduleResponse::of($showSchedule($id)));

@@ -12,6 +12,8 @@ use App\Workflow\ParentPortal\ListChildHomeworkWorkflow;
 use App\Workflow\ParentPortal\ReportHomeworkDoneWorkflow;
 use App\Workflow\ParentPortal\ShowChildHomeworkWorkflow;
 use App\Workflow\ParentPortal\UndoHomeworkReportWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,6 +26,13 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 final class ParentHomeworkController extends AbstractController
 {
     #[Route('', name: 'api_parent_homework_list', methods: ['GET'])]
+    #[OA\Get(summary: 'Parent homework list.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: ChildHomeworkListResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function list(
         string $childId,
         #[CurrentUser]
@@ -38,6 +47,13 @@ final class ParentHomeworkController extends AbstractController
     }
 
     #[Route('/{homeworkId}', name: 'api_parent_homework_show', methods: ['GET'])]
+    #[OA\Get(summary: 'Parent homework show.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: ChildHomeworkDetailResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function show(
         string $childId,
         string $homeworkId,
@@ -51,6 +67,19 @@ final class ParentHomeworkController extends AbstractController
     }
 
     #[Route('/{homeworkId}/completion', name: 'api_parent_homework_report', methods: ['PUT'])]
+    #[OA\Put(summary: 'Parent homework report.')]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: ReportResultResponse::class)),
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Created.',
+        content: new OA\JsonContent(ref: new Model(type: ReportResultResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function report(
         string $childId,
         string $homeworkId,
@@ -67,6 +96,9 @@ final class ParentHomeworkController extends AbstractController
     }
 
     #[Route('/{homeworkId}/completion', name: 'api_parent_homework_undo', methods: ['DELETE'])]
+    #[OA\Delete(summary: 'Parent homework undo.')]
+    #[OA\Response(response: 204, description: 'Done; no body.')]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function undo(
         string $childId,
         string $homeworkId,

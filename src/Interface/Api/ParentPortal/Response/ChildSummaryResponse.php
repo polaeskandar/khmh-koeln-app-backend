@@ -6,8 +6,19 @@ namespace App\Interface\Api\ParentPortal\Response;
 
 use App\Workflow\ParentPortal\Model\ChildSummary;
 use JsonSerializable;
+use OpenApi\Attributes as OA;
 use Override;
 
+#[OA\Schema(required: ['id', 'name', 'fullName', 'initials', 'stage', 'service', 'toDo', 'done'], properties: [
+    new OA\Property(property: 'id', type: 'string'),
+    new OA\Property(property: 'name', type: 'string'),
+    new OA\Property(property: 'fullName', type: 'string'),
+    new OA\Property(property: 'initials', type: 'string'),
+    new OA\Property(property: 'stage', type: 'string', nullable: true),
+    new OA\Property(property: 'service', type: 'string', nullable: true),
+    new OA\Property(property: 'toDo', type: 'integer'),
+    new OA\Property(property: 'done', type: 'integer'),
+])]
 final readonly class ChildSummaryResponse implements JsonSerializable
 {
     public function __construct(

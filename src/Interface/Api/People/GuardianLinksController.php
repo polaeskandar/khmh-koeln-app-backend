@@ -10,6 +10,8 @@ use App\Interface\Api\People\Response\ParentAccessListResponse;
 use App\Workflow\People\GiveParentAccessWorkflow;
 use App\Workflow\People\ListParentAccessWorkflow;
 use App\Workflow\People\RevokeParentAccessWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,12 +24,26 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 final class GuardianLinksController extends AbstractController
 {
     #[Route('', name: 'api_guardian_links_list', methods: ['GET'])]
+    #[OA\Get(summary: 'Guardian links list.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: ParentAccessListResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function list(ListParentAccessWorkflow $listParentAccess): JsonResponse
     {
         return $this->json(ParentAccessListResponse::of($listParentAccess()));
     }
 
     #[Route('', name: 'api_guardian_links_give', methods: ['POST'])]
+    #[OA\Post(summary: 'Guardian links give.')]
+    #[OA\Response(
+        response: 201,
+        description: 'Created.',
+        content: new OA\JsonContent(ref: new Model(type: ParentAccessItemResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function give(
         #[CurrentUser]
         UserInterface $user,
@@ -46,6 +62,10 @@ final class GuardianLinksController extends AbstractController
     }
 
     #[Route('/{id}/revoke', name: 'api_guardian_links_revoke', methods: ['POST'])]
+    #[OA\Post(summary: 'Guardian links revoke.')]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    #[OA\Response(response: 204, description: 'Done; no body.')]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function revoke(
         string $id,
         #[CurrentUser]

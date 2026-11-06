@@ -6,7 +6,10 @@ namespace App\Interface\Api\MemberPortal\Response;
 
 use App\Workflow\Meetings\Model\RecurrenceSummary;
 use App\Workflow\MemberPortal\Model\GroupSchedule;
+use App\Workflow\MemberPortal\Model\LastLesson;
 use App\Workflow\MemberPortal\Model\MemberGroup;
+use App\Workflow\Organization\Model\ServiceReference;
+use App\Workflow\Organization\Model\StageSummary;
 use Doctrine\Common\Collections\ArrayCollection;
 use JsonSerializable;
 use Override;
@@ -24,7 +27,21 @@ final readonly class MemberGroupResponse implements JsonSerializable
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *     id: string,
+     *     service: ServiceReference,
+     *     stage: StageSummary|null,
+     *     since: string,
+     *     schedules: list<array{
+     *         id: string,
+     *         name: string,
+     *         recurrence: RecurrenceSummary,
+     *         startTime: string,
+     *         endTime: string|null,
+     *         location: string|null,
+     *     }>,
+     *     lastLesson: LastLesson|null,
+     * }
      */
     #[Override]
     public function jsonSerialize(): array
@@ -42,7 +59,14 @@ final readonly class MemberGroupResponse implements JsonSerializable
     }
 
     /**
-     * @return array<string, string|RecurrenceSummary|null>
+     * @return array{
+     *     id: string,
+     *     name: string,
+     *     recurrence: RecurrenceSummary,
+     *     startTime: string,
+     *     endTime: string|null,
+     *     location: string|null,
+     * }
      */
     private static function scheduleOf(GroupSchedule $schedule): array
     {

@@ -10,6 +10,8 @@ use App\Interface\Api\Auth\Response\RegistrationServicesResponse;
 use App\Library\Time\Client\Calendar;
 use App\Workflow\Identity\ListRegistrationServicesWorkflow;
 use App\Workflow\Identity\RegisterAccountWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,6 +33,13 @@ final class RegistrationController extends AbstractController
     }
 
     #[Route('', name: 'api_auth_register', methods: ['POST'])]
+    #[OA\Post(security: [], summary: 'Auth register.')]
+    #[OA\Response(
+        response: 202,
+        description: 'Accepted.',
+        content: new OA\JsonContent(ref: new Model(type: RegistrationReceivedResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function register(
         Request $request,
         #[MapRequestPayload]
@@ -51,6 +60,13 @@ final class RegistrationController extends AbstractController
     }
 
     #[Route('/services', name: 'api_auth_register_services', methods: ['GET'])]
+    #[OA\Get(security: [], summary: 'Auth register services.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: RegistrationServicesResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function services(ListRegistrationServicesWorkflow $listRegistrationServices): JsonResponse
     {
         return $this->json(RegistrationServicesResponse::of($listRegistrationServices()));

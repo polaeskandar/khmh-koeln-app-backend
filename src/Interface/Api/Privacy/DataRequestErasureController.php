@@ -10,6 +10,8 @@ use App\Interface\Api\Privacy\Response\ErasureReviewResponse;
 use App\Workflow\Privacy\EraseRequestSubjectWorkflow;
 use App\Workflow\Privacy\ReviewRequestErasureWorkflow;
 use App\Workflow\Privacy\ShowDataRequestWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
@@ -21,6 +23,13 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 final class DataRequestErasureController extends AbstractController
 {
     #[Route('/erasure', name: 'api_data_requests_erasure_review', methods: ['GET'])]
+    #[OA\Get(summary: 'Data request erasure review.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: ErasureReviewResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function review(
         string $id,
         #[CurrentUser]
@@ -31,6 +40,13 @@ final class DataRequestErasureController extends AbstractController
     }
 
     #[Route('/erase', name: 'api_data_requests_erase', methods: ['POST'])]
+    #[OA\Post(summary: 'Data request erase.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: DataRequestRowResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function erase(
         string $id,
         #[CurrentUser]

@@ -12,6 +12,8 @@ use App\Workflow\MemberPortal\ListMemberHomeworkWorkflow;
 use App\Workflow\MemberPortal\ReportOwnHomeworkWorkflow;
 use App\Workflow\MemberPortal\ShowMemberHomeworkWorkflow;
 use App\Workflow\MemberPortal\UndoOwnReportWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,6 +26,13 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 final class MemberHomeworkController extends AbstractController
 {
     #[Route('', name: 'api_member_homework_list', methods: ['GET'])]
+    #[OA\Get(summary: 'Member homework list.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: ChildHomeworkListResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function list(
         #[CurrentUser]
         UserInterface $viewer,
@@ -37,6 +46,13 @@ final class MemberHomeworkController extends AbstractController
     }
 
     #[Route('/{homeworkId}', name: 'api_member_homework_show', methods: ['GET'])]
+    #[OA\Get(summary: 'Member homework show.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: MemberHomeworkDetailResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function show(
         string $homeworkId,
         #[CurrentUser]
@@ -49,6 +65,19 @@ final class MemberHomeworkController extends AbstractController
     }
 
     #[Route('/{homeworkId}/completion', name: 'api_member_homework_report', methods: ['PUT'])]
+    #[OA\Put(summary: 'Member homework report.')]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: ReportResultResponse::class)),
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Created.',
+        content: new OA\JsonContent(ref: new Model(type: ReportResultResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function report(
         string $homeworkId,
         #[CurrentUser]
@@ -64,6 +93,9 @@ final class MemberHomeworkController extends AbstractController
     }
 
     #[Route('/{homeworkId}/completion', name: 'api_member_homework_undo', methods: ['DELETE'])]
+    #[OA\Delete(summary: 'Member homework undo.')]
+    #[OA\Response(response: 204, description: 'Done; no body.')]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function undo(
         string $homeworkId,
         #[CurrentUser]
