@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\People;
 
+use App\Context\People\Application\Service\MembershipEndings;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\ValueObject\PersonName;
+use App\Context\People\Domain\ValueObject\Tenure;
 use App\Library\Time\Model\LocalDate;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
@@ -48,16 +51,16 @@ final class DirectoryControllerTest extends ApiTestCase
         $school = Structure::service('Sunday School');
         $third = Structure::stage($school, '3rd Class', position: 2);
         $youth = Structure::service('Youth');
-        $kiro = new Person('Kirollos', 'Iskander', 'Kiro');
-        $ended = new Membership($kiro, $youth->id(), null, LocalDate::of('2020-01-01'));
-        $ended->endFrom(LocalDate::of('2021-01-01'));
+        $kiro = new Person(PersonName::of('Kirollos', 'Iskander', 'Kiro'));
+        $ended = new Membership($kiro, $youth->id(), null, Tenure::from(LocalDate::of('2020-01-01')));
+        new MembershipEndings()->end($ended, LocalDate::of('2021-01-01'));
 
         $this->database()->persisted(
             $school,
             $third,
             $youth,
             $kiro,
-            new Membership($kiro, $school->id(), $third->id(), LocalDate::of('2025-09-01')),
+            new Membership($kiro, $school->id(), $third->id(), Tenure::from(LocalDate::of('2025-09-01'))),
             $ended,
         );
 
@@ -75,7 +78,7 @@ final class DirectoryControllerTest extends ApiTestCase
     public function testInactivePeopleAreLeftOutAndTwentyIsTheMost(): void
     {
         $people = array_map(
-            static fn (int $n): Person => new Person('Mina', 'Person ' . $n, null),
+            static fn (int $n): Person => new Person(PersonName::of('Mina', 'Person ' . $n, null)),
             range(start: 1, end: 25),
         );
 
@@ -112,13 +115,13 @@ final class DirectoryControllerTest extends ApiTestCase
     private function people(): void
     {
         $this->database()->persisted(
-            new Person('Kirollos', 'Iskander', 'Kiro'),
-            new Person('Mina', 'Hanna', null),
-            new Person('Mina', 'Hanna', null),
-            new Person('Mina', 'Iskander', null),
-            new Person('Mönika', 'Bishara', null),
-            new Person('مِينَا', 'جرجس', null),
-            new Person('Sara', 'Abadir', null),
+            new Person(PersonName::of('Kirollos', 'Iskander', 'Kiro')),
+            new Person(PersonName::of('Mina', 'Hanna', null)),
+            new Person(PersonName::of('Mina', 'Hanna', null)),
+            new Person(PersonName::of('Mina', 'Iskander', null)),
+            new Person(PersonName::of('Mönika', 'Bishara', null)),
+            new Person(PersonName::of('مِينَا', 'جرجس', null)),
+            new Person(PersonName::of('Sara', 'Abadir', null)),
         );
     }
 

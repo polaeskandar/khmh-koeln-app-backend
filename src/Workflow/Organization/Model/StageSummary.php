@@ -17,10 +17,6 @@ final readonly class StageSummary
 
     public static function of(Stage $stage): self
     {
-        return new self(
-            id: $stage->id()->toRfc4122(),
-            name: $stage->name()->value,
-            position: $stage->position(),
-        );
+        return new self(id: $stage->id()->toRfc4122(), name: $stage->name()->value, position: $stage->position());
     }
 }
