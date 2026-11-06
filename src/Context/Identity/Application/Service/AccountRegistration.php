@@ -7,6 +7,7 @@ namespace App\Context\Identity\Application\Service;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\Enum\RegisteredAs;
+use App\Context\Identity\Domain\Interface\PasswordHasherInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\DisplayName;
 use App\Context\Identity\Domain\ValueObject\Email;

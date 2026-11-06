@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Infrastructure\Lock;
 
-use App\Context\Identity\Application\Service\AdministrationLockInterface;
+use App\Context\Identity\Domain\Interface\AdministrationLockInterface;
 use Doctrine\DBAL\Connection;
 use Override;
 use Symfony\Component\Lock\LockFactory;

@@ -13,7 +13,6 @@ use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\Text;
 use App\Library\Time\Client\Calendar;
-use DateInterval;
 use DateTimeImmutable;
 use SensitiveParameter;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -25,7 +24,7 @@ final readonly class PasswordLinks
 
     private const int TOKEN_LENGTH = 43;
 
-    private const string LIFETIME = 'PT24H';
+    private const int LIFETIME_HOURS = 24;
 
     private const string VALID_UNTIL = 'd.m.Y H:i';
 
@@ -48,10 +47,11 @@ final readonly class PasswordLinks
         }
 
         $token = ByteString::fromRandom(self::TOKEN_LENGTH, self::TOKEN_ALPHABET)->toString();
-        $expiresAt = $this->calendar->now()->add(new DateInterval(self::LIFETIME));
+        $expiresAt = $this->calendar->now()->addHours(self::LIFETIME_HOURS);
+
         $this->tokens->replaceUnused(new PasswordToken($user, Checksum::sha256($token), $expiresAt, createdBy: null));
 
-        $this->mailer->send($user, 'password_link', [
+        $this->mailer->send($user, template: 'password_link', params: [
             'url' => $this->urlFor($user, $token),
             'validUntil' => $expiresAt->format(self::VALID_UNTIL),
         ]);
