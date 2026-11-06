@@ -10,4 +10,6 @@ interface Transactions
      * @param callable(): void $work
      */
     public function run(callable $work): void;
+
+    public function recover(): void;
 }

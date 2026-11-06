@@ -12,6 +12,7 @@ use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\GenerationResult;
 use App\Library\Time\Client\Calendar;
 use App\Library\Time\Model\LocalDate;
+use App\Platform\Doctrine\Contract\Transactions;
 use Doctrine\Common\Collections\ArrayCollection;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
@@ -24,6 +25,7 @@ final readonly class SessionGenerator
         private SessionRepositoryInterface $sessions,
         private Calendar $calendar,
         private LoggerInterface $logger,
+        private Transactions $transactions,
     ) {
     }
 
@@ -45,7 +47,7 @@ final readonly class SessionGenerator
         try {
             return $this->forSchedule($id, $today, $archived);
         } catch (Throwable) {
-            $this->sessions->reset();
+            $this->transactions->recover();
             $this->logger->error('Session generation failed for a schedule.', ['scheduleId' => $id->toRfc4122()]);
 
             return new GenerationResult(failed: 1);

@@ -46,8 +46,6 @@ interface SessionRepositoryInterface
         DateTimeImmutable $at,
     ): GenerationResult;
 
-    public function reset(): void;
-
     /**
      * @param ReadableCollection<int, Schedule> $schedules
      *

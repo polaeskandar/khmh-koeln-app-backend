@@ -21,7 +21,6 @@ use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
@@ -33,7 +32,6 @@ final readonly class DoctrineSessionRepository implements SessionRepositoryInter
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private ManagerRegistry $doctrine,
         private MissingSessions $missing,
     ) {
     }
@@ -93,12 +91,6 @@ final readonly class DoctrineSessionRepository implements SessionRepositoryInter
         DateTimeImmutable $at,
     ): GenerationResult {
         return $this->missing->create($scheduleId, $datesOf, $actor, $at);
-    }
-
-    #[Override]
-    public function reset(): void
-    {
-        $this->doctrine->resetManager();
     }
 
     #[Override]
