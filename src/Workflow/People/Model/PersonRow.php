@@ -15,27 +15,20 @@ final readonly class PersonRow
     /**
      * @param list<PlacementRow> $placements
      * @param list<PlacementRow> $pastPlacements
-     * @param array{edit: bool} $can
      */
     public function __construct(
         public PersonView $person,
         public array $placements,
         public array $pastPlacements,
-        public array $can,
     ) {
     }
 
     /**
      * @param ReadableCollection<int, Membership> $own
      */
-    public static function of(
-        Person $person,
-        ReadableCollection $own,
-        Placements $placements,
-        LocalDate $today,
-        bool $canEdit,
-    ): self {
-        $current = $own->filter(static fn (Membership $membership): bool => $membership->isCurrentOn($today));
+    public static function of(Person $person, ReadableCollection $own, Placements $placements, LocalDate $today): self
+    {
+        $current = $own->filter(static fn (Membership $membership): bool => $membership->tenure()->includes($today));
 
         $ended = $own->filter(
             static fn (Membership $membership): bool => $membership->tenure()->endsOn?->isBefore($today) === true,
@@ -45,7 +38,6 @@ final readonly class PersonRow
             person: PersonView::of($person),
             placements: self::rowsOf($current, $placements),
             pastPlacements: self::rowsOf($ended, $placements),
-            can: ['edit' => $canEdit],
         );
     }
 

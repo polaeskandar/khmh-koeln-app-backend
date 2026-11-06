@@ -6,14 +6,14 @@ namespace App\Workflow\People\Model;
 
 use App\Context\People\Domain\Entity\Membership;
 use App\Workflow\Organization\Model\ServiceReference;
-use App\Workflow\Organization\Model\StageSummary;
+use App\Workflow\Organization\Model\StageReference;
 
 final readonly class PlacementRow
 {
     public function __construct(
         public string $membershipId,
         public ServiceReference $service,
-        public ?StageSummary $stage,
+        public ?StageReference $stage,
         public string $startsOn,
         public ?string $endsOn,
     ) {

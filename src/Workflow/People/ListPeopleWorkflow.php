@@ -12,6 +12,7 @@ use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\PersonLists;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
+use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\PageInfo;
 use App\Workflow\People\Model\PeoplePage;
 use App\Workflow\People\Model\PeopleQuery;
@@ -36,8 +37,11 @@ final readonly class ListPeopleWorkflow
         $filter = $this->lists->filterOf($query->status, $scope?->service->id(), $scope?->stage?->id(), $query->text);
         $people = $this->lists->page($filter, $query->page);
         $memberships = $this->lists->membershipsOf($people);
-        $placements = Placements::lookedUpIn($this->structure, $memberships);
-        $canEdit = $this->access->allows(Action::Update, Resource::Members);
+
+        $placements = Placements::of(
+            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+        );
 
         return new PeoplePage(
             today: $filter->today->toString(),
@@ -46,10 +50,8 @@ final readonly class ListPeopleWorkflow
                 $memberships->filter(static fn (Membership $held): bool => $held->person() === $person),
                 $placements,
                 $filter->today,
-                $canEdit,
             ))->getValues(),
             pages: new PageInfo($query->page, PersonLists::PAGE_SIZE, $this->lists->count($filter)),
-            canAdd: $this->access->allows(Action::Create, Resource::Members),
         );
     }
 }

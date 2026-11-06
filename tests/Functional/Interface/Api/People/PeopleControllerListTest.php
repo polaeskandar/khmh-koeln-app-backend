@@ -44,8 +44,7 @@ final class PeopleControllerListTest extends ApiTestCase
         $this->assertJsonPath('items.0.pastPlacements.0.endsOn', '2026-11-07');
         $this->assertJsonPath('items.1.person.firstName', 'Mina');
         self::assertCount(2, JsonBody::asArray($this->responseJson()['items'] ?? null, 'items'));
-        $this->assertJsonPath('items.1.can.edit', true);
-        $this->assertJsonPath('can.add', true);
+        self::assertArrayNotHasKey('can', $this->responseJson());
     }
 
     public function testAStageOrServiceNarrowsTheListToItsRosterToday(): void
