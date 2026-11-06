@@ -58,7 +58,19 @@ final class RedactingProcessorTest extends TestCase
             'message' => 'Failed',
         ]);
 
-        self::assertSame('[redacted]', $record->context['command'] ?? null);
+        self::assertSame('app:user:create [redacted]', $record->context['command'] ?? null);
+    }
+
+    public function testAFailingRowAnEmailAndAUrlFragmentLeaveNoPersonalData(): void
+    {
+        $record = $this->processed("SQLSTATE[23514]: Check violation\nDETAIL:  Failing row contains (Sara@Example.org, Sara Hanna).", [
+            'message' => 'Email "sara..hanna@example.org" is invalid at /de/set-password/#token=abc',
+            'token_class' => 'X',
+        ]);
+
+        self::assertSame("SQLSTATE[23514]: Check violation\nDETAIL: [redacted]", $record->message);
+        self::assertSame('Email "[email]" is invalid at /de/set-password/', $record->context['message'] ?? null);
+        self::assertSame('X', $record->context['token_class'] ?? null);
     }
 
     /**
