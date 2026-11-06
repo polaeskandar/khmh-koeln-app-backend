@@ -8,6 +8,7 @@ use App\Context\Identity\Domain\Entity\Permission;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Organization\Domain\Entity\Service;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Domain\Entity\Roles;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
@@ -17,6 +18,8 @@ use Symfony\Component\Uid\Uuid;
 
 final class SessionsControllerTest extends ApiTestCase
 {
+    private ?Service $school = null;
+
     public function testACanceledSessionShowsItsHistoryInOrder(): void
     {
         $session = $this->sundaySession('2026-11-08');
@@ -79,11 +82,13 @@ final class SessionsControllerTest extends ApiTestCase
         $this->assertJsonPath('history.0.note', null);
     }
 
-    public function testLeadersMayManageParentsAndStrangersMayNot(): void
+    public function testLeadersReadSessionsAndParentsMayNot(): void
     {
         $session = $this->sundaySession('2026-11-08');
         $this->signInWithRoles('leader@example.org', 'service_leader');
         $this->jsonRequest('GET', '/api/sessions/' . $session->id()->toRfc4122());
+        self::assertResponseIsSuccessful();
+        $this->assertJsonPath('session.service.name', 'Sunday School');
 
         $this->jsonRequest('GET', '/api/sessions/019a3b6e-0000-7000-8000-000000000001');
         $this->assertProblem(404, 'notFound.session');
@@ -98,21 +103,20 @@ final class SessionsControllerTest extends ApiTestCase
 
     private function sundaySession(string $date): Session
     {
-        $service = Structure::service('Sunday School');
-        $database = new Database(self::getContainer());
-
-        $existing = $database
-            ->connection()
-            ->fetchOne("SELECT id FROM organization.service WHERE name = 'Sunday School'");
-
-        if ($existing === false) {
-            $database->persisted($service);
-        }
-
         $schedules = new Schedules(self::getContainer());
-        $schedule = $schedules->weekly($service, 'Sunday class', 7);
+        $schedule = $schedules->weekly($this->school(), 'Sunday class', 7);
 
         return $schedules->session($schedule, $date, "status = 'canceled', cancel_reason = 'Holiday'");
+    }
+
+    private function school(): Service
+    {
+        if ($this->school === null) {
+            $this->school = Structure::service('Sunday School');
+            new Database(self::getContainer())->persisted($this->school);
+        }
+
+        return $this->school;
     }
 
     private function event(Session $session, string $type, string $at, ?string $actorId, ?string $note = null): void
