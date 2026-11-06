@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Application\Service\RecurrenceRule;
 
+use App\Context\Meetings\Domain\Interface\RecurrenceRuleInterface;
 use App\Context\Meetings\Domain\ValueObject\RecurrenceDraft;
 use Override;
 
