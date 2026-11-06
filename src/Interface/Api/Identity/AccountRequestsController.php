@@ -11,7 +11,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\Requirement\Requirement;
 
 #[Route('/api/account-requests')]
 final class AccountRequestsController extends AbstractController
@@ -22,12 +21,7 @@ final class AccountRequestsController extends AbstractController
         return $this->json(AccountRequestListResponse::of($listAccountRequests()));
     }
 
-    #[Route(
-        '/{id}/decline',
-        name: 'api_account_requests_decline',
-        requirements: ['id' => Requirement::UUID],
-        methods: ['POST'],
-    )]
+    #[Route('/{id}/decline', name: 'api_account_requests_decline', methods: ['POST'])]
     public function decline(string $id, DeclineAccountRequestWorkflow $declineAccountRequest): Response
     {
         $declineAccountRequest($id);

@@ -938,7 +938,7 @@ Nothing else: no password hash and no privacy fields.
 
 Body `{}`. Deletes the account and everything the person entered, then answers 204; the same email can
 register again. The account is locked (`SELECT … FOR UPDATE`) while the decision is made, so two
-administrators can't both decide. 404 `notFound.user`; 409 `accounts.alreadyApproved` for an approved
+administrators can't both decide. 404 `notFound.user`, also for an id that is not a UUID; 409 `accounts.alreadyApproved` for an approved
 account, which stays.
 
 ### Services

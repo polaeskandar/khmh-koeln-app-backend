@@ -46,11 +46,6 @@ final readonly class Calendar
         return CarbonImmutable::instance($instant)->setTimezone($this->timeZone) |> LocalDate::ofInstant(...);
     }
 
-    public function formatInstant(DateTimeInterface $instant): string
-    {
-        return CarbonImmutable::instance($instant)->setTimezone($this->timeZone)->format(DateTimeInterface::ATOM);
-    }
-
     public function dayBounds(LocalDate $date): Period
     {
         return new Period(
