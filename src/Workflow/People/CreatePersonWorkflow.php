@@ -19,8 +19,10 @@ use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\Text;
 use App\Workflow\People\Model\CreatedPerson;
 use App\Workflow\People\Model\DirectoryEntries;
+use App\Workflow\People\Model\DirectoryEntry;
 use App\Workflow\People\Model\PersonDraft;
 use App\Workflow\People\Model\PlacementChoice;
+use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class CreatePersonWorkflow
 {
@@ -70,7 +72,24 @@ final readonly class CreatePersonWorkflow
                 'count' => $namesakes->count(),
                 'name' => Text::format('%s %s', $name->firstName, $name->lastName)->toString(),
             ],
-            ['candidates' => DirectoryEntries::lookedUpIn($this->directory, $this->structure, $active)],
+            ['candidates' => $this->entriesOf($active)],
+        );
+    }
+
+    /**
+     * @param ReadableCollection<int, Person> $people
+     *
+     * @return list<DirectoryEntry>
+     */
+    private function entriesOf(ReadableCollection $people): array
+    {
+        $memberships = $this->directory->currentMembershipsOf($people);
+
+        return DirectoryEntries::of(
+            $people,
+            $memberships,
+            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
         );
     }
 }

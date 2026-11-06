@@ -15,7 +15,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\Requirement\Requirement;
 
 #[Route('/api/people')]
 final class PeopleController extends AbstractController
@@ -29,13 +28,18 @@ final class PeopleController extends AbstractController
         return $this->json(CreatedPersonResponse::of($createPerson($person->draft())), status: Response::HTTP_CREATED);
     }
 
-    #[Route('/{id}', name: 'api_people_rename', requirements: ['id' => Requirement::UUID], methods: ['PATCH'])]
+    #[Route('/{id}', name: 'api_people_rename', methods: ['PUT'])]
     public function rename(
         string $id,
         #[MapRequestPayload]
-        RenamePersonRequest $changes,
+        RenamePersonRequest $person,
         RenamePersonWorkflow $renamePerson,
     ): JsonResponse {
-        return $this->json(PersonResponse::of($renamePerson($id, $changes->changes())));
+        return $this->json(PersonResponse::of($renamePerson(
+            $id,
+            $person->firstName,
+            $person->lastName,
+            $person->displayName,
+        )));
     }
 }

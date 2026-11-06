@@ -184,7 +184,8 @@ final class PeopleControllerTest extends ApiTestCase
         $mina = new Rosters(self::getContainer())->person('Mina', 'Hanna');
         $this->signInWithRoles('servant@example.org', 'servant');
 
-        $this->jsonRequest('PATCH', '/api/people/' . $mina->id()->toRfc4122(), [
+        $this->jsonRequest('PUT', '/api/people/' . $mina->id()->toRfc4122(), [
+            'firstName' => 'Mina',
             'lastName' => '  Hanna   Gerges ',
             'displayName' => 'Mimi',
         ]);
@@ -194,7 +195,21 @@ final class PeopleControllerTest extends ApiTestCase
         $this->assertJsonPath('lastName', 'Hanna Gerges');
         $this->assertJsonPath('displayName', 'Mimi');
 
-        $this->jsonRequest('PATCH', '/api/people/' . Uuid::v7()->toRfc4122(), ['firstName' => 'Marina']);
+        $this->jsonRequest('PUT', '/api/people/' . $mina->id()->toRfc4122(), [
+            'firstName' => 'Mina',
+            'lastName' => 'Hanna',
+        ]);
+
+        $this->assertJsonPath('displayName', null);
+
+        $this->jsonRequest('PUT', '/api/people/' . Uuid::v7()->toRfc4122(), [
+            'firstName' => 'Marina',
+            'lastName' => 'H',
+        ]);
+
+        $this->assertProblem(404, 'notFound.person');
+
+        $this->jsonRequest('PUT', '/api/people/not-a-uuid', ['firstName' => 'Marina', 'lastName' => 'H']);
         $this->assertProblem(404, 'notFound.person');
     }
 
@@ -206,7 +221,11 @@ final class PeopleControllerTest extends ApiTestCase
         $this->create(['firstName' => 'Marina', 'lastName' => 'Hanna']);
         $this->assertProblem(403, 'people.addNotAllowed');
 
-        $this->jsonRequest('PATCH', '/api/people/' . $mina->id()->toRfc4122(), ['firstName' => 'Marina']);
+        $this->jsonRequest('PUT', '/api/people/' . $mina->id()->toRfc4122(), [
+            'firstName' => 'Marina',
+            'lastName' => 'H',
+        ]);
+
         $this->assertProblem(403, 'people.changeNotAllowed');
     }
 

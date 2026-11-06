@@ -9,8 +9,10 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\PersonDirectory;
+use App\Context\People\Domain\Entity\Person;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\DirectoryEntry;
+use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class SearchDirectoryWorkflow
 {
@@ -32,6 +34,23 @@ final readonly class SearchDirectoryWorkflow
 
         $people = $this->directory->search($text, self::LIMIT);
 
-        return DirectoryEntries::lookedUpIn($this->directory, $this->structure, $people);
+        return $this->entriesOf($people);
+    }
+
+    /**
+     * @param ReadableCollection<int, Person> $people
+     *
+     * @return list<DirectoryEntry>
+     */
+    private function entriesOf(ReadableCollection $people): array
+    {
+        $memberships = $this->directory->currentMembershipsOf($people);
+
+        return DirectoryEntries::of(
+            $people,
+            $memberships,
+            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+        );
     }
 }
