@@ -33,7 +33,13 @@ final readonly class PlannedDates
     ): array {
         $sessions = $this->sessions->ofSchedulesBetween($schedules, $from, $to)->map(PlannedDate::ofSession(...));
         $taken = $sessions->map(static fn (PlannedDate $date): string => $date->key());
-        $planned = Collections::of(self::plannedOf($archived->generating($schedules), $taken, $from, $to));
+
+        $planned = Collections::of(self::plannedOf(
+            GeneratingSchedules::among($schedules, $archived),
+            $taken,
+            $from,
+            $to,
+        ));
 
         return Collections::sortedBy(
             new ArrayCollection([...$sessions->getValues(), ...$planned->getValues()]),
