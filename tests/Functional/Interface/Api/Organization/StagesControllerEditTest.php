@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Organization;
 
+use App\Context\Organization\Domain\Entity\Service;
+use App\Context\Organization\Domain\Entity\Stage;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
@@ -61,5 +63,58 @@ final class StagesControllerEditTest extends ApiTestCase
 
         $this->jsonRequest('PUT', '/api/stages/not-a-uuid', ['name' => '3rd Class']);
         $this->assertProblem(404, 'notFound.stage');
+    }
+
+    public function testAnEditTakesNoNameAnotherStageOfTheServiceHas(): void
+    {
+        [$first] = $this->classes();
+        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        $this->jsonRequest('PUT', '/api/stages/' . $first->id()->toRfc4122(), ['name' => ' 2ND  class']);
+
+        $this->assertProblem(422, 'checkFields');
+        $this->assertFieldError('name', 'stages.nameTaken', ['name' => '2nd Class']);
+    }
+
+    public function testAStageOfAnArchivedServiceTakesNoEdit(): void
+    {
+        [$first, $service] = $this->classes();
+        $service->archive(Structure::now());
+        new Database(self::getContainer())->persisted($service);
+        $this->signInWithRoles('admin@example.org', 'administrator');
+
+        $this->jsonRequest('PUT', '/api/stages/' . $first->id()->toRfc4122(), ['name' => 'First Class']);
+
+        $this->assertProblem(409, 'services.archivedNoStageChanges', ['name' => 'Sunday School']);
+    }
+
+    public function testAnUnknownStageIsNotFoundAndOnlyStructureManagersEdit(): void
+    {
+        [$first] = $this->classes();
+        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        $this->jsonRequest('PUT', '/api/stages/019a3b6e-0000-7000-8000-000000000001', ['name' => 'First Class']);
+        $this->assertProblem(404, 'notFound.stage');
+
+        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->jsonRequest('PUT', '/api/stages/' . $first->id()->toRfc4122(), ['name' => 'First Class']);
+        $this->assertProblem(403, 'forbidden');
+    }
+
+    /**
+     * @return array{Stage, Service}
+     */
+    private function classes(): array
+    {
+        $service = Structure::service('Sunday School');
+        $first = Structure::stage($service, '1st Class', position: 0);
+
+        new Database(self::getContainer())->persisted(
+            $service,
+            $first,
+            Structure::stage($service, '2nd Class', position: 1),
+        );
+
+        return [$first, $service];
     }
 }

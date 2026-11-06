@@ -19,7 +19,7 @@ final class PasswordToken extends CreatedAtEntity
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
-    private readonly Uuid $id;
+    private Uuid $id;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'user_id', nullable: false, onDelete: 'CASCADE')]

@@ -59,8 +59,8 @@ final readonly class ServiceStages
 
     public function add(string $serviceId, string $name, ?string $description): Stage
     {
-        StageChecks::check($name, $description);
         $id = Uuid::isValid($serviceId) ? Uuid::fromString($serviceId) : throw NotFound::of('service');
+        StageChecks::check($name, $description);
 
         return $this->services->withStructureLock($id, fn (Service $service): Stage => $this->addTo(
             $service,
@@ -71,18 +71,16 @@ final readonly class ServiceStages
 
     public function edit(string $stageId, string $name, ?string $description): Stage
     {
-        StageChecks::check($name, $description);
         $serviceId = Uuid::isValid($stageId) ? $this->stages->serviceIdOf(Uuid::fromString($stageId)) : null;
+        $lockedId = $serviceId ?? throw NotFound::of('stage');
+        StageChecks::check($name, $description);
 
-        return $this->services->withStructureLock(
-            $serviceId ?? throw NotFound::of('stage'),
-            fn (Service $service): Stage => $this->editIn(
-                $service,
-                $stageId,
-                StageName::of($name),
-                StageChecks::description($description),
-            ),
-        );
+        return $this->services->withStructureLock($lockedId, fn (Service $service): Stage => $this->editIn(
+            $service,
+            $stageId,
+            StageName::of($name),
+            StageChecks::description($description),
+        ));
     }
 
     private function editIn(Service $service, string $stageId, StageName $name, Description $description): Stage

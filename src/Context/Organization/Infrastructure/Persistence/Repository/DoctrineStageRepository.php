@@ -50,9 +50,8 @@ final readonly class DoctrineStageRepository implements StageRepositoryInterface
     #[Override]
     public function serviceIdOf(Uuid $stageId): ?Uuid
     {
-        $serviceId = $this->entityManager->getConnection()->fetchOne(self::SERVICE_OF_STAGE, [$stageId->toRfc4122()])
-            |> Type::of(...)
-            |> (static fn (Type $found): ?string => $found->toStringOrNull());
+        $connection = $this->entityManager->getConnection();
+        $serviceId = Type::of($connection->fetchOne(self::SERVICE_OF_STAGE, [$stageId->toRfc4122()]))->toStringOrNull();
 
         return $serviceId === null ? null : Uuid::fromString($serviceId);
     }
@@ -62,6 +61,7 @@ final readonly class DoctrineStageRepository implements StageRepositoryInterface
     {
         return new ArrayCollection($this->entityManager->getRepository(Stage::class)->findBy(['service' => $service], [
             'position' => 'ASC',
+            'name.key' => 'ASC',
         ]));
     }
 
