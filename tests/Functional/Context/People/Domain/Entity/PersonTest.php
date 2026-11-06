@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Context\People\Domain\Entity;
 
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\ValueObject\PersonName;
 use App\Context\People\Infrastructure\Persistence\Repository\DoctrinePersonRepository;
 use App\Tests\Support\Database;
 use Doctrine\DBAL\Connection;
@@ -15,7 +16,7 @@ final class PersonTest extends KernelTestCase
 {
     public function testAPersonWithoutBirthDateOrAddressIsStored(): void
     {
-        $person = new Person('Mina', 'Hanna', 'Mini');
+        $person = new Person(PersonName::of('Mina', 'Hanna', 'Mini'));
 
         new DoctrinePersonRepository($this->database()->entityManager())->save($person);
 
@@ -34,7 +35,7 @@ final class PersonTest extends KernelTestCase
     #[DataProvider('violations')]
     public function testTheDatabaseRefusesAnInvalidPerson(array $set): void
     {
-        $person = new Person('Mina', 'Hanna', null);
+        $person = new Person(PersonName::of('Mina', 'Hanna', null));
         $this->database()->persisted($person);
 
         $this->database()->assertRefused(Database::CHECK_VIOLATION, static fn (Connection $connection): int|string => $connection->update(

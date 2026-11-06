@@ -30,10 +30,10 @@ final class Person extends CreatedAtEntity
     #[ORM\Embedded(PersonalDetails::class, columnPrefix: false)]
     private PersonalDetails $personalDetails;
 
-    public function __construct(string $firstName, string $lastName, ?string $displayName)
+    public function __construct(PersonName $name)
     {
         $this->id = Uuid::v7();
-        $this->name = PersonName::of($firstName, $lastName, $displayName);
+        $this->name = $name;
         $this->status = PersonStatus::Active;
         $this->personalDetails = PersonalDetails::none();
     }

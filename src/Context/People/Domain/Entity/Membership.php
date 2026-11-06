@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\People\Domain\Entity;
 
-use App\Context\People\Domain\Enum\MembershipEnding;
 use App\Context\People\Domain\ValueObject\Tenure;
-use App\Library\Time\Model\LocalDate;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
@@ -43,13 +41,13 @@ final class Membership
     #[ORM\Embedded(Tenure::class, columnPrefix: false)]
     private Tenure $tenure;
 
-    public function __construct(Person $person, Uuid $serviceId, ?Uuid $stageId, LocalDate $startsOn)
+    public function __construct(Person $person, Uuid $serviceId, ?Uuid $stageId, Tenure $tenure)
     {
         $this->id = Uuid::v7();
         $this->person = $person;
         $this->serviceId = $serviceId;
         $this->stageId = $stageId;
-        $this->tenure = Tenure::from($startsOn);
+        $this->tenure = $tenure;
     }
 
     public function id(): Uuid
@@ -77,21 +75,8 @@ final class Membership
         return $this->tenure;
     }
 
-    public function isCurrentOn(LocalDate $date): bool
+    public function changeTenure(Tenure $tenure): void
     {
-        return $this->tenure->includes($date);
-    }
-
-    public function endFrom(LocalDate $today): MembershipEnding
-    {
-        $ended = $this->tenure->endedFrom($today);
-
-        if ($ended === null) {
-            return MembershipEnding::DeleteInstead;
-        }
-
-        $this->tenure = $ended;
-
-        return MembershipEnding::Ended;
+        $this->tenure = $tenure;
     }
 }
