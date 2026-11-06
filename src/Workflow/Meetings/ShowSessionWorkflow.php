@@ -9,14 +9,20 @@ use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\MeetingSessions;
+use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Library\Time\Client\Calendar;
 use App\Workflow\Meetings\Model\ActorReferences;
 use App\Workflow\Meetings\Model\HistoryEntry;
+use App\Workflow\Meetings\Model\RosterReferences;
 use App\Workflow\Meetings\Model\ScheduleBrief;
-use App\Workflow\Meetings\Model\SessionAbilities;
+use App\Workflow\Meetings\Model\ScheduleRoster;
 use App\Workflow\Meetings\Model\SessionDetail;
+use App\Workflow\Meetings\Model\SessionDetails;
+use App\Workflow\Meetings\Model\SessionProgress;
+use App\Workflow\Meetings\Model\SessionTimes;
 use App\Workflow\Meetings\Model\SessionView;
+use Doctrine\Common\Collections\ArrayCollection;
 
 final readonly class ShowSessionWorkflow
 {
@@ -35,13 +41,47 @@ final readonly class ShowSessionWorkflow
 
         $session = $this->sessions->find($id);
         $events = $this->sessions->historyOf($session);
-        $can = SessionAbilities::grantedBy($this->access);
+
+        $history = new ArrayCollection(HistoryEntry::listOf(
+            $events,
+            ActorReferences::of($this->accounts->accounts(ActorReferences::actorIdsOf($events))),
+        ));
+
+        $progress = SessionProgress::of($session);
+
+        if (!$this->access->allows(Action::Read, Resource::Attendance)) {
+            $history = $history->map(static fn (HistoryEntry $entry): HistoryEntry => $entry->withoutNote());
+            $progress = $progress->withoutCancelReason();
+        }
 
         return new SessionDetail(
             today: $this->calendar->today()->toString(),
-            session: SessionView::of($session, $this->structure, $this->calendar, $can),
+            session: $this->viewOf($session, $progress),
             schedule: ScheduleBrief::of($session->schedule()),
-            history: HistoryEntry::listOf($events, ActorReferences::lookedUpIn($this->accounts, $events), $can),
+            history: $history->getValues(),
+        );
+    }
+
+    private function viewOf(Session $session, SessionProgress $progress): SessionView
+    {
+        $schedule = $session->schedule();
+        $schedules = new ArrayCollection([$schedule]);
+        $slot = $schedule->timeSlot();
+        $date = $session->occurrenceDate();
+        $endTime = $slot->endTime;
+
+        return new SessionView(
+            SessionDetails::of($session),
+            ScheduleRoster::of($schedule, RosterReferences::of(
+                $this->structure->services(RosterReferences::serviceIdsOf($schedules)),
+                $this->structure->stages(RosterReferences::stageIdsOf($schedules)),
+            )),
+            SessionTimes::of(
+                $session,
+                startsAt: $this->calendar->instantAt($date, $slot->startTime),
+                endsAt: $endTime === null ? null : $this->calendar->instantAt($date, $endTime),
+            ),
+            $progress,
         );
     }
 }

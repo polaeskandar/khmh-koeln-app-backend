@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Workflow\Meetings\Model;
 
-use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Meetings\Domain\Entity\SessionEvent;
 use App\Library\Collections\Model\Collections;
@@ -23,16 +22,24 @@ final readonly class ActorReferences
     }
 
     /**
-     * @param ReadableCollection<int, SessionEvent> $events
+     * @param ReadableCollection<int, User> $accounts
      */
-    public static function lookedUpIn(AccountLookup $lookup, ReadableCollection $events): self
+    public static function of(ReadableCollection $accounts): self
     {
-        $actorIds = Collections::mapPresent(
+        return new self(Collections::firstPerKey($accounts, keyOf: self::key(...)));
+    }
+
+    /**
+     * @param ReadableCollection<int, SessionEvent> $events
+     *
+     * @return list<Uuid>
+     */
+    public static function actorIdsOf(ReadableCollection $events): array
+    {
+        return Collections::mapPresent(
             $events,
             static fn (SessionEvent $event): ?Uuid => $event->actor()->accountId,
-        );
-
-        return new self(Collections::firstPerKey($lookup->accounts($actorIds->getValues()), keyOf: self::key(...)));
+        )->getValues();
     }
 
     public function actorOf(SessionEvent $event): ?AccountReference

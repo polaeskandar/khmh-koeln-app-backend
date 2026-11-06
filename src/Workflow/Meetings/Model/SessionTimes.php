@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Meetings\Model;
 
 use App\Context\Meetings\Domain\Entity\Session;
-use App\Library\Time\Client\Calendar;
-use DateTimeInterface;
+use DateTimeImmutable;
 
 final readonly class SessionTimes
 {
@@ -14,23 +13,21 @@ final readonly class SessionTimes
         public string $date,
         public string $startTime,
         public ?string $endTime,
-        public string $startsAt,
-        public ?string $endsAt,
+        public DateTimeImmutable $startsAt,
+        public ?DateTimeImmutable $endsAt,
     ) {
     }
 
-    public static function of(Session $session, Calendar $calendar): self
+    public static function of(Session $session, DateTimeImmutable $startsAt, ?DateTimeImmutable $endsAt): self
     {
-        $date = $session->occurrenceDate();
         $slot = $session->schedule()->timeSlot();
-        $endTime = $slot->endTime;
 
         return new self(
-            date: $date->toString(),
+            date: $session->occurrenceDate()->toString(),
             startTime: $slot->startTime->toString(),
-            endTime: $endTime?->toString(),
-            startsAt: $calendar->instantAt($date, $slot->startTime)->format(DateTimeInterface::ATOM),
-            endsAt: $endTime === null ? null : $calendar->instantAt($date, $endTime)->format(DateTimeInterface::ATOM),
+            endTime: $slot->endTime?->toString(),
+            startsAt: $startsAt,
+            endsAt: $endsAt,
         );
     }
 }

@@ -14,13 +14,15 @@ final readonly class SessionProgress
     ) {
     }
 
-    public static function of(Session $session, SessionAbilities $can): self
+    public static function of(Session $session): self
     {
         $progress = $session->progress();
 
-        return new self(
-            status: $progress->status->value,
-            cancelReason: $can->readContent ? $progress->cancelReason : null,
-        );
+        return new self(status: $progress->status->value, cancelReason: $progress->cancelReason);
+    }
+
+    public function withoutCancelReason(): self
+    {
+        return new self($this->status, cancelReason: null);
     }
 }

@@ -20,7 +20,9 @@ final readonly class MeetingSessions
 
     public function find(string $id): Session
     {
-        return $this->sessions->find(Uuid::fromString($id)) ?? throw NotFound::of('session');
+        $session = Uuid::isValid($id) ? $this->sessions->find(Uuid::fromString($id)) : null;
+
+        return $session ?? throw NotFound::of('session');
     }
 
     /**

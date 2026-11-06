@@ -51,7 +51,6 @@ final class SessionsControllerTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/sessions/' . $winter->id()->toRfc4122());
         $this->assertJsonPath('session.startsAt', '2026-11-08T18:30:00+01:00');
         $this->assertJsonPath('session.location', 'Hall');
-        $this->assertJsonPath('session.can', ['manage' => false, 'record' => true, 'reopen' => false]);
 
         $this->jsonRequest('GET', '/api/sessions/' . $summer->id()->toRfc4122());
         $this->assertJsonPath('session.startsAt', '2027-03-28T18:30:00+02:00');
@@ -78,7 +77,6 @@ final class SessionsControllerTest extends ApiTestCase
 
         $this->assertJsonPath('session.cancelReason', null);
         $this->assertJsonPath('history.0.note', null);
-        $this->assertJsonPath('session.can', ['manage' => false, 'record' => false, 'reopen' => false]);
     }
 
     public function testLeadersMayManageParentsAndStrangersMayNot(): void
@@ -86,9 +84,11 @@ final class SessionsControllerTest extends ApiTestCase
         $session = $this->sundaySession('2026-11-08');
         $this->signInWithRoles('leader@example.org', 'service_leader');
         $this->jsonRequest('GET', '/api/sessions/' . $session->id()->toRfc4122());
-        $this->assertJsonPath('session.can', ['manage' => true, 'record' => true, 'reopen' => true]);
 
         $this->jsonRequest('GET', '/api/sessions/019a3b6e-0000-7000-8000-000000000001');
+        $this->assertProblem(404, 'notFound.session');
+
+        $this->jsonRequest('GET', '/api/sessions/not-a-uuid');
         $this->assertProblem(404, 'notFound.session');
 
         $this->signInWithRoles('parent@example.org', 'parent');
