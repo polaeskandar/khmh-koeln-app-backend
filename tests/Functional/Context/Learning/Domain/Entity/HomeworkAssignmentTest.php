@@ -50,34 +50,26 @@ final class HomeworkAssignmentTest extends KernelTestCase
     {
         $task = $this->task();
         $child = Uuid::v7();
-        $undone = HomeworkCompletion::report($task, $child, new DateTimeImmutable('2026-11-16T18:00:00+01:00'), null);
+        $undone = new HomeworkCompletion($task, $child, new DateTimeImmutable('2026-11-16T18:00:00+01:00'), null);
         $undone->undo(new DateTimeImmutable('2026-11-16T18:05:00+01:00'), null);
 
-        $this->database()->persisted($undone, HomeworkCompletion::report(
-            $task,
-            $child,
-            new DateTimeImmutable('2026-11-16T18:06:00+01:00'),
-            null,
-        ));
+        $this->database()->persisted(
+            $undone,
+            new HomeworkCompletion($task, $child, new DateTimeImmutable('2026-11-16T18:06:00+01:00'), null),
+        );
 
-        $this->database()->assertRefused(Database::UNIQUE_VIOLATION, fn () => $this->database()->persisted(HomeworkCompletion::report(
-            $task,
-            $child,
-            new DateTimeImmutable('2026-11-16T18:07:00+01:00'),
-            null,
-        )));
+        $this->database()->assertRefused(Database::UNIQUE_VIOLATION, fn () => $this->database()->persisted(
+            new HomeworkCompletion($task, $child, new DateTimeImmutable('2026-11-16T18:07:00+01:00'), null),
+        ));
     }
 
     public function testCompletionChecksAndTheLessonCanNotBeDeleted(): void
     {
         $task = $this->task();
 
-        $this->database()->persisted(HomeworkCompletion::report(
-            $task,
-            Uuid::v7(),
-            new DateTimeImmutable('2026-11-16T18:00:00+01:00'),
-            null,
-        ));
+        $this->database()->persisted(
+            new HomeworkCompletion($task, Uuid::v7(), new DateTimeImmutable('2026-11-16T18:00:00+01:00'), null),
+        );
 
         $this->database()->assertRefused(
             Database::CHECK_VIOLATION,
@@ -101,7 +93,7 @@ final class HomeworkAssignmentTest extends KernelTestCase
             null,
         );
 
-        $task = HomeworkAssignment::draft(
+        $task = new HomeworkAssignment(
             $lesson,
             HomeworkText::of('Learn the verse', null, null),
             Materials::none(),

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Domain\Entity;
 
-use App\Library\Problem\Exception\RuleViolation;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -44,30 +43,21 @@ final class HomeworkCompletion
     #[ORM\Column(type: UuidType::NAME, nullable: true)]
     private ?Uuid $undoneBy = null;
 
-    private function __construct(HomeworkAssignment $assignment, Uuid $personId, DateTimeImmutable $at, ?Uuid $by)
-    {
+    public function __construct(
+        HomeworkAssignment $assignment,
+        Uuid $personId,
+        DateTimeImmutable $completedAt,
+        ?Uuid $completedBy,
+    ) {
         $this->id = Uuid::v7();
         $this->assignment = $assignment;
         $this->personId = $personId;
-        $this->completedAt = $at;
-        $this->completedBy = $by;
-    }
-
-    public static function report(
-        HomeworkAssignment $assignment,
-        Uuid $personId,
-        DateTimeImmutable $at,
-        ?Uuid $by,
-    ): self {
-        return new self($assignment, $personId, $at, $by);
+        $this->completedAt = $completedAt;
+        $this->completedBy = $completedBy;
     }
 
     public function undo(DateTimeImmutable $at, ?Uuid $by): void
     {
-        if ($this->undoneAt !== null) {
-            throw new RuleViolation('homework.alreadyUndone');
-        }
-
         $this->undoneAt = $at;
         $this->undoneBy = $by;
     }
