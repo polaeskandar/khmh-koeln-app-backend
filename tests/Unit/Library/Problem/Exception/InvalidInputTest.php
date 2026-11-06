@@ -36,39 +36,29 @@ final class InvalidInputTest extends TestCase
         self::assertSame('checkFields', $invalid->getMessage());
     }
 
-    public function testBothReportsTheFieldErrorsOfBothFailingChecks(): void
+    public function testAllReportsTheFieldErrorsOfEveryFailingCheckAtOnce(): void
     {
         self::assertSame(
             [
                 'name' => ['code' => 'services.nameRequired'],
                 'description' => ['code' => 'validation.tooLong', 'params' => ['max' => 2000]],
+                'tone' => ['code' => 'validation.invalidChoice'],
             ],
-            ThrownFieldErrors::of(static fn (): array => InvalidInput::both(
-                static fn (): object => throw InvalidInput::field('name', 'services.nameRequired'),
-                static fn (): object => throw InvalidInput::tooLong('description', max: 2000),
-            )),
+            ThrownFieldErrors::of(static function (): void {
+                InvalidInput::all(
+                    static fn (): object => throw InvalidInput::field('name', 'services.nameRequired'),
+                    static fn (): object => new stdClass(),
+                    static fn (): object => throw InvalidInput::tooLong('description', max: 2000),
+                    static fn (): object => throw InvalidInput::field('tone', 'validation.invalidChoice'),
+                );
+            }),
         );
     }
 
-    public function testBothReportsTheOneFailingCheck(): void
+    public function testAllPassesWhenEveryCheckPasses(): void
     {
-        self::assertSame(
-            ['description' => ['code' => 'validation.tooLong', 'params' => ['max' => 2000]]],
-            ThrownFieldErrors::of(static fn (): array => InvalidInput::both(
-                static fn (): object => new stdClass(),
-                static fn (): object => throw InvalidInput::tooLong('description', max: 2000),
-            )),
-        );
-    }
+        $this->expectNotToPerformAssertions();
 
-    public function testBothReturnsBothValuesWhenTheyPass(): void
-    {
-        $first = new stdClass();
-        $second = new stdClass();
-
-        self::assertSame(
-            [$first, $second],
-            InvalidInput::both(static fn (): object => $first, static fn (): object => $second),
-        );
+        InvalidInput::all(static fn (): object => new stdClass(), static fn (): object => new stdClass());
     }
 }

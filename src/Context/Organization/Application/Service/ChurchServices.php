@@ -44,10 +44,15 @@ final readonly class ChurchServices
 
     public function create(string $name, ?string $description): Service
     {
-        [$serviceName, $serviceDescription] = self::details($name, $description);
-        $service = new Service($serviceName, $serviceDescription, Tone::leastUsed($this->services->tonesInUse()));
+        self::check($name, $description);
 
-        $this->ensureFree($serviceName, $service);
+        $service = new Service(
+            ServiceName::of($name),
+            self::description($description),
+            Tone::leastUsed($this->services->tonesInUse()),
+        );
+
+        $this->ensureFree($service->name(), $service);
         $this->save($service);
 
         return $service;
@@ -56,24 +61,27 @@ final readonly class ChurchServices
     public function edit(string $id, string $name, ?string $description): Service
     {
         $service = $this->find($id);
-        [$serviceName, $serviceDescription] = self::details($name, $description);
+        self::check($name, $description);
+        $serviceName = ServiceName::of($name);
 
         $this->ensureFree($serviceName, $service);
-        $service->edit($serviceName, $serviceDescription);
+        $service->edit($serviceName, self::description($description));
         $this->save($service);
 
         return $service;
     }
 
-    /**
-     * @return array{ServiceName, Description}
-     */
-    private static function details(string $name, ?string $description): array
+    private static function check(string $name, ?string $description): void
     {
-        return InvalidInput::both(
+        InvalidInput::all(
             static fn (): ServiceName => ServiceName::of($name),
-            static fn (): Description => Description::of($description, max: self::DESCRIPTION_LENGTH),
+            static fn (): Description => self::description($description),
         );
+    }
+
+    private static function description(?string $description): Description
+    {
+        return Description::of($description, max: self::DESCRIPTION_LENGTH);
     }
 
     private function save(Service $service): void
