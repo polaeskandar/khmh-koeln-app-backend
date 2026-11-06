@@ -33,7 +33,7 @@ Follow `docs/architecture.md` § Code layout. Calls go one way, Interface → Wo
 - `src/Workflow/<Area>/<Verb><Subject>Workflow.php` holds one process each, run by `__invoke()`, with its models
   in `src/Workflow/<Area>/Model/`. Workflows are the only code that uses the contexts.
 - `src/Context/<Context>/` holds the bounded contexts: business logic in `Application/Service`, the model in
-  `Domain/{Entity,ValueObject,Enum,Repository,Exception,Attribute}`, adapters in `Infrastructure`. A context
+  `Domain/{Entity,ValueObject,Enum,Repository,Interface,Exception,Attribute}`, adapters in `Infrastructure`. A context
   never uses another context.
 - The runtime is in `src/Platform`.
 

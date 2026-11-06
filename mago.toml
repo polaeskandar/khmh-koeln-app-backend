@@ -232,16 +232,16 @@ reason = "The Enum folder holds only enums."
 
 [[guard.structural.rules]]
 on = "App\\Context\\*\\Application\\Service\\**"
-target = "class"
+must-be = ["class"]
 must-be-final = true
 must-be-readonly = true
 reason = "An application service holds only its injected collaborators."
 
 [[guard.structural.rules]]
-on = "App\\Context\\*\\Application\\Service\\**"
-target = "interface"
+on = "App\\Context\\*\\Domain\\Interface\\**"
+must-be = ["interface"]
 must-be-named = "*Interface"
-reason = "A port the context's infrastructure implements carries the Interface suffix."
+reason = "A port is a contract the context's infrastructure implements and carries the Interface suffix."
 
 [[guard.structural.rules]]
 on = "App\\Context\\*\\Domain\\Attribute\\**"

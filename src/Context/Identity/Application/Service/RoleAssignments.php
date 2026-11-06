@@ -6,6 +6,7 @@ namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Entity\Role;
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Interface\AdministrationLockInterface;
 use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;

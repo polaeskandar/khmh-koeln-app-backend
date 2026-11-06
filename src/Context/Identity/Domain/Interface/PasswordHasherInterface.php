@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Context\Identity\Application\Service;
+namespace App\Context\Identity\Domain\Interface;
 
 use App\Context\Identity\Domain\ValueObject\PlainPassword;
 use SensitiveParameter;
