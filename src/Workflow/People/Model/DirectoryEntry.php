@@ -27,6 +27,12 @@ final readonly class DirectoryEntry
     {
         $name = $person->name();
 
-        return new self($person->id()->toRfc4122(), $name->firstName, $name->lastName, $name->displayName, $groups);
+        return new self(
+            id: $person->id()->toRfc4122(),
+            firstName: $name->firstName,
+            lastName: $name->lastName,
+            displayName: $name->displayName,
+            groups: $groups,
+        );
     }
 }

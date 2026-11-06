@@ -43,11 +43,16 @@ final readonly class DoctrinePersonRepository implements PersonRepositoryInterfa
         $query = $this->entityManager
             ->createQueryBuilder()
             ->select('p')
+            ->addSelect(
+                'LOWER(p.name.lastName) AS HIDDEN lastNameKey',
+                'LOWER(p.name.firstName) AS HIDDEN firstNameKey',
+            )
             ->from(Person::class, 'p')
             ->where('p.status = :active')
             ->setParameter('active', PersonStatus::Active)
-            ->orderBy('p.name.lastName')
-            ->addOrderBy('p.name.firstName')
+            ->orderBy('lastNameKey')
+            ->addOrderBy('firstNameKey')
+            ->addOrderBy('p.id')
             ->setMaxResults($limit);
 
         foreach ($words as $index => $word) {
@@ -65,9 +70,9 @@ final readonly class DoctrinePersonRepository implements PersonRepositoryInterfa
             return new ArrayCollection();
         }
 
-        return new ArrayCollection($this->entityManager
-            ->getRepository(Membership::class)
-            ->findBy(['person' => $people->toArray()]));
+        return new ArrayCollection($this->entityManager->getRepository(Membership::class)->findBy([
+            'person' => $people->toArray(),
+        ], ['id' => 'ASC']));
     }
 
     private static function escaped(string $word): string
