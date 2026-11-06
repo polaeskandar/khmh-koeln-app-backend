@@ -9,7 +9,7 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Domain\Entity\Membership;
 use App\Library\Collections\Model\Collections;
 use App\Workflow\Organization\Model\ServiceReference;
-use App\Workflow\Organization\Model\StageSummary;
+use App\Workflow\Organization\Model\StageReference;
 use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class Placements
@@ -57,7 +57,7 @@ final readonly class Placements
         $stageId = $membership->stageId()?->toRfc4122();
         $stage = $stageId === null ? null : $this->stages->get($stageId);
 
-        return new PersonGroup(ServiceReference::of($service), $stage === null ? null : StageSummary::of($stage));
+        return new PersonGroup(ServiceReference::of($service), $stage === null ? null : StageReference::of($stage));
     }
 
     /**

@@ -50,6 +50,12 @@ final class TextTest extends TestCase
         self::assertFalse(Text::of('Access Denied.')->matches('/^[a-z][a-zA-Z.]*$/'));
     }
 
+    public function testIsUtf8RejectsBrokenByteSequences(): void
+    {
+        self::assertTrue(Text::of('Mönika مينا')->isUtf8());
+        self::assertFalse(Text::of("\xC3\x28")->isUtf8());
+    }
+
     public function testIsDigitsAcceptsOnlyARunOfDigits(): void
     {
         self::assertTrue(Text::of('120')->isDigits());

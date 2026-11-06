@@ -955,9 +955,11 @@ attendance board, a child when approving a parent): it crosses services on purpo
 current groups, nothing else about the person (D7).
 
 `{items: [{id, firstName, lastName, displayName, groups: [{service: ServiceRef, stage: StageRef | null}]}]}`, at
-most 20, active people by last and first name. `groups` are the person's current memberships.
+most 20, active people by last and first name ignoring case. `groups` are the person's current memberships, in the
+order they were created.
 
 `q` is folded (lower case, accents and Arabic harakat removed) and split into words; every word has to appear in
-the first, last or display name. Fewer than 2 letters → 422 field error `q`: `people.searchTooShort {min: 2}`.
-`%` and `_` match themselves.
+the first, last or display name. Field errors on `q`: fewer than 2 characters besides spaces →
+`people.searchTooShort {min: 2}`; more than 100 characters → `validation.tooLong {max: 100}`; bytes that are not
+UTF-8 → `validation.invalidType`. `%` and `_` match themselves.
 

@@ -15,9 +15,12 @@ use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 
 final class DirectoryControllerTest extends ApiTestCase
 {
+    use ClockSensitiveTrait;
+
     /**
      * @param list<string> $expected
      */
@@ -48,6 +51,7 @@ final class DirectoryControllerTest extends ApiTestCase
 
     public function testAnEntryHasOnlyNamesAndCurrentGroups(): void
     {
+        self::mockTime('2026-11-08T11:00:00Z');
         $school = Structure::service('Sunday School');
         $third = Structure::stage($school, '3rd Class', position: 2);
         $youth = Structure::service('Youth');
@@ -72,6 +76,7 @@ final class DirectoryControllerTest extends ApiTestCase
         self::assertSame(['id', 'firstName', 'lastName', 'displayName', 'groups'], array_keys($entry));
         $this->assertJsonPath('items.0.groups.0.service.name', 'Sunday School');
         $this->assertJsonPath('items.0.groups.0.stage.name', '3rd Class');
+        $this->assertJsonPath('items.0.groups.0.stage.archived', false);
         self::assertCount(1, JsonBody::asArray($entry['groups'] ?? null, 'groups'));
     }
 
@@ -110,6 +115,12 @@ final class DirectoryControllerTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/people/directory?q=%20a%20');
         $this->assertProblem(422, 'checkFields');
         $this->assertFieldError('q', 'people.searchTooShort', ['min' => 2]);
+
+        $this->jsonRequest('GET', '/api/people/directory?q=%C3%28');
+        $this->assertFieldError('q', 'validation.invalidType');
+
+        $this->jsonRequest('GET', '/api/people/directory?q=' . str_repeat('a', times: 101));
+        $this->assertFieldError('q', 'validation.tooLong', ['max' => 100]);
     }
 
     private function people(): void

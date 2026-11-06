@@ -50,6 +50,11 @@ final readonly class Text implements Stringable
         return preg_match($pattern, $this->value) === 1;
     }
 
+    public function isUtf8(): bool
+    {
+        return mb_check_encoding($this->value, encoding: 'UTF-8');
+    }
+
     public function isDigits(): bool
     {
         return ctype_digit($this->value);
