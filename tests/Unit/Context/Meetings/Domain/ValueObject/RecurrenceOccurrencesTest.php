@@ -67,4 +67,18 @@ final class RecurrenceOccurrencesTest extends TestCase
         self::assertSame('2026-11-08', $recurrence->nextOccurrence(LocalDate::of('2026-11-02'))?->toString());
         self::assertNull($recurrence->nextOccurrence(LocalDate::of('2026-11-09')));
     }
+
+    public function testTheNextOccurrenceOfALongMonthlyCycleIsFound(): void
+    {
+        $recurrence = Recurrence::monthly(1, 4, new DateSpan(LocalDate::of('2026-01-01'), null), interval: 14);
+
+        self::assertSame('2027-03-04', $recurrence->nextOccurrence(LocalDate::of('2026-01-02'))?->toString());
+    }
+
+    public function testTheNextOccurrenceIsFoundFromAFarStart(): void
+    {
+        $recurrence = Recurrence::weekly(1, [5], new DateSpan(LocalDate::of('2028-01-07'), null));
+
+        self::assertSame('2028-01-07', $recurrence->nextOccurrence(LocalDate::of('2026-01-01'))?->toString());
+    }
 }

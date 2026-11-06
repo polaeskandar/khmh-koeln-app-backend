@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Context\Meetings\Domain\ValueObject;
 
 use App\Context\Meetings\Domain\Enum\Frequency;
+use LogicException;
 
 final readonly class RecurrenceDraft
 {
@@ -27,10 +28,15 @@ final readonly class RecurrenceDraft
 
     public function toRecurrence(): Recurrence
     {
-        $interval = $this->interval ?? 1;
+        $interval = $this->interval ?? throw new LogicException('Check the draft before building its recurrence.');
 
         return $this->isMonthly()
-            ? Recurrence::monthly($this->monthWeek ?? 1, $this->weekdays[0] ?? 1, $this->span, interval: $interval)
+            ? Recurrence::monthly(
+                $this->monthWeek ?? throw new LogicException('Check the draft before building its recurrence.'),
+                $this->weekdays[0] ?? throw new LogicException('Check the draft before building its recurrence.'),
+                $this->span,
+                interval: $interval,
+            )
             : Recurrence::weekly($interval, $this->weekdays, $this->span);
     }
 }

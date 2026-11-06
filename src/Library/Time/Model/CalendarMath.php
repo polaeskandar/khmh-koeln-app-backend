@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Library\Time\Model;
 
 use Carbon\CarbonImmutable;
+use LogicException;
 
 final readonly class CalendarMath
 {
@@ -45,6 +46,8 @@ final readonly class CalendarMath
 
     private static function midnight(LocalDate $date): CarbonImmutable
     {
-        return CarbonImmutable::createFromFormat('!Y-m-d', $date->toString(), 'UTC') ?? CarbonImmutable::now('UTC');
+        $midnight = CarbonImmutable::createFromFormat('!Y-m-d', $date->toString(), 'UTC');
+
+        return $midnight ?? throw new LogicException('A local date always reads as a date.');
     }
 }
