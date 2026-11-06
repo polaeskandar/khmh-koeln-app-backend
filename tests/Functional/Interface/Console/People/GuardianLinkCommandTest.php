@@ -79,6 +79,24 @@ final class GuardianLinkCommandTest extends KernelTestCase
         yield 'unknown child' => [[], 'active', '019a3b6e-0000-7000-8000-000000000009', 'notFound.person'];
     }
 
+    public function testAnUnknownRelationshipNamesItsCode(): void
+    {
+        $families = new Families(self::getContainer());
+        $families->account('mariam@example.org', []);
+        $child = $families->child();
+        $tester = $this->tester();
+
+        $status = $tester->execute([
+            'email' => 'mariam@example.org',
+            'personId' => $child->id()->toRfc4122(),
+            '--relationship' => 'uncle',
+        ]);
+
+        self::assertSame(Command::INVALID, $status);
+        self::assertStringContainsString('relationship: validation.invalidChoice', $tester->getDisplay());
+        self::assertSame(0, $this->rowsIn('people.guardian_relationship'));
+    }
+
     private function tester(): CommandTester
     {
         return new CommandTester(new Application(self::bootKernel())->find('app:guardian:link'));
