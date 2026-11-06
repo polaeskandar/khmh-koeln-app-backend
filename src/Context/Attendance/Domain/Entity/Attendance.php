@@ -14,7 +14,7 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Entity]
 #[ORM\Table(name: 'attendance', schema: 'attendance')]
 #[ORM\UniqueConstraint(
-    name: 'uniq_attendance_current',
+    name: 'attendance_current_unique',
     columns: ['session_id', 'person_id'],
     options: ['where' => '(removed_at IS NULL)'],
 )]

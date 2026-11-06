@@ -15,11 +15,11 @@ final readonly class CommittedRows
     }
 
     /**
-     * @param array<string, list<string>> $idsByTable tables in the order their rows can be deleted
+     * @param array<string, list<string>> $idsInDeletionOrder
      */
-    public function delete(array $idsByTable): void
+    public function delete(array $idsInDeletionOrder): void
     {
-        foreach ($idsByTable as $table => $ids) {
+        foreach ($idsInDeletionOrder as $table => $ids) {
             $this->connection->executeStatement(
                 'DELETE FROM ' . $table . ' WHERE id IN (?)',
                 [$ids],

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Attendance\Domain\ValueObject;
 
+use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Strings\Model\InputText;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
@@ -33,7 +34,13 @@ final readonly class Removal
 
     public static function of(DateTimeImmutable $at, ?Uuid $by, ?string $reason): self
     {
-        return new self($at, $by, InputText::of($reason)->trimmed()->toStringOrNull());
+        $clean = InputText::of($reason)->trimmed();
+
+        if ($clean->length() > self::REASON_LENGTH) {
+            throw InvalidInput::tooLong('reason', self::REASON_LENGTH);
+        }
+
+        return new self($at, $by, $clean->toStringOrNull());
     }
 
     public function happened(): bool
