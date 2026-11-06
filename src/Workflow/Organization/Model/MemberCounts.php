@@ -20,7 +20,6 @@ final readonly class MemberCounts
         return new self(members: 0, serviceLevel: 0);
     }
 
-
     /**
      * @param ReadableCollection<string, array{members: int, serviceLevel: int}> $counts
      */

@@ -105,7 +105,7 @@ final class StagesControllerTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/stages/' . $stageId);
 
         self::assertSame(
-            ['id', 'name', 'description', 'position', 'archived', 'service'],
+            ['id', 'name', 'description', 'position', 'archived', 'memberCount', 'service'],
             array_keys($this->responseJson()),
         );
 

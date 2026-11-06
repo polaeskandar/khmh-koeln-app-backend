@@ -35,7 +35,9 @@ final readonly class ListStagesWorkflow
         return StageList::of(
             $service,
             $stages,
-            $this->rosters->stageMembersToday($stages->map(static fn (Stage $stage): Uuid => $stage->id())->getValues()),
+            $this->rosters->stageMembersToday(
+                $stages->map(static fn (Stage $stage): Uuid => $stage->id())->getValues(),
+            ),
         );
     }
 }
