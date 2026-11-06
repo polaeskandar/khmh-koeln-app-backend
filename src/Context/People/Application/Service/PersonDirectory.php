@@ -49,6 +49,6 @@ final readonly class PersonDirectory
 
         return $this->people
             ->membershipsOf($people)
-            ->filter(static fn (Membership $membership): bool => $membership->isCurrentOn($today));
+            ->filter(static fn (Membership $membership): bool => $membership->tenure()->includes($today));
     }
 }
