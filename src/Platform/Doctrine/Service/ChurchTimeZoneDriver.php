@@ -10,10 +10,12 @@ use Doctrine\DBAL\Driver\Middleware\AbstractDriverMiddleware;
 use Doctrine\DBAL\DriverManager;
 use Override;
 use SensitiveParameter;
+use Symfony\Component\DependencyInjection\Attribute\Exclude;
 
 /**
  * @phpstan-import-type Params from DriverManager
  */
+#[Exclude]
 final class ChurchTimeZoneDriver extends AbstractDriverMiddleware
 {
     public function __construct(

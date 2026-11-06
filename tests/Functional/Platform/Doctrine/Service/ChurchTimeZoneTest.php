@@ -12,6 +12,8 @@ final class ChurchTimeZoneTest extends KernelTestCase
     public function testEveryDatabaseSessionRunsInTheChurchTimeZone(): void
     {
         $connection = new Database(self::getContainer())->connection();
+        $connection->executeStatement("SET TIME ZONE 'UTC'");
+        $connection->close();
 
         self::assertSame('Europe/Berlin', $connection->fetchOne("SELECT current_setting('TimeZone')"));
 
