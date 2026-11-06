@@ -61,7 +61,8 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   state (`isArchived()`), and changes replace a value or add or remove an item. An entity never validates or
   cleans input, builds value objects from raw values, branches, loops, throws, computes or decides; the
   application service does that and hands the entity finished values. A value object checks its own value
-  (`ServiceName::of()`) and may compute from it (`Tenure::endedFrom()`).
+  (`ServiceName::of()`) and may compute from it (`Tenure::endedFrom()`). `EntitiesHoldOnlyStateTest` fails on
+  control flow, closures, static factories and `::of()`/`::from()` calls in an entity.
 - `Domain` and `Library` don't depend on `Platform`; outside `Platform`, code uses only `Platform/*/Contract`.
 - Every application route lives under `/api` (class-level `#[Route]`).
 - Code follows [Code style](code-style.md).
@@ -84,7 +85,7 @@ Naming:
 | Repository filter | `Context/<C>/Infrastructure/Persistence/Repository/Filter/` | `<Entity>Filters` | final readonly, static methods that build the Doctrine `Criteria` of a listing |
 | Exception | `Context/<C>/Domain/Exception/` | `*Exception` | class |
 | Enum | `Context/<C>/Domain/Enum/` | a noun | backed enum |
-| Entity | `Context/<C>/Domain/Entity/` | a noun | final, state only: no factories, rules or checks |
+| Entity | `Context/<C>/Domain/Entity/` | a noun | final, state only: no factories, rules or checks (`EntitiesHoldOnlyStateTest`) |
 | Value object | `Context/<C>/Domain/ValueObject/` | a noun | final readonly |
 | Attribute | `Context/<C>/Domain/Attribute/` | what it declares | final readonly |
 
