@@ -43,9 +43,9 @@ final readonly class MeetingSessions
      */
     public function whileMarkable(string $sessionId, callable $work): object
     {
-        return $this->sessions->withWriteLock(Uuid::fromString($sessionId), static function (Session $session) use (
-            $work,
-        ): object {
+        $id = Uuid::isValid($sessionId) ? Uuid::fromString($sessionId) : throw NotFound::of('session');
+
+        return $this->sessions->withWriteLock($id, static function (Session $session) use ($work): object {
             MarkingRules::ensureMarkable($session->progress()->status);
 
             return $work($session);

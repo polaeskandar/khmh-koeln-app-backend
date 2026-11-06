@@ -21,7 +21,9 @@ final readonly class Attendees
 
     public function find(string $personId): Person
     {
-        return $this->people->find(Uuid::fromString($personId)) ?? throw NotFound::of('person');
+        $person = Uuid::isValid($personId) ? $this->people->find(Uuid::fromString($personId)) : null;
+
+        return $person ?? throw NotFound::of('person');
     }
 
     public function markable(string $personId): Person

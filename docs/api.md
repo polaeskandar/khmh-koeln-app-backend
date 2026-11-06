@@ -1211,7 +1211,7 @@ A later `PUT` creates a new mark.
 Both run with the session row locked (`SELECT … FOR UPDATE`), checking the session, then the person, then the
 current mark: `scheduled` → 409 `attendance.openFirst`; `completed` → 409 `attendance.closedReopen`; `canceled` → 409
 `meetings.sessionCanceled`; an unknown session → 404 `notFound.session`; an unknown person → 404
-`notFound.person`; marking an inactive person → 409 `attendance.personInactive {name}` (removing ignores the
+`notFound.person` (also for ids that are not UUIDs); marking an inactive person → 409 `attendance.personInactive {name}` (removing ignores the
 person's status). A refused call writes nothing.
 
 ### The meeting a lesson is for

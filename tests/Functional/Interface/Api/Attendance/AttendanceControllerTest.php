@@ -133,6 +133,12 @@ final class AttendanceControllerTest extends ApiTestCase
 
         $this->mark($session, Uuid::v7()->toRfc4122());
         $this->assertProblem(404, 'notFound.person');
+
+        $this->jsonRequest('PUT', '/api/sessions/not-a-uuid/attendance/' . Uuid::v7()->toRfc4122());
+        $this->assertProblem(404, 'notFound.session');
+
+        $this->mark($session, 'not-a-uuid');
+        $this->assertProblem(404, 'notFound.person');
     }
 
     public function testAMarkIsWrittenWithTheSessionRowLockedAndParentsMayNotMark(): void

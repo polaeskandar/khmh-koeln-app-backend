@@ -7,7 +7,6 @@ namespace App\Tests\Functional\Workflow\Attendance\Model;
 use App\Context\Attendance\Application\Service\AttendanceMarks;
 use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\Attendance\Domain\ValueObject\Removal;
-use App\Context\Attendance\Infrastructure\Persistence\Repository\DoctrineAttendanceRepository;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\People\Application\Service\Rosters as PeopleRosters;

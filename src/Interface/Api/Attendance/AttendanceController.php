@@ -13,14 +13,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\Requirement\Requirement;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
-#[Route('/api/sessions/{sessionId}/attendance/{personId}', requirements: [
-    'sessionId' => Requirement::UUID,
-    'personId' => Requirement::UUID,
-])]
+#[Route('/api/sessions/{sessionId}/attendance/{personId}')]
 final class AttendanceController extends AbstractController
 {
     #[Route('', name: 'api_attendance_mark', methods: ['PUT'])]
