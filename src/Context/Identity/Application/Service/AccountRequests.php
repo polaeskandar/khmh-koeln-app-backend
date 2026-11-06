@@ -6,6 +6,7 @@ namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use Doctrine\Common\Collections\ReadableCollection;
 use Psr\Log\LoggerInterface;
@@ -34,7 +35,9 @@ final readonly class AccountRequests
      */
     public function decide(string $id, callable $decision): void
     {
-        $this->users->withWriteLock(Uuid::fromString($id), static function (User $user) use ($decision): void {
+        $uuid = Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('user');
+
+        $this->users->withWriteLock($uuid, static function (User $user) use ($decision): void {
             if (!$user->status()->isPending()) {
                 throw new RuleViolation('accounts.alreadyApproved');
             }

@@ -117,6 +117,8 @@ final class AccountRequestsControllerTest extends ApiTestCase
         $this->jsonRequest('POST', '/api/account-requests/' . Uuid::v7()->toRfc4122() . '/decline');
 
         $this->assertProblem(404, 'notFound.user');
+        $this->jsonRequest('POST', '/api/account-requests/not-a-uuid/decline');
+        $this->assertProblem(404, 'notFound.user');
     }
 
     /**

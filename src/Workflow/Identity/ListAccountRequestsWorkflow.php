@@ -36,11 +36,9 @@ final readonly class ListAccountRequestsWorkflow
         );
 
         return new AccountRequestList(
-            items: $pending->map(fn (User $user): AccountRequest => AccountRequest::of(
-                $user,
-                $chosen,
-                $this->calendar,
-            ))->getValues(),
+            items: $pending->map(
+                static fn (User $user): AccountRequest => AccountRequest::of($user, $chosen),
+            )->getValues(),
             today: $this->calendar->today()->toString(),
         );
     }
