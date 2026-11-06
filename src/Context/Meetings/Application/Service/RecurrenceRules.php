@@ -12,7 +12,9 @@ use App\Context\Meetings\Application\Service\RecurrenceRule\MonthWeekRule;
 use App\Context\Meetings\Application\Service\RecurrenceRule\WeekdayRangeRule;
 use App\Context\Meetings\Application\Service\RecurrenceRule\WeekdaysRule;
 use App\Context\Meetings\Domain\Interface\RecurrenceRuleInterface;
+use App\Context\Meetings\Domain\ValueObject\Recurrence;
 use App\Context\Meetings\Domain\ValueObject\RecurrenceDraft;
+use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\InvalidInput;
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -20,17 +22,30 @@ final readonly class RecurrenceRules
 {
     private const string FIELD = 'recurrence';
 
-    public function check(RecurrenceDraft $draft): void
+    public function check(RecurrenceDraft $draft): Recurrence
     {
-        $broken = new ArrayCollection(self::inOrder())
-            ->filter(static fn (RecurrenceRuleInterface $rule): bool => $rule->isBrokenBy($draft))
-            ->first();
+        $broken = new ArrayCollection(self::inOrder())->filter(
+            static fn (RecurrenceRuleInterface $rule): bool => $rule->isBrokenBy($draft),
+        );
 
-        if ($broken === false) {
-            return;
+        if ($broken->isEmpty()) {
+            return $draft->toRecurrence();
         }
 
-        throw InvalidInput::field(self::FIELD . '.' . $broken->field(), $broken->code());
+        throw new InvalidInput(
+            Collections::firstPerKey(
+                $broken,
+                keyOf: self::fieldOf(...),
+            )->map(static fn (RecurrenceRuleInterface $rule): array => ['code' => $rule->code()])->toArray(),
+        );
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private static function fieldOf(RecurrenceRuleInterface $rule): string
+    {
+        return self::FIELD . '.' . $rule->field();
     }
 
     /**
