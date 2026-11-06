@@ -13,6 +13,7 @@ use App\Context\Meetings\Domain\ValueObject\Recurrence;
 use App\Context\Meetings\Domain\ValueObject\Roster;
 use App\Context\Meetings\Domain\ValueObject\TimeSlot;
 use App\Context\Organization\Domain\Entity\Service;
+use App\Context\Organization\Domain\Entity\Stage;
 use App\Library\Time\Model\LocalDate;
 use App\Library\Time\Model\LocalTime;
 use App\Tests\Support\Database;
@@ -25,9 +26,14 @@ final readonly class Schedules
     ) {
     }
 
-    public function weekly(Service $service, string $name, int $weekday, ?string $endsOn = null): Schedule
-    {
-        return $this->stored($service, $name, Recurrence::weekly(1, [$weekday], self::span($endsOn)));
+    public function weekly(
+        Service $service,
+        string $name,
+        int $weekday,
+        ?string $endsOn = null,
+        ?Stage $stage = null,
+    ): Schedule {
+        return $this->stored($service, $name, Recurrence::weekly(1, [$weekday], self::span($endsOn)), $stage);
     }
 
     public function monthly(Service $service, string $name, int $monthWeek, int $weekday): Schedule
@@ -50,10 +56,10 @@ final readonly class Schedules
         return $session;
     }
 
-    private function stored(Service $service, string $name, Recurrence $recurrence): Schedule
+    private function stored(Service $service, string $name, Recurrence $recurrence, ?Stage $stage = null): Schedule
     {
         $schedule = new Schedule(
-            new Roster($service->id(), stageId: null, mode: RosterMode::Expected),
+            new Roster($service->id(), stageId: $stage?->id(), mode: RosterMode::Expected),
             new MeetingDetails($name, description: null, location: 'Hall'),
             $recurrence,
             new TimeSlot(LocalTime::of('18:30'), LocalTime::of('20:00')),
