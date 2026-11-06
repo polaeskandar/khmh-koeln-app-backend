@@ -28,7 +28,7 @@ final class HomeworkAssignmentTest extends TestCase
             null,
         );
 
-        $task = HomeworkAssignment::draft(
+        $task = new HomeworkAssignment(
             $lesson,
             HomeworkText::of("  Learn   the\tverse ", "  Read it twice.\nThen say it aloud.  ", null),
             Materials::none(),

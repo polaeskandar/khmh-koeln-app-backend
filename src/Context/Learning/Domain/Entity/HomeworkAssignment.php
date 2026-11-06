@@ -44,7 +44,7 @@ final class HomeworkAssignment extends TimestampedEntity
     #[ORM\Column(name: 'created_by', type: UuidType::NAME, nullable: true)]
     private ?Uuid $createdBy;
 
-    private function __construct(Lesson $lesson, HomeworkText $text, Materials $resources, ?Uuid $createdBy)
+    public function __construct(Lesson $lesson, HomeworkText $text, Materials $resources, ?Uuid $createdBy)
     {
         $this->id = Uuid::v7();
         $this->lesson = $lesson;
@@ -53,11 +53,6 @@ final class HomeworkAssignment extends TimestampedEntity
         $this->resources = $resources->toArray();
         $this->state = HomeworkState::draft();
         $this->createdBy = $createdBy;
-    }
-
-    public static function draft(Lesson $lesson, HomeworkText $text, Materials $resources, ?Uuid $createdBy): self
-    {
-        return new self($lesson, $text, $resources, $createdBy);
     }
 
     public function id(): Uuid
