@@ -39,7 +39,6 @@ final readonly class ShowScheduleWorkflow
         return new DatedSchedule($today->toString(), ScheduleSummary::of(
             $this->outlooks->one($schedule, $archived, $today),
             RosterReferences::lookedUpIn($this->structure, new ArrayCollection([$schedule])),
-            canManage: $this->access->allows(Action::Update, Resource::Sessions),
         ));
     }
 }

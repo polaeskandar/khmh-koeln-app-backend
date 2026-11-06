@@ -28,7 +28,9 @@ final readonly class MeetingSchedules
 
     public function find(string $id): Schedule
     {
-        return $this->schedules->find(Uuid::fromString($id)) ?? throw NotFound::of('schedule');
+        $schedule = Uuid::isValid($id) ? $this->schedules->find(Uuid::fromString($id)) : null;
+
+        return $schedule ?? throw NotFound::of('schedule');
     }
 
     private static function idOf(string $field, ?string $value): ?Uuid

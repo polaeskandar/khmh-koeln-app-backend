@@ -10,7 +10,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Library\Collections\Model\Collections;
 use App\Workflow\Organization\Model\ServiceReference;
-use App\Workflow\Organization\Model\StageSummary;
+use App\Workflow\Organization\Model\StageReference;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -51,12 +51,12 @@ final readonly class RosterReferences
         return $service === null ? null : ServiceReference::of($service);
     }
 
-    public function stageOf(Schedule $schedule): ?StageSummary
+    public function stageOf(Schedule $schedule): ?StageReference
     {
         $stageId = $schedule->roster()->stageId?->toRfc4122();
         $stage = $stageId === null ? null : $this->stages->get($stageId);
 
-        return $stage === null ? null : StageSummary::of($stage);
+        return $stage === null ? null : StageReference::of($stage);
     }
 
     /**

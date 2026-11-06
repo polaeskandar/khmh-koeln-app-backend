@@ -999,7 +999,6 @@ A `ScheduleSummary`:
 | `nextDates` | up to 3 `{date, startTime, status, sessionId}` from today (400-day horizon): sessions `scheduled` or `active` and planned dates without a session (`status: planned`, `sessionId: null`); canceled and completed dates are skipped; empty unless `generating` |
 | `sessionCount` | sessions of the schedule, every status |
 | `createdAt`, `updatedAt` | instants |
-| `can` | `{manage}`: `sessions: update` |
 
 #### `GET /api/schedules?serviceId=&stageId=`
 
@@ -1008,5 +1007,5 @@ A `ScheduleSummary`:
 
 #### `GET /api/schedules/{id}`
 
-`services: read`. `{today, schedule: ScheduleSummary}`; 404 `notFound.schedule`.
+`services: read`. `{today, schedule: ScheduleSummary}`; 404 `notFound.schedule`, also for an id that is not a UUID.
 
