@@ -1029,7 +1029,7 @@ rule as `cancelReason`.
 
 Each answers 200 `{id, status, openedAt, closedAt, closedBy: AccountRef | null}`, runs in the session write lock
 and appends `opened`, `closed` or `reopened` to the history only when something changed, so a phone's retry is
-harmless. 404 `notFound.session`.
+harmless. 404 `notFound.session`, also for an id that is not a UUID.
 
 - **Open** (`attendance: create`): `scheduled` → `active` from the session's date in Europe/Berlin on (also
   late). Before that day → 409 `meetings.opensOnTheDay`; already `active` → 200 unchanged; `canceled` → 409

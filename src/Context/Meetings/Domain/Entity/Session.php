@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Domain\Entity;
 
-use App\Context\Meetings\Domain\Enum\SessionStatus;
-use App\Context\Meetings\Domain\ValueObject\AttendanceRules;
 use App\Context\Meetings\Domain\ValueObject\Progress;
-use App\Context\Meetings\Domain\ValueObject\Stamp;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
 use App\Library\Time\Model\LocalDate;
 use Doctrine\ORM\Mapping as ORM;
@@ -62,35 +59,8 @@ final class Session extends CreatedAtEntity
         return $this->progress;
     }
 
-    public function open(LocalDate $today, Stamp $stamp): bool
+    public function changeProgress(Progress $progress): void
     {
-        if ($this->progress->status === SessionStatus::Active) {
-            return false;
-        }
-
-        AttendanceRules::ensureOpenable($this->progress->status, $this->occurrenceDate, $today);
-        $this->progress = $this->progress->opened($stamp);
-
-        return true;
-    }
-
-    public function close(Stamp $stamp): bool
-    {
-        if ($this->progress->status === SessionStatus::Completed) {
-            return false;
-        }
-
-        AttendanceRules::ensureClosable($this->progress->status);
-        $this->progress = $this->progress->closed($stamp);
-
-        return true;
-    }
-
-    public function reopen(): bool
-    {
-        AttendanceRules::ensureReopenable($this->progress->status);
-        $this->progress = $this->progress->reopened();
-
-        return true;
+        $this->progress = $progress;
     }
 }

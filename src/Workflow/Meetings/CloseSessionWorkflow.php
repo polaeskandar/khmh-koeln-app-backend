@@ -24,6 +24,8 @@ final readonly class CloseSessionWorkflow
     {
         $this->access->require(Action::Create, Resource::Attendance);
 
-        return SessionState::of($this->transitions->close($sessionId, $accountId), $this->accounts);
+        $session = $this->transitions->close($sessionId, $accountId);
+
+        return SessionState::of($session, $this->accounts->account($session->progress()->closed->by));
     }
 }

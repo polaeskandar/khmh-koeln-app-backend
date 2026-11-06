@@ -24,6 +24,8 @@ final readonly class ReopenSessionWorkflow
     {
         $this->access->require(Action::Update, Resource::Sessions, refusal: 'meetings.reopenLeadersOnly');
 
-        return SessionState::of($this->transitions->reopen($sessionId, $accountId, $reason), $this->accounts);
+        $session = $this->transitions->reopen($sessionId, $accountId, $reason);
+
+        return SessionState::of($session, $this->accounts->account($session->progress()->closed->by));
     }
 }
