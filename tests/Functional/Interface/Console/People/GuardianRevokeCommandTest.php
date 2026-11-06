@@ -50,4 +50,27 @@ final class GuardianRevokeCommandTest extends KernelTestCase
 
         self::assertSame(Command::FAILURE, $tester->execute(['email' => 'nobody@example.org']));
     }
+
+    public function testAnUnknownChildFailsAndARevokeIsConfirmed(): void
+    {
+        $families = new Families(self::getContainer());
+        $account = $families->account('mariam@example.org', [], 'parent');
+        $child = $families->child();
+        $families->link($account, $child);
+        $tester = new CommandTester(new Application(self::bootKernel())->find('app:guardian:revoke'));
+
+        self::assertSame(Command::FAILURE, $tester->execute([
+            'email' => 'mariam@example.org',
+            'personId' => 'not-a-uuid',
+        ]));
+
+        self::assertStringContainsString('notFound.person', $tester->getDisplay());
+
+        self::assertSame(Command::SUCCESS, $tester->execute([
+            'email' => 'mariam@example.org',
+            'personId' => $child->id()->toRfc4122(),
+        ]));
+
+        self::assertStringContainsString('mariam@example.org no longer acts for the child.', $tester->getDisplay());
+    }
 }

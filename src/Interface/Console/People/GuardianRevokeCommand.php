@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Interface\Console\People;
 
 use App\Library\Problem\Exception\NotFound;
+use App\Library\Strings\Model\Text;
 use App\Workflow\People\ListGuardianLinksWorkflow;
 use App\Workflow\People\Model\GuardianLink;
 use App\Workflow\People\RevokeGuardianWorkflow;
@@ -31,7 +32,7 @@ final readonly class GuardianRevokeCommand
         ?string $personId = null,
     ): int {
         try {
-            $personId === null ? $this->show($io, $email) : ($this->revokeGuardian)($email, $personId);
+            $this->showOrRevoke($io, $email, $personId);
         } catch (NotFound $unknown) {
             $io->error($unknown->getMessage());
 
@@ -39,6 +40,18 @@ final readonly class GuardianRevokeCommand
         }
 
         return Command::SUCCESS;
+    }
+
+    private function showOrRevoke(SymfonyStyle $io, string $email, ?string $personId): void
+    {
+        if ($personId === null) {
+            $this->show($io, $email);
+
+            return;
+        }
+
+        ($this->revokeGuardian)($email, $personId);
+        $io->success(Text::format('%s no longer acts for the child.', $email)->toString());
     }
 
     private function show(SymfonyStyle $io, string $email): void

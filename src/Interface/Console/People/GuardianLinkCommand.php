@@ -35,7 +35,7 @@ final readonly class GuardianLinkCommand
         try {
             ($this->linkGuardian)($email, $personId, $relationship);
         } catch (InvalidInput $invalid) {
-            $io->error(Text::format('relationship: %s', $invalid->getMessage())->toString());
+            self::report($io, $invalid);
 
             return Command::INVALID;
         } catch (NotFound|RuleViolation $refused) {
@@ -47,5 +47,12 @@ final readonly class GuardianLinkCommand
         $io->success(Text::format('%s can act for the child.', $email)->toString());
 
         return Command::SUCCESS;
+    }
+
+    private static function report(SymfonyStyle $io, InvalidInput $invalid): void
+    {
+        foreach ($invalid->fieldErrors as $field => $error) {
+            $io->error(Text::format('%s: %s', $field, $error['code'])->toString());
+        }
     }
 }

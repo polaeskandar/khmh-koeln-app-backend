@@ -7,6 +7,7 @@ namespace App\Workflow\People;
 use App\Context\Identity\Application\Service\ParentAccounts;
 use App\Context\People\Application\Service\Children;
 use App\Context\People\Application\Service\Guardianship;
+use App\Library\Problem\Exception\NotFound;
 
 final readonly class RevokeGuardianWorkflow
 {
@@ -20,11 +21,7 @@ final readonly class RevokeGuardianWorkflow
     public function __invoke(string $email, string $personId): void
     {
         $account = $this->accounts->byEmail($email);
-        $child = $this->children->find($personId);
-
-        if ($child === null) {
-            return;
-        }
+        $child = $this->children->find($personId) ?? throw NotFound::of('person');
 
         $this->guardianship->revoke($account->id(), $child);
     }
