@@ -21,10 +21,7 @@ final class MembershipEndingsTest extends TestCase
     {
         $membership = self::startingOn('2026-09-01');
 
-        self::assertSame(MembershipEnding::Ended, new MembershipEndings()->end(
-            $membership,
-            LocalDate::of('2026-11-08'),
-        ));
+        self::assertSame(MembershipEnding::Ended, MembershipEndings::end($membership, LocalDate::of('2026-11-08')));
 
         self::assertSame('2026-11-07', $membership->tenure()->endsOn?->toString());
     }
@@ -33,7 +30,7 @@ final class MembershipEndingsTest extends TestCase
     {
         $membership = self::startingOn('2026-11-08');
 
-        self::assertSame(MembershipEnding::DeleteInstead, new MembershipEndings()->end(
+        self::assertSame(MembershipEnding::DeleteInstead, MembershipEndings::end(
             $membership,
             LocalDate::of('2026-11-08'),
         ));
@@ -44,11 +41,11 @@ final class MembershipEndingsTest extends TestCase
     public function testAnEndedMembershipCannotEndAgain(): void
     {
         $membership = self::startingOn('2026-09-01');
-        new MembershipEndings()->end($membership, LocalDate::of('2026-11-08'));
+        MembershipEndings::end($membership, LocalDate::of('2026-11-08'));
 
         $this->expectExceptionObject(new RuleViolation('people.membershipEnded'));
 
-        new MembershipEndings()->end($membership, LocalDate::of('2026-11-09'));
+        MembershipEndings::end($membership, LocalDate::of('2026-11-09'));
     }
 
     private static function startingOn(string $date): Membership

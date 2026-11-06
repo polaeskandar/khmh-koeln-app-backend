@@ -1122,13 +1122,13 @@ from church-today. `serviceId` `meetings.chooseService` or `meetings.serviceArch
 `meetings.chooseStage` or `meetings.stageArchived {name}`. A current membership on the same roster → 409
 `people.alreadyIn {name, where}` (also when two requests race into the unique index); rosters of several stages at
 once are fine. 201 `{id, personId, service: ServiceRef, stage: StageRef | null, startsOn, endsOn: null}`; 404
-`notFound.person`.
+`notFound.person`, also for an id that is not a UUID.
 
 #### `POST /api/memberships/{id}/end`
 
 `members: delete` (403 `people.removeNotAllowed`). Body `{}`. The membership row is locked; one that started
 before today ends yesterday (Europe/Berlin), so past rosters keep the person; one that started today is deleted.
-Allowed in archived services and stages. 204; 404 `notFound.membership`; already ended → 409
+Allowed in archived services and stages. 204; 404 `notFound.membership`, also for an id that is not a UUID; already ended → 409
 `people.membershipEnded`. There is no `DELETE` route.
 
 ### Schedules

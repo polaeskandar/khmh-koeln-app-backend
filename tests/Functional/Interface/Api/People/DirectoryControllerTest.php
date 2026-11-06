@@ -57,7 +57,7 @@ final class DirectoryControllerTest extends ApiTestCase
         $youth = Structure::service('Youth');
         $kiro = new Person(PersonName::of('Kirollos', 'Iskander', 'Kiro'));
         $ended = new Membership($kiro, $youth->id(), null, Tenure::from(LocalDate::of('2020-01-01')));
-        new MembershipEndings()->end($ended, LocalDate::of('2021-01-01'));
+        MembershipEndings::end($ended, LocalDate::of('2021-01-01'));
 
         $this->database()->persisted(
             $school,

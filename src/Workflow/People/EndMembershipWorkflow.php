@@ -7,13 +7,13 @@ namespace App\Workflow\People;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\People\Application\Service\Memberships;
+use App\Context\People\Application\Service\MembershipEndings;
 
 final readonly class EndMembershipWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private Memberships $memberships,
+        private MembershipEndings $endings,
     ) {
     }
 
@@ -21,6 +21,6 @@ final readonly class EndMembershipWorkflow
     {
         $this->access->require(Action::Delete, Resource::Members, refusal: 'people.removeNotAllowed');
 
-        $this->memberships->end($membershipId);
+        $this->endings->endById($membershipId);
     }
 }
