@@ -9,6 +9,7 @@ use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\ValueObject\Address;
 use App\Context\People\Domain\ValueObject\BirthDate;
 use App\Context\People\Domain\ValueObject\PersonalDetails;
+use App\Context\People\Domain\ValueObject\PersonName;
 use App\Library\Time\Model\LocalDate;
 use App\Tests\Support\Library\Problem\Exception\ThrownFieldErrors;
 use PHPUnit\Framework\TestCase;
@@ -17,7 +18,7 @@ final class PersonTest extends TestCase
 {
     public function testANewPersonIsActiveWithoutPersonalDetails(): void
     {
-        $person = new Person('  Mina ', ' HANNA  ', '   ');
+        $person = new Person(PersonName::of('  Mina ', ' HANNA  ', '   '));
 
         self::assertSame(PersonStatus::Active, $person->status());
         self::assertSame('mina_hanna', $person->name()->key);
@@ -26,7 +27,7 @@ final class PersonTest extends TestCase
 
     public function testPersonalDetailsAreRecorded(): void
     {
-        $person = new Person('Mina', 'Hanna', null);
+        $person = new Person(PersonName::of('Mina', 'Hanna', null));
         $today = LocalDate::of('2026-11-08');
 
         $person->recordPersonalDetails(

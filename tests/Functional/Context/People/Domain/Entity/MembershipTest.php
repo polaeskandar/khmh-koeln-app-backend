@@ -6,6 +6,8 @@ namespace App\Tests\Functional\Context\People\Domain\Entity;
 
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\ValueObject\PersonName;
+use App\Context\People\Domain\ValueObject\Tenure;
 use App\Library\Time\Model\LocalDate;
 use App\Tests\Support\Database;
 use Doctrine\DBAL\Connection;
@@ -73,7 +75,7 @@ final class MembershipTest extends KernelTestCase
 
     public function testAPersonWithAMembershipCannotBeDeleted(): void
     {
-        $person = new Person('Mina', 'Hanna', null);
+        $person = new Person(PersonName::of('Mina', 'Hanna', null));
 
         new Database(self::getContainer())->persisted(
             $person,
@@ -81,7 +83,7 @@ final class MembershipTest extends KernelTestCase
                 $person,
                 Uuid::fromString(self::SERVICE),
                 stageId: null,
-                startsOn: LocalDate::of('2026-09-01'),
+                tenure: Tenure::from(LocalDate::of('2026-09-01')),
             ),
         );
 
@@ -90,7 +92,7 @@ final class MembershipTest extends KernelTestCase
 
     private function person(): string
     {
-        $person = new Person('Mina', 'Hanna', null);
+        $person = new Person(PersonName::of('Mina', 'Hanna', null));
         $this->database()->persisted($person);
 
         return $person->id()->toRfc4122();
