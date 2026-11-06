@@ -55,8 +55,13 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   (`mago guard`). Read models carry no permission flags: clients take what the viewer may do from the
   `permissions` of `GET /api/me`.
 - A context never uses another context. Only a context's own `Infrastructure` uses its `Infrastructure`.
-- `Domain` holds the model only; business logic that is not a single entity's or value object's own behavior
-  lives in `Application/Service`.
+- `Domain` holds the model only, and business logic lives in `Application/Service`. Entities hold state and
+  nothing else: the constructor assigns the value objects, entities and ids it is given (plus fixed starting
+  values such as a new session's `scheduled` progress), getters return them or answer a question about that
+  state (`isArchived()`), and changes replace a value or add or remove an item. An entity never validates or
+  cleans input, builds value objects from raw values, branches, loops, throws, computes or decides; the
+  application service does that and hands the entity finished values. A value object checks its own value
+  (`ServiceName::of()`) and may compute from it (`Tenure::endedFrom()`).
 - `Domain` and `Library` don't depend on `Platform`; outside `Platform`, code uses only `Platform/*/Contract`.
 - Every application route lives under `/api` (class-level `#[Route]`).
 - Code follows [Code style](code-style.md).
@@ -79,6 +84,7 @@ Naming:
 | Repository filter | `Context/<C>/Infrastructure/Persistence/Repository/Filter/` | `<Entity>Filters` | final readonly, static methods that build the Doctrine `Criteria` of a listing |
 | Exception | `Context/<C>/Domain/Exception/` | `*Exception` | class |
 | Enum | `Context/<C>/Domain/Enum/` | a noun | backed enum |
+| Entity | `Context/<C>/Domain/Entity/` | a noun | final, state only: no factories, rules or checks |
 | Value object | `Context/<C>/Domain/ValueObject/` | a noun | final readonly |
 | Attribute | `Context/<C>/Domain/Attribute/` | what it declares | final readonly |
 
