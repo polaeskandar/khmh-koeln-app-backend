@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Workflow\Attendance\Model;
 
 use App\Context\Attendance\Application\Service\AttendanceMarks;
 use App\Context\Attendance\Domain\Entity\Attendance;
+use App\Context\Attendance\Domain\ValueObject\Removal;
 use App\Context\Attendance\Infrastructure\Persistence\Repository\DoctrineAttendanceRepository;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\Entity\Session;
@@ -75,12 +76,12 @@ final class SessionTalliesTest extends KernelTestCase
         $rosters->place($other, $service, null, '2026-09-01');
         $schedules = new Schedules(self::getContainer());
         $session = $schedules->session($schedules->weekly($service, 'Service', 7), self::SUNDAY);
-        $removed = Attendance::record($session->id(), $other->id(), new DateTimeImmutable(), by: null);
-        $removed->remove(by: null, at: new DateTimeImmutable(), reason: null);
+        $removed = new Attendance($session->id(), $other->id(), new DateTimeImmutable(), recordedBy: null);
+        $removed->remove(Removal::of(new DateTimeImmutable(), by: null, reason: null));
 
         new Database(self::getContainer())->persisted(
-            Attendance::record($session->id(), $member->id(), new DateTimeImmutable(), by: null),
-            Attendance::record($session->id(), $visitor->id(), new DateTimeImmutable(), by: null),
+            new Attendance($session->id(), $member->id(), new DateTimeImmutable(), recordedBy: null),
+            new Attendance($session->id(), $visitor->id(), new DateTimeImmutable(), recordedBy: null),
             $removed,
         );
 
@@ -179,7 +180,13 @@ final class SessionTalliesTest extends KernelTestCase
         $meetings = self::getContainer()->get(MeetingLookup::class);
         self::assertInstanceOf(MeetingLookup::class, $meetings);
 
-        return SessionTallies::lookedUpIn($meetings, $rosters, $marks, $sessions);
+        $meetings->schedules(SessionTallies::scheduleIdsOf($sessions));
+
+        return SessionTallies::of(
+            $rosters->on(SessionTallies::rosterKeysOf($sessions)),
+            $marks->currentOf(SessionTallies::sessionIdsOf($sessions)),
+            $sessions,
+        );
     }
 
     private function rosters(): RosterRepositoryInterface
