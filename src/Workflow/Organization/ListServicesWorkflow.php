@@ -33,6 +33,7 @@ final readonly class ListServicesWorkflow
 
         $services = $this->services->listed($status);
         $stages = $this->stages->activeIn($services);
+
         $members = $this->rosters->serviceMembersToday(
             $services->map(static fn (Service $service): Uuid => $service->id())->getValues(),
         );

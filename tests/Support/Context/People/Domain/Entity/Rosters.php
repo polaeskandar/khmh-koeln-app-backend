@@ -7,6 +7,7 @@ namespace App\Tests\Support\Context\People\Domain\Entity;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\ValueObject\PersonName;
 use App\Tests\Support\Database;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Uid\Uuid;
@@ -20,7 +21,7 @@ final readonly class Rosters
 
     public function person(string $firstName, string $lastName = 'Iskander'): Person
     {
-        $person = new Person($firstName, $lastName, null);
+        $person = new Person(PersonName::of($firstName, $lastName, null));
         new Database($this->container)->persisted($person);
 
         return $person;
