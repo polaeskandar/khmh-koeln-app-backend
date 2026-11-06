@@ -47,6 +47,6 @@ final readonly class DoctrineStageRepository implements StageRepositoryInterface
         return new ArrayCollection($this->entityManager->getRepository(Stage::class)->findBy([
             'service' => $services->toArray(),
             'archivedAt' => null,
-        ], ['position' => 'ASC']));
+        ], ['position' => 'ASC', 'name.key' => 'ASC']));
     }
 }

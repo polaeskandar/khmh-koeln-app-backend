@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Context\Identity\Application\Service;
 
 use App\Tests\Support\ApiTestCase;
-use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
-use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 
 final class AccessCheckTest extends ApiTestCase
 {
     public function testEveryRequiredAccessMustBeGranted(): void
     {
-        $this->signedInWith('service_leader');
+        $this->signInWithRoles('service_leader@example.org', 'service_leader');
 
         $this->jsonRequest('GET', '/api/testing/access');
 
@@ -22,7 +20,7 @@ final class AccessCheckTest extends ApiTestCase
 
     public function testOneMissingAccessIsForbidden(): void
     {
-        $this->signedInWith('servant');
+        $this->signInWithRoles('servant@example.org', 'servant');
 
         $this->jsonRequest('GET', '/api/testing/access');
 
@@ -34,12 +32,5 @@ final class AccessCheckTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/testing/access');
 
         $this->assertProblem(401, 'auth.unauthenticated');
-    }
-
-    private function signedInWith(string $role): void
-    {
-        $id = new SignInAccounts(self::getContainer())->add($role . '@example.org');
-        new RoleGrants(self::getContainer())->grant($id, $role);
-        $this->signInAs($role . '@example.org', SignInAccounts::TYPED);
     }
 }

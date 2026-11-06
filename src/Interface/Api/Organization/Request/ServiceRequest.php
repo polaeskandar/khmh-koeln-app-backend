@@ -6,7 +6,7 @@ namespace App\Interface\Api\Organization\Request;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
-final readonly class CreateServiceRequest
+final readonly class ServiceRequest
 {
     public function __construct(
         #[Assert\NotNull(message: 'services.nameRequired')]

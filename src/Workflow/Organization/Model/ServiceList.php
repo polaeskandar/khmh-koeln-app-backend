@@ -11,7 +11,6 @@ final readonly class ServiceList
      */
     public function __construct(
         public array $items,
-        public bool $canCreate,
     ) {
     }
 }

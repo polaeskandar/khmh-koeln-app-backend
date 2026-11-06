@@ -11,7 +11,6 @@ use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
-use App\Workflow\Organization\Model\ServiceAbilities;
 use App\Workflow\Organization\Model\ServiceList;
 use App\Workflow\Organization\Model\ServiceOverview;
 
@@ -30,15 +29,12 @@ final readonly class ListServicesWorkflow
 
         $services = $this->services->listed($status);
         $stages = $this->stages->activeIn($services);
-        $can = ServiceAbilities::grantedBy($this->access);
 
         return new ServiceList(
-            items: $services->map(static fn (Service $service): ServiceOverview => ServiceOverview::of(
+            $services->map(static fn (Service $service): ServiceOverview => ServiceOverview::of(
                 $service,
                 $stages->filter(static fn (Stage $stage): bool => $stage->service() === $service),
-                $can,
             ))->getValues(),
-            canCreate: $this->access->allows(Action::Create, Resource::Services),
         );
     }
 }

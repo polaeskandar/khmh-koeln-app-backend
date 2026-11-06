@@ -206,6 +206,27 @@ dependency = "App\\Platform\\*\\Command\\**"
 allow-from = ["App\\Platform\\**", "App\\Tests\\**"]
 reason = "Platform commands are entry points, not dependencies."
 
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Identity\\Application\\Service\\AccessCheck"
+allow-from = ["App\\Workflow\\*", "App\\Tests\\**"]
+reason = "Workflows manage access; models, controllers and context services never check it."
+
+[[guard.structural.rules]]
+on = "App\\Context\\*\\Infrastructure\\Persistence\\Repository\\*"
+target = "class"
+must-be-named = "Doctrine*Repository"
+must-be-final = true
+must-be-readonly = true
+reason = "The Repository folder holds the Doctrine repositories; their query filters live in Repository/Filter."
+
+[[guard.structural.rules]]
+on = "App\\Context\\*\\Infrastructure\\Persistence\\Repository\\Filter\\**"
+must-be = ["class"]
+must-be-named = "*Filters"
+must-be-final = true
+must-be-readonly = true
+reason = "A repository filter builds the Doctrine criteria for one entity's listings."
+
 [[guard.structural.rules]]
 on = "App\\Context\\*\\Domain\\Repository\\**"
 must-be = ["interface"]

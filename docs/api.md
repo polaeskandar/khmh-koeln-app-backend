@@ -38,15 +38,16 @@ language, and the API never sends sentences.
 - Read models that depend on the date carry `today` (church-today), so clients never compute it from the
   device clock.
 
-### Permission flags
+### What the viewer may do
 
-Read models carry `can: {…}` with one boolean per action the viewer may take on that item, for example
-`"can": {"edit": true, "archive": false}`. The flags only decide what the apps show. The API checks every
-request again and answers 403 when the role does not allow it.
+Read models carry no permission flags. Roles are global, so a permission holds for every item, and
+`GET /api/me` lists the account's `permissions` once. The apps decide from them which actions to offer, for
+example editing a service for `services: update`. The API checks every request again and answers 403 when the
+role does not allow it.
 
 ### Lists
 
-Lists answer `{"items": [...]}`, plus the members their section documents (`today`, tab counts, `can`).
+Lists answer `{"items": [...]}`, plus the members their section documents (`today`, tab counts).
 Paged lists add `page` (from 1), `pageSize` and `total`.
 
 ## Methods
@@ -56,7 +57,7 @@ Paged lists add `page` (from 1), `pageSize` and `total`.
 | `GET` | Reads. Never changes anything. | 200 |
 | `POST` on a collection | Creates. | 201 with `Location` and a body with at least `id`. Registration answers 202. |
 | `PATCH` | Changes only the members sent. A nested object or array that is sent replaces the old value whole. Sections that document a complete body say so. | 200 with the changed resource |
-| `PUT` | Sets a state idempotently, e.g. `PUT /api/sessions/{id}/attendance/{personId}`. Repeating it changes nothing. | 201 when it created something, else 200 |
+| `PUT` | Sets a state or replaces a resource's editable members whole, idempotently, e.g. `PUT /api/sessions/{id}/attendance/{personId}` or `PUT /api/services/{id}`. Repeating it changes nothing. | 201 when it created something, else 200 |
 | `POST` on a sub-path | Runs an action: `/archive`, `/restore`, `/approve`, `/end`. | 200 with the resource, or 204 |
 | `DELETE` | Deletes, where the section allows it. | 204 |
 
@@ -236,11 +237,14 @@ Any signed-in account, parents included. 401 `auth.unauthenticated` without a va
 
 Nothing else: no password hash, registration, approval or disabled data.
 
-Clients choose the account's areas and navigation from `permissions`, by the same rules the API enforces:
+Clients choose the account's areas, navigation and actions from `permissions`, by the same rules the API
+enforces:
 
 - **Staff app:** a permission on any resource other than `parentPortal`.
 - **Parent portal:** `read` on `parentPortal`.
 - **Navigation:** for example the users and roles settings for `users: read`.
+- **Actions:** for example a service's edit button for `services: update`, its archive button for
+  `services: delete`, and creating a service for `services: create`. Read models carry no permission flags.
 
 An account can have both areas; an approved account without roles has neither and sees the no-role view.
 
@@ -882,19 +886,16 @@ A service row:
   "archived": false,
   "archivedAt": null,
   "stages": [
-    {"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f20", "name": "3rd Class", "position": 2, "archived": false, "can": {"manageMembers": true}}
-  ],
-  "can": {"edit": false, "archive": false, "manageStructure": false, "manageSessions": false, "manageMembers": true}
+    {"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f20", "name": "3rd Class", "position": 2}
+  ]
 }
 ```
 
-`stages` are the active stages by position. The flags follow the viewer's permissions: `edit` is
-`services: update`, `archive` `services: delete`, `manageStructure` `stages: update`, `manageSessions`
-`sessions: update`, `manageMembers` `members: update`.
+`stages` are the active stages by position, then by name ignoring case.
 
 #### `GET /api/services?status=active|archived|all`
 
-`services: read`. `{items: [service row], can: {create}}`, by name; `status` defaults to `active`, anything else
+`services: read`. `{items: [service row]}`, by name ignoring case; `status` defaults to `active`, anything else
 → 422 field error `status`: `validation.invalidChoice`.
 
 #### `GET /api/services/{id}`
@@ -909,8 +910,9 @@ and spaces → `services.nameTaken {name}`, or `services.nameTakenArchived {name
 The description is trimmed, empty → `null`, ≤2000. The service gets the least-used tone. 201 with `Location` and
 the body of its `GET`.
 
-#### `PATCH /api/services/{id}`
+#### `PUT /api/services/{id}`
 
-`services: update`. Body `{name?, description?}`; a member left out keeps its value, and `description: null`
-clears the description. Same rules as `POST`, also for archived services. 200 with the service row.
+`services: update`. Body `{name, description?}`, the whole editable service: a description left out or `null`
+clears it, and a missing or `null` name → `services.nameRequired`. Same rules as `POST`, also for archived
+services. 200 with the service row; 404 `notFound.service`.
 

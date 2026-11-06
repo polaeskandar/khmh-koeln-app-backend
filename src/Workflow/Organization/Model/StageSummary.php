@@ -10,7 +10,6 @@ final readonly class StageSummary
         public string $id,
         public string $name,
         public int $position,
-        public bool $archived,
     ) {
     }
 }

@@ -8,6 +8,7 @@ use App\Context\Organization\Domain\ValueObject\Description;
 use App\Context\Organization\Domain\ValueObject\ServiceName;
 use App\Context\Organization\Domain\ValueObject\Tone;
 use App\Library\Persistence\Mapping\TimestampedEntity;
+use App\Library\Problem\Exception\InvalidInput;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -20,6 +21,8 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\UniqueConstraint(name: 'service_name_key_unique', columns: ['name_key'])]
 final class Service extends TimestampedEntity
 {
+    private const int DESCRIPTION_LENGTH = 2000;
+
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
     private readonly Uuid $id;
@@ -39,8 +42,18 @@ final class Service extends TimestampedEntity
     public function __construct(string $name, ?string $description)
     {
         $this->id = Uuid::v7();
-        $this->name = ServiceName::of($name);
-        $this->description = Description::of($description, max: 2000);
+        [$this->name, $this->description] = self::details($name, $description);
+    }
+
+    /**
+     * @return array{ServiceName, Description}
+     */
+    public static function details(string $name, ?string $description): array
+    {
+        return InvalidInput::both(
+            static fn (): ServiceName => ServiceName::of($name),
+            static fn (): Description => Description::of($description, max: self::DESCRIPTION_LENGTH),
+        );
     }
 
     public function id(): Uuid
@@ -72,10 +85,10 @@ final class Service extends TimestampedEntity
         $this->tone = $tone;
     }
 
-    public function edit(string $name, ?string $description): void
+    public function edit(ServiceName $name, Description $description): void
     {
-        $this->name = ServiceName::of($name);
-        $this->description = Description::of($description, max: 2000);
+        $this->name = $name;
+        $this->description = $description;
     }
 
     public function archivedAt(): ?DateTimeImmutable
@@ -91,5 +104,12 @@ final class Service extends TimestampedEntity
     public function isArchived(): bool
     {
         return $this->archivedAt !== null;
+    }
+
+    public function nameTaken(): InvalidInput
+    {
+        $code = $this->isArchived() ? 'services.nameTakenArchived' : 'services.nameTaken';
+
+        return InvalidInput::field('name', $code, ['name' => $this->name->value]);
     }
 }

@@ -68,6 +68,17 @@ final class ServicesControllerTest extends ApiTestCase
         $this->assertFieldError('name', $code, $params);
     }
 
+    public function testEveryFailingFieldIsReportedAtOnce(): void
+    {
+        $this->signInWithRoles('admin@example.org', 'administrator');
+
+        $this->jsonRequest('POST', '/api/services', ['name' => '   ', 'description' => str_repeat('a', times: 2001)]);
+
+        $this->assertProblem(422, 'checkFields');
+        $this->assertFieldError('name', 'services.nameRequired');
+        $this->assertFieldError('description', 'validation.tooLong', ['max' => 2000]);
+    }
+
     /**
      * @return iterable<string, array{string, string, array<string, string|int>}>
      */
@@ -77,31 +88,6 @@ final class ServicesControllerTest extends ApiTestCase
         yield 'taken by an archived service' => ['old choir', 'services.nameTakenArchived', ['name' => 'Old Choir']];
         yield 'blank' => ['   ', 'services.nameRequired', []];
         yield 'too long' => [str_repeat('a', times: 121), 'validation.tooLong', ['max' => 120]];
-    }
-
-    public function testALeaderEditsAServiceAlsoWhenArchivedOrOnlyTheCaseChanges(): void
-    {
-        $service = Structure::service('Sunday School');
-        $service->archive(Structure::now());
-        $this->database()->persisted($service);
-        $this->signInWithRoles('leader@example.org', 'service_leader');
-
-        $this->jsonRequest('PATCH', '/api/services/' . $service->id()->toRfc4122(), ['name' => 'sunday school']);
-
-        self::assertResponseIsSuccessful();
-        $this->assertJsonPath('name', 'sunday school');
-        $this->assertJsonPath('archived', true);
-    }
-
-    public function testAServantCanNotEdit(): void
-    {
-        $service = Structure::service('Sunday School');
-        $this->database()->persisted($service);
-        $this->signInWithRoles('servant@example.org', 'servant');
-
-        $this->jsonRequest('PATCH', '/api/services/' . $service->id()->toRfc4122(), ['name' => 'Kids']);
-
-        $this->assertProblem(403, 'forbidden');
     }
 
     private function database(): Database

@@ -9,8 +9,6 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
-use App\Workflow\Organization\Model\DetailChanges;
-use App\Workflow\Organization\Model\ServiceAbilities;
 use App\Workflow\Organization\Model\ServiceOverview;
 
 final readonly class EditServiceWorkflow
@@ -22,16 +20,12 @@ final readonly class EditServiceWorkflow
     ) {
     }
 
-    public function __invoke(string $id, DetailChanges $changes): ServiceOverview
+    public function __invoke(string $id, string $name, ?string $description): ServiceOverview
     {
         $this->access->require(Action::Update, Resource::Services);
 
-        $service = $this->services->edit($id, $changes->name, $changes->descriptionChange());
+        $service = $this->services->edit($id, $name, $description);
 
-        return ServiceOverview::of(
-            $service,
-            $this->stages->activeOf($service),
-            ServiceAbilities::grantedBy($this->access),
-        );
+        return ServiceOverview::of($service, $this->stages->activeOf($service));
     }
 }

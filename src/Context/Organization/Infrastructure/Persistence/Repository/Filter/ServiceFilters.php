@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Context\Organization\Infrastructure\Persistence\Repository;
+namespace App\Context\Organization\Infrastructure\Persistence\Repository\Filter;
 
 use App\Context\Organization\Domain\Enum\ServiceFilter;
 use Doctrine\Common\Collections\Criteria;
@@ -12,7 +12,7 @@ final readonly class ServiceFilters
 {
     public static function criteria(ServiceFilter $filter): Criteria
     {
-        $byName = Criteria::create()->orderBy(['name.value' => Order::Ascending]);
+        $byName = Criteria::create()->orderBy(['name.key' => Order::Ascending]);
 
         return match ($filter) {
             ServiceFilter::Active => $byName->where(Criteria::expr()->isNull('archivedAt')),

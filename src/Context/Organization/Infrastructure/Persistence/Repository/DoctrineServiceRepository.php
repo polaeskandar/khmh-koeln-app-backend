@@ -7,6 +7,7 @@ namespace App\Context\Organization\Infrastructure\Persistence\Repository;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
+use App\Context\Organization\Infrastructure\Persistence\Repository\Filter\ServiceFilters;
 use App\Library\Collections\Model\Collections;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -58,7 +59,9 @@ final readonly class DoctrineServiceRepository implements ServiceRepositoryInter
     #[Override]
     public function listed(ServiceFilter $filter): ReadableCollection
     {
-        return $this->entityManager->getRepository(Service::class)->matching(ServiceFilters::criteria($filter));
+        return new ArrayCollection(
+            $this->entityManager->getRepository(Service::class)->matching(ServiceFilters::criteria($filter))->toArray(),
+        );
     }
 
     private static function pendingToneOf(object $entity): ?int
