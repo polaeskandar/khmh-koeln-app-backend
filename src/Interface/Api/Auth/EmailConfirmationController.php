@@ -7,6 +7,7 @@ namespace App\Interface\Api\Auth;
 use App\Interface\Api\Auth\Request\ConfirmEmailRequest;
 use App\Library\Time\Client\Calendar;
 use App\Workflow\Identity\ConfirmEmailWorkflow;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,6 +28,9 @@ final class EmailConfirmationController extends AbstractController
     }
 
     #[Route('/api/auth/email-confirmations', name: 'api_auth_email_confirmations', methods: ['POST'])]
+    #[OA\Post(security: [], summary: 'Auth email confirmations.')]
+    #[OA\Response(response: 204, description: 'Done; no body.')]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function confirm(
         Request $request,
         #[MapRequestPayload]

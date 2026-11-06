@@ -32,19 +32,28 @@ final readonly class AccountDataResponse implements JsonSerializable
      * @return array{
      *     kind: string,
      *     exportedAt: DateTimeImmutable,
-     *     account: array<
-     *         string,
-     *         string|DateTimeImmutable|list<string>|PrivacyAcceptance|RegistrationView|array<string, string|null>|null,
-     *     >,
+     *     account: array{
+     *         id: string,
+     *         email: string,
+     *         name: string,
+     *         language: string,
+     *         createdAt: DateTimeImmutable,
+     *         approvedAt: DateTimeImmutable|null,
+     *         disabledAt: DateTimeImmutable|null,
+     *         privacyNoticeAccepted: PrivacyAcceptance,
+     *         roles: list<string>,
+     *         registration: RegistrationView|null,
+     *         memberAgeCheck: array{result: string, parentAgreed: string|null}|null,
+     *     },
      *     children: list<LinkRow>,
      *     homeworkReports: list<ReportByRow>,
-     *     memberRecord?: MemberDataResponse,
+     *     memberRecord: MemberDataResponse|null,
      * }
      */
     #[Override]
     public function jsonSerialize(): array
     {
-        $copy = [
+        return [
             'kind' => 'account',
             'exportedAt' => $this->data->exportedAt,
             'account' => [
@@ -53,13 +62,23 @@ final readonly class AccountDataResponse implements JsonSerializable
             ],
             'children' => $this->data->children,
             'homeworkReports' => $this->data->homeworkReports,
+            'memberRecord' => $this->memberRecord,
         ];
-
-        return $this->memberRecord === null ? $copy : [...$copy, 'memberRecord' => $this->memberRecord];
     }
 
     /**
-     * @return array<string, string|DateTimeImmutable|list<string>|PrivacyAcceptance|RegistrationView|null>
+     * @return array{
+     *     id: string,
+     *     email: string,
+     *     name: string,
+     *     language: string,
+     *     createdAt: DateTimeImmutable,
+     *     approvedAt: DateTimeImmutable|null,
+     *     disabledAt: DateTimeImmutable|null,
+     *     privacyNoticeAccepted: PrivacyAcceptance,
+     *     roles: list<string>,
+     *     registration: RegistrationView|null,
+     * }
      */
     private static function accountOf(AccountRecord $account): array
     {

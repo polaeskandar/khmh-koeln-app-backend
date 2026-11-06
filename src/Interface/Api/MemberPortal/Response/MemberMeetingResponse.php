@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Interface\Api\MemberPortal\Response;
 
 use App\Workflow\MemberPortal\Model\MemberMeeting;
+use App\Workflow\Organization\Model\ServiceReference;
 use JsonSerializable;
 use Override;
 
@@ -21,7 +22,17 @@ final readonly class MemberMeetingResponse implements JsonSerializable
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *     key: string,
+     *     date: string,
+     *     startTime: string,
+     *     endTime: string|null,
+     *     title: string,
+     *     group: string,
+     *     service: ServiceReference,
+     *     location: string|null,
+     *     status: string,
+     * }
      */
     #[Override]
     public function jsonSerialize(): array

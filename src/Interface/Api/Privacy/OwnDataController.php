@@ -12,8 +12,12 @@ use App\Interface\Api\Privacy\Response\OwnErasureStatusResponse;
 use App\Workflow\Privacy\ExportAccountDataWorkflow;
 use App\Workflow\Privacy\ExportMemberActivityWorkflow;
 use App\Workflow\Privacy\ExportMemberDataWorkflow;
+use App\Workflow\Privacy\Model\OwnErasureRequest;
+use App\Workflow\Privacy\Model\OwnErasureStatus;
 use App\Workflow\Privacy\RequestOwnErasureWorkflow;
 use App\Workflow\Privacy\ShowOwnErasureRequestWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,6 +33,13 @@ final class OwnDataController extends AbstractController
     private const string FILE = 'khmk-my-data.json';
 
     #[Route('/personal-data', name: 'api_me_personal_data', methods: ['GET'])]
+    #[OA\Get(summary: 'Me personal data.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: AccountDataResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function export(
         #[CurrentUser]
         UserInterface $viewer,
@@ -50,6 +61,13 @@ final class OwnDataController extends AbstractController
     }
 
     #[Route('/erasure-request', name: 'api_me_erasure_request', methods: ['GET'])]
+    #[OA\Get(summary: 'Me erasure request.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: OwnErasureStatus::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function erasureRequest(
         #[CurrentUser]
         UserInterface $viewer,
@@ -59,6 +77,13 @@ final class OwnDataController extends AbstractController
     }
 
     #[Route('/erasure-request', name: 'api_me_request_erasure', methods: ['POST'])]
+    #[OA\Post(summary: 'Me request erasure.')]
+    #[OA\Response(
+        response: 201,
+        description: 'Created.',
+        content: new OA\JsonContent(ref: new Model(type: OwnErasureRequest::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function requestErasure(
         #[CurrentUser]
         UserInterface $viewer,

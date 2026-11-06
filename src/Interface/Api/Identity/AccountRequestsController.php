@@ -12,6 +12,9 @@ use App\Workflow\Identity\ApproveMemberRequestWorkflow;
 use App\Workflow\Identity\DeclineAccountRequestWorkflow;
 use App\Workflow\Identity\ListAccountRequestsWorkflow;
 use App\Workflow\Identity\ListMemberCandidatesWorkflow;
+use App\Workflow\Identity\Model\AccountSummary;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,12 +28,26 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 final class AccountRequestsController extends AbstractController
 {
     #[Route('', name: 'api_account_requests_list', methods: ['GET'])]
+    #[OA\Get(summary: 'Account requests list.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: AccountRequestListResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function list(ListAccountRequestsWorkflow $listAccountRequests): JsonResponse
     {
         return $this->json(AccountRequestListResponse::of($listAccountRequests()));
     }
 
     #[Route('/member-candidates', name: 'api_account_requests_member_candidates', methods: ['GET'])]
+    #[OA\Get(summary: 'Account requests member candidates.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: MemberCandidateListResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function memberCandidates(
         ListMemberCandidatesWorkflow $listMemberCandidates,
         #[MapQueryParameter]
@@ -40,6 +57,13 @@ final class AccountRequestsController extends AbstractController
     }
 
     #[Route('/{id}/approve', name: 'api_account_requests_approve', methods: ['POST'])]
+    #[OA\Post(summary: 'Account requests approve.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: AccountSummary::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function approve(
         string $id,
         #[CurrentUser]
@@ -59,6 +83,10 @@ final class AccountRequestsController extends AbstractController
     }
 
     #[Route('/{id}/decline', name: 'api_account_requests_decline', methods: ['POST'])]
+    #[OA\Post(summary: 'Account requests decline.')]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    #[OA\Response(response: 204, description: 'Done; no body.')]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function decline(string $id, DeclineAccountRequestWorkflow $declineAccountRequest): Response
     {
         $declineAccountRequest($id);

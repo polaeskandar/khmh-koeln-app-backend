@@ -8,6 +8,8 @@ use App\Interface\Api\Identity\Request\ChangeLanguageRequest;
 use App\Interface\Api\Identity\Response\MeResponse;
 use App\Workflow\Identity\ChangeLanguageWorkflow;
 use App\Workflow\Identity\ShowCurrentAccountWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
@@ -19,6 +21,13 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 final class MeController extends AbstractController
 {
     #[Route('', name: 'api_me', methods: ['GET'])]
+    #[OA\Get(summary: 'Me.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: MeResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function show(
         #[CurrentUser]
         UserInterface $user,
@@ -28,6 +37,13 @@ final class MeController extends AbstractController
     }
 
     #[Route('/language', name: 'api_me_language', methods: ['PUT'])]
+    #[OA\Put(summary: 'Change language.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: MeResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function changeLanguage(
         #[CurrentUser]
         UserInterface $user,

@@ -12,6 +12,8 @@ use App\Workflow\Organization\DeleteServiceWorkflow;
 use App\Workflow\Organization\DeleteStageWorkflow;
 use App\Workflow\Organization\RestoreServiceWorkflow;
 use App\Workflow\Organization\RestoreStageWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,18 +23,37 @@ use Symfony\Component\Routing\Attribute\Route;
 final class StructureLifecycleController extends AbstractController
 {
     #[Route('/services/{id}/archive', name: 'api_services_archive', methods: ['POST'])]
+    #[OA\Post(summary: 'Services archive.')]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: ServiceResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function archiveService(string $id, ArchiveServiceWorkflow $archiveService): JsonResponse
     {
         return $this->json(new ServiceResponse($archiveService($id)));
     }
 
     #[Route('/services/{id}/restore', name: 'api_services_restore', methods: ['POST'])]
+    #[OA\Post(summary: 'Services restore.')]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: ServiceResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function restoreService(string $id, RestoreServiceWorkflow $restoreService): JsonResponse
     {
         return $this->json(new ServiceResponse($restoreService($id)));
     }
 
     #[Route('/services/{id}', name: 'api_services_delete', methods: ['DELETE'])]
+    #[OA\Delete(summary: 'Services delete.')]
+    #[OA\Response(response: 204, description: 'Done; no body.')]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function deleteService(string $id, DeleteServiceWorkflow $deleteService): Response
     {
         $deleteService($id);
@@ -41,18 +62,37 @@ final class StructureLifecycleController extends AbstractController
     }
 
     #[Route('/stages/{id}/archive', name: 'api_stages_archive', methods: ['POST'])]
+    #[OA\Post(summary: 'Stages archive.')]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: StageResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function archiveStage(string $id, ArchiveStageWorkflow $archiveStage): JsonResponse
     {
         return $this->json(new StageResponse($archiveStage($id)));
     }
 
     #[Route('/stages/{id}/restore', name: 'api_stages_restore', methods: ['POST'])]
+    #[OA\Post(summary: 'Stages restore.')]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: StageResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function restoreStage(string $id, RestoreStageWorkflow $restoreStage): JsonResponse
     {
         return $this->json(new StageResponse($restoreStage($id)));
     }
 
     #[Route('/stages/{id}', name: 'api_stages_delete', methods: ['DELETE'])]
+    #[OA\Delete(summary: 'Stages delete.')]
+    #[OA\Response(response: 204, description: 'Done; no body.')]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function deleteStage(string $id, DeleteStageWorkflow $deleteStage): Response
     {
         $deleteStage($id);

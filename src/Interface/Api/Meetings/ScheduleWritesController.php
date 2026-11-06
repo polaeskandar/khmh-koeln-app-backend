@@ -12,6 +12,8 @@ use App\Interface\Api\Meetings\Response\WrittenScheduleResponse;
 use App\Workflow\Meetings\CancelOccurrenceWorkflow;
 use App\Workflow\Meetings\CreateScheduleWorkflow;
 use App\Workflow\Meetings\EditScheduleWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,6 +26,13 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 final class ScheduleWritesController extends AbstractController
 {
     #[Route('', name: 'api_schedules_create', methods: ['POST'])]
+    #[OA\Post(summary: 'Schedules create.')]
+    #[OA\Response(
+        response: 201,
+        description: 'Created.',
+        content: new OA\JsonContent(ref: new Model(type: WrittenScheduleResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function create(
         #[MapRequestPayload]
         CreateScheduleRequest $schedule,
@@ -37,6 +46,13 @@ final class ScheduleWritesController extends AbstractController
     }
 
     #[Route('/{id}', name: 'api_schedules_edit', methods: ['PUT'])]
+    #[OA\Put(summary: 'Schedules edit.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: WrittenScheduleResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function edit(
         string $id,
         #[MapRequestPayload]
@@ -47,6 +63,13 @@ final class ScheduleWritesController extends AbstractController
     }
 
     #[Route('/{id}/occurrences/{date}/cancel', name: 'api_schedules_cancel_occurrence', methods: ['POST'])]
+    #[OA\Post(summary: 'Schedules cancel occurrence.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: CanceledOccurrenceResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function cancelOccurrence(
         string $id,
         string $date,

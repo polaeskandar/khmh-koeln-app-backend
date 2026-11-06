@@ -59,7 +59,7 @@ final class OwnDataControllerTest extends ApiTestCase
         $this->assertJsonPath('children', [['name' => 'Mina Hanna', 'linkStatus' => 'approved']]);
 
         self::assertSame(
-            ['kind', 'exportedAt', 'account', 'children', 'homeworkReports'],
+            ['kind', 'exportedAt', 'account', 'children', 'homeworkReports', 'memberRecord'],
             array_keys($this->responseJson()),
         );
 

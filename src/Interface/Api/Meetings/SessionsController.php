@@ -12,6 +12,8 @@ use App\Workflow\Meetings\CloseSessionWorkflow;
 use App\Workflow\Meetings\OpenSessionWorkflow;
 use App\Workflow\Meetings\ReopenSessionWorkflow;
 use App\Workflow\Meetings\ShowSessionWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
@@ -23,18 +25,41 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 final class SessionsController extends AbstractController
 {
     #[Route('/{id}', name: 'api_sessions_show', methods: ['GET'])]
+    #[OA\Get(summary: 'Sessions show.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: SessionDetailResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function show(string $id, ShowSessionWorkflow $showSession): JsonResponse
     {
         return $this->json(SessionDetailResponse::of($showSession($id)));
     }
 
     #[Route('/{id}/open', name: 'api_sessions_open', methods: ['POST'])]
+    #[OA\Post(summary: 'Sessions open.')]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: SessionStateResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function open(string $id, #[CurrentUser] UserInterface $user, OpenSessionWorkflow $openSession): JsonResponse
     {
         return $this->json(SessionStateResponse::of($openSession($id, $user->getUserIdentifier())));
     }
 
     #[Route('/{id}/close', name: 'api_sessions_close', methods: ['POST'])]
+    #[OA\Post(summary: 'Sessions close.')]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: SessionStateResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function close(
         string $id,
         #[CurrentUser]
@@ -45,6 +70,13 @@ final class SessionsController extends AbstractController
     }
 
     #[Route('/{id}/reopen', name: 'api_sessions_reopen', methods: ['POST'])]
+    #[OA\Post(summary: 'Sessions reopen.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: SessionStateResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function reopen(
         string $id,
         #[CurrentUser]
@@ -57,6 +89,13 @@ final class SessionsController extends AbstractController
     }
 
     #[Route('/{id}/cancel', name: 'api_sessions_cancel', methods: ['POST'])]
+    #[OA\Post(summary: 'Sessions cancel.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: SessionStateResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function cancel(
         string $id,
         #[CurrentUser]

@@ -9,6 +9,24 @@ Words: **church-today** is the current calendar date in Europe/Berlin. A **code*
 dot-separated identifier such as `services.hasHistory`; the apps show the text for it in the person's
 language, and the API never sends sentences.
 
+A machine-readable OpenAPI 3.1 description is generated from the routes, the request classes and the response
+classes into [`openapi.json`](openapi.json) (`composer api:doc`); the frontend generates its API types from it.
+`OpenApiDocumentTest` fails when it is stale, invalid or misses a route, and `OpenApiResponseBodiesTest` when a
+200, 201 or 202 has no body schema. Response bodies come from:
+
+- the public properties of a response class (`Interface/Api/*/Response/`) or a workflow model
+  (`Workflow/*/Model/`): every field is always sent, `null` included;
+- the `@return` array shape of `jsonSerialize()`; mago checks the shape against the code, and a union of
+  classes (`list<AgendaSessionResponse|PlannedSessionResponse>`) becomes a `oneOf`;
+- a class-level `#[OA\Schema]` where the shape can't be written as phpdoc (`ChildSummaryResponse`, since mago
+  reads its `toDo` key as a TODO tag);
+- an `#[OA\Response]` on the action for bodies built there, such as the `people.duplicate` problem with its
+  `candidates`.
+
+Every functional and journey test checks its response against the document (`ResponseContract`, with closed
+objects): a missing, extra or mistyped field fails the test. The document is served at no URL. This document
+stays the agreed contract (D5): its conventions, code catalog and endpoint sections win where the two differ.
+
 ## Conventions
 
 ### Base URL and formats

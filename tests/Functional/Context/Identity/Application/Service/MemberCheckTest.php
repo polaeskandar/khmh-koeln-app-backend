@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 
 final class MemberCheckTest extends ApiTestCase
 {
-    private const string PROBE = '/api/member/testing';
+    private const string PROBE = '/api/testing/member';
 
     public function testALinkedAccountWithoutRolesReachesOnlyTheMemberPortal(): void
     {

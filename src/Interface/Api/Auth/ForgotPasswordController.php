@@ -8,6 +8,7 @@ use App\Interface\Api\Auth\Request\ForgotPasswordRequest;
 use App\Library\Strings\Model\InputText;
 use App\Library\Time\Client\Calendar;
 use App\Workflow\Identity\RequestPasswordResetWorkflow;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,6 +32,15 @@ final class ForgotPasswordController extends AbstractController
     }
 
     #[Route('/api/auth/forgot-password', name: 'api_auth_forgot_password', methods: ['POST'])]
+    #[OA\Post(security: [], summary: 'Auth forgot password.')]
+    #[OA\Response(
+        response: 202,
+        description: 'Accepted.',
+        content: new OA\JsonContent(required: ['status'], properties: [
+            new OA\Property(property: 'status', type: 'string', enum: ['received']),
+        ]),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function request(
         Request $request,
         #[MapRequestPayload]

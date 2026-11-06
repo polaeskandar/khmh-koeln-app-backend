@@ -46,7 +46,10 @@ final class PrivacyExportCommandAccountTest extends KernelTestCase
         $data = $this->written();
         $account = JsonBody::asArray($data['account'] ?? null, 'account');
 
-        self::assertSame(['kind', 'exportedAt', 'account', 'children', 'homeworkReports'], array_keys($data));
+        self::assertSame(
+            ['kind', 'exportedAt', 'account', 'children', 'homeworkReports', 'memberRecord'],
+            array_keys($data),
+        );
 
         self::assertSame(
             [

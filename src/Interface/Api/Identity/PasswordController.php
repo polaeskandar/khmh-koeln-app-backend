@@ -8,6 +8,7 @@ use App\Interface\Api\Identity\Request\ChangePasswordRequest;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Time\Client\Calendar;
 use App\Workflow\Identity\ChangeOwnPasswordWorkflow;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,6 +29,9 @@ final class PasswordController extends AbstractController
     }
 
     #[Route('/api/me/password', name: 'api_me_password', methods: ['POST'])]
+    #[OA\Post(summary: 'Me password.')]
+    #[OA\Response(response: 204, description: 'Done; no body.')]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function change(
         #[CurrentUser]
         UserInterface $viewer,

@@ -356,9 +356,9 @@ fixed order) for `kind: member` or `kind: account`:
   (homework, `completedAt`, `undoneAt`) and `parentAccounts` (name and link status only).
 - **account:** `account` (email, name, language, `createdAt`, `approvedAt`, `disabledAt`,
   `privacyNoticeAccepted {at, version}`, role names, the registration while pending, `memberAgeCheck {result,
-  parentAgreed}` or `null`), `children` (name and link status) and the `homeworkReports` it made; an account linked
-  to its own member record also gets `memberRecord`, that record's member copy (a member's account and an
-  account's member record belong to the same request).
+  parentAgreed}` or `null`), `children` (name and link status), the `homeworkReports` it made and `memberRecord`:
+  for an account linked to its own member record that record's member copy (a member's account and an account's
+  member record belong to the same request), else `null`.
 - **Never:** password hashes, password-link tokens, session data, other people's email addresses (Art. 15(4)),
   notes by others that mention the person.
 

@@ -16,6 +16,8 @@ use App\Workflow\Learning\ListHomeworkWorkflow;
 use App\Workflow\Learning\PublishHomeworkWorkflow;
 use App\Workflow\Learning\ShowHomeworkProgressWorkflow;
 use App\Workflow\Learning\ShowHomeworkWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,12 +30,26 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 final class HomeworkController extends AbstractController
 {
     #[Route('/api/stages/{stageId}/homework', name: 'api_homework_list', methods: ['GET'])]
+    #[OA\Get(summary: 'Homework list.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: HomeworkListResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function list(string $stageId, ListHomeworkWorkflow $listHomework): JsonResponse
     {
         return $this->json(new HomeworkListResponse($listHomework($stageId)));
     }
 
     #[Route('/api/lessons/{lessonId}/homework', name: 'api_homework_create', methods: ['POST'])]
+    #[OA\Post(summary: 'Homework create.')]
+    #[OA\Response(
+        response: 201,
+        description: 'Created.',
+        content: new OA\JsonContent(ref: new Model(type: WrittenHomeworkResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function create(
         string $lessonId,
         #[CurrentUser]
@@ -48,12 +64,26 @@ final class HomeworkController extends AbstractController
     }
 
     #[Route('/api/homework/{id}', name: 'api_homework_show', methods: ['GET'])]
+    #[OA\Get(summary: 'Homework show.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: HomeworkDetailResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function show(string $id, ShowHomeworkWorkflow $showHomework): JsonResponse
     {
         return $this->json(new HomeworkDetailResponse($showHomework($id)));
     }
 
     #[Route('/api/homework/{id}', name: 'api_homework_edit', methods: ['PUT'])]
+    #[OA\Put(summary: 'Homework edit.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: WrittenHomeworkResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function edit(
         string $id,
         #[MapRequestPayload]
@@ -66,12 +96,27 @@ final class HomeworkController extends AbstractController
     }
 
     #[Route('/api/homework/{id}/publish', name: 'api_homework_publish', methods: ['POST'])]
+    #[OA\Post(summary: 'Homework publish.')]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: ChangedHomeworkResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function publish(string $id, PublishHomeworkWorkflow $publishHomework): JsonResponse
     {
         return $this->json(ChangedHomeworkResponse::of($publishHomework($id)));
     }
 
     #[Route('/api/homework/{id}/progress', name: 'api_homework_progress', methods: ['GET'])]
+    #[OA\Get(summary: 'Homework progress.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: HomeworkProgressResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function progress(string $id, ShowHomeworkProgressWorkflow $showHomeworkProgress): JsonResponse
     {
         return $this->json(new HomeworkProgressResponse($showHomeworkProgress($id)));

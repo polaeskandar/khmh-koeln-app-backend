@@ -16,6 +16,8 @@ use App\Workflow\Learning\CreateLessonWorkflow;
 use App\Workflow\Learning\EditLessonWorkflow;
 use App\Workflow\Learning\ListLessonsWorkflow;
 use App\Workflow\Learning\ShowLessonWorkflow;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,6 +29,13 @@ use Symfony\Component\Routing\Attribute\Route;
 final class LessonsController extends AbstractController
 {
     #[Route('/api/stages/{stageId}/lessons', name: 'api_lessons_list', methods: ['GET'])]
+    #[OA\Get(summary: 'Lessons list.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: LessonListResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function list(
         string $stageId,
         ListLessonsWorkflow $listLessons,
@@ -37,6 +46,13 @@ final class LessonsController extends AbstractController
     }
 
     #[Route('/api/stages/{stageId}/lessons', name: 'api_lessons_create', methods: ['POST'])]
+    #[OA\Post(summary: 'Lessons create.')]
+    #[OA\Response(
+        response: 201,
+        description: 'Created.',
+        content: new OA\JsonContent(ref: new Model(type: WrittenLessonResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function create(
         string $stageId,
         #[MapRequestPayload]
@@ -49,12 +65,26 @@ final class LessonsController extends AbstractController
     }
 
     #[Route('/api/lessons/{id}', name: 'api_lessons_show', methods: ['GET'])]
+    #[OA\Get(summary: 'Lessons show.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: LessonDetailResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function show(string $id, ShowLessonWorkflow $showLesson): JsonResponse
     {
         return $this->json(new LessonDetailResponse($showLesson($id)));
     }
 
     #[Route('/api/lessons/{id}', name: 'api_lessons_edit', methods: ['PUT'])]
+    #[OA\Put(summary: 'Lessons edit.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: WrittenLessonResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function edit(
         string $id,
         #[MapRequestPayload]
@@ -67,6 +97,13 @@ final class LessonsController extends AbstractController
     }
 
     #[Route('/api/lessons/{id}/status', name: 'api_lessons_status', methods: ['POST'])]
+    #[OA\Post(summary: 'Lessons status.')]
+    #[OA\Response(
+        response: 200,
+        description: 'The result.',
+        content: new OA\JsonContent(ref: new Model(type: LessonStatusResponse::class)),
+    )]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function changeStatus(
         string $id,
         #[MapRequestPayload]

@@ -26,7 +26,7 @@ no-redundant-variable = { enabled = true }
 no-unused-closure-capture = { enabled = true }
 no-parameter-shadowing = { enabled = true }
 no-assign-in-argument = { enabled = true }
-no-service-state-mutation = { enabled = true, exclude-namespaces = ["App\\Context\\Identity\\Domain\\Entity\\", "App\\Context\\Learning\\Domain\\Entity\\", "App\\Context\\Meetings\\Domain\\Entity\\", "App\\Context\\Organization\\Domain\\Entity\\", "App\\Context\\People\\Domain\\Entity\\", "App\\Context\\Privacy\\Domain\\Entity\\", "App\\Library\\Persistence\\Mapping\\", "App\\Tests\\"] }
+no-service-state-mutation = { enabled = true, exclude-namespaces = ["App\\Context\\Identity\\Domain\\Entity\\", "App\\Context\\Learning\\Domain\\Entity\\", "App\\Context\\Meetings\\Domain\\Entity\\", "App\\Context\\Organization\\Domain\\Entity\\", "App\\Context\\People\\Domain\\Entity\\", "App\\Context\\Privacy\\Domain\\Entity\\", "App\\Library\\Persistence\\Mapping\\", "App\\Platform\\OpenApi\\Service\\", "App\\Tests\\"] }
 prefer-self-return-type = { enabled = true }
 variable-name = { enabled = true }
 method-name = { enabled = true }

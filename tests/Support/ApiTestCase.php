@@ -6,12 +6,14 @@ namespace App\Tests\Support;
 
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
+use App\Tests\Support\Platform\OpenApi\ResponseContract;
 use Override;
 use SensitiveParameter;
 use stdClass;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\RouterInterface;
 
 abstract class ApiTestCase extends WebTestCase
 {
@@ -49,6 +51,9 @@ abstract class ApiTestCase extends WebTestCase
         }
 
         $this->browser()->request($method, $uri, server: $server, content: $content);
+        $router = self::getContainer()->get(RouterInterface::class);
+        self::assertInstanceOf(RouterInterface::class, $router);
+        ResponseContract::assertKept($router, $this->browser()->getRequest(), $this->browser()->getResponse());
 
         return $this->browser()->getResponse();
     }

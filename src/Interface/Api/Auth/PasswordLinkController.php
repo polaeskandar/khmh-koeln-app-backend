@@ -7,6 +7,7 @@ namespace App\Interface\Api\Auth;
 use App\Interface\Api\Auth\Request\SetPasswordFromLinkRequest;
 use App\Library\Time\Client\Calendar;
 use App\Workflow\Identity\SetPasswordFromLinkWorkflow;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +29,9 @@ final class PasswordLinkController extends AbstractController
     }
 
     #[Route('', name: 'api_auth_password_links', methods: ['POST'])]
+    #[OA\Post(security: [], summary: 'Auth password links.')]
+    #[OA\Response(response: 204, description: 'Done; no body.')]
+    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function use(
         Request $request,
         #[MapRequestPayload]

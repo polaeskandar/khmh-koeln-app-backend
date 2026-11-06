@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use NunoMaduro\PhpInsights\Domain\Sniffs\ForbiddenSetterSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Files\LineLengthSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Formatting\SpaceAfterNotSniff;
 use SlevomatCodingStandard\Sniffs\Classes\ForbiddenPublicPropertySniff;
 use SlevomatCodingStandard\Sniffs\Classes\SuperfluousInterfaceNamingSniff;
+use SlevomatCodingStandard\Sniffs\Functions\UnusedParameterSniff;
 
 return [
     'preset' => 'symfony',
@@ -13,6 +15,8 @@ return [
     'remove' => [SpaceAfterNotSniff::class, SuperfluousInterfaceNamingSniff::class],
     'config' => [
         LineLengthSniff::class => ['lineLimit' => 120, 'absoluteLineLimit' => 120],
+        ForbiddenSetterSniff::class => ['exclude' => ['src/Platform/OpenApi/Service']],
+        UnusedParameterSniff::class => ['exclude' => ['src/Platform/OpenApi/Service/ArrayShapes.php']],
         ForbiddenPublicPropertySniff::class => ['exclude' => ['src/Interface/Console']],
     ],
     'requirements' => [
