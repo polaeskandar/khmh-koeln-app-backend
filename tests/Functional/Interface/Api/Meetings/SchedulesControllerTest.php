@@ -49,7 +49,8 @@ final class SchedulesControllerTest extends ApiTestCase
         $this->assertJsonPath('items.2.nextDates.0.status', 'active');
         $this->assertJsonPath('items.2.nextDates.0.sessionId', $open->id()->toRfc4122());
         $this->assertJsonPath('items.2.service.name', 'Sunday School');
-        $this->assertJsonPath('items.2.can.manage', false);
+        $this->assertJsonPath('items.2.stage', null);
+        self::assertArrayNotHasKey('can', JsonBody::asArray($this->responseJson()['items'][2] ?? null, 'schedule'));
     }
 
     public function testSchedulesThatGenerateNothingHaveNoNextDates(): void
@@ -76,8 +77,6 @@ final class SchedulesControllerTest extends ApiTestCase
             $this->assertJsonPath('items.' . $index . '.generating', false);
             $this->assertJsonPath('items.' . $index . '.nextDates', []);
         }
-
-        $this->assertJsonPath('items.0.can.manage', true);
     }
 
     public function testOneScheduleFiltersAndUnknownIds(): void
@@ -98,6 +97,9 @@ final class SchedulesControllerTest extends ApiTestCase
         $this->assertJsonPath('schedule.generating', true);
 
         $this->jsonRequest('GET', '/api/schedules/019a3b6e-0000-7000-8000-000000000001');
+        $this->assertProblem(404, 'notFound.schedule');
+
+        $this->jsonRequest('GET', '/api/schedules/not-a-uuid');
         $this->assertProblem(404, 'notFound.schedule');
     }
 

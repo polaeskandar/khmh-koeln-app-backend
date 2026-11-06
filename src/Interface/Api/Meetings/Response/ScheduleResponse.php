@@ -8,7 +8,8 @@ use App\Workflow\Meetings\Model\RecurrenceSummary;
 use App\Workflow\Meetings\Model\ScheduleSummary;
 use App\Workflow\Meetings\Model\UpcomingDate;
 use App\Workflow\Organization\Model\ServiceReference;
-use App\Workflow\Organization\Model\StageSummary;
+use App\Workflow\Organization\Model\StageReference;
+use DateTimeImmutable;
 use JsonSerializable;
 use Override;
 
@@ -25,7 +26,7 @@ final readonly class ScheduleResponse implements JsonSerializable
      *     name: string,
      *     description: string|null,
      *     service: ServiceReference|null,
-     *     stage: StageSummary|null,
+     *     stage: StageReference|null,
      *     recurrence: RecurrenceSummary,
      *     startTime: string,
      *     endTime: string|null,
@@ -35,9 +36,8 @@ final readonly class ScheduleResponse implements JsonSerializable
      *     generating: bool,
      *     nextDates: list<UpcomingDate>,
      *     sessionCount: int,
-     *     createdAt: string,
-     *     updatedAt: string,
-     *     can: array{manage: bool},
+     *     createdAt: DateTimeImmutable,
+     *     updatedAt: DateTimeImmutable,
      * }
      */
     #[Override]
@@ -68,9 +68,8 @@ final readonly class ScheduleResponse implements JsonSerializable
      *     generating: bool,
      *     nextDates: list<UpcomingDate>,
      *     sessionCount: int,
-     *     createdAt: string,
-     *     updatedAt: string,
-     *     can: array{manage: bool},
+     *     createdAt: DateTimeImmutable,
+     *     updatedAt: DateTimeImmutable,
      * }
      */
     private function activityAndRecord(): array
@@ -85,7 +84,6 @@ final readonly class ScheduleResponse implements JsonSerializable
             'sessionCount' => $activity->sessionCount,
             'createdAt' => $record->createdAt,
             'updatedAt' => $record->updatedAt,
-            'can' => ['manage' => $record->canManage],
         ];
     }
 }

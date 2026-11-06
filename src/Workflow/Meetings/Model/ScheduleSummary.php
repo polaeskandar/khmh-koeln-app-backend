@@ -18,7 +18,7 @@ final readonly class ScheduleSummary
     ) {
     }
 
-    public static function of(ScheduleOutlook $outlook, RosterReferences $references, bool $canManage): self
+    public static function of(ScheduleOutlook $outlook, RosterReferences $references): self
     {
         $schedule = $outlook->schedule;
 
@@ -27,7 +27,7 @@ final readonly class ScheduleSummary
             ScheduleRoster::of($schedule, $references),
             ScheduleTiming::of($schedule),
             ScheduleActivity::of($outlook),
-            ScheduleRecord::of($schedule, $canManage),
+            ScheduleRecord::of($schedule),
         );
     }
 
@@ -36,10 +36,10 @@ final readonly class ScheduleSummary
      *
      * @return list<self>
      */
-    public static function listOf(array $outlooks, RosterReferences $references, bool $canManage): array
+    public static function listOf(array $outlooks, RosterReferences $references): array
     {
         return new ArrayCollection($outlooks)->map(
-            static fn (ScheduleOutlook $outlook): self => self::of($outlook, $references, $canManage),
+            static fn (ScheduleOutlook $outlook): self => self::of($outlook, $references),
         )->getValues();
     }
 }

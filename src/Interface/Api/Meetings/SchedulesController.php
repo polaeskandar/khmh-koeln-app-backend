@@ -12,7 +12,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\Requirement\Requirement;
 
 #[Route('/api/schedules', methods: ['GET'])]
 final class SchedulesController extends AbstractController
@@ -28,7 +27,7 @@ final class SchedulesController extends AbstractController
         return $this->json(ScheduleListResponse::of($listSchedules($serviceId, $stageId)));
     }
 
-    #[Route('/{id}', name: 'api_schedules_show', requirements: ['id' => Requirement::UUID])]
+    #[Route('/{id}', name: 'api_schedules_show')]
     public function show(string $id, ShowScheduleWorkflow $showSchedule): JsonResponse
     {
         return $this->json(DatedScheduleResponse::of($showSchedule($id)));

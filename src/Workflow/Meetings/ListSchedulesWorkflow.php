@@ -38,7 +38,6 @@ final readonly class ListSchedulesWorkflow
         return new ScheduleList($today->toString(), ScheduleSummary::listOf(
             $this->outlooks->of($schedules, $archived, $today),
             RosterReferences::lookedUpIn($this->structure, $schedules),
-            canManage: $this->access->allows(Action::Update, Resource::Sessions),
         ));
     }
 }
