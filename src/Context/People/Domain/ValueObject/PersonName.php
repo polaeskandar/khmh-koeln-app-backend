@@ -54,6 +54,11 @@ final readonly class PersonName
         );
     }
 
+    public function fullName(): string
+    {
+        return $this->firstName . ' ' . $this->lastName;
+    }
+
     private static function required(string $field, string $value, string $requiredCode): string
     {
         $clean = InputText::of($value)->collapsed();

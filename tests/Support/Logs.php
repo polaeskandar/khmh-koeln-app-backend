@@ -23,6 +23,17 @@ final readonly class Logs
      */
     public function containing(string $needle): array
     {
+        return array_values(array_filter($this->lines(), static fn (string $line): bool => str_contains(
+            $line,
+            $needle,
+        )));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function lines(): array
+    {
         $formatter = new NormalizerFormatter();
 
         $encode = static fn (LogRecord $record): string => json_encode(
@@ -30,9 +41,7 @@ final readonly class Logs
             JSON_THROW_ON_ERROR,
         );
 
-        $lines = array_map($encode, $this->handler()->getRecords());
-
-        return array_values(array_filter($lines, static fn (string $line): bool => str_contains($line, $needle)));
+        return array_values(array_map($encode, $this->handler()->getRecords()));
     }
 
     /**
