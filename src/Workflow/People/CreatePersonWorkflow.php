@@ -15,6 +15,7 @@ use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\ValueObject\PersonName;
 use App\Context\People\Domain\ValueObject\Placement;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\Text;
 use App\Workflow\People\Model\CreatedPerson;
@@ -39,8 +40,13 @@ final readonly class CreatePersonWorkflow
     {
         $this->access->require(Action::Create, Resource::Members, refusal: 'people.addNotAllowed');
 
+        InvalidInput::all(
+            fn (): PersonName => $this->records->nameOf($draft->firstName, $draft->lastName, $draft->displayName),
+            fn (): ?Placement => $this->placementOf($draft->placement),
+        );
+
         $name = $this->records->nameOf($draft->firstName, $draft->lastName, $draft->displayName);
-        $placement = $draft->placement === null ? null : $this->placementOf($draft->placement);
+        $placement = $this->placementOf($draft->placement);
 
         if (!$draft->confirmDuplicate) {
             $this->refuseNamesakesOf($name);
@@ -49,8 +55,12 @@ final readonly class CreatePersonWorkflow
         return CreatedPerson::of($this->records->create($name, $placement));
     }
 
-    private function placementOf(PlacementChoice $choice): Placement
+    private function placementOf(?PlacementChoice $choice): ?Placement
     {
+        if ($choice === null) {
+            return null;
+        }
+
         $chosen = $this->placements->of($choice->serviceId, $choice->stageId);
 
         return new Placement($chosen->service->id(), $chosen->stage?->id());
@@ -64,7 +74,10 @@ final readonly class CreatePersonWorkflow
             return;
         }
 
-        $active = $namesakes->filter(static fn (Person $person): bool => $person->status() === PersonStatus::Active);
+        $mayRead = $this->access->allows(Action::Read, Resource::Members);
+        $shown = $namesakes
+            ->filter(static fn (Person $person): bool => $person->status() === PersonStatus::Active)
+            ->filter(static fn (): bool => $mayRead);
 
         throw new RuleViolation(
             'people.duplicate',
@@ -72,7 +85,7 @@ final readonly class CreatePersonWorkflow
                 'count' => $namesakes->count(),
                 'name' => Text::format('%s %s', $name->firstName, $name->lastName)->toString(),
             ],
-            ['candidates' => $this->entriesOf($active)],
+            ['candidates' => $this->entriesOf($shown)],
         );
     }
 

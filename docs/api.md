@@ -1072,21 +1072,24 @@ stageId, startsOn, endsOn}`.
 
 `members: create` (403 `people.addNotAllowed`). Body `{firstName, lastName, displayName?, placement?: {serviceId,
 stageId?}, confirmDuplicate?}`. Names are cleaned first (spaces collapsed): `people.firstNameRequired`,
-`people.lastNameRequired`, `validation.tooLong {max: 80}` (display name 120); blank first and last names are
-reported together. A placement puts the person on a roster from church-today: `placement.serviceId`
+`people.lastNameRequired`, `validation.tooLong {max: 80}` (display name 120). Every name and placement error
+comes back at once. A placement puts the person on a roster from church-today: `placement.serviceId`
 `meetings.chooseService` (unknown) or `meetings.serviceArchived {name}`; `placement.stageId`
 `meetings.chooseStage` (unknown or another service's) or `meetings.stageArchived {name}`. Without a placement the
 person is on no roster.
 
-Anyone with the same cleaned first and last name, ignoring case and display names, in any status, is a namesake:
-409 `people.duplicate {count, name}` with `candidates` (the directory's items for the active namesakes), unless
+Anyone with the same cleaned full name (first and last name together, so the split between them doesn't matter),
+ignoring case and display names, in any status, is a namesake: 409 `people.duplicate {count, name}` with
+`candidates` (the directory's items for the active namesakes, empty without `members: read`), unless
 `confirmDuplicate: true`. The person and the membership are written in one transaction. 201 `{person:
-PersonView, membership: MembershipView | null}`.
+PersonView, membership: MembershipView | null}`, without `Location`: there is no `GET /api/people/{id}`, and the
+id is `person.id`.
 
 #### `PUT /api/people/{id}`
 
-`members: update` (403 `people.changeNotAllowed`). Body `{firstName, lastName, displayName?}`, the whole name: a
-display name left out, `null` or `""` clears it. Same name rules, no namesake check. 200 `PersonView`; 404
+`members: update` (403 `people.changeNotAllowed`). Body `{firstName, lastName, displayName?}`: a person's
+editable members are its name, replaced whole, so a display name left out, `null` or `""` clears it. Same name
+rules, no namesake check. 200 `PersonView`; 404
 `notFound.person`, also for an id that is not a UUID.
 
 ### Schedules

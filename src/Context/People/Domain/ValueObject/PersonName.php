@@ -33,11 +33,15 @@ final readonly class PersonName
 
     public static function of(string $firstName, string $lastName, ?string $displayName): self
     {
+        InvalidInput::all(
+            static fn (): string => self::required('firstName', $firstName, 'people.firstNameRequired'),
+            static fn (): string => self::required('lastName', $lastName, 'people.lastNameRequired'),
+            static fn (): ?string => self::display($displayName),
+        );
+
         $first = self::required('firstName', $firstName, 'people.firstNameRequired');
         $last = self::required('lastName', $lastName, 'people.lastNameRequired');
-
-        $display = self::limited('displayName', InputText::of($displayName)->collapsed(), self::DISPLAY_NAME_LENGTH)
-            ->toStringOrNull();
+        $display = self::display($displayName);
 
         $fullName = $first . ' ' . $last;
 
@@ -59,6 +63,12 @@ final readonly class PersonName
         }
 
         return self::limited($field, $clean, self::NAME_LENGTH)->toString();
+    }
+
+    private static function display(?string $displayName): ?string
+    {
+        return self::limited('displayName', InputText::of($displayName)->collapsed(), self::DISPLAY_NAME_LENGTH)
+            ->toStringOrNull();
     }
 
     private static function limited(string $field, InputText $clean, int $max): InputText
