@@ -26,7 +26,9 @@ final class PeopleController extends AbstractController
     #[Route('', name: 'api_people_list', methods: ['GET'])]
     public function list(
         ListPeopleWorkflow $listPeople,
-        #[MapQueryString(validationFailedStatusCode: Response::HTTP_UNPROCESSABLE_ENTITY)]
+        #[MapQueryString(serializationContext: [
+            'allow_extra_attributes' => true,
+        ], validationFailedStatusCode: Response::HTTP_UNPROCESSABLE_ENTITY)]
         PeopleQueryRequest $query = new PeopleQueryRequest(),
     ): JsonResponse {
         return $this->json(new PeoplePageResponse($listPeople($query->query())));

@@ -23,6 +23,8 @@ final readonly class PersonLists
 {
     public const int PAGE_SIZE = 25;
 
+    private const int LAST_PAGE = 10_000;
+
     private const string ALL = 'all';
 
     public function __construct(
@@ -52,6 +54,10 @@ final readonly class PersonLists
     {
         if ($page < 1) {
             throw InvalidInput::field('page', 'validation.tooSmall', ['min' => 1]);
+        }
+
+        if ($page > self::LAST_PAGE) {
+            throw InvalidInput::field('page', 'validation.tooLarge', ['max' => self::LAST_PAGE]);
         }
 
         $ids = $this->list->page($filter, ($page - 1) * self::PAGE_SIZE, self::PAGE_SIZE);
