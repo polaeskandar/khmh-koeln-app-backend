@@ -25,7 +25,8 @@ flowchart LR
 - **One origin (D2):** `https://app.khmk-koeln.com` serves the static app at `/` and the API at `/api`, both
   from the proxy on the server. The session cookie is `__Host-` prefixed and first-party, so production needs
   no CORS. HTTP redirects to HTTPS.
-- **Containers:** the API and the worker run the same image (#27). One-off commands (`app:migrations:migrate`,
+- **Containers:** the API and the worker run the same image (#27); the worker runs with the image's HTTP health
+  check off (`healthcheck: disable: true`). One-off commands (`app:migrations:migrate`,
   `app:user:password-link`) run in a container from that image. Docker Compose restarts them after a reboot.
 - **Database:** managed by the provider, reachable only from the server over a private network.
 - **Backups:** the provider's automated database backups are the first copy. Our daily dump on the server is

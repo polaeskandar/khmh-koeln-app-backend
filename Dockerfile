@@ -4,11 +4,13 @@ RUN install-php-extensions pdo_pgsql intl opcache
 
 WORKDIR /app
 
+FROM composer:2@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0 AS composer
+
 FROM base AS build
 
 RUN install-php-extensions zip
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 ENV APP_ENV=prod APP_DEBUG=0 COMPOSER_ALLOW_SUPERUSER=1
 
@@ -19,6 +21,8 @@ COPY bin bin
 COPY config config
 COPY public public
 COPY src src
+COPY templates templates
+COPY translations translations
 COPY .env ./
 RUN composer dump-autoload --no-dev --classmap-authoritative \
     && composer dump-env prod \
@@ -30,6 +34,8 @@ FROM base AS prod
 
 ENV APP_ENV=prod APP_DEBUG=0 SERVER_NAME=:8080
 
+RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
 COPY docker/php/prod.ini $PHP_INI_DIR/conf.d/zz-app.ini
 COPY docker/frankenphp/Caddyfile /etc/frankenphp/Caddyfile
 COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/app-entrypoint
@@ -38,7 +44,9 @@ RUN useradd --uid 10001 --user-group --no-create-home app \
     && mkdir -p /data/caddy /config/caddy \
     && chown -R app:app /data /config
 
-COPY --from=build --chown=app:app /app /app
+COPY --from=build /app /app
+
+RUN chown -R app:app /app/var
 
 USER app
 
@@ -56,4 +64,4 @@ RUN install-php-extensions zip \
     && apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/* \
     && git config --system --add safe.directory /app
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer /usr/bin/composer /usr/bin/composer

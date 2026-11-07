@@ -55,14 +55,19 @@ it on every pull request, smoke-tests it, and on `main` pushes
 
 ```sh
 docker build --target prod -t khmk-api .
-docker run -p 8080:8080 -e APP_SECRET=… -e DATABASE_URL=… khmk-api
-docker run --rm -e APP_SECRET=… -e DATABASE_URL=… khmk-api php bin/console app:migrations:migrate --no-interaction
+docker run -p 8080:8080 --env-file prod.env khmk-api
+docker run --rm --env-file prod.env khmk-api php bin/console app:migrations:migrate --no-interaction
 ```
 
-- It serves plain HTTP on port 8080 (`SERVER_NAME`) behind the TLS proxy, runs as a non-root user and has a
-  `HEALTHCHECK` on `/api/health`.
-- It refuses to start without `APP_SECRET` or `DATABASE_URL` and never migrates on its own: migrations and other
+- It serves plain HTTP on port 8080 (`SERVER_NAME`) behind the TLS proxy, runs as a non-root user that can
+  write only `var/`, and has a `HEALTHCHECK` on `/api/health`. The worker runs from the same image with the
+  health check off (`--no-healthcheck`, or `healthcheck: disable: true` in Compose), since it serves no HTTP.
+- It refuses to start without `APP_SECRET`, `DATABASE_URL`, `DEFAULT_URI` and `MAILER_DSN`, or with
+  `TRUSTED_PROXIES` unset (set it empty when no proxy forwards requests). The image bakes `.env` in, so a missing
+  variable would otherwise fall back to its development value. It never migrates on its own: migrations and other
   console commands run as one-off containers of the same image.
+- It holds the email templates and translations, and runs PHP with `php.ini-production`.
+- Dependabot keeps the pinned base and Composer images up to date.
 - Opcache doesn't revalidate files and preloads `config/preload.php`; PHP hides its version and errors.
 - The access log is JSON on stderr without query strings, cookies or `Authorization`.
 - The variables are listed in [Operations](docs/operations.md#configuration).
