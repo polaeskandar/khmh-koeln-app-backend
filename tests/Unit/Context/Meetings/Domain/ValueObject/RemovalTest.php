@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Context\Attendance\Domain\ValueObject;
+namespace App\Tests\Unit\Context\Meetings\Domain\ValueObject;
 
-use App\Context\Attendance\Domain\ValueObject\Removal;
+use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Tests\Support\Library\Problem\Exception\ThrownFieldErrors;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;

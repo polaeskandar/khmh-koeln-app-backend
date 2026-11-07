@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Context\Attendance\Application\Service;
+namespace App\Context\Meetings\Application\Service;
 
-use App\Context\Attendance\Domain\Entity\Attendance;
-use App\Context\Attendance\Domain\Repository\AttendanceRepositoryInterface;
-use App\Context\Attendance\Domain\ValueObject\RecordedMark;
-use App\Context\Attendance\Domain\ValueObject\Removal;
+use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\Repository\AttendanceRepositoryInterface;
+use App\Context\Meetings\Domain\ValueObject\RecordedMark;
+use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -46,15 +47,15 @@ final readonly class AttendanceMarks
         return $this->attendance->removedMarksOf($sessionId);
     }
 
-    public function record(Uuid $sessionId, Uuid $personId, string $accountId): RecordedMark
+    public function record(Session $session, Uuid $personId, string $accountId): RecordedMark
     {
-        $current = $this->attendance->currentMark($sessionId, $personId);
+        $current = $this->attendance->currentMark($session->id(), $personId);
 
         if ($current !== null) {
             return new RecordedMark($current, created: false);
         }
 
-        $mark = new Attendance($sessionId, $personId, $this->calendar->now(), Uuid::fromString($accountId));
+        $mark = new Attendance($session, $personId, $this->calendar->now(), Uuid::fromString($accountId));
         $this->attendance->save($mark);
 
         return new RecordedMark($mark, created: true);

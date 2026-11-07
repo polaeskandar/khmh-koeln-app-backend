@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Functional\Context\Attendance\Domain\Entity;
+namespace App\Tests\Functional\Context\Meetings\Domain\Entity;
 
-use App\Context\Attendance\Domain\Entity\Attendance;
-use App\Context\Attendance\Domain\ValueObject\Removal;
+use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\ValueObject\Removal;
+use App\Tests\Support\Context\Meetings\Domain\Entity\Meetings;
 use App\Tests\Support\Database;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -16,7 +18,7 @@ final class AttendanceTest extends KernelTestCase
 {
     public function testAPersonHasOneCurrentMarkPerSession(): void
     {
-        [$session, $person] = [Uuid::v7(), Uuid::v7()];
+        [$session, $person] = [$this->session(), Uuid::v7()];
         $removed = new Attendance($session, $person, new DateTimeImmutable('2026-11-08T12:00:00+01:00'), null);
         $removed->remove(Removal::of(new DateTimeImmutable('2026-11-08T12:01:00+01:00'), null, 'Wrong child'));
 
@@ -34,10 +36,10 @@ final class AttendanceTest extends KernelTestCase
     public function testEachCheckRefusesItsRow(string $set): void
     {
         $this->database()->persisted(
-            new Attendance(Uuid::v7(), Uuid::v7(), new DateTimeImmutable('2026-11-08T12:00:00+01:00'), null),
+            new Attendance($this->session(), Uuid::v7(), new DateTimeImmutable('2026-11-08T12:00:00+01:00'), null),
         );
 
-        $this->database()->assertRefused(Database::CHECK_VIOLATION, 'UPDATE attendance.attendance SET ' . $set);
+        $this->database()->assertRefused(Database::CHECK_VIOLATION, 'UPDATE meetings.attendance SET ' . $set);
     }
 
     /**
@@ -48,6 +50,29 @@ final class AttendanceTest extends KernelTestCase
         yield 'remover without removal' => ["removed_by = '019a3b6e-0000-7000-8000-000000000009'"];
         yield 'reason without removal' => ["removal_reason = 'Wrong child'"];
         yield 'removed before recorded' => ["removed_at = recorded_at - interval '1 minute'"];
+    }
+
+    public function testASessionWithMarksCanNotBeDeleted(): void
+    {
+        $session = $this->session();
+
+        $this->database()->persisted(
+            new Attendance($session, Uuid::v7(), new DateTimeImmutable('2026-11-08T12:00:00+01:00'), null),
+        );
+
+        $this->database()->assertRefused(
+            Database::RESTRICT_VIOLATION,
+            "DELETE FROM meetings.meeting_session WHERE id = '" . $session->id()->toRfc4122() . "'",
+        );
+    }
+
+    private function session(): Session
+    {
+        $schedule = Meetings::schedule();
+        $session = Meetings::session($schedule);
+        $this->database()->persisted($schedule, $session);
+
+        return $session;
     }
 
     private function database(): Database

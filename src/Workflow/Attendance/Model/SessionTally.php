@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Attendance\Model;
 
-use App\Context\Attendance\Domain\ValueObject\SessionCounts;
+use App\Context\Meetings\Domain\ValueObject\SessionCounts;
 
 final readonly class SessionTally
 {

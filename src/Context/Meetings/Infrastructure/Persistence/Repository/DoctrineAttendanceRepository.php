@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Context\Attendance\Infrastructure\Persistence\Repository;
+namespace App\Context\Meetings\Infrastructure\Persistence\Repository;
 
-use App\Context\Attendance\Domain\Entity\Attendance;
-use App\Context\Attendance\Domain\Repository\AttendanceRepositoryInterface;
+use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Repository\AttendanceRepositoryInterface;
 use App\Library\Collections\Model\Groups;
 use App\Library\Types\Model\Type;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -20,7 +20,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class DoctrineAttendanceRepository implements AttendanceRepositoryInterface
 {
     private const string PRESENT = <<<'SQL'
-        SELECT session_id, person_id FROM attendance.attendance
+        SELECT session_id, person_id FROM meetings.attendance
         WHERE removed_at IS NULL AND session_id IN (?)
         ORDER BY recorded_at, id
         SQL;
@@ -43,7 +43,7 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
         return $this->entityManager
             ->getRepository(Attendance::class)
             ->findOneBy([
-                'sessionId' => $sessionId,
+                'session' => $sessionId,
                 'personId' => $personId,
                 'removal.at' => null,
             ]);
@@ -53,7 +53,7 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
     public function marksOf(Uuid $sessionId): ReadableCollection
     {
         return new ArrayCollection($this->entityManager->getRepository(Attendance::class)->findBy([
-            'sessionId' => $sessionId,
+            'session' => $sessionId,
         ], ['recordedAt' => 'ASC', 'id' => 'ASC']));
     }
 
@@ -61,7 +61,7 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
     public function removedMarksOf(Uuid $sessionId): ReadableCollection
     {
         return $this->entityManager->getRepository(Attendance::class)->matching(Criteria::create()
-            ->where(Criteria::expr()->eq('sessionId', $sessionId))
+            ->where(Criteria::expr()->eq('session', $sessionId))
             ->andWhere(Criteria::expr()->neq('removal.at', null))
             ->orderBy(['removal.at' => Order::Ascending, 'id' => Order::Ascending]));
     }
@@ -70,7 +70,7 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
     public function currentOf(Uuid $sessionId): ReadableCollection
     {
         return $this->entityManager->getRepository(Attendance::class)->matching(Criteria::create()
-            ->where(Criteria::expr()->eq('sessionId', $sessionId))
+            ->where(Criteria::expr()->eq('session', $sessionId))
             ->andWhere(Criteria::expr()->isNull('removal.at'))
             ->orderBy(['recordedAt' => Order::Descending, 'id' => Order::Descending]));
     }

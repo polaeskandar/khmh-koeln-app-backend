@@ -184,15 +184,12 @@ final class AttendanceControllerTest extends ApiTestCase
 
         self::assertTrue($insideTheLock(
             new Logs(self::getContainer())->lines(),
-            write: 'INSERT INTO attendance.attendance',
+            write: 'INSERT INTO meetings.attendance',
         ));
 
         $this->remove($session, $mina, []);
 
-        self::assertTrue($insideTheLock(
-            new Logs(self::getContainer())->lines(),
-            write: 'UPDATE attendance.attendance',
-        ));
+        self::assertTrue($insideTheLock(new Logs(self::getContainer())->lines(), write: 'UPDATE meetings.attendance'));
 
         $this->signInWithRoles('admin@example.org', 'administrator');
         $this->mark($session, $mina);
@@ -226,7 +223,7 @@ final class AttendanceControllerTest extends ApiTestCase
     {
         $count = new Database(self::getContainer())
             ->connection()
-            ->fetchOne('SELECT count(*) FROM attendance.attendance WHERE ' . $where);
+            ->fetchOne('SELECT count(*) FROM meetings.attendance WHERE ' . $where);
 
         self::assertIsInt($count);
 

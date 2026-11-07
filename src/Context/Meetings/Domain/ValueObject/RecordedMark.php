@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Context\Attendance\Domain\ValueObject;
+namespace App\Context\Meetings\Domain\ValueObject;
 
-use App\Context\Attendance\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\Attendance;
 
 final readonly class RecordedMark
 {

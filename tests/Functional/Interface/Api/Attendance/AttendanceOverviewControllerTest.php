@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Attendance;
 
-use App\Context\Attendance\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Tests\Support\ApiTestCase;
@@ -198,7 +198,7 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
 
         new Database(self::getContainer())->persisted(
             new Attendance(
-                $class->id(),
+                $schedules->managed($class),
                 $mina->id(),
                 new DateTimeImmutable('2026-11-08T12:00:00+01:00'),
                 recordedBy: null,

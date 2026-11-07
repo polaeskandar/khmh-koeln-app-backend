@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Workflow\Attendance\Model;
 
-use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Workflow\Identity\Model\AccountReference;
 use DateTimeImmutable;
 

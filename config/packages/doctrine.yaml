@@ -41,11 +41,6 @@ doctrine:
                 is_bundle: false
                 dir: '%kernel.project_dir%/src/Context/Meetings/Domain'
                 prefix: 'App\Context\Meetings\Domain'
-            Attendance:
-                type: attribute
-                is_bundle: false
-                dir: '%kernel.project_dir%/src/Context/Attendance/Domain'
-                prefix: 'App\Context\Attendance\Domain'
             Learning:
                 type: attribute
                 is_bundle: false
