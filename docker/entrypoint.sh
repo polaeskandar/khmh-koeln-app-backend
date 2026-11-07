@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-for variable in APP_SECRET DATABASE_URL DEFAULT_URI MAILER_DSN; do
+for variable in APP_SECRET DATABASE_URL DEFAULT_URI MAILER_DSN TRUSTED_HOSTS; do
     eval "value=\${$variable:-}"
     if [ -z "$value" ]; then
         echo "Missing required environment variable $variable." >&2

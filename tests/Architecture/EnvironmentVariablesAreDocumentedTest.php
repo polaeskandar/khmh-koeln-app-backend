@@ -13,6 +13,12 @@ final class EnvironmentVariablesAreDocumentedTest extends TestCase
 {
     private const array IGNORED = ['config/reference.php'];
 
+    private const array PATTERNS = [
+        "/Autowire\\(env: '(?:[^':]+:)*([A-Z][A-Z0-9_]*)'/",
+        '/%env\((?:[^:)]+:)*([A-Z][A-Z0-9_]*)\)%/',
+        '/\{\$([A-Z][A-Z0-9_]*)\}/',
+    ];
+
     public function testEveryVariableTheCodeReadsIsInTheConfigurationTable(): void
     {
         $documented = (string) file_get_contents(self::root() . '/docs/operations.md');
@@ -33,14 +39,12 @@ final class EnvironmentVariablesAreDocumentedTest extends TestCase
     {
         $found = [];
 
-        foreach (self::files() as $path => $content) {
-            $pattern = str_starts_with($path, 'src/')
-                ? "/Autowire\\(env: '(?:[a-z]+:)*([A-Z0-9_]+)'/"
-                : '/%env\((?:[a-z]+:)*:?([A-Z0-9_]+)\)%/';
-
-            $matches = [];
-            preg_match_all($pattern, $content, $matches);
-            $found[] = $matches[1] ?? [];
+        foreach (self::files() as $content) {
+            foreach (self::PATTERNS as $pattern) {
+                $matches = [];
+                preg_match_all($pattern, $content, $matches);
+                $found[] = $matches[1] ?? [];
+            }
         }
 
         $names = array_merge([], ...$found);
@@ -60,6 +64,10 @@ final class EnvironmentVariablesAreDocumentedTest extends TestCase
      */
     private static function files(): iterable
     {
+        yield 'docker/frankenphp/Caddyfile' => (string) file_get_contents(
+            self::root() . '/docker/frankenphp/Caddyfile',
+        );
+
         foreach (['config', 'src'] as $folder) {
             $entries = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::root() . '/' . $folder));
 

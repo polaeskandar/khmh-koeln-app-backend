@@ -85,7 +85,7 @@ The exact rules are in frontend#20; the proxy on the server applies them.
 | One-off commands from the image (migrations before each release) | Must | `app:migrations:migrate` (#43) |
 | The session generator every hour at minute 5, with an alert on failure; host cron or Symfony Scheduler in the worker, decided in #53 | Must | `app:sessions:generate` (#53) |
 | A daily backup at 02:15 Europe/Berlin, with an alert on failure | Must | #42 |
-| Secrets in a root-only `.env.local` on the server or the provider's secret store, never in the image | Must | `APP_SECRET`, `DATABASE_URL` (#41) |
+| Secrets in the host's secret store, passed to the containers as environment variables, never in the image (the image never reads a `.env.local`) | Must | `APP_SECRET`, `DATABASE_URL`, `MAILER_DSN` (#41) |
 | Logs kept 14 days (to be confirmed by the data protection adviser by Tue 3 Nov) | Must | D6, #112 |
 | Uptime check on `GET /api/health/ready` from outside the server, with alerts | Must | Launch watch (#117) |
 
@@ -136,14 +136,16 @@ Sources: [Ubicloud on Hetzner](https://ubicloud.com/blog/open-and-portable-manag
 
 ## Configuration
 
-The variables the application reads, all of them (`EnvironmentVariablesAreDocumentedTest` fails for an
-undocumented one). The production image bakes the defaults of `.env` into `.env.local.php`; values set in the
+The variables the application reads. `EnvironmentVariablesAreDocumentedTest` fails for one that the
+configuration, the code or the Caddyfile reads and this table lacks; `APP_DEBUG` is read by the kernel itself. The production image bakes the defaults of `.env` into `.env.local.php`; values set in the
 container's environment win. Secrets live only in the host's secret store, never in the repository or the image;
 the Symfony secrets vault is not used.
 
 | Variable | Example | Secret | Purpose |
 | --- | --- | --- | --- |
 | `APP_ENV` | `prod` | No | Symfony environment: `dev`, `test` or `prod` |
+| `APP_DEBUG` | `0` | No | Symfony debug mode; the image sets `0` |
+| `SERVER_NAME` | `:8080` | No | The address FrankenPHP's Caddyfile serves; the image sets `:8080` (plain HTTP behind the proxy) |
 | `APP_SECRET` | 32 random hex bytes | Yes | Signs CSRF tokens and other Symfony secrets |
 | `APP_SHARE_DIR` | `var/share` | No | Directory for data shared across deploys |
 | `DATABASE_URL` | `postgresql://app:…@db:5432/khmk?serverVersion=18&charset=utf8` | Yes | PostgreSQL connection |
@@ -155,9 +157,15 @@ the Symfony secrets vault is not used.
 | `TRUSTED_PROXIES` | `10.0.0.0/8` or `REMOTE_ADDR` | No | Only the reverse proxy's address or private range. Its `X-Forwarded-For`, `-Proto` and `-Port` are trusted, so sign-in limits count the real client; `X-Forwarded-Host` is not, so the proxy passes the public `Host` through. Empty: forwarded headers are ignored. |
 | `MAILER_DSN` | `mailgun+api://KEY:DOMAIN@default?region=eu` | Yes | Where email goes. Production: Mailgun's EU region (with a DPA, Art. 28) through `symfony/mailgun-mailer`. `.env` and tests use `null://null` (nothing is sent); `.env.dev` uses `log://default`, which writes each email (recipient, subject, text) to stderr instead of sending it. `bin/console app:mail:test <email>` checks the setting with a real account. |
 | `MAILER_FROM` | `KHMK Köln <no-reply@khmk-koeln.com>` | No | Sender of every email. The sending domain needs Mailgun's SPF and DKIM records. |
-| `TRUSTED_HOSTS` | `^(app\.khmk-koeln\.com\|localhost\|127\.0\.0\.1\|<probe host>)$` | No | Production only: a regular expression of the `Host` values the API answers; anything else gets 400. Add the platform's health-probe host. |
+| `TRUSTED_HOSTS` | see below | No | Production only: a regular expression of the `Host` values the API answers; anything else gets 400. Add the platform's health-probe host, and keep `127.0.0.1`, which the image's own health check calls. Empty would turn the check off, so the image refuses to start without it. |
 | `DEFAULT_URI` | `https://app.khmk-koeln.com` | No | Base URL for links generated outside a request (console) |
 | `TEST_TOKEN` | `1` | No | Test only: the PHPUnit runner's suffix for parallel test databases |
+
+The production `TRUSTED_HOSTS`, with the probe host added at the end:
+
+```text
+^(app\.khmk-koeln\.com|localhost|127\.0\.0\.1|<probe host>)$
+```
 
 Sign-in limits (5 attempts per email and client, 25 per client, per 15 minutes) are kept in the
 `cache.rate_limiter` pool, which is the application cache on the local filesystem. That is right for one API
