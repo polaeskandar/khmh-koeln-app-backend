@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Attendance\Application\Service;
 
+use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\Attendance\Domain\Repository\AttendanceRepositoryInterface;
 use App\Context\Attendance\Domain\ValueObject\RecordedMark;
 use App\Context\Attendance\Domain\ValueObject\Removal;
