@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Context\Learning\Domain\Entity;
 
 use App\Context\Learning\Domain\Entity\Lesson;
+use App\Context\Learning\Domain\ValueObject\LessonPlan;
 use App\Context\Learning\Domain\ValueObject\LessonText;
+use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Context\Learning\Domain\ValueObject\MeetingLink;
 use App\Library\Time\Model\LocalDate;
 use App\Tests\Support\Database;
@@ -33,6 +35,24 @@ final class LessonTest extends KernelTestCase
         $this->database()->persisted($this->lesson(null), $this->lesson(null));
 
         self::assertSame(2, $this->database()->connection()->fetchOne('SELECT count(*) FROM learning.lesson'));
+    }
+
+    public function testStoredMaterialsReadBackUnchanged(): void
+    {
+        $materials = Materials::of([['label' => 'Worksheet', 'url' => 'https://example.org/sheet.pdf']], 'materials');
+        $lesson = $this->lesson(null);
+        $lesson->describe(new LessonPlan(), $materials);
+        $this->database()->persisted($lesson);
+        $entityManager = $this->database()->entityManager();
+        $entityManager->clear();
+
+        $stored = $entityManager->find(Lesson::class, $lesson->id());
+        self::assertInstanceOf(Lesson::class, $stored);
+        $stored->describe(new LessonPlan(), $materials);
+        $entityManager->getUnitOfWork()->computeChangeSets();
+
+        self::assertSame($materials->toArray(), $stored->materials());
+        self::assertFalse($entityManager->getUnitOfWork()->isScheduledForUpdate($stored));
     }
 
     #[DataProvider('violations')]

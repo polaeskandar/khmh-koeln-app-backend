@@ -21,8 +21,8 @@ final class MaterialsTest extends TestCase
 
         self::assertSame(
             [
-                ['label' => 'Worksheet', 'url' => 'https://example.org/sheet.pdf'],
-                ['label' => 'https://example.org/song', 'url' => 'https://example.org/song'],
+                ['url' => 'https://example.org/sheet.pdf', 'label' => 'Worksheet'],
+                ['url' => 'https://example.org/song', 'label' => 'https://example.org/song'],
             ],
             $materials->toArray(),
         );
@@ -45,12 +45,43 @@ final class MaterialsTest extends TestCase
         yield 'script' => ['javascript:alert(1)'];
         yield 'ftp' => ['ftp://x'];
         yield 'space' => ['https://a b'];
+        yield 'credentials' => ['https://trusted.org@evil.example/'];
+        yield 'bidi control' => ["https://example.org/\u{202E}fdp.exe"];
+        yield 'angle bracket' => ['https://example.org/<script>'];
+    }
+
+    public function testWebAddressesInAnyCaseAndWithoutTlsAreLinks(): void
+    {
+        $rows = [
+            ['url' => 'http://example.org'],
+            ['url' => 'HTTPS://Example.org/a?b=c@d#e'],
+            ['url' => 'https://medium.com/@user'],
+        ];
+
+        self::assertCount(3, Materials::of($rows, 'materials')->toArray());
+    }
+
+    public function testALongLinkNeedsNoLabelAndALinkHasALimit(): void
+    {
+        $long = 'https://example.org/' . str_repeat('a', times: 200);
+
+        self::assertSame(
+            [['url' => $long, 'label' => $long]],
+            Materials::of([['url' => $long]], 'materials')->toArray(),
+        );
+
+        $this->assertFieldErrors([
+            'materials.0.url' => ['code' => 'validation.tooLong', 'params' => ['max' => 2048]],
+        ], [['url' => 'https://example.org/' . str_repeat('a', times: 2029)]]);
     }
 
     public function testALabelHasAtMost120Characters(): void
     {
-        $this->assertFieldErrors(['materials.1.label' => ['code' => 'materials.labelTooLong']], [
+        self::assertCount(1, Materials::of([['label' => str_repeat('a', times: 120)]], 'materials')->toArray());
+
+        $this->assertFieldErrors(['materials.2.label' => ['code' => 'materials.labelTooLong']], [
             ['label' => 'Fine'],
+            ['label' => ' '],
             ['label' => str_repeat('a', times: 121)],
         ]);
     }
@@ -61,10 +92,15 @@ final class MaterialsTest extends TestCase
         self::assertCount(10, Materials::of([...$ten, ['label' => ' ']], 'materials')->toArray());
 
         $this->assertFieldErrors(['materials' => ['code' => 'materials.tooMany']], [...$ten, ['label' => 'One more']]);
+
+        $this->assertFieldErrors([
+            'materials' => ['code' => 'materials.tooMany'],
+            'materials.10.url' => ['code' => 'materials.url'],
+        ], [...$ten, ['label' => 'One more', 'url' => 'ftp://x']]);
     }
 
     /**
-     * @param array<string, array{code: string}> $expected
+     * @param array<string, array{code: string, params?: array<string, int>}> $expected
      * @param list<array<string, string>> $rows
      */
     private function assertFieldErrors(array $expected, array $rows): void

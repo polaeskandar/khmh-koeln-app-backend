@@ -46,7 +46,7 @@ final class Lesson extends TimestampedEntity
     private LessonPlan $plan;
 
     /**
-     * @var list<array{label: string, url: string|null}>
+     * @var list<array{url: string|null, label: string}>
      */
     #[ORM\Column(type: Types::JSON, options: ['jsonb' => true, 'default' => '[]'])]
     private array $materials;
@@ -97,7 +97,7 @@ final class Lesson extends TimestampedEntity
     }
 
     /**
-     * @return list<array{label: string, url: string|null}>
+     * @return list<array{url: string|null, label: string}>
      */
     public function materials(): array
     {

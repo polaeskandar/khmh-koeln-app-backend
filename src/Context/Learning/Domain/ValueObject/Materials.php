@@ -28,11 +28,6 @@ final readonly class Materials
     public static function of(array $rows, string $field): self
     {
         $materials = Collections::mapPresent(new ArrayCollection($rows), Material::fromRow(...));
-
-        if ($materials->count() > self::MAX_ROWS) {
-            throw InvalidInput::field($field, 'materials.tooMany');
-        }
-
         $errors = Collections::of(self::errorsOf($materials, $field))->toArray();
 
         return $errors === [] ? new self($materials->getValues()) : throw new InvalidInput($errors);
@@ -44,7 +39,7 @@ final readonly class Materials
     }
 
     /**
-     * @return list<array{label: string, url: string|null}>
+     * @return list<array{url: string|null, label: string}>
      */
     public function toArray(): array
     {
@@ -56,13 +51,17 @@ final readonly class Materials
     /**
      * @param ReadableCollection<int, Material> $materials
      *
-     * @return iterable<string, array{code: string}>
+     * @return iterable<string, array{code: string, params?: array<string, int>}>
      */
     private static function errorsOf(ReadableCollection $materials, string $field): iterable
     {
+        if ($materials->count() > self::MAX_ROWS) {
+            yield $field => ['code' => 'materials.tooMany'];
+        }
+
         foreach ($materials as $index => $material) {
-            foreach (MaterialProblems::of($material) as $part => $code) {
-                yield Text::format('%s.%d.%s', $field, $index, $part)->toString() => ['code' => $code];
+            foreach (MaterialProblems::of($material) as $part => $problem) {
+                yield Text::format('%s.%d.%s', $field, $index, $part)->toString() => $problem;
             }
         }
     }

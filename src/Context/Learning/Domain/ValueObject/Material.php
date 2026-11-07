@@ -27,10 +27,10 @@ final readonly class Material
     }
 
     /**
-     * @return array{label: string, url: string|null}
+     * @return array{url: string|null, label: string}
      */
     public function toArray(): array
     {
-        return ['label' => $this->label, 'url' => $this->url];
+        return ['url' => $this->url, 'label' => $this->label];
     }
 }

@@ -723,8 +723,13 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | Code | Params | Meaning (English reference text) |
 | --- | --- | --- |
 | `materials.labelTooLong` | – | Use at most 120 characters for the label. |
-| `materials.url` | – | Enter a web address starting with https:// |
+| `materials.url` | – | Enter a web address starting with https:// or http:// |
 | `materials.tooMany` | – | Add at most 10 items. |
+
+A link longer than 2,048 characters is `validation.tooLong` `{max: 2048}` on its `url`. A link must have a host
+without a user name or password, and no spaces, angle brackets, quotes or control characters. A link without a
+label is its own label, and the 120-character limit applies only to a label that is written. Every row error and
+`materials.tooMany` are reported together.
 
 ### `lessons`
 
@@ -755,7 +760,6 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `homework.instructionsTooLong` | – | Use at most 2,000 characters. |
 | `homework.dueBeforeLesson` | – | The due date can’t be before the lesson. |
 | `homework.changeStageOnly` | – | Only servants of this stage and service leaders can change its homework. |
-| `homework.lessonWithoutStage` | – | Homework is assigned to a stage. Add the lesson to a stage first. |
 | `homework.assignStageOnly` | – | Only servants of this stage and service leaders can assign its homework. |
 | `homework.lessonArchived` | – | The lesson is archived. Restore the lesson first. |
 | `homework.archivedNoEdit` | – | Archived homework can’t be edited. |
