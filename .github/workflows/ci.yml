@@ -189,7 +189,7 @@ jobs:
             FROM pg_stat_user_tables ORDER BY 1"
           diff <($PSQL "$rows") <(tail -n +2 "$RUNNER_TEMP/restored.txt")
           grep -q '^people.person 1$' "$RUNNER_TEMP/restored.txt"
-          docker run --rm --network host -e APP_SECRET -e DATABASE_URL="$restored" "$IMAGE" php bin/console app:migrations:check
+          docker run --rm --network host $RUN_ENV -e DATABASE_URL="$restored" "$IMAGE" php bin/console app:migrations:check
           test -z "$(find "$backups" -type f ! -name '*.dump.age')"
 
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
