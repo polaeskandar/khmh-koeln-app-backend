@@ -31,7 +31,9 @@ final class MembershipsControllerTest extends ApiTestCase
         self::assertResponseStatusCodeSame(201);
         $this->assertJsonPath('startsOn', '2026-11-08');
         $this->assertJsonPath('stage.name', '4th Class');
+        $this->assertJsonPath('stage.archived', false);
         $this->assertJsonPath('personId', $mina->id()->toRfc4122());
+        $this->assertJsonPath('id', $this->membershipOf($mina->id()->toRfc4122()));
 
         $this->add($mina->id()->toRfc4122(), $school, $fourth);
         $this->assertProblem(409, 'people.alreadyIn', ['name' => 'Mina Hanna', 'where' => '4th Class']);
@@ -41,6 +43,8 @@ final class MembershipsControllerTest extends ApiTestCase
 
         $this->add($mina->id()->toRfc4122(), $school, null);
         self::assertResponseStatusCodeSame(201);
+        $this->assertJsonPath('stage', null);
+        $this->assertJsonPath('endsOn', null);
         $this->add($mina->id()->toRfc4122(), $school, null);
         $this->assertProblem(409, 'people.alreadyIn', ['name' => 'Mina Hanna', 'where' => 'Sunday School']);
     }
@@ -64,15 +68,35 @@ final class MembershipsControllerTest extends ApiTestCase
         [$school] = $this->structure();
         $old = Structure::stage($school, 'Old Class', position: 2);
         $old->archive(Structure::now());
-        new Database(self::getContainer())->persisted($old);
-        $mina = new Rosters(self::getContainer())->person('Mina');
+        $youth = Structure::service('Youth');
+        $teens = Structure::stage($youth, 'Teens');
+        $closed = Structure::service('Old School');
+        $closed->archive(Structure::now());
+        new Database(self::getContainer())->persisted($old, $youth, $teens, $closed);
+        $rosters = new Rosters(self::getContainer());
+        $mina = $rosters->person('Mina');
+        $marina = $rosters->person('Marina');
+
+        new Database(self::getContainer())
+            ->connection()
+            ->update('people.person', ['status' => 'inactive'], ['id' => $marina->id()->toRfc4122()]);
+
         $this->signInWithRoles('servant@example.org', 'servant');
 
-        $this->add(Uuid::v7()->toRfc4122(), $school, null);
+        $this->add(Uuid::v7()->toRfc4122(), $school, $old);
         $this->assertProblem(404, 'notFound.person');
 
         $this->add('not-a-uuid', $school, null);
         $this->assertProblem(404, 'notFound.person');
+
+        $this->add($marina->id()->toRfc4122(), $school, null);
+        $this->assertProblem(409, 'people.personInactive', ['name' => 'Marina Iskander']);
+
+        $this->add($mina->id()->toRfc4122(), $school, $teens);
+        $this->assertFieldError('stageId', 'meetings.chooseStage');
+
+        $this->add($mina->id()->toRfc4122(), $closed, null);
+        $this->assertFieldError('serviceId', 'meetings.serviceArchived', ['name' => 'Old School']);
 
         $this->add($mina->id()->toRfc4122(), $school, $old);
         $this->assertFieldError('stageId', 'meetings.stageArchived', ['name' => 'Old Class']);

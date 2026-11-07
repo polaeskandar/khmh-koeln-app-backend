@@ -26,11 +26,12 @@ final readonly class AddMembershipWorkflow
     {
         $this->access->require(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
 
+        $person = $this->memberships->personOf($personId);
         $chosen = $this->placements->of($choice->serviceId, $choice->stageId, fieldPrefix: '');
         $place = $chosen->stage?->name()->value ?? $chosen->service->name()->value;
 
         return AddedMembership::of(
-            $this->memberships->add($personId, new Placement($chosen->service->id(), $chosen->stage?->id()), $place),
+            $this->memberships->add($person, new Placement($chosen->service->id(), $chosen->stage?->id()), $place),
             $chosen,
         );
     }

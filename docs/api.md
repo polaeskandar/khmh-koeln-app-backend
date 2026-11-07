@@ -720,6 +720,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `people.chooseJoinService` | – | Choose the service this person joins. |
 | `people.duplicate` | `count` | {count, plural, one {Someone called {name} already exists.} other {# people called {name} already exist.}} Check that this is a different person. |
 | `people.alreadyIn` | `name`, `where` | {name} is already in {where}. |
+| `people.personInactive` | `name` | **New.** 409: {name} is inactive. Reactivate them first. |
 | `people.membershipOutsideServices` | – | You can only change memberships in the services and stages you serve in. |
 | `people.membershipEnded` | – | This membership has already ended. |
 | `people.searchTooShort` | `min` | **New.** Field error on `q`: type at least {min} letters. |
@@ -1119,10 +1120,11 @@ rules, no namesake check. 200 `PersonView`; 404
 
 `members: update` (403 `people.changeNotAllowed`). Body `{serviceId, stageId?}`: puts the person on that roster
 from church-today. `serviceId` `meetings.chooseService` or `meetings.serviceArchived {name}`; `stageId`
-`meetings.chooseStage` or `meetings.stageArchived {name}`. A current membership on the same roster → 409
-`people.alreadyIn {name, where}` (also when two requests race into the unique index); rosters of several stages at
-once are fine. 201 `{id, personId, service: ServiceRef, stage: StageRef | null, startsOn, endsOn: null}`; 404
-`notFound.person`, also for an id that is not a UUID.
+`meetings.chooseStage` or `meetings.stageArchived {name}`. The person is looked up first: 404 `notFound.person`,
+also for an id that is not a UUID, and 409 `people.personInactive {name}` for an inactive person. A current or
+not-yet-started open membership on the same roster → 409 `people.alreadyIn {name, where}` (also when two requests
+race into the unique index); rosters of several stages at once are fine. 201 `{id, personId, service: ServiceRef,
+stage: StageRef | null, startsOn, endsOn: null}`, without `Location`: memberships have no `GET` route.
 
 #### `POST /api/memberships/{id}/end`
 
