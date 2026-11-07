@@ -35,12 +35,22 @@ final class AccountRequestsControllerApprovalTest extends ApiTestCase
 
         $this->approve(self::PARENT, [
             'as' => 'parent',
-            'childIds' => [$mina2, $mina2],
-            'roleIds' => [self::PARENT_ROLE],
+            'childIds' => [$mina2, strtoupper($mina2)],
+            'roleIds' => [self::SERVANT_ROLE, strtoupper(self::SERVANT_ROLE)],
         ]);
 
         self::assertResponseIsSuccessful();
         $this->assertJsonPath('email', self::PARENT);
+
+        $roles = $this
+            ->database()
+            ->connection()
+            ->fetchFirstColumn(
+                'SELECT r.role_id FROM identity.user_role r JOIN identity.app_user u ON u.id = r.user_id WHERE u.email = ? ORDER BY r.role_id',
+                [self::PARENT],
+            );
+
+        self::assertSame([self::SERVANT_ROLE, self::PARENT_ROLE], $roles);
 
         $row = $this
             ->database()
@@ -166,6 +176,7 @@ final class AccountRequestsControllerApprovalTest extends ApiTestCase
         ];
 
         yield 'no child' => [$parent, [], 'childIds', 'accounts.chooseChild'];
+        yield 'no role and no child' => [['as' => 'parent', 'roleIds' => []], [], 'childIds', 'accounts.chooseChild'];
         yield 'unknown child' => [$parent, ['unknown'], 'childIds', 'accounts.childNotFound'];
         yield 'inactive child' => [$parent, ['inactive'], 'childIds', 'accounts.childNotFound'];
         yield 'too many children' => [
@@ -197,16 +208,26 @@ final class AccountRequestsControllerApprovalTest extends ApiTestCase
         $this->assertProblem(409, 'accounts.alreadyApproved');
     }
 
-    public function testAMalformedAccountIdIsNotFound(): void
+    public function testAMissingOrDisabledRequestIsRefusedBeforeTheChoiceIsChecked(): void
     {
-        $this->signInWithRoles('admin@example.org', 'administrator');
-
-        $this->jsonRequest('POST', '/api/account-requests/not-a-uuid/approve', [
-            'as' => 'servant',
-            'roleIds' => [self::SERVANT_ROLE],
+        new SignInAccounts(self::getContainer())->add(self::SERVANT, [
+            'approved_at' => null,
+            'disabled_at' => '2026-11-08 12:00:00+01',
         ]);
 
-        $this->assertProblem(404, 'notFound.user');
+        $this->signInWithRoles('admin@example.org', 'administrator');
+
+        foreach (['not-a-uuid', Uuid::v7()->toRfc4122()] as $id) {
+            $this->jsonRequest('POST', '/api/account-requests/' . $id . '/approve', [
+                'as' => 'servant',
+                'roleIds' => [],
+            ]);
+
+            $this->assertProblem(404, 'notFound.user');
+        }
+
+        $this->approve(self::SERVANT, ['as' => 'servant', 'roleIds' => [self::SERVANT_ROLE]]);
+        $this->assertProblem(409, 'accounts.requestDisabled');
     }
 
     /**

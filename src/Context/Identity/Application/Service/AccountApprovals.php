@@ -11,6 +11,7 @@ use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
+use App\Library\Strings\Model\Text;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -33,7 +34,10 @@ final readonly class AccountApprovals
      */
     public function chosenRoles(array $roleIds): ReadableCollection
     {
-        $ids = Collections::firstPerKey(new ArrayCollection($roleIds), keyOf: static fn (string $id): string => $id);
+        $ids = Collections::firstPerKey(
+            new ArrayCollection($roleIds),
+            keyOf: static fn (string $id): string => Text::of($id)->lower()->toString(),
+        );
 
         if ($ids->isEmpty()) {
             throw InvalidInput::field('roleIds', 'roles.chooseRole');
@@ -45,10 +49,33 @@ final readonly class AccountApprovals
     }
 
     /**
+     * @param list<string> $roleIds
+     *
+     * @return ReadableCollection<int, Role>
+     */
+    public function chosenParentRoles(array $roleIds): ReadableCollection
+    {
+        $parent = $this->roles->findByName(ParentAccounts::PARENT_ROLE) ?? throw NotFound::of('role');
+        $chosen = $this->chosenRoles($roleIds);
+
+        $roles = Collections::firstPerKey(
+            new ArrayCollection([...$chosen->getValues(), $parent]),
+            keyOf: static fn (Role $role): string => $role->id()->toRfc4122(),
+        );
+
+        return new ArrayCollection($roles->getValues());
+    }
+
+    public function ensurePending(string $id): void
+    {
+        $this->requests->ensurePending($id);
+    }
+
+    /**
      * @param ReadableCollection<int, Role> $roles
      * @param callable(User): void $alongside
      */
-    public function approve(string $id, string $actorId, ReadableCollection $roles, callable $alongside): User
+    public function approve(string $id, string $actorId, ReadableCollection $roles, callable $alongside): void
     {
         $actor = $this->account($actorId);
 
@@ -65,11 +92,9 @@ final readonly class AccountApprovals
 
             $alongside($user);
         });
-
-        return $this->account($id);
     }
 
-    private function account(string $id): User
+    public function account(string $id): User
     {
         return $this->users->find(Uuid::fromString($id)) ?? throw NotFound::of('user');
     }

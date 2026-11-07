@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Domain\ValueObject;
 
+use App\Library\Problem\Exception\RuleViolation;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -28,6 +29,10 @@ final readonly class AccountStatus
 
     public function approvedOn(DateTimeImmutable $at): self
     {
+        if ($this->isDisabled()) {
+            throw new RuleViolation('accounts.requestDisabled');
+        }
+
         return new self($at, $this->disabledAt, $this->authVersion);
     }
 

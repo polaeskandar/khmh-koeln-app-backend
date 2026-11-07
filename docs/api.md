@@ -819,6 +819,7 @@ label is its own label, and the 120-character limit applies only to a label that
 | `accounts.chooseServiceForRole` | – | Choose the service for this role. |
 | `accounts.acceptPrivacy` | – | Please confirm that you have read the privacy notice. |
 | `accounts.adminOnly` | – | Only administrators can approve or decline accounts. |
+| `accounts.requestDisabled` | – | **New.** 409: this request's account is disabled. Enable it before approving it, or decline it. |
 | `accounts.alreadyApproved` | – | This account has already been approved. |
 | `accounts.chooseChild` | – | Choose at least one child. |
 | `accounts.childNotFound` | – | One of the chosen children no longer exists or is inactive. |
@@ -940,20 +941,23 @@ Nothing else: no password hash and no privacy fields.
 
 #### `POST /api/account-requests/{id}/approve`
 
-Body `{as: "parent", childIds, roleIds}` or `{as: "servant", roleIds}`. Roles hold everywhere, so a servant
-gets roles and nothing else; children come from the people directory (`GET /api/people/directory?q=`). In one
-transaction, with the account locked: the roles are given, a parent gets approved guardian links to the
-children (`approved_by` = the administrator), the account is approved, and the registration's note, its
+`users: update` and `roles: update` (it grants roles), else 403 `accounts.adminOnly`. Body `{as: "parent",
+childIds, roleIds}` or `{as: "servant", roleIds}`. Roles hold everywhere, so a servant gets roles and nothing
+else; children come from the people directory (`GET /api/people/directory?q=`). In one transaction, with the
+account locked: the roles are given (a parent also gets the Parent role), a parent gets approved guardian links
+to the children (`approved_by` = the administrator), the account is approved, and the registration's note, its
 `registeredAs` and the services the person named are deleted. Any failure stores nothing. 200
-`{id, email, displayName, language}`.
+`{id, email, displayName, language}`. The request is checked before the body, and every field error comes back
+at once.
 
 | Field | Codes |
 | --- | --- |
 | `as` | `validation.invalidChoice` (not `parent` or `servant`) |
-| `roleIds` | `roles.chooseRole` (none), `roles.unknown` (an id no role has); duplicates are ignored |
-| `childIds` (parents) | `accounts.chooseChild` (none), `validation.tooMany {max: 20}`, `accounts.childNotFound` (unknown or inactive); duplicates are ignored |
+| `roleIds` | `roles.chooseRole` (none), `roles.unknown` (an id no role has); duplicates are ignored, in any letter case |
+| `childIds` (parents) | `accounts.chooseChild` (none), `validation.tooMany {max: 20}`, `accounts.childNotFound` (unknown or inactive); duplicates are ignored, in any letter case |
 
-404 `notFound.user`; 409 `accounts.alreadyApproved`.
+404 `notFound.user`, also for an id that is not a UUID; 409 `accounts.alreadyApproved`; 409
+`accounts.requestDisabled` for a disabled request, which can still be declined.
 
 #### `POST /api/account-requests/{id}/decline`
 

@@ -12,7 +12,7 @@ use App\Library\Problem\Exception\RuleViolation;
 
 final readonly class ParentAccounts
 {
-    private const string PARENT_ROLE = 'Parent';
+    public const string PARENT_ROLE = 'Parent';
 
     public function __construct(
         private UserRepositoryInterface $users,
