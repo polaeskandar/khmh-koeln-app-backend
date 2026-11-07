@@ -259,7 +259,8 @@ member can do it by hand; nothing is automated yet (#99).
 1. **Note the rollback target:** the SHA of the running API image and the running web bundle's build.
 2. **Back up:** run the backup job once and wait for its heartbeat (§ Backups).
 3. **Migrate** in a one-off container of the new image, against production, before anything switches:
-   `docker run --rm -e APP_SECRET -e DATABASE_URL <new image> php bin/console app:migrations:migrate --no-interaction`.
+   `docker run --rm <the API's environment> <new image> php bin/console app:migrations:migrate --no-interaction`
+   (the same variables as the API containers, § Configuration).
    It applies the pending migrations of every context and does nothing when there are none. The running release
    keeps working, because every migration is compatible with it (§ Migrations).
 4. **Switch the API** to `<new sha>` (the API, the worker and the jobs use the same image).
@@ -269,7 +270,7 @@ member can do it by hand; nothing is automated yet (#99).
 8. **Log** the date, the API and web SHAs, each context's latest migration and who released. Step 3 has
    applied every pending migration; a context's latest one is
    `SELECT max(version) FROM <context>_migration_versions` (`identity`, `organization`, `people`, `meetings`,
-   `attendance`, `learning`).
+   `learning`).
 
 ## Migrations
 
@@ -294,7 +295,7 @@ schema:
 ## First release
 
 1. **Migrate** an empty database as in step 3 of the release.
-2. **First administrators:** `php bin/console app:user:create <email> "<name>" --role=Administrator --no-password`,
+2. **First administrators:** `php bin/console app:user:create <email> "<name>" --role=administrator --no-password`,
    then `php bin/console app:user:password-link <email>`; the link reaches them by email and is valid 24 hours.
    Tell each of them in person that it is coming.
 3. **The smoke account:** `app:user:create smoke@… "Smoke Test" --password-stdin`, no role; its password goes
