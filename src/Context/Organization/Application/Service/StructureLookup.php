@@ -43,7 +43,9 @@ final readonly class StructureLookup
 
     public function stage(string $id): Stage
     {
-        return $this->stages->find(Uuid::fromString($id)) ?? throw NotFound::of('stage');
+        $stage = Uuid::isValid($id) ? $this->stages->find(Uuid::fromString($id)) : null;
+
+        return $stage ?? throw NotFound::of('stage');
     }
 
     /**

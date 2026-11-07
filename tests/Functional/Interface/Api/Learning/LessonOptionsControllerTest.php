@@ -30,7 +30,7 @@ final class LessonOptionsControllerTest extends ApiTestCase
         $schedules->session(
             $class,
             '2026-11-01',
-            "status = 'completed', opened_at = created_at, closed_at = created_at",
+            "status = 'completed', opened_at = created_at, closed_at = created_at, title = 'Harvest', start_time = '10:00'",
         );
 
         $schedules->session($class, '2026-11-08', "status = 'active', opened_at = created_at");
@@ -50,6 +50,9 @@ final class LessonOptionsControllerTest extends ApiTestCase
             ['2026-11-01 completed', '2026-11-08 active', '2026-11-15 planned', '2026-11-22 canceled'],
             array_slice($options, offset: 3, length: 4),
         );
+
+        $this->assertJsonPath('options.3.title', 'Harvest');
+        $this->assertJsonPath('options.3.startTime', '10:00');
 
         $this->assertJsonPath('options.5', [
             'scheduleId' => $class->id()->toRfc4122(),
@@ -120,8 +123,10 @@ final class LessonOptionsControllerTest extends ApiTestCase
         $this->jsonRequest('GET', $this->options($third) . '?lessonId=' . $other->id()->toRfc4122());
         $this->assertProblem(404, 'notFound.lesson');
 
-        $this->jsonRequest('GET', '/api/stages/' . Uuid::v7()->toRfc4122() . '/lesson-options');
-        $this->assertProblem(404, 'notFound.stage');
+        foreach ([Uuid::v7()->toRfc4122(), 'not-a-uuid'] as $stageId) {
+            $this->jsonRequest('GET', '/api/stages/' . $stageId . '/lesson-options');
+            $this->assertProblem(404, 'notFound.stage');
+        }
 
         $this->jsonRequest('GET', $this->options($third) . '?lessonId=nope');
         $this->assertFieldError('lessonId', 'validation.invalidType');

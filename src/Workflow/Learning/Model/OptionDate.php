@@ -19,13 +19,13 @@ final readonly class OptionDate
 
     public static function of(PlannedDate $date): self
     {
-        $schedule = $date->schedule;
+        $plan = $date->plan;
 
         return new self(
-            scheduleId: $schedule->id()->toRfc4122(),
+            scheduleId: $date->schedule->id()->toRfc4122(),
             date: $date->date->toString(),
-            startTime: $schedule->timeSlot()->startTime->toString(),
-            title: $schedule->details()->name,
+            startTime: $plan->timeSlot->startTime->toString(),
+            title: $plan->title,
             state: $date->status,
         );
     }
