@@ -8,7 +8,6 @@ use App\Context\Identity\Application\Service\AccountErasures;
 use App\Context\People\Application\Service\PeopleExports;
 use App\Library\Problem\Exception\NotFound;
 use App\Platform\Privacy\Contract\AccountReferences;
-use App\Workflow\Privacy\Model\AccountSweep;
 use App\Workflow\Privacy\Model\ErasureCounts;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Symfony\Component\Uid\Uuid;
@@ -28,18 +27,28 @@ final readonly class EraseAccountWorkflow
 
     public function __invoke(string $accountId): ErasureCounts
     {
-        $id = Uuid::fromString($accountId);
-        $sweep = fn (): int => AccountSweep::of($this->references, $id);
+        $id = Uuid::isValid($accountId) ? Uuid::fromString($accountId) : throw NotFound::of('account');
 
         if (!$this->accounts->exists($id)) {
-            $sweep();
+            $this->swept($id);
 
-            throw NotFound::of('user');
+            throw NotFound::of('account');
         }
 
         $guardianLinks = $this->people->linksOfAccount($id)->count();
-        $erased = $this->accounts->erase($id, $sweep);
+        $erased = $this->accounts->erase($id, fn (): int => $this->swept($id));
 
-        return ErasureCounts::of($erased, $guardianLinks, lateRows: $sweep());
+        return ErasureCounts::of($erased, $guardianLinks, lateRows: $this->swept($id));
+    }
+
+    private function swept(Uuid $accountId): int
+    {
+        $kept = 0;
+
+        foreach ($this->references as $context) {
+            $kept += $context->forget($accountId);
+        }
+
+        return $kept;
     }
 }

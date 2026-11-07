@@ -162,6 +162,7 @@ final class PrivacyEraseAccountCommandTest extends KernelTestCase
         self::assertSame(Command::SUCCESS, $tester->execute(['account' => $parent]));
         self::assertStringContainsString('Dry run, nothing changed', $tester->getDisplay());
         self::assertSame(Command::FAILURE, $this->erase(Uuid::v7()->toRfc4122()));
+        self::assertSame(Command::FAILURE, $this->erase('not-an-account'));
 
         self::assertSame($before, $this->rowCounts());
 

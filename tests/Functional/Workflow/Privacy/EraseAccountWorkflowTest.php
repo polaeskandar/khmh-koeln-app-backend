@@ -60,7 +60,7 @@ final class EraseAccountWorkflowTest extends ApiTestCase
             $this->workflow()($servant);
             self::fail('A second erasure must report the account as gone.');
         } catch (NotFound $gone) {
-            self::assertSame('notFound.user', $gone->getMessage());
+            self::assertSame('notFound.account', $gone->getMessage());
         }
 
         self::assertSame(0, $connection->fetchOne('SELECT count(*) FROM meetings.session_event WHERE actor_id = ?', [

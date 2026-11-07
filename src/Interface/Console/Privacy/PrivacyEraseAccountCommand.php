@@ -11,7 +11,6 @@ use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Uid\Uuid;
 
 #[AsCommand(
     name: 'app:privacy:erase-account',
@@ -26,12 +25,6 @@ final readonly class PrivacyEraseAccountCommand
 
     public function __invoke(SymfonyStyle $io, #[Argument(description: 'The account id')] string $account): int
     {
-        if (!Uuid::isValid($account)) {
-            $io->error('notFound.account');
-
-            return Command::INVALID;
-        }
-
         try {
             $counts = ($this->eraseAccount)($account);
         } catch (NotFound|RuleViolation $refused) {

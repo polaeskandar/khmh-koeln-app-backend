@@ -338,7 +338,7 @@ deletes it in one transaction. Each context forgets through its `AccountTraces` 
 `AccountReferences` platform contract and nulls its actor columns or deletes the rows the account owned; the workflow
 collects them by the contract's tag, so a new context only adds its own service. A request that was already
 running can still write the account's id after that transaction, so the workflow sweeps the contexts once
-more after the commit, and a rerun on an erased account sweeps again before it reports `notFound.user`.
+more after the commit, and a rerun on an erased account sweeps again before it reports `notFound.account`.
 
 **Past totals stay right.** A session's counts ("12 of 14 present") would shrink when someone is erased.
 Three counters on `meeting_session` keep them: `erased_roster`, `erased_present` and

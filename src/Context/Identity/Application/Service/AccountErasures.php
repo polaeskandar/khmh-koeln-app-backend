@@ -10,7 +10,6 @@ use App\Context\Identity\Domain\Repository\PasswordTokenRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\AccountErased;
 use App\Library\Problem\Exception\RuleViolation;
-use App\Platform\Doctrine\Contract\Transactions;
 use LogicException;
 use Symfony\Component\Uid\Uuid;
 
@@ -21,7 +20,6 @@ final readonly class AccountErasures
         private UserRepositoryInterface $users,
         private LastAdministrator $lastAdministrator,
         private PasswordTokenRepositoryInterface $tokens,
-        private Transactions $transactions,
     ) {
     }
 
@@ -44,14 +42,6 @@ final readonly class AccountErasures
         });
 
         return $erased ?? throw new LogicException('The account was not erased.');
-    }
-
-    /**
-     * @param callable(): int $sweep
-     */
-    public function rehearse(Uuid $accountId, callable $sweep): AccountErased
-    {
-        return $this->transactions->rehearse(fn (): AccountErased => $this->erase($accountId, $sweep));
     }
 
     /**
