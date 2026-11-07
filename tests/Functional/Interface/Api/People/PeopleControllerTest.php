@@ -30,7 +30,7 @@ final class PeopleControllerTest extends ApiTestCase
             'lastName' => 'Hanna',
             'placement' => [
                 'serviceId' => $service->id()->toRfc4122(),
-                'stageId' => $third->id()->toRfc4122(),
+                'stageId' => strtoupper($third->id()->toRfc4122()),
             ],
         ]);
 
@@ -44,6 +44,15 @@ final class PeopleControllerTest extends ApiTestCase
         $this->create(['firstName' => 'Marina', 'lastName' => 'Hanna']);
         self::assertResponseStatusCodeSame(201);
         $this->assertJsonPath('membership', null);
+
+        $this->create([
+            'firstName' => 'Kirollos',
+            'lastName' => 'Hanna',
+            'placement' => ['serviceId' => $service->id()->toRfc4122()],
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+        $this->assertJsonPath('membership.stageId', null);
     }
 
     /**
@@ -60,12 +69,18 @@ final class PeopleControllerTest extends ApiTestCase
         [$service, $third] = $this->structure();
         $archived = Structure::stage($service, 'Old Class', position: 1);
         $archived->archive(Structure::now());
-        new Database(self::getContainer())->persisted($archived);
+        $youth = Structure::service('Youth');
+        $youthStage = Structure::stage($youth, 'Teens');
+        $oldService = Structure::service('Old School');
+        $oldService->archive(Structure::now());
+        new Database(self::getContainer())->persisted($archived, $youth, $youthStage, $oldService);
 
         $ids = [
             'service' => $service->id()->toRfc4122(),
             'stage' => $third->id()->toRfc4122(),
             'archived' => $archived->id()->toRfc4122(),
+            'youth stage' => $youthStage->id()->toRfc4122(),
+            'archived service' => $oldService->id()->toRfc4122(),
             'unknown' => Uuid::v7()->toRfc4122(),
         ];
 
@@ -122,6 +137,19 @@ final class PeopleControllerTest extends ApiTestCase
             'meetings.chooseStage',
         ];
 
+        yield 'archived service' => [
+            [...$names, 'placement' => ['serviceId' => 'archived service']],
+            'placement.serviceId',
+            'meetings.serviceArchived',
+            ['name' => 'Old School'],
+        ];
+
+        yield "another service's stage" => [
+            [...$names, 'placement' => ['serviceId' => 'service', 'stageId' => 'youth stage']],
+            'placement.stageId',
+            'meetings.chooseStage',
+        ];
+
         yield 'archived stage' => [
             [...$names, 'placement' => ['serviceId' => 'service', 'stageId' => 'archived']],
             'placement.stageId',
@@ -130,12 +158,26 @@ final class PeopleControllerTest extends ApiTestCase
         ];
     }
 
-    public function testBlankNamesAreReportedTogether(): void
+    public function testEveryNameAndPlacementErrorIsReportedTogether(): void
     {
+        $mina = new Rosters(self::getContainer())->person('Mina', 'Hanna');
         $this->signInWithRoles('servant@example.org', 'servant');
 
         $this->create(['firstName' => ' ', 'lastName' => ' ']);
+        $errors = JsonBody::asArray($this->responseJson()['fieldErrors'] ?? null, 'fieldErrors');
+        self::assertSame(['firstName', 'lastName'], array_keys($errors));
 
+        $this->create([
+            'firstName' => str_repeat('a', times: 81),
+            'lastName' => str_repeat('b', times: 81),
+            'displayName' => str_repeat('c', times: 121),
+            'placement' => ['serviceId' => Uuid::v7()->toRfc4122()],
+        ]);
+
+        $errors = JsonBody::asArray($this->responseJson()['fieldErrors'] ?? null, 'fieldErrors');
+        self::assertSame(['firstName', 'lastName', 'displayName', 'placement.serviceId'], array_keys($errors));
+
+        $this->jsonRequest('PUT', '/api/people/' . $mina->id()->toRfc4122(), ['firstName' => ' ', 'lastName' => ' ']);
         $errors = JsonBody::asArray($this->responseJson()['fieldErrors'] ?? null, 'fieldErrors');
         self::assertSame(['firstName', 'lastName'], array_keys($errors));
     }
@@ -194,6 +236,13 @@ final class PeopleControllerTest extends ApiTestCase
         $this->assertJsonPath('firstName', 'Mina');
         $this->assertJsonPath('lastName', 'Hanna Gerges');
         $this->assertJsonPath('displayName', 'Mimi');
+
+        self::assertSame(
+            ['last_name' => 'Hanna Gerges', 'name_key' => 'mina_hanna_gerges'],
+            new Database(self::getContainer())
+                ->connection()
+                ->fetchAssociative('SELECT last_name, name_key FROM people.person WHERE id = ?', [$mina->id()->toRfc4122()]),
+        );
 
         $this->jsonRequest('PUT', '/api/people/' . $mina->id()->toRfc4122(), [
             'firstName' => 'Mina',

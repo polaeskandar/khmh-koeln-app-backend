@@ -8,6 +8,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
 use App\Library\Problem\Exception\InvalidInput;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class StageChoices
 {
@@ -24,9 +25,11 @@ final readonly class StageChoices
             return null;
         }
 
+        $id = Uuid::isValid($stageId) ? Uuid::fromString($stageId) : null;
+
         $stage = $this->stages
             ->ofService($service)
-            ->filter(static fn (Stage $stage): bool => $stage->id()->toRfc4122() === $stageId)
+            ->filter(static fn (Stage $stage): bool => $stage->id()->equals($id))
             ->first();
 
         if (!$stage instanceof Stage) {

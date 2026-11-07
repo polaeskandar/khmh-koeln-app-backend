@@ -31,7 +31,7 @@ final class InvalidInput extends RuntimeException
     }
 
     /**
-     * @param callable(): object ...$checks
+     * @param callable(): (object|string|null) ...$checks
      */
     public static function all(callable ...$checks): void
     {
@@ -43,7 +43,7 @@ final class InvalidInput extends RuntimeException
     }
 
     /**
-     * @param callable(): object $check
+     * @param callable(): (object|string|null) $check
      *
      * @return array<string, array{code: string, params?: array<string, string|int|float|bool|null>}>
      */
