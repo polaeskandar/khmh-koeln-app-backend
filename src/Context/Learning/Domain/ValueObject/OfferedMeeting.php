@@ -24,8 +24,16 @@ final readonly class OfferedMeeting
 
     public function isNewlyCanceled(?MeetingLink $current): bool
     {
-        $unchanged = $current?->equals($this->link) ?? false;
+        return $this->canceled && !$this->keeps($current);
+    }
 
-        return $this->canceled && !$unchanged;
+    public function isNewlyUnscheduled(?MeetingLink $current): bool
+    {
+        return !$this->scheduled && !$this->keeps($current);
+    }
+
+    private function keeps(?MeetingLink $current): bool
+    {
+        return $current?->equals($this->link) ?? false;
     }
 }

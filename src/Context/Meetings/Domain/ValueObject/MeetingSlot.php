@@ -16,12 +16,13 @@ final readonly class MeetingSlot
         private Schedule $schedule,
         public LocalDate $date,
         private ?Session $session,
+        private ArchivedStructure $archived,
     ) {
     }
 
     public static function ofSession(Session $session): self
     {
-        return new self($session->schedule(), $session->occurrenceDate(), $session);
+        return new self($session->schedule(), $session->occurrenceDate(), $session, ArchivedStructure::of([]));
     }
 
     public function scheduleId(): Uuid
@@ -41,7 +42,7 @@ final readonly class MeetingSlot
 
     public function isScheduled(): bool
     {
-        $planned = $this->schedule->isActive() && $this->schedule->recurrence()->occursOn($this->date);
+        $planned = $this->archived->generates($this->schedule) && $this->schedule->recurrence()->occursOn($this->date);
 
         return $planned || $this->session !== null;
     }

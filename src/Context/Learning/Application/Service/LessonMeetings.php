@@ -25,8 +25,11 @@ final readonly class LessonMeetings
         ?Lesson $editing = null,
     ): MeetingLink {
         $link = match (true) {
-            $choice->sessionId !== null => MeetingLinks::toSession($stageId, $offered, $editing?->link()),
-            $choice->scheduleId !== null => MeetingLinks::toSchedule($stageId, $offered, $editing?->link()),
+            $choice->sessionId !== null, $choice->scheduleId !== null => MeetingLinks::to(
+                $stageId,
+                $offered,
+                $editing?->link(),
+            ),
             $choice->date !== null => new MeetingLink(null, $choice->day()),
             default => throw MeetingChoice::refusal('lessons.chooseWhen'),
         };

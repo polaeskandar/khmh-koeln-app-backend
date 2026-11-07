@@ -11,28 +11,16 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class MeetingLinks
 {
-    public static function toSession(Uuid $stageId, ?OfferedMeeting $offered, ?MeetingLink $current): MeetingLink
-    {
-        return self::usable($stageId, $offered, $current)->link;
-    }
-
-    public static function toSchedule(Uuid $stageId, ?OfferedMeeting $offered, ?MeetingLink $current): MeetingLink
-    {
-        $meeting = self::usable($stageId, $offered, $current);
-
-        if (!$meeting->scheduled) {
-            throw MeetingChoice::refusal('lessons.noMeetingThatDay', ['name' => $meeting->name]);
-        }
-
-        return $meeting->link;
-    }
-
-    private static function usable(Uuid $stageId, ?OfferedMeeting $offered, ?MeetingLink $current): OfferedMeeting
+    public static function to(Uuid $stageId, ?OfferedMeeting $offered, ?MeetingLink $current): MeetingLink
     {
         if ($offered?->belongsTo($stageId) !== true || $offered->isNewlyCanceled($current)) {
             throw MeetingChoice::refusal('lessons.chooseMeeting');
         }
 
-        return $offered;
+        if ($offered->isNewlyUnscheduled($current)) {
+            throw MeetingChoice::refusal('lessons.noMeetingThatDay', ['name' => $offered->name]);
+        }
+
+        return $offered->link;
     }
 }

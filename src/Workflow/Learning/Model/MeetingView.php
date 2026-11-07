@@ -6,6 +6,7 @@ namespace App\Workflow\Learning\Model;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Library\Time\Model\LocalDate;
 
 final readonly class MeetingView
@@ -40,9 +41,9 @@ final readonly class MeetingView
         ]);
     }
 
-    public static function forSchedule(?Schedule $schedule, LocalDate $date): self
+    public static function forSchedule(?Schedule $schedule, LocalDate $date, ArchivedStructure $archived): self
     {
-        if ($schedule !== null && $schedule->isActive() && $schedule->recurrence()->occursOn($date)) {
+        if ($schedule !== null && $archived->generates($schedule) && $schedule->recurrence()->occursOn($date)) {
             return self::planned($schedule, $date);
         }
 

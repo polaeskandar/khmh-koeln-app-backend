@@ -22,6 +22,6 @@ final readonly class GeneratingSchedules
 
     public static function generates(Schedule $schedule, ArchivedStructure $archived): bool
     {
-        return $schedule->isActive() && !$archived->holds($schedule->roster());
+        return $archived->generates($schedule);
     }
 }
