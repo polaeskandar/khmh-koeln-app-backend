@@ -42,20 +42,51 @@ final class PasswordLinkControllerTest extends ApiTestCase
         $this->assertProblem(401, 'auth.invalidCredentials');
 
         $this->signInAs(self::EMAIL, SignInAccounts::MISTYPED);
-        self::assertSame([], new Logs(self::getContainer())->containing($token));
+        $this->use(['token' => $token, 'password' => SignInAccounts::TYPED]);
+        self::assertSame(self::INVALID, $this->browser()->getResponse()->getContent());
+
+        $logs = new Logs(self::getContainer());
+        self::assertSame([], $logs->containing($token));
+        self::assertSame([], $logs->containing(SignInAccounts::MISTYPED));
     }
 
-    public function testANewerLinkReplacesTheOlderOne(): void
+    public function testOnlyOneLinkOfAnAccountWorks(): void
     {
-        new SignInAccounts(self::getContainer())->add(self::EMAIL);
+        self::mockTime('2026-11-08T10:00:00+01:00');
+        $userId = new SignInAccounts(self::getContainer())->add(self::EMAIL);
         $older = $this->emailedToken();
         $newer = $this->emailedToken();
 
         $this->use(['token' => $older, 'password' => SignInAccounts::MISTYPED]);
         self::assertSame(self::INVALID, $this->browser()->getResponse()->getContent());
 
-        $this->use(['token' => $newer, 'password' => SignInAccounts::MISTYPED]);
+        $first = $this->storedToken($userId);
+        $second = $this->storedToken($userId);
+
+        $this->use(['token' => $first, 'password' => SignInAccounts::MISTYPED]);
         self::assertResponseStatusCodeSame(204);
+
+        foreach ([$newer, $second] as $other) {
+            $this->use(['token' => $other, 'password' => SignInAccounts::TYPED]);
+            self::assertSame(self::INVALID, $this->browser()->getResponse()->getContent());
+        }
+    }
+
+    public function testDisablingAnAccountDropsItsUnusedLinks(): void
+    {
+        self::mockTime('2026-11-08T10:00:00+01:00');
+        $token = $this->storedToken(new SignInAccounts(self::getContainer())->add(self::EMAIL));
+        $application = new Application($this->browser()->getKernel());
+        $application->setAutoExit(false);
+        $console = new ApplicationTester($application);
+
+        $console->run(['command' => 'app:user:disable', 'email' => self::EMAIL]);
+        $console->assertCommandIsSuccessful();
+        $console->run(['command' => 'app:user:enable', 'email' => self::EMAIL]);
+        $console->assertCommandIsSuccessful();
+
+        $this->use(['token' => $token, 'password' => SignInAccounts::MISTYPED]);
+        self::assertSame(self::INVALID, $this->browser()->getResponse()->getContent());
     }
 
     /**
