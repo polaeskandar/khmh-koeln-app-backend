@@ -38,6 +38,9 @@ final class HomeworkAssignmentTest extends KernelTestCase
         yield 'archived without a time' => [Database::CHECK_VIOLATION, "status = 'archived'"];
         yield 'unknown status' => [Database::CHECK_VIOLATION, "status = 'graded'"];
         yield 'long instructions' => [Database::CHECK_VIOLATION, "instructions = repeat('a', 2001)"];
+        yield 'blank instructions' => [Database::CHECK_VIOLATION, "instructions = '  '"];
+        yield 'no instructions' => ['23502', 'instructions = NULL'];
+        yield 'blank title' => [Database::CHECK_VIOLATION, "title = '   '"];
         yield 'eleven resources' => [
             Database::CHECK_VIOLATION,
             "resources = (SELECT jsonb_agg('{}'::jsonb) FROM generate_series(1, 11))",
@@ -63,6 +66,24 @@ final class HomeworkAssignmentTest extends KernelTestCase
         ));
     }
 
+    public function testPublishedAndArchivedTasksAreStored(): void
+    {
+        $this->task();
+        $connection = $this->database()->connection();
+
+        $connection->executeStatement(
+            "UPDATE learning.homework_assignment SET status = 'published', published_at = now()",
+        );
+
+        $connection->executeStatement(
+            "UPDATE learning.homework_assignment SET status = 'archived', archived_at = now()",
+        );
+
+        $connection->executeStatement('UPDATE learning.homework_assignment SET published_at = NULL');
+
+        self::assertSame('archived', $connection->fetchOne('SELECT status FROM learning.homework_assignment'));
+    }
+
     public function testCompletionChecksAndTheLessonCanNotBeDeleted(): void
     {
         $task = $this->task();
@@ -82,6 +103,7 @@ final class HomeworkAssignmentTest extends KernelTestCase
         );
 
         $this->database()->assertRefused(Database::RESTRICT_VIOLATION, 'DELETE FROM learning.lesson');
+        $this->database()->assertRefused(Database::RESTRICT_VIOLATION, 'DELETE FROM learning.homework_assignment');
     }
 
     private function task(): HomeworkAssignment
@@ -95,7 +117,7 @@ final class HomeworkAssignmentTest extends KernelTestCase
 
         $task = new HomeworkAssignment(
             $lesson,
-            HomeworkText::of('Learn the verse', null, null),
+            HomeworkText::of('Learn the verse', 'Say it aloud.', null),
             Materials::none(),
             null,
         );
