@@ -145,7 +145,7 @@ final class AttendanceBoardControllerTest extends ApiTestCase
 
         new Database(self::getContainer())
             ->connection()
-            ->executeStatement("UPDATE meetings.meeting_schedule SET roster_mode = 'open'");
+            ->executeStatement("UPDATE meetings.meeting_session SET roster_mode = 'open'");
 
         $rosters = new Rosters(self::getContainer());
         $mina = $rosters->person('Mina');

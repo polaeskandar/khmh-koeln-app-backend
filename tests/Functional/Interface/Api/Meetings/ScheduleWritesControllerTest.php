@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Meetings;
 
-use App\Context\Organization\Domain\Entity\Service;
-use App\Context\Organization\Domain\Entity\Stage;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
-use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
-use App\Tests\Support\Database;
+use App\Tests\Support\Interface\Api\Meetings\ScheduleBodies;
+use App\Tests\Support\Interface\Api\Meetings\ScheduleRows;
+use App\Tests\Support\JsonBody;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 use Symfony\Component\Uid\Uuid;
@@ -21,22 +20,24 @@ final class ScheduleWritesControllerTest extends ApiTestCase
     public function testAScheduleFromTodayGetsTodaysSessionAndOneFromNextWeekNone(): void
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
-        [$service] = $this->structure();
+        $rows = new ScheduleRows(self::getContainer());
+        [$service] = $rows->structure();
         $this->signInWithRoles('leader@example.org', 'service_leader');
 
-        $this->jsonRequest('POST', '/api/schedules', $this->body($service, null, '2026-11-08'));
+        $this->jsonRequest('POST', '/api/schedules', ScheduleBodies::created($service, null, '2026-11-08'));
         self::assertResponseStatusCodeSame(201);
         $this->assertJsonPath('createdSessions', 1);
-        $id = $this->writtenId();
+        $id = Type::of($this->responseJson()['id'] ?? null)->toString();
 
         self::assertStringEndsWith(
             '/api/schedules/' . $id,
             (string) $this->browser()->getResponse()->headers->get('Location'),
         );
 
-        self::assertSame('Sunday class', $this->stored($id, 'name'));
+        self::assertSame('Sunday class', $rows->column($id, 'name'));
+        self::assertSame('Sunday class|Hall|12:00:00|13:30:00|expected', $rows->sessionOn($id, '2026-11-08'));
 
-        $this->jsonRequest('POST', '/api/schedules', $this->body($service, null, '2026-11-15'));
+        $this->jsonRequest('POST', '/api/schedules', ScheduleBodies::created($service, null, '2026-11-15'));
         $this->assertJsonPath('createdSessions', 0);
     }
 
@@ -51,13 +52,13 @@ final class ScheduleWritesControllerTest extends ApiTestCase
         string $code,
         array $params = [],
     ): void {
-        [$service, $stage] = $this->structure();
+        [$service, $stage] = new ScheduleRows(self::getContainer())->structure();
         $this->signInWithRoles('leader@example.org', 'service_leader');
 
         $this->jsonRequest(
             'POST',
             '/api/schedules',
-            array_replace_recursive($this->body($service, $stage, '2026-11-08'), $changes),
+            array_replace_recursive(ScheduleBodies::created($service, $stage, '2026-11-08'), $changes),
         );
 
         $this->assertFieldError($field, $code, $params);
@@ -101,126 +102,61 @@ final class ScheduleWritesControllerTest extends ApiTestCase
         yield 'no interval' => [['recurrence' => ['interval' => 0]], 'recurrence.interval', 'recurrence.interval'];
     }
 
-    public function testEditsKeepExistingSessionsAndAddTomorrowsWhenItBecomesAnOccurrence(): void
+    public function testTheErrorsOfEveryPartAreReportedTogether(): void
     {
-        self::mockTime('2026-11-08T10:00:00+01:00');
-        [$service] = $this->structure();
+        [$service] = new ScheduleRows(self::getContainer())->structure();
         $this->signInWithRoles('leader@example.org', 'service_leader');
-        $this->jsonRequest('POST', '/api/schedules', $this->body($service, null, '2026-11-08'));
-        $id = $this->writtenId();
 
-        $this->jsonRequest('PATCH', '/api/schedules/' . $id, [
-            'details' => ['location' => 'Church'],
-            'times' => ['startTime' => '18:00', 'endTime' => '19:00'],
-        ]);
-
-        self::assertResponseIsSuccessful();
-        $this->assertJsonPath('createdSessions', 0);
-        self::assertSame('Sunday class', $this->stored($id, 'name'));
-        self::assertSame('Church', $this->stored($id, 'location'));
-
-        $this->jsonRequest('PATCH', '/api/schedules/' . $id, [
-            'recurrence' => [
-                'frequency' => 'weekly',
-                'interval' => 1,
-                'weekdays' => [1, 7],
-                'span' => ['startsOn' => '2026-11-08'],
-            ],
-        ]);
-
-        $this->assertJsonPath('createdSessions', 1);
-
-        $this->jsonRequest('PATCH', '/api/schedules/' . $id, ['times' => ['startTime' => '20:00']]);
-        $this->assertFieldError('times.endTime', 'meetings.endAfterStart');
-
-        $this->jsonRequest('PATCH', '/api/schedules/' . $id, ['roster' => ['mode' => 'open']]);
-        $this->assertFieldError('roster', 'validation.unexpectedField');
-    }
-
-    public function testAnEndTimeIsKeptWhenLeftOutAndClearedWhenSentEmpty(): void
-    {
-        [$service] = $this->structure();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
-        $this->jsonRequest('POST', '/api/schedules', $this->body($service, null, '2026-11-08'));
-        $id = $this->writtenId();
-
-        $this->jsonRequest('PATCH', '/api/schedules/' . $id, ['times' => ['startTime' => '12:30']]);
-        self::assertSame('13:30:00', $this->stored($id, 'end_time'));
-
-        $this->jsonRequest('PATCH', '/api/schedules/' . $id, ['times' => ['endTime' => null]]);
-        self::assertResponseIsSuccessful();
-        self::assertNull($this->stored($id, 'end_time'));
-    }
-
-    public function testUnknownSchedulesArchivedServicesAndAccess(): void
-    {
-        [$service] = $this->structure();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
-        $this->jsonRequest('POST', '/api/schedules', $this->body($service, null, '2026-11-15'));
-        $id = $this->writtenId();
-
-        $this->jsonRequest('PATCH', '/api/schedules/' . Uuid::v7()->toRfc4122(), ['details' => ['location' => 'Hall']]);
-        $this->assertProblem(404, 'notFound.schedule');
-
-        new Database(self::getContainer())
-            ->connection()
-            ->update(
-                'organization.service',
-                ['archived_at' => '2026-11-01 12:00:00+01'],
-                ['id' => $service->id()->toRfc4122()],
-            );
-
-        $this->jsonRequest('PATCH', '/api/schedules/' . $id, ['details' => ['location' => 'Hall']]);
-        $this->assertProblem(409, 'meetings.serviceArchivedRestoreFirst', ['name' => 'Sunday School']);
-
-        $this->signInWithRoles('servant@example.org', 'servant');
-        $this->jsonRequest('POST', '/api/schedules', $this->body($service, null, '2026-11-15'));
-        $this->assertProblem(403, 'forbidden');
-    }
-
-    /**
-     * @return array<string, array<string, mixed>>
-     */
-    private function body(Service $service, ?Stage $stage, string $startsOn): array
-    {
-        return [
-            'roster' => [
-                'serviceId' => $service->id()->toRfc4122(),
-                'stageId' => $stage?->id()->toRfc4122(),
-                'mode' => 'expected',
-            ],
-            'details' => ['name' => '  Sunday   class ', 'description' => '', 'location' => 'Hall'],
-            'recurrence' => [
-                'frequency' => 'weekly',
-                'interval' => 1,
-                'weekdays' => [7],
-                'span' => ['startsOn' => $startsOn],
-            ],
-            'times' => ['startTime' => '12:00', 'endTime' => '13:30'],
+        $broken = [
+            'details' => ['name' => null],
+            'recurrence' => ['interval' => 0],
+            'times' => ['endTime' => '11:00'],
         ];
+
+        $unknownService = ['roster' => ['serviceId' => Uuid::v7()->toRfc4122()]];
+
+        $body = array_replace_recursive(
+            ScheduleBodies::created($service, null, '2026-11-08'),
+            $broken,
+            $unknownService,
+        );
+
+        $this->jsonRequest('POST', '/api/schedules', $body);
+        $this->assertBrokenParts('roster.serviceId');
+
+        $this->jsonRequest('POST', '/api/schedules', ScheduleBodies::created($service, null, '2026-11-08'));
+        $id = Type::of($this->responseJson()['id'] ?? null)->toString();
+        $this->jsonRequest('PUT', '/api/schedules/' . $id, ScheduleBodies::replaced($broken));
+        $this->assertBrokenParts();
     }
 
-    private function writtenId(): string
+    public function testAdministratorsCreateAndOthersMayNot(): void
     {
-        return Type::of($this->responseJson()['id'] ?? null)->toString();
+        [$service] = new ScheduleRows(self::getContainer())->structure();
+        $body = ScheduleBodies::created($service, null, '2026-11-15');
+
+        $this->jsonRequest('POST', '/api/schedules', $body);
+        $this->assertProblem(401, 'auth.unauthenticated');
+
+        $this->signInWithRoles('admin@example.org', 'administrator');
+        $this->jsonRequest('POST', '/api/schedules', $body);
+        self::assertResponseStatusCodeSame(201);
+
+        foreach (['servant', 'parent'] as $role) {
+            $this->signInWithRoles($role . '@example.org', $role);
+            $this->jsonRequest('POST', '/api/schedules', $body);
+            $this->assertProblem(403, 'forbidden');
+        }
     }
 
-    private function stored(string $id, string $column): mixed
+    private function assertBrokenParts(string ...$more): void
     {
-        return new Database(self::getContainer())
-            ->connection()
-            ->fetchOne('SELECT ' . $column . ' FROM meetings.meeting_schedule WHERE id = ?', [$id]);
-    }
+        self::assertResponseStatusCodeSame(422);
 
-    /**
-     * @return array{Service, Stage}
-     */
-    private function structure(): array
-    {
-        $service = Structure::service();
-        $stage = Structure::stage($service);
-        new Database(self::getContainer())->persisted($service, $stage);
-
-        return [$service, $stage];
+        $fields = array_keys(JsonBody::asArray($this->responseJson()['fieldErrors'] ?? null, '"fieldErrors"'));
+        $expected = [...$more, 'details.name', 'recurrence.interval', 'times.endTime'];
+        sort($expected);
+        sort($fields);
+        self::assertSame($expected, $fields);
     }
 }

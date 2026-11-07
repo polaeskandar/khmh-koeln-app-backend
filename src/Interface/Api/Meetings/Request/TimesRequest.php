@@ -17,8 +17,8 @@ final readonly class TimesRequest
     ) {
     }
 
-    public function choice(bool $endTimeSent): TimesChoice
+    public function choice(): TimesChoice
     {
-        return new TimesChoice($this->startTime, $this->endTime, $endTimeSent);
+        return new TimesChoice($this->startTime, $this->endTime);
     }
 }

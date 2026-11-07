@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Workflow\Meetings\Model;
 
+use App\Context\Meetings\Domain\Enum\RosterMode;
+use App\Context\Meetings\Domain\ValueObject\ScheduleDraft;
+
 final readonly class NewSchedule
 {
     public function __construct(
@@ -12,5 +15,15 @@ final readonly class NewSchedule
         public RecurrenceChoice $recurrence,
         public TimesChoice $times,
     ) {
+    }
+
+    public function draft(): ScheduleDraft
+    {
+        return new ScheduleDraft(
+            $this->details->draft(),
+            $this->recurrence->draft(),
+            $this->times->draft(),
+            RosterMode::from($this->roster->mode ?? ''),
+        );
     }
 }

@@ -8,6 +8,7 @@ use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Library\Time\Model\LocalDate;
+use App\Library\Time\Model\LocalTime;
 use Doctrine\Common\Collections\ArrayCollection;
 
 final readonly class PlannedDate
@@ -21,12 +22,13 @@ final readonly class PlannedDate
         public LocalDate $date,
         public string $status,
         public ?string $sessionId,
+        public LocalTime $startTime,
     ) {
     }
 
     public static function planned(Schedule $schedule, LocalDate $date): self
     {
-        return new self($schedule, $date, self::PLANNED, sessionId: null);
+        return new self($schedule, $date, self::PLANNED, sessionId: null, startTime: $schedule->timeSlot()->startTime);
     }
 
     public static function ofSession(Session $session): self
@@ -36,6 +38,7 @@ final readonly class PlannedDate
             $session->occurrenceDate(),
             $session->progress()->status->value,
             $session->id()->toRfc4122(),
+            $session->plan()->timeSlot->startTime,
         );
     }
 
@@ -51,6 +54,6 @@ final readonly class PlannedDate
 
     public function sortKey(): string
     {
-        return $this->date->toString() . ' ' . $this->schedule->timeSlot()->startTime->toString();
+        return $this->date->toString() . ' ' . $this->startTime->toString();
     }
 }

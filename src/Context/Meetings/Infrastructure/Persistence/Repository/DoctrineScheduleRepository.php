@@ -6,6 +6,8 @@ namespace App\Context\Meetings\Infrastructure\Persistence\Repository;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
+use App\Context\Meetings\Domain\ValueObject\SessionPlan;
+use App\Library\Time\Model\LocalDate;
 use App\Library\Types\Model\ListOf;
 use App\Library\Types\Model\Type;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -19,6 +21,12 @@ final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInt
 {
     private const string ACTIVE_IDS = 'SELECT id FROM meetings.meeting_schedule WHERE active ORDER BY id';
 
+    private const string REPLAN_UPCOMING = <<<'SQL'
+        UPDATE meetings.meeting_session
+        SET title = ?, location = ?, start_time = ?, end_time = ?, roster_mode = ?
+        WHERE schedule_id = ? AND status = 'scheduled' AND occurrence_date >= ?
+        SQL;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -29,6 +37,22 @@ final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInt
     {
         $this->entityManager->persist($schedule);
         $this->entityManager->flush();
+    }
+
+    #[Override]
+    public function replanUpcoming(Schedule $schedule, LocalDate $from): void
+    {
+        $plan = SessionPlan::of($schedule);
+
+        $this->entityManager->getConnection()->executeStatement(self::REPLAN_UPCOMING, [
+            $plan->title,
+            $plan->location,
+            $plan->timeSlot->startTime->toString(),
+            $plan->timeSlot->endTime?->toString(),
+            $plan->rosterMode->value,
+            $schedule->id()->toRfc4122(),
+            $from->toString(),
+        ]);
     }
 
     /**

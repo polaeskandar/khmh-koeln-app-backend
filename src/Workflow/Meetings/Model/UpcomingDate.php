@@ -20,7 +20,7 @@ final readonly class UpcomingDate
     {
         return new self(
             date: $planned->date->toString(),
-            startTime: $planned->schedule->timeSlot()->startTime->toString(),
+            startTime: $planned->startTime->toString(),
             status: $planned->status,
             sessionId: $planned->sessionId,
         );

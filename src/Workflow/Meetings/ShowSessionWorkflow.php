@@ -68,13 +68,13 @@ final readonly class ShowSessionWorkflow
     {
         $schedule = $session->schedule();
         $schedules = new ArrayCollection([$schedule]);
-        $slot = $schedule->timeSlot();
+        $slot = $session->plan()->timeSlot;
         $date = $session->occurrenceDate();
         $endTime = $slot->endTime;
 
         return new SessionView(
             SessionDetails::of($session),
-            ScheduleRoster::of($schedule, RosterReferences::of(
+            ScheduleRoster::ofSession($session, RosterReferences::of(
                 $this->structure->services(RosterReferences::serviceIdsOf($schedules)),
                 $this->structure->stages(RosterReferences::stageIdsOf($schedules)),
             )),

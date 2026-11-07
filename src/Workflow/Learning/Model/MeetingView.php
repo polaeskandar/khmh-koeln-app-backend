@@ -27,16 +27,16 @@ final readonly class MeetingView
 
     public static function session(Session $session): self
     {
-        $schedule = $session->schedule();
+        $plan = $session->plan();
 
         return new self('session', [
             'id' => $session->id()->toRfc4122(),
             'status' => $session->progress()->status->value,
             'date' => $session->occurrenceDate()->toString(),
-            'startTime' => $schedule->timeSlot()->startTime->toString(),
-            'endTime' => $schedule->timeSlot()->endTime?->toString(),
-            'title' => $schedule->details()->name,
-            'location' => $schedule->details()->location,
+            'startTime' => $plan->timeSlot->startTime->toString(),
+            'endTime' => $plan->timeSlot->endTime?->toString(),
+            'title' => $plan->title,
+            'location' => $plan->location,
             'cancelReason' => $session->progress()->cancelReason,
         ]);
     }

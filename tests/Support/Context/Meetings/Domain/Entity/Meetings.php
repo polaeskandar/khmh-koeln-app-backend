@@ -11,6 +11,7 @@ use App\Context\Meetings\Domain\ValueObject\DateSpan;
 use App\Context\Meetings\Domain\ValueObject\MeetingDetails;
 use App\Context\Meetings\Domain\ValueObject\Recurrence;
 use App\Context\Meetings\Domain\ValueObject\Roster;
+use App\Context\Meetings\Domain\ValueObject\SessionPlan;
 use App\Context\Meetings\Domain\ValueObject\TimeSlot;
 use App\Library\Time\Model\LocalDate;
 use App\Library\Time\Model\LocalTime;
@@ -39,6 +40,6 @@ final readonly class Meetings
 
     public static function session(Schedule $schedule, string $date = '2026-11-08'): Session
     {
-        return new Session($schedule, LocalDate::of($date));
+        return new Session($schedule, LocalDate::of($date), SessionPlan::of($schedule));
     }
 }

@@ -19,14 +19,14 @@ final readonly class SessionDetails
 
     public static function of(Session $session): self
     {
-        $schedule = $session->schedule();
+        $plan = $session->plan();
 
         return new self(
             id: $session->id()->toRfc4122(),
-            scheduleId: $schedule->id()->toRfc4122(),
+            scheduleId: $session->schedule()->id()->toRfc4122(),
             occurrenceDate: $session->occurrenceDate()->toString(),
-            title: $schedule->details()->name,
-            location: $schedule->details()->location,
+            title: $plan->title,
+            location: $plan->location,
         );
     }
 }

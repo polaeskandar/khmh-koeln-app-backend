@@ -25,7 +25,7 @@ final readonly class SessionView
     ): self {
         return new self(
             SessionDetails::of($session),
-            ScheduleRoster::of($session->schedule(), $references),
+            ScheduleRoster::ofSession($session, $references),
             SessionTimes::of($session, $startsAt, $endsAt),
             SessionProgress::of($session),
         );

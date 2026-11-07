@@ -119,7 +119,7 @@ final readonly class SessionTallies
 
     private function isExpected(Session $session): bool
     {
-        return $this->scheduleOf($session)->roster()->mode === RosterMode::Expected;
+        return $session->plan()->rosterMode === RosterMode::Expected;
     }
 
     private function keyOf(Session $session): RosterKey

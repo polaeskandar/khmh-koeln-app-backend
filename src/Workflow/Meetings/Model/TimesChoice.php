@@ -11,17 +11,11 @@ final readonly class TimesChoice
     public function __construct(
         public ?string $startTime,
         public ?string $endTime,
-        public bool $endTimeSent,
     ) {
     }
 
     public function draft(): TimesDraft
     {
-        return TimesDraft::of($this->startTime, $this->endTime);
-    }
-
-    public function change(): TimesDraft
-    {
-        return TimesDraft::change($this->startTime, $this->endTime, $this->endTimeSent);
+        return new TimesDraft($this->startTime, $this->endTime);
     }
 }
