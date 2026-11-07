@@ -46,4 +46,20 @@ final class DoctrineUserRepositoryTest extends KernelTestCase
 
         self::assertSame($sara->id()->toRfc4122(), $locked);
     }
+
+    public function testALoadedAccountIsLockedWithWhatIsStored(): void
+    {
+        $database = new Database(self::getContainer());
+        $repository = new DoctrineUserRepository($database->entityManager());
+        $sara = Accounts::approved('sara@example.org');
+        $repository->save($sara);
+        $database->connection()->executeStatement('UPDATE identity.app_user SET disabled_at = now() WHERE id = ?', [$sara->id()->toRfc4122()]);
+        $disabled = null;
+
+        $repository->withWriteLock($sara->id(), static function (User $user) use (&$disabled): void {
+            $disabled = $user->status()->disabledAt;
+        });
+
+        self::assertNotNull($disabled);
+    }
 }

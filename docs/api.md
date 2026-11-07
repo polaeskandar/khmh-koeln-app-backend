@@ -922,7 +922,8 @@ Registrations waiting for a decision. Both endpoints need the users permission (
 
 #### `GET /api/account-requests`
 
-`{items: [AccountRequest], today}`: the 200 oldest pending accounts (not approved, not disabled), oldest first.
+`{items: [AccountRequest], today}`: the 200 oldest pending accounts (not approved, also when disabled, so they can
+still be declined), oldest first; `services` by name.
 
 | Member | Type |
 | --- | --- |

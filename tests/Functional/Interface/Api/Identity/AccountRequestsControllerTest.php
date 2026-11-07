@@ -22,14 +22,20 @@ final class AccountRequestsControllerTest extends ApiTestCase
     public function testAnAdministratorSeesOnlyPendingAccountsOldestFirstWithTheDocumentedKeys(): void
     {
         $service = Structure::service();
-        new Database(self::getContainer())->persisted($service);
+        $youth = Structure::service('Youth');
+        new Database(self::getContainer())->persisted($service, $youth);
         self::mockTime('2026-11-08T10:00:00+01:00');
         $this->register(Registrations::parent());
         self::mockTime('2026-11-08T11:00:00+01:00');
-        $this->register(Registrations::servant([$service->id()->toRfc4122()]));
+        $this->register(Registrations::servant([$youth->id()->toRfc4122(), $service->id()->toRfc4122()]));
 
-        new SignInAccounts(self::getContainer())->add('disabled@example.org', [
+        $accounts = new SignInAccounts(self::getContainer());
+        $accounts->add('disabled@example.org', ['disabled_at' => '2026-11-08 12:00:00+01']);
+
+        $accounts->add('blocked@example.org', [
+            'approved_at' => null,
             'disabled_at' => '2026-11-08 12:00:00+01',
+            'created_at' => '2026-11-08 12:00:00+01',
         ]);
 
         $this->signInWithRoles('admin@example.org', 'administrator');
@@ -38,7 +44,7 @@ final class AccountRequestsControllerTest extends ApiTestCase
 
         self::assertResponseIsSuccessful();
         $items = JsonBody::asArray($this->responseJson()['items'] ?? null, 'items');
-        self::assertCount(2, $items);
+        self::assertCount(3, $items);
         $servant = JsonBody::asArray($items[1] ?? null, 'servant');
         self::assertSame(['account', 'registeredAt', 'registeredAs', 'note', 'services'], array_keys($servant));
         $this->assertJsonPath('items.0.account.email', 'mariam.hanna@example.org');
@@ -48,6 +54,8 @@ final class AccountRequestsControllerTest extends ApiTestCase
         $this->assertJsonPath('items.1.registeredAt', '2026-11-08T11:00:00+01:00');
         $this->assertJsonPath('items.1.note', 'Youth, Thursdays');
         $this->assertJsonPath('items.1.services.0.name', 'Sunday School');
+        $this->assertJsonPath('items.1.services.1.name', 'Youth');
+        $this->assertJsonPath('items.2.account.email', 'blocked@example.org');
         $this->assertJsonPath('today', '2026-11-08');
     }
 
@@ -77,16 +85,22 @@ final class AccountRequestsControllerTest extends ApiTestCase
     {
         $this->registerServant();
         $id = $this->requestId();
+        $connection = new Database(self::getContainer())->connection();
+        $other = Uuid::v7()->toRfc4122();
+
+        $connection->executeStatement('INSERT INTO organization.registration_service (account_id, service_id) SELECT ?, id FROM organization.service', [
+            $other,
+        ]);
+
         $this->signInWithRoles('admin@example.org', 'administrator');
 
         $this->jsonRequest('POST', '/api/account-requests/' . $id . '/decline');
 
         self::assertResponseStatusCodeSame(204);
         self::assertNull($this->idOf(self::SERVANT));
-
-        self::assertSame(0, new Database(self::getContainer())
-            ->connection()
-            ->fetchOne('SELECT count(*) FROM organization.registration_service WHERE account_id = ?', [$id]));
+        $count = 'SELECT count(*) FROM organization.registration_service WHERE account_id = ?';
+        self::assertSame(0, $connection->fetchOne($count, [$id]));
+        self::assertSame(1, $connection->fetchOne($count, [$other]));
 
         $this->jsonRequest('POST', '/api/auth/sign-in', [
             'email' => self::SERVANT,
@@ -108,6 +122,11 @@ final class AccountRequestsControllerTest extends ApiTestCase
 
         $this->assertProblem(409, 'accounts.alreadyApproved');
         self::assertSame($id, $this->idOf(self::SERVANT));
+
+        $admin = $this->idOf('admin@example.org');
+        self::assertIsString($admin);
+        $this->jsonRequest('POST', '/api/account-requests/' . $admin . '/decline');
+        $this->assertProblem(409, 'accounts.alreadyApproved');
     }
 
     public function testAnUnknownAccountIsNotFound(): void

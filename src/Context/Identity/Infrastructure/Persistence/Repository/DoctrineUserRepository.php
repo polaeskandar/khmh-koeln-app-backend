@@ -49,8 +49,8 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
     public function pending(int $limit): ReadableCollection
     {
         return new ArrayCollection($this->entityManager->getRepository(User::class)->findBy(
-            ['status.approvedAt' => null, 'status.disabledAt' => null],
-            ['createdAt' => 'ASC'],
+            ['status.approvedAt' => null],
+            ['createdAt' => 'ASC', 'id' => 'ASC'],
             $limit,
         ));
     }
@@ -59,6 +59,12 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
     public function withWriteLock(Uuid $id, callable $work): void
     {
         $this->entityManager->wrapInTransaction(function () use ($id, $work): void {
+            $loaded = $this->entityManager->getUnitOfWork()->tryGetById(['id' => $id], User::class);
+
+            if ($loaded !== false) {
+                $this->entityManager->detach($loaded);
+            }
+
             $work(
                 $this->entityManager->find(User::class, $id, LockMode::PESSIMISTIC_WRITE) ?? throw NotFound::of('user'),
             );

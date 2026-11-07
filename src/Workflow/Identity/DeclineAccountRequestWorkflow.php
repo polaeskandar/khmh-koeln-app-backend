@@ -10,6 +10,7 @@ use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\RegistrationServices;
+use App\Platform\Doctrine\Contract\Transactions;
 
 final readonly class DeclineAccountRequestWorkflow
 {
@@ -17,6 +18,7 @@ final readonly class DeclineAccountRequestWorkflow
         private AccessCheck $access,
         private AccountRequests $requests,
         private RegistrationServices $registrations,
+        private Transactions $transactions,
     ) {
     }
 
@@ -24,9 +26,9 @@ final readonly class DeclineAccountRequestWorkflow
     {
         $this->access->require(Action::Delete, Resource::Users, refusal: 'accounts.adminOnly');
 
-        $this->requests->decide($id, function (User $user): void {
+        $this->transactions->run(fn () => $this->requests->decide($id, function (User $user): void {
             $this->registrations->forget($user->id());
             $this->requests->decline($user);
-        });
+        }));
     }
 }
