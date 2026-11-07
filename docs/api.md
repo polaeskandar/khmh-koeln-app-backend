@@ -1351,13 +1351,14 @@ in German collation.
 #### `GET /api/stages/{stageId}/lesson-options?lessonId=`
 
 `lessons: update` (403 `lessons.prepareStageOnly`). Feeds the lesson editor's Meeting and Responsible selects:
-`{today, options, servants}`. 404 `notFound.stage`; a `lessonId` that is unknown or of another stage → 404
+`{today, options, servants}`. 404 `notFound.stage`, also for an id that is not a UUID; a `lessonId` that is unknown
+or of another stage → 404
 `notFound.lesson`; a malformed or empty one → 422 `lessonId` `validation.invalidType`.
 
 - `options`: every date from today−28 (or the edited lesson's teaching date, when earlier) to today+84, both
   included, of the stage's active schedules, by date and time. Each is `{scheduleId, date, startTime, title, state,
-  takenBy}`: `title` is the schedule's name, `state` is the session's status (`scheduled`, `active`, `completed`,
-  `canceled`) or `planned` when the date has no session yet. `takenBy` is `{id, title}` of the date's
+  takenBy}`: `title` and `startTime` are the session's own (#199) or, when the date has no session yet, the
+  schedule's; `state` is the session's status (`scheduled`, `active`, `completed`, `canceled`) or `planned`. `takenBy` is `{id, title}` of the date's
   non-archived lesson, the edited lesson excepted, or `null`.
 - `servants`: the lesson preparers as `AccountRef`.
 

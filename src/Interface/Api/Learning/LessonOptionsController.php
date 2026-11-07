@@ -12,16 +12,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\Requirement\Requirement;
 
 final class LessonOptionsController extends AbstractController
 {
-    #[Route(
-        '/api/stages/{stageId}/lesson-options',
-        name: 'api_lesson_options',
-        requirements: ['stageId' => Requirement::UUID],
-        methods: ['GET'],
-    )]
+    #[Route('/api/stages/{stageId}/lesson-options', name: 'api_lesson_options', methods: ['GET'])]
     public function list(
         string $stageId,
         ListLessonOptionsWorkflow $listLessonOptions,
