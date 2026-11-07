@@ -86,7 +86,7 @@ Naming:
 | Application service | `Context/<C>/Application/Service/` | what it manages (`RoleAssignments`, `AccountRegistration`), never `*Service`, `*Manager` or `*Helper` | final readonly |
 | Port | `Context/<C>/Domain/Interface/` | `*Interface` | interface |
 | Repository | `Context/<C>/Domain/Repository/` | `*RepositoryInterface` | interface |
-| Doctrine repository | `Context/<C>/Infrastructure/Persistence/Repository/` | `Doctrine<Entity>Repository`, nothing else in the folder | final readonly |
+| Doctrine repository | `Context/<C>/Infrastructure/Persistence/Repository/` | `Doctrine<Entity>Repository`, or `Doctrine<Query>Repository` for a read query across entities (`DoctrineRosterRepository`); nothing else in the folder | final readonly |
 | Repository filter | `Context/<C>/Infrastructure/Persistence/Repository/Filter/` | `<Entity>Filters` | final readonly, static methods that build the Doctrine `Criteria` of a listing |
 | Repository writer | `Context/<C>/Infrastructure/Persistence/Repository/Writer/` | what it writes (`MissingSessions`) | final readonly, a write a Doctrine repository hands off |
 | Exception | `Context/<C>/Domain/Exception/` | `*Exception` | class |
