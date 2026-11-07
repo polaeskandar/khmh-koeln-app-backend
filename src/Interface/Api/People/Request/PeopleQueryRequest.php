@@ -10,6 +10,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 final readonly class PeopleQueryRequest
 {
     public function __construct(
+        #[Assert\Choice(choices: ['active', 'inactive', 'all'], message: 'validation.invalidChoice')]
         public string $status = 'active',
         #[Assert\NotBlank(message: 'validation.invalidType', allowNull: true)]
         #[Assert\Uuid(message: 'validation.invalidType')]
@@ -17,6 +18,7 @@ final readonly class PeopleQueryRequest
         #[Assert\NotBlank(message: 'validation.invalidType', allowNull: true)]
         #[Assert\Uuid(message: 'validation.invalidType')]
         public ?string $stageId = null,
+        #[Assert\Length(max: 100, maxMessage: 'validation.tooLong', charsetMessage: 'validation.invalidType')]
         public string $q = '',
         public int $page = 1,
     ) {

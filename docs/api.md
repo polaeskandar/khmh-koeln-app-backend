@@ -622,6 +622,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `validation.invalidChoice` | – | **New.** Field error: the value is not one of the allowed choices (`status=deleted`). |
 | `validation.tooMany` | `max` | **New.** Field error: more items than allowed. |
 | `validation.tooSmall` | `min` | **New.** Field error: the number is below {min}. |
+| `validation.tooLarge` | `max` | **New.** Field error: the number is above {max}. |
 | `validation.invalidRange` | `max` | **New.** Field error: the end is before the start, or the range is longer than `max` days. |
 | `validation.birthDateInFuture` | – | **New.** Field error on `birthDate`: the date is after today. |
 | `validation.addressIncomplete` | – | **New.** Field error on `address`: give street, postal code and city, or none of them. |
@@ -1073,14 +1074,18 @@ UTF-8 → `validation.invalidType`. `%` and `_` match themselves.
 current ones (`endsOn` null or from today) under `placements`, ended ones under `pastPlacements`. Roles hold
 everywhere, so every person is listed.
 
-- `status` defaults to `active`; anything other than `active`, `inactive` or `all` → 422 `validation.invalidChoice`.
+- `status` defaults to `active`; anything other than `active`, `inactive` or `all` → 422 `validation.invalidChoice
+  {choices}`. Every query error comes back at once, except `page`, which is checked after them.
+  With the default, inactive people on a roster are left out (a roster itself ignores status, so `memberCount`
+  can be higher); `status=all` lists the whole roster.
 - `stageId` keeps the stage's roster today; `serviceId` everyone currently in the service, at any stage or the
   service level. With `stageId`, `serviceId` is ignored. Unknown → 404 `notFound.stage` / `notFound.service`; an id
   that is not a UUID → 422 `validation.invalidType` on that filter.
-- `q`: every word (folded like the directory search) appears in the first, last or display name.
-- `page` from 1; `page=0` → 422 `validation.tooSmall {min: 1}`. The page costs the same number of statements
-  whatever its size.
-- `can.add` is `members: create`; `can.edit` is `members: update`.
+- `q`: every word (folded like the directory search) appears in the first, last or display name; at most 100
+  characters (`validation.tooLong {max: 100}`), and text that is not UTF-8 → `validation.invalidType`.
+- `page` from 1 to 10000; `page=0` → 422 `validation.tooSmall {min: 1}`, beyond → `validation.tooLarge {max:
+  10000}`. The page costs the same number of statements whatever its size.
+- Unknown query parameters are ignored.
 
 A `PersonView` is `{id, firstName, lastName, displayName, status}`; a `MembershipView` is `{id, serviceId,
 stageId, startsOn, endsOn}`.

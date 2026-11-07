@@ -101,8 +101,18 @@ final class PeopleControllerListTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/people?status=all');
         $this->assertJsonPath('total', 3);
 
-        $this->jsonRequest('GET', '/api/people?status=deleted');
-        $this->assertFieldError('status', 'validation.invalidChoice');
+        $this->jsonRequest('GET', '/api/people?status=deleted&serviceId=x');
+        $this->assertFieldError('status', 'validation.invalidChoice', ['choices' => '"active", "inactive", "all"']);
+        $this->assertFieldError('serviceId', 'validation.invalidType');
+
+        $this->jsonRequest('GET', '/api/people?q=%C3%28');
+        $this->assertFieldError('q', 'validation.invalidType', ['charset' => 'UTF-8', 'max' => 100]);
+
+        $this->jsonRequest('GET', '/api/people?q=' . str_repeat('a', times: 101));
+        $this->assertFieldError('q', 'validation.tooLong', ['limit' => 100, 'max' => 100]);
+
+        $this->jsonRequest('GET', '/api/people?q=mina&_=123');
+        $this->assertJsonPath('total', 2);
     }
 
     public function testPagesHoldTwentyFiveRowsAndTheTotal(): void
@@ -119,6 +129,13 @@ final class PeopleControllerListTest extends ApiTestCase
 
         $this->jsonRequest('GET', '/api/people?page=0');
         $this->assertFieldError('page', 'validation.tooSmall', ['min' => 1]);
+
+        $this->jsonRequest('GET', '/api/people?page=400000000000000000');
+        $this->assertFieldError('page', 'validation.tooLarge', ['max' => 10_000]);
+
+        $this->jsonRequest('GET', '/api/people?page=3');
+        $this->assertJsonPath('total', 30);
+        $this->assertJsonPath('items', []);
     }
 
     public function testAFullPageCostsAsManyStatementsAsAnAlmostEmptyOne(): void
