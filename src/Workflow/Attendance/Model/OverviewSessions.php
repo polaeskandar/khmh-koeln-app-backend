@@ -76,7 +76,7 @@ final readonly class OverviewSessions
 
         return [
             $session->occurrenceDate()->toString(),
-            $schedule->timeSlot()->startTime->toString(),
+            $session->plan()->timeSlot->startTime->toString(),
             (string) $collator->getSortKey($references->serviceOf($schedule)->name ?? ''),
             ($references->stageOf($schedule)->position ?? -1) + 1,
             $session->id()->toRfc4122(),

@@ -10,6 +10,7 @@ use App\Context\Meetings\Domain\Entity\SessionEvent;
 use App\Context\Meetings\Domain\Enum\SessionEventType;
 use App\Context\Meetings\Domain\ValueObject\Actor;
 use App\Context\Meetings\Domain\ValueObject\GenerationResult;
+use App\Context\Meetings\Domain\ValueObject\SessionPlan;
 use App\Library\Time\Model\LocalDate;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -59,7 +60,7 @@ final readonly class MissingSessions
         $missing = $dates->filter(fn (LocalDate $date): bool => !$this->exists($scheduleId, $date));
 
         foreach ($missing as $date) {
-            $session = new Session($schedule, $date);
+            $session = new Session($schedule, $date, SessionPlan::of($schedule));
             $this->entityManager->persist($session);
 
             $this->entityManager->persist(

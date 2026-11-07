@@ -11,6 +11,7 @@ use App\Context\Meetings\Domain\ValueObject\DateSpan;
 use App\Context\Meetings\Domain\ValueObject\MeetingDetails;
 use App\Context\Meetings\Domain\ValueObject\Recurrence;
 use App\Context\Meetings\Domain\ValueObject\Roster;
+use App\Context\Meetings\Domain\ValueObject\SessionPlan;
 use App\Context\Meetings\Domain\ValueObject\TimeSlot;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
@@ -44,7 +45,7 @@ final readonly class Schedules
 
     public function session(Schedule $schedule, string $date, string $set = ''): Session
     {
-        $session = new Session($schedule, LocalDate::of($date));
+        $session = new Session($schedule, LocalDate::of($date), SessionPlan::of($schedule));
         $database = new Database($this->container);
         $database->persisted($session);
 

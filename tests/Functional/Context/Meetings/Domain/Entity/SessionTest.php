@@ -40,6 +40,9 @@ final class SessionTest extends KernelTestCase
         yield 'completed without closing' => ["status = 'completed', opened_at = created_at"];
         yield 'closed but still active' => ["status = 'active', opened_at = created_at, closed_at = created_at"];
         yield 'active without opening' => ["status = 'active'"];
+        yield 'blank title' => ["title = ' '"];
+        yield 'unknown roster mode' => ["roster_mode = 'closed'"];
+        yield 'end at start' => ['end_time = start_time'];
     }
 
     public function testACompletedSessionAndACanceledOneWithAReasonAreAccepted(): void

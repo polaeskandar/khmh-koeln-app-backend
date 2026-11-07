@@ -1171,22 +1171,26 @@ Field errors: `roster.serviceId` `meetings.chooseService` / `meetings.serviceArc
 `meetings.chooseStage` / `meetings.stageArchived {name}`; `roster.mode` `meetings.chooseRosterMode`; `details.name`
 `meetings.scheduleNameRequired`, `validation.tooLong {max: 120}` (description 500, location 120); `times.startTime`
 `validation.chooseTime`, `times.*` `validation.invalidTime`, `times.endTime` `meetings.endAfterStart`;
-`recurrence.*` as in Recurrence. The name's spaces are collapsed; an empty description or location is `null`.
+`recurrence.*` as in Recurrence; `recurrence.frequency` `validation.invalidChoice`, `recurrence.span.startsOn`
+`validation.chooseDate`, `recurrence.span.*` `validation.invalidDate`. Once the body is well-formed, the errors of
+the roster, the name, the recurrence rules and the times are reported together. The name's spaces are collapsed; an empty description or location is `null`. Each
+session copies the schedule's name (as its title), location, times and roster mode when it is created.
 
-#### `PATCH /api/schedules/{id}`
+#### `PUT /api/schedules/{id}`
 
-`sessions: update`. Body `{details?, recurrence?, times?, rosterMode?}`: a member left out keeps its value, a sent
-`recurrence` replaces the old one whole, `""` clears a description or location, and `times.endTime: null` (or `""`)
-clears the end time; an empty `times.startTime` is `validation.chooseTime`; the time order is checked on the
-merged times (`times.endTime` `meetings.endAfterStart`). The service and stage can't change (`roster` →
-`validation.unexpectedField`). Sessions that exist keep their details (D10); an active schedule gets its missing
-sessions for today and tomorrow. 200 `{id, createdSessions}`; 404 `notFound.schedule`; an archived service or stage
-→ 409 `meetings.serviceArchivedRestoreFirst {name}` / `meetings.stageArchivedRestoreFirst {name}`.
+`sessions: update`. Body `{details: {name, description?, location?}, recurrence: Recurrence, times: {startTime,
+endTime?}, rosterMode}`, the whole editable schedule: a description, location or end time left out, `null` or `""`
+is cleared. Same field errors as `POST`, with `rosterMode` `meetings.chooseRosterMode`. The service and stage
+can't change (`roster` → `validation.unexpectedField`). The schedule's sessions that are still `scheduled` from
+church-today on take the new title, location, times and roster mode; started, closed, canceled and earlier
+sessions keep theirs. An active schedule gets its missing sessions for today and tomorrow. 200 `{id,
+createdSessions}`; 404 `notFound.schedule`, also for an id that is not a UUID; an archived service or stage → 409
+`meetings.serviceArchivedRestoreFirst {name}` / `meetings.stageArchivedRestoreFirst {name}`.
 
 ### Sessions
 
 A `SessionView`: `{id, scheduleId, occurrenceDate, title, service: ServiceRef, stage: StageRef | null, date,
-startTime, endTime, startsAt, endsAt, location, status, rosterMode, cancelReason}`. Title, place, roster mode and times are the schedule's; `startsAt`/`endsAt` are the instants in
+startTime, endTime, startsAt, endsAt, location, status, rosterMode, cancelReason}`. Title, place, roster mode and times are the session's own (see `POST /api/schedules`); `startsAt`/`endsAt` are the instants in
 Europe/Berlin with their offset (`+01:00` in winter, `+02:00` in summer). `cancelReason` is `null` unless the
 viewer may read attendance (`attendance: read`), because it may name children (D7). Apps offer managing and
 reopening for `sessions: update` and recording for `attendance: create`.

@@ -7,11 +7,17 @@ namespace App\Context\Meetings\Application\Service;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
+use App\Context\Meetings\Domain\ValueObject\MeetingDetails;
+use App\Context\Meetings\Domain\ValueObject\Recurrence;
+use App\Context\Meetings\Domain\ValueObject\Roster;
 use App\Context\Meetings\Domain\ValueObject\ScheduleDraft;
-use App\Context\Meetings\Domain\ValueObject\ScheduleEdit;
+use App\Context\Meetings\Domain\ValueObject\SchedulePlan;
 use App\Context\Meetings\Domain\ValueObject\ScheduleWritten;
+use App\Context\Meetings\Domain\ValueObject\TimeSlot;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Time\Client\Calendar;
 use App\Platform\Doctrine\Contract\Transactions;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class ScheduleWrites
 {
@@ -24,35 +30,36 @@ final readonly class ScheduleWrites
     ) {
     }
 
-    public function create(ScheduleDraft $draft, ArchivedStructure $archived): ScheduleWritten
+    public function plan(ScheduleDraft $draft): SchedulePlan
     {
-        $this->rules->check($draft->recurrence);
+        InvalidInput::all(
+            static fn (): MeetingDetails => $draft->details->details(),
+            fn (): Recurrence => $this->rules->check($draft->recurrence),
+            static fn (): TimeSlot => $draft->times->slot(),
+        );
 
-        return $this->saved(
-            new Schedule(
-                $draft->roster,
-                $draft->details->merged(stored: null),
-                $draft->recurrence->toRecurrence(),
-                $draft->times->merged(stored: null),
-            ),
-            $archived,
+        return new SchedulePlan(
+            $draft->details->details(),
+            $this->rules->check($draft->recurrence),
+            $draft->times->slot(),
+            $draft->rosterMode,
         );
     }
 
-    public function edit(Schedule $schedule, ScheduleEdit $edit, ArchivedStructure $archived): ScheduleWritten
+    public function create(
+        Uuid $serviceId,
+        ?Uuid $stageId,
+        SchedulePlan $plan,
+        ArchivedStructure $archived,
+    ): ScheduleWritten {
+        $roster = new Roster($serviceId, $stageId, $plan->rosterMode);
+
+        return $this->saved(new Schedule($roster, $plan->details, $plan->recurrence, $plan->timeSlot), $archived);
+    }
+
+    public function edit(Schedule $schedule, SchedulePlan $plan, ArchivedStructure $archived): ScheduleWritten
     {
-        $recurrence = $edit->recurrence;
-
-        if ($recurrence !== null) {
-            $this->rules->check($recurrence);
-        }
-
-        $schedule->edit(
-            $edit->details->merged($schedule->details()),
-            $recurrence?->toRecurrence() ?? $schedule->recurrence(),
-            $edit->times->merged($schedule->timeSlot()),
-            $edit->rosterMode ?? $schedule->roster()->mode,
-        );
+        $schedule->edit($plan->details, $plan->recurrence, $plan->timeSlot, $plan->rosterMode);
 
         return $this->saved($schedule, $archived);
     }
@@ -60,10 +67,12 @@ final readonly class ScheduleWrites
     private function saved(Schedule $schedule, ArchivedStructure $archived): ScheduleWritten
     {
         $created = 0;
+        $today = $this->calendar->today();
 
-        $this->transactions->run(function () use ($schedule, $archived, &$created): void {
+        $this->transactions->run(function () use ($schedule, $archived, $today, &$created): void {
             $this->schedules->save($schedule);
-            $created = $this->generator->generateFor($schedule, $this->calendar->today(), $archived)->created;
+            $this->schedules->replanUpcoming($schedule, $today);
+            $created = $this->generator->generateFor($schedule, $today, $archived)->created;
         });
 
         return new ScheduleWritten($schedule, $created);

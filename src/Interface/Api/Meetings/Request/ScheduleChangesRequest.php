@@ -13,20 +13,21 @@ final readonly class ScheduleChangesRequest
         #[Assert\Valid]
         public DetailsRequest $details = new DetailsRequest(),
         #[Assert\Valid]
-        public ?RecurrenceRequest $recurrence = null,
+        public RecurrenceRequest $recurrence = new RecurrenceRequest(),
         #[Assert\Valid]
         public TimesRequest $times = new TimesRequest(),
+        #[Assert\NotBlank(message: 'meetings.chooseRosterMode')]
         #[Assert\Choice(choices: ['expected', 'open'], message: 'meetings.chooseRosterMode')]
         public ?string $rosterMode = null,
     ) {
     }
 
-    public function changes(bool $endTimeSent): ScheduleChanges
+    public function changes(): ScheduleChanges
     {
         return new ScheduleChanges(
             $this->details->choice(),
-            $this->recurrence?->choice(),
-            $this->times->choice($endTimeSent),
+            $this->recurrence->choice(),
+            $this->times->choice(),
             $this->rosterMode,
         );
     }

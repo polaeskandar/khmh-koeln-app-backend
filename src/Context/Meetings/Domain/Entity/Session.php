@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Context\Meetings\Domain\Entity;
 
 use App\Context\Meetings\Domain\ValueObject\Progress;
+use App\Context\Meetings\Domain\ValueObject\SessionPlan;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
 use App\Library\Time\Model\LocalDate;
 use Doctrine\ORM\Mapping as ORM;
@@ -28,14 +29,18 @@ final class Session extends CreatedAtEntity
     #[ORM\Column(type: 'local_date')]
     private LocalDate $occurrenceDate;
 
+    #[ORM\Embedded(SessionPlan::class, columnPrefix: false)]
+    private SessionPlan $plan;
+
     #[ORM\Embedded(Progress::class, columnPrefix: false)]
     private Progress $progress;
 
-    public function __construct(Schedule $schedule, LocalDate $occurrenceDate)
+    public function __construct(Schedule $schedule, LocalDate $occurrenceDate, SessionPlan $plan)
     {
         $this->id = Uuid::v7();
         $this->schedule = $schedule;
         $this->occurrenceDate = $occurrenceDate;
+        $this->plan = $plan;
         $this->progress = Progress::scheduled();
     }
 
@@ -52,6 +57,11 @@ final class Session extends CreatedAtEntity
     public function occurrenceDate(): LocalDate
     {
         return $this->occurrenceDate;
+    }
+
+    public function plan(): SessionPlan
+    {
+        return $this->plan;
     }
 
     public function progress(): Progress

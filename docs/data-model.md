@@ -120,7 +120,7 @@ roster ids.
 | Table | Purpose | Key rules |
 | --- | --- | --- |
 | `meeting_schedule` | A meeting that repeats: weekly (every n weeks on chosen weekdays) or monthly (the nth or last weekday every n months). Start and end time, place, roster mode. | `roster_mode` is `expected` (the stage or service roster is expected) or `open` (no roster; anyone can be marked present). Inactive schedules stop creating sessions. |
-| `meeting_session` | One meeting of a schedule on one date; its time, title, place and roster are the schedule's. | Unique `(schedule_id, occurrence_date)`, so the generator can't create it twice. |
+| `meeting_session` | One meeting of a schedule on one date. It keeps its own title, place, start and end time and roster mode, copied from the schedule when it is created. | Unique `(schedule_id, occurrence_date)`, so the generator can't create it twice. A schedule edit copies its new values to the sessions that are still `scheduled` from church-today on; started, closed, canceled and earlier sessions keep theirs, so history and attendance counts stay as they were. |
 | `session_event` | The session's history: created, opened, closed, reopened, canceled, edited, with who and an optional note. | Append-only. |
 | `attendance` | A "present" mark. | At most one current mark per session and person (`removed_at` null). A correction sets `removed_at`, `removed_by` and a reason. There are no absence rows: not marked present is not the same as absent. |
 

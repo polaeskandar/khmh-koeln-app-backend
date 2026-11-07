@@ -27,7 +27,7 @@ final readonly class CreateScheduleRequest
             $this->roster->choice(),
             $this->details->choice(),
             $this->recurrence->choice(),
-            $this->times->choice(endTimeSent: true),
+            $this->times->choice(),
         );
     }
 }

@@ -20,7 +20,7 @@ final readonly class SessionTimes
 
     public static function of(Session $session, DateTimeImmutable $startsAt, ?DateTimeImmutable $endsAt): self
     {
-        $slot = $session->schedule()->timeSlot();
+        $slot = $session->plan()->timeSlot;
 
         return new self(
             date: $session->occurrenceDate()->toString(),

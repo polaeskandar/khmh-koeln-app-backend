@@ -100,7 +100,7 @@ final readonly class ShowAttendanceOverviewWorkflow
 
     private function cardOf(Session $session, RosterReferences $references, AccountReferences $closers): OverviewCard
     {
-        $slot = $session->schedule()->timeSlot();
+        $slot = $session->plan()->timeSlot;
         $date = $session->occurrenceDate();
         $endTime = $slot->endTime;
         $endsAt = $endTime === null ? null : $this->calendar->instantAt($date, $endTime);

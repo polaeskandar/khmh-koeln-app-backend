@@ -75,16 +75,11 @@ final class SessionTalliesTest extends KernelTestCase
         $rosters->place($other, $service, null, '2026-09-01');
         $schedules = new Schedules(self::getContainer());
         $session = $schedules->session($schedules->weekly($service, 'Service', 7), self::SUNDAY);
-        $openSchedule = $schedules->weekly($service, 'Open evening', 5);
-        $open = $schedules->session($openSchedule, '2026-11-06');
+        $open = $schedules->session($schedules->weekly($service, 'Open evening', 5), '2026-11-06');
 
         new Database(self::getContainer())
             ->connection()
-            ->update(
-                'meetings.meeting_schedule',
-                ['roster_mode' => 'open'],
-                ['id' => $openSchedule->id()->toRfc4122()],
-            );
+            ->update('meetings.meeting_session', ['roster_mode' => 'open'], ['id' => $open->id()->toRfc4122()]);
 
         $removed = new Attendance(
             $schedules->managed($session),

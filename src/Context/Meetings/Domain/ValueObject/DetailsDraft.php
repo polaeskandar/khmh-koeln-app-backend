@@ -16,21 +16,18 @@ final readonly class DetailsDraft
     ) {
     }
 
-    public function merged(?MeetingDetails $stored): MeetingDetails
+    public function details(): MeetingDetails
     {
-        $name = InputText::of(
-            $this->name ?? $stored?->name,
-        )->collapsed()->toStringOrNull() ?? throw InvalidInput::field('details.name', 'meetings.scheduleNameRequired');
-
-        return new MeetingDetails(
-            $name,
-            self::optional($this->description, $stored?->description),
-            self::optional($this->location, $stored?->location),
+        $name = InputText::of($this->name)->collapsed()->toStringOrNull() ?? throw InvalidInput::field(
+            'details.name',
+            'meetings.scheduleNameRequired',
         );
+
+        return new MeetingDetails($name, self::optional($this->description), self::optional($this->location));
     }
 
-    private static function optional(?string $sent, ?string $stored): ?string
+    private static function optional(?string $text): ?string
     {
-        return $sent === null ? $stored : InputText::of($sent)->trimmed()->toStringOrNull();
+        return InputText::of($text)->trimmed()->toStringOrNull();
     }
 }

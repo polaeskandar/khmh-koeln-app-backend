@@ -31,11 +31,12 @@ final readonly class EditScheduleWorkflow
         $this->access->require(Action::Update, Resource::Sessions);
 
         $schedule = $this->schedules->find($id);
-        $this->archive->ensureOpen($schedule->roster()->serviceId, $schedule->roster()->stageId);
+        $roster = $schedule->roster();
+        $this->archive->ensureOpen($roster->serviceId, $roster->stageId);
 
         return WrittenSchedule::of($this->writes->edit(
             $schedule,
-            $changes->edit(),
+            $this->writes->plan($changes->draft()),
             ArchivedStructure::of($this->structure->archivedIds()),
         ));
     }
