@@ -1170,7 +1170,8 @@ reopening for `sessions: update` and recording for `attendance: create`.
 
 #### `GET /api/sessions/{id}`
 
-`services: read`. `{today, session: SessionView, schedule: {id, name, recurrence, active}, history}`; 404
+`services: read`. `{today, session: SessionView, state: {id, status, openedAt, closedAt, closedBy: AccountRef |
+null}, schedule: {id, name, recurrence, active}, history}`; 404
 `notFound.session`, also for an id that is not a UUID. `history` holds every event, oldest first, as `{type, at, actor: AccountRef, byGenerator,
 note}`. `actor: null` is the generator when `byGenerator`, otherwise a former account. `note` follows the same
 rule as `cancelReason`.
@@ -1195,6 +1196,30 @@ harmless. 404 `notFound.session`, also for an id that is not a UUID.
 ### Attendance marks
 
 A `Mark` is `{id, sessionId, personId, recordedAt, recordedBy: AccountRef | null}`.
+
+#### `GET /api/sessions/{id}/attendance`
+
+`attendance: read`. The attendance board: `{counts: Counts, roster: [BoardRow], notOnRoster: [VisitorRow],
+recentlyMarked: [BoardRow]}`. The session itself, its opening and closing (`state`) and its history come from `GET
+/api/sessions/{id}`, and the corrections from `GET /api/sessions/{id}/attendance/corrections`, so each read stays
+within one service per context.
+
+- A `BoardRow` is `{person: PersonRef, mark: {id, recordedAt} | null}`; a `VisitorRow` is `{person: PersonRef,
+  mark: {id, recordedAt}, placements: [{service: ServiceRef, stage: StageRef | null}]}`, the person's current
+  placements elsewhere. `PersonRef` is `{id, firstName, lastName, displayName}`.
+- `roster`: everyone on the session's roster on its date, in German name order, with their current mark or `null`.
+- `notOnRoster`: everyone marked who isn't on that roster (all marks of an open roster), in German name order.
+- `recentlyMarked`: the six newest current marks, newest first.
+- The lists are filled only for active and completed sessions; scheduled and canceled sessions answer empty lists
+  with their counts. The board costs the same number of statements whatever the number of marks.
+- 404 `notFound.session` for an unknown session.
+
+#### `GET /api/sessions/{id}/attendance/corrections`
+
+`attendance: read`. `{items: [Correction]}`, the removed marks, oldest removal first. A `Correction` is `{id,
+person: PersonRef, recorded: {at, by: AccountRef | null}, removed: {at, by: AccountRef | null}, reason}`; `by` is
+`null` for a former account. Costs the same number of statements whatever the number of corrections. 404
+`notFound.session` for an unknown session.
 
 #### `PUT /api/sessions/{id}/attendance/{personId}`
 

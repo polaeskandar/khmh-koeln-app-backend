@@ -9,8 +9,8 @@ use App\Context\Attendance\Domain\ValueObject\SessionCounts;
 final readonly class SessionTally
 {
     /**
-     * @param list<non-empty-string> $rosterIds
-     * @param list<non-empty-string> $presentIds
+     * @param list<string> $rosterIds
+     * @param list<string> $presentIds
      */
     public function __construct(
         public array $rosterIds,

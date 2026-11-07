@@ -12,6 +12,7 @@ final readonly class SessionDetail
     public function __construct(
         public string $today,
         public SessionView $session,
+        public SessionState $state,
         public ScheduleBrief $schedule,
         public array $history,
     ) {

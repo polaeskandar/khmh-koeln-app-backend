@@ -4,19 +4,23 @@ declare(strict_types=1);
 
 namespace App\Workflow\Attendance\Model;
 
-use App\Workflow\Meetings\Model\HistoryEntry;
-
 final readonly class AttendanceBoard
 {
     /**
-     * @param list<HistoryEntry> $history
+     * @param list<BoardRow> $roster
+     * @param list<VisitorRow> $notOnRoster
+     * @param list<BoardRow> $recentlyMarked
      */
     public function __construct(
-        public string $today,
-        public BoardSession $session,
         public AttendanceCounts $counts,
-        public BoardLists $lists,
-        public array $history,
+        public array $roster,
+        public array $notOnRoster,
+        public array $recentlyMarked,
     ) {
+    }
+
+    public static function withoutLists(AttendanceCounts $counts): self
+    {
+        return new self($counts, roster: [], notOnRoster: [], recentlyMarked: []);
     }
 }

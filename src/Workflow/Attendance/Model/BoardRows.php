@@ -12,77 +12,53 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Order;
 use Doctrine\Common\Collections\ReadableCollection;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class BoardRows
 {
     private const int RECENT = 6;
 
     /**
-     * @param list<non-empty-string> $rosterIds
-     * @param ReadableCollection<string, Person> $people
+     * @param list<string> $rosterIds
+     * @param ReadableCollection<non-empty-string, Person> $people
      * @param ReadableCollection<non-empty-string, Attendance> $byPerson
      *
      * @return list<BoardRow>
      */
-    public static function roster(
-        array $rosterIds,
-        ReadableCollection $people,
-        ReadableCollection $byPerson,
-        MarkReferences $references,
-    ): array {
-        $onRoster = Collections::mapPresent(new ArrayCollection($rosterIds), $people->get(...));
+    public static function roster(array $rosterIds, ReadableCollection $people, ReadableCollection $byPerson): array
+    {
+        return Collections::mapPresent(new ArrayCollection($rosterIds), static function (string $id) use (
+            $people,
+            $byPerson,
+        ): ?BoardRow {
+            $key = Uuid::fromString($id)->toRfc4122();
 
-        return $onRoster->map(
-            static fn (Person $person): BoardRow => new BoardRow(
-                PersonReference::of($person),
-                $references->markOf($byPerson->get($person->id()->toRfc4122())),
-            ),
-        )->getValues();
+            return self::rowOf($people->get($key), $byPerson->get($key));
+        })->getValues();
     }
 
     /**
      * @param ReadableCollection<int, Attendance> $current
-     * @param ReadableCollection<string, Person> $people
+     * @param ReadableCollection<non-empty-string, Person> $people
      *
      * @return list<BoardRow>
      */
-    public static function recent(
-        ReadableCollection $current,
-        ReadableCollection $people,
-        MarkReferences $references,
-    ): array {
+    public static function recent(ReadableCollection $current, ReadableCollection $people): array
+    {
         $newest = new ArrayCollection($current->getValues())->matching(
             Criteria::create()->orderBy(['recordedAt' => Order::Descending])->setMaxResults(self::RECENT),
         );
 
-        return Collections::mapPresent($newest, static function (Attendance $mark) use (
-            $people,
-            $references,
-        ): ?BoardRow {
-            $person = $people->get($mark->personId()->toRfc4122());
-
-            return $person === null ? null : new BoardRow(PersonReference::of($person), $references->mark($mark));
-        })->getValues();
+        return Collections::mapPresent($newest, static fn (Attendance $mark): ?BoardRow => self::rowOf(
+            $people->get($mark->personId()->toRfc4122()),
+            $mark,
+        ))->getValues();
     }
 
-    /**
-     * @param ReadableCollection<int, Attendance> $removed
-     * @param ReadableCollection<string, Person> $people
-     *
-     * @return list<Correction>
-     */
-    public static function corrections(
-        ReadableCollection $removed,
-        ReadableCollection $people,
-        MarkReferences $references,
-    ): array {
-        return Collections::mapPresent($removed, static function (Attendance $mark) use (
-            $people,
-            $references,
-        ): ?Correction {
-            $person = $people->get($mark->personId()->toRfc4122());
+    private static function rowOf(?Person $person, ?Attendance $mark): ?BoardRow
+    {
+        $reference = $mark === null ? null : MarkReference::of($mark);
 
-            return $person === null ? null : $references->correction($mark, PersonReference::of($person));
-        })->getValues();
+        return $person === null ? null : new BoardRow(PersonReference::of($person), $reference);
     }
 }
