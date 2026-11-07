@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Attendance;
 
+use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
+use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
 use App\Tests\Support\Logs;
+use DateTimeImmutable;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
+use Symfony\Component\Uid\Uuid;
 
 final class AttendanceOverviewControllerTest extends ApiTestCase
 {
@@ -40,13 +44,13 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
         self::assertResponseIsSuccessful();
         $this->assertJsonPath('today', '2026-11-08');
 
-        $this->assertJsonPath('sessions.0.title', 'Choir');
-        $this->assertJsonPath('sessions.1.title', 'Class');
-        $this->assertJsonPath('sessions.2.title', 'Youth');
+        $this->assertJsonPath('sessions.0.session.title', 'Choir');
+        $this->assertJsonPath('sessions.1.session.title', 'Class');
+        $this->assertJsonPath('sessions.2.session.title', 'Youth');
         self::assertCount(3, JsonBody::asArray($this->responseJson()['sessions'] ?? null, 'sessions'));
 
-        $this->assertJsonPath('sessions.1.counts.present', 0);
-        $this->assertJsonPath('sessions.1.openedAt', '2026-11-08T12:08:00+01:00');
+        $this->assertJsonPath('sessions.1.state.status', 'active');
+        $this->assertJsonPath('sessions.1.state.openedAt', '2026-11-08T12:08:00+01:00');
         $this->assertJsonPath('openCount', 1);
     }
 
@@ -83,12 +87,12 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/attendance/overview');
 
         self::assertCount(2, JsonBody::asArray($this->responseJson()['earlier'] ?? null, 'earlier'));
-        $this->assertJsonPath('earlier.0.occurrenceDate', '2026-10-25');
-        $this->assertJsonPath('earlier.1.occurrenceDate', '2026-11-01');
+        $this->assertJsonPath('earlier.0.session.occurrenceDate', '2026-10-25');
+        $this->assertJsonPath('earlier.1.session.occurrenceDate', '2026-11-01');
 
         self::assertCount(6, JsonBody::asArray($this->responseJson()['closed'] ?? null, 'closed'));
-        $this->assertJsonPath('closed.0.occurrenceDate', '2026-10-24');
-        $this->assertJsonPath('closed.5.occurrenceDate', '2026-09-13');
+        $this->assertJsonPath('closed.0.session.occurrenceDate', '2026-10-24');
+        $this->assertJsonPath('closed.5.session.occurrenceDate', '2026-09-13');
         $this->assertJsonPath('openCount', 1);
     }
 
@@ -119,7 +123,7 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/attendance/overview');
 
         self::assertCount(6, JsonBody::asArray($this->responseJson()['closed'] ?? null, 'closed'));
-        $this->assertJsonPath('closed.0.occurrenceDate', '2026-10-11');
+        $this->assertJsonPath('closed.0.session.occurrenceDate', '2026-10-11');
     }
 
     public function testThirtySessionsCostAsManyStatementsAsThree(): void
@@ -149,13 +153,74 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
         self::assertCount($few, new Logs(self::getContainer())->containing('SELECT'));
     }
 
-    public function testParentsAreRefusedAndAnonymousCallersUnauthenticated(): void
+    public function testCountsComeForTheAskedSessionsInTheirOrder(): void
+    {
+        self::mockTime('2026-11-08T12:08:00+01:00');
+        $schedules = new Schedules(self::getContainer());
+        $school = $this->service('Sunday School');
+        $third = Structure::stage($school);
+        new Database(self::getContainer())->persisted($third);
+
+        $class = $schedules->session(
+            $schedules->weekly($school, 'Class', 7, stage: $third),
+            '2026-11-08',
+            self::ACTIVE,
+        );
+
+        $choir = $schedules->session($schedules->weekly($school, 'Choir', 7), '2026-11-08', self::ACTIVE);
+        $rosters = new Rosters(self::getContainer());
+        $mina = $rosters->person('Mina');
+        $rosters->place($mina, $school, $third, '2026-09-01');
+        $rosters->place($rosters->person('Marina'), $school, $third, '2026-09-01');
+
+        new Database(self::getContainer())->persisted(
+            new Attendance(
+                $class->id(),
+                $mina->id(),
+                new DateTimeImmutable('2026-11-08T12:00:00+01:00'),
+                recordedBy: null,
+            ),
+        );
+
+        $this->signInWithRoles('servant@example.org', 'servant');
+        $ids = [$choir->id()->toRfc4122(), Uuid::v7()->toRfc4122(), strtoupper($class->id()->toRfc4122())];
+
+        $this->jsonRequest('GET', '/api/attendance/counts?' . http_build_query(['sessionIds' => $ids]));
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(2, JsonBody::asArray($this->responseJson()['items'] ?? null, 'items'));
+        $this->assertJsonPath('items.0.sessionId', $choir->id()->toRfc4122());
+        $this->assertJsonPath('items.1.sessionId', $class->id()->toRfc4122());
+
+        $this->assertJsonPath('items.1.counts', [
+            'present' => 1,
+            'rosterSize' => 2,
+            'rosterPresent' => 1,
+            'notMarked' => 1,
+            'notOnRoster' => 0,
+        ]);
+    }
+
+    public function testCountsCheckTheIdsAndParentsAreRefused(): void
     {
         $this->jsonRequest('GET', '/api/attendance/overview');
         $this->assertProblem(401, 'auth.unauthenticated');
 
+        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->jsonRequest('GET', '/api/attendance/counts?' . http_build_query(['sessionIds' => ['not-a-uuid']]));
+        $this->assertFieldError('sessionIds.0', 'validation.invalidType');
+
+        $many = array_map(static fn (): string => Uuid::v7()->toRfc4122(), range(start: 1, end: 101));
+        $this->jsonRequest('GET', '/api/attendance/counts?' . http_build_query(['sessionIds' => $many]));
+        $this->assertProblem(422, 'checkFields');
+
+        $this->jsonRequest('GET', '/api/attendance/counts');
+        $this->assertJsonPath('items', []);
+
         $this->signInWithRoles('parent@example.org', 'parent');
         $this->jsonRequest('GET', '/api/attendance/overview');
+        $this->assertProblem(403, 'forbidden');
+        $this->jsonRequest('GET', '/api/attendance/counts');
         $this->assertProblem(403, 'forbidden');
     }
 

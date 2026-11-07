@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Attendance\Response;
 
+use App\Interface\Api\Meetings\Response\SessionResponse;
 use App\Workflow\Attendance\Model\AttendanceOverview;
 use App\Workflow\Attendance\Model\OverviewCard;
+use App\Workflow\Meetings\Model\SessionState;
 use Doctrine\Common\Collections\ArrayCollection;
 use JsonSerializable;
 use Override;
@@ -20,9 +22,9 @@ final readonly class AttendanceOverviewResponse implements JsonSerializable
     /**
      * @return array{
      *     today: string,
-     *     sessions: list<array<string, scalar|object|array<string, bool>|null>>,
-     *     earlier: list<array<string, scalar|object|array<string, bool>|null>>,
-     *     closed: list<array<string, scalar|object|array<string, bool>|null>>,
+     *     sessions: list<array{session: SessionResponse, state: SessionState}>,
+     *     earlier: list<array{session: SessionResponse, state: SessionState}>,
+     *     closed: list<array{session: SessionResponse, state: SessionState}>,
      *     openCount: int,
      * }
      */
@@ -41,13 +43,13 @@ final readonly class AttendanceOverviewResponse implements JsonSerializable
     /**
      * @param list<OverviewCard> $cards
      *
-     * @return list<array<string, scalar|object|array<string, bool>|null>>
+     * @return list<array{session: SessionResponse, state: SessionState}>
      */
     private static function cards(array $cards): array
     {
         return new ArrayCollection($cards)->map(static fn (OverviewCard $card): array => [
-            ...new BoardSessionResponse($card->session)->jsonSerialize(),
-            'counts' => $card->counts,
+            'session' => new SessionResponse($card->session),
+            'state' => $card->state,
         ])->getValues();
     }
 }

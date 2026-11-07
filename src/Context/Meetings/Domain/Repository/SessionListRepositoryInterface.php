@@ -27,4 +27,11 @@ interface SessionListRepositoryInterface
      * @return ReadableCollection<int, Session>
      */
     public function latestClosed(int $limit, array $excludedServiceIds): ReadableCollection;
+
+    /**
+     * @param list<Uuid> $ids
+     *
+     * @return ReadableCollection<int, Session>
+     */
+    public function byIds(array $ids): ReadableCollection;
 }
