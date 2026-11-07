@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Application\Service;
 
+use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Entity\SessionEvent;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
@@ -24,10 +25,12 @@ final readonly class MeetingSessions
 
     /**
      * @param ReadableCollection<int, Session> $sessions
+     *
+     * @return ReadableCollection<int, Schedule>
      */
-    public function loadSchedulesOf(ReadableCollection $sessions): void
+    public function schedulesOf(ReadableCollection $sessions): ReadableCollection
     {
-        $this->schedules->findByIds(
+        return $this->schedules->findByIds(
             Collections::firstPerKey(
                 $sessions->map(static fn (Session $session): Uuid => $session->schedule()->id()),
                 keyOf: static fn (Uuid $id): string => $id->toRfc4122(),

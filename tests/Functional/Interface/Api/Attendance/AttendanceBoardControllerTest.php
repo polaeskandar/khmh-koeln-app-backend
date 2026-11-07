@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Interface\Api\Attendance;
 
 use App\Context\Attendance\Domain\Entity\Attendance;
+use App\Context\Attendance\Domain\ValueObject\Removal;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
@@ -80,34 +81,42 @@ final class AttendanceBoardControllerTest extends ApiTestCase
         $this->assertJsonPath('roster.12.person.lastName', 'Rizk');
         $this->assertJsonPath('notOnRoster.0.person.lastName', 'Youth');
         $this->assertJsonPath('notOnRoster.0.placements.0.service.name', 'Youth Meeting');
-        $this->assertJsonPath('corrections.0.reason', 'wrong child');
-        $this->assertJsonPath('corrections.0.removedBy.id', $servant);
+        $this->assertJsonPath('notOnRoster.0.mark.recordedAt', '2026-11-08T12:07:00+01:00');
         self::assertCount(6, JsonBody::asArray($this->responseJson()['recentlyMarked'] ?? null, 'recentlyMarked'));
         $this->assertJsonPath('recentlyMarked.0.person.lastName', 'Youth');
+        self::assertSame(['counts', 'roster', 'notOnRoster', 'recentlyMarked'], array_keys($this->responseJson()));
+
+        $this->jsonRequest('GET', $this->board($session) . '/corrections');
+
+        self::assertResponseIsSuccessful();
+        $this->assertJsonPath('items.0.person.lastName', 'Bishara');
+        $this->assertJsonPath('items.0.reason', 'wrong child');
+        $this->assertJsonPath('items.0.recorded.at', '2026-11-08T11:00:00+01:00');
+        $this->assertJsonPath('items.0.recorded.by.id', $servant);
+        $this->assertJsonPath('items.0.removed.at', '2026-11-08T11:05:00+01:00');
+        $this->assertJsonPath('items.0.removed.by.id', $servant);
     }
 
-    public function testTheSessionAndHistoryMatchTheSessionEndpoint(): void
+    public function testTheSessionEndpointCarriesTheOpeningAndClosing(): void
     {
         [$service, $third] = $this->structure();
-        $session = $this->session($service, $third, self::ACTIVE);
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+        $leader = $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        $session = $this->session(
+            $service,
+            $third,
+            "status = 'completed', opened_at = '2026-11-08 10:00:00+01', closed_at = '2026-11-08 12:00:00+01', closed_by = '"
+            . $leader
+            . "'",
+        );
 
         $this->jsonRequest('GET', '/api/sessions/' . $session->id()->toRfc4122());
-        $detail = $this->responseJson();
-        $this->jsonRequest('GET', $this->board($session));
-        $board = $this->responseJson();
 
-        $boardSession = JsonBody::asArray($board['session'] ?? null, 'session');
-
-        self::assertSame($detail['session'] ?? null, array_diff_key($boardSession, [
-            'openedAt' => 0,
-            'closedAt' => 0,
-            'closedBy' => 0,
-        ]));
-
-        self::assertSame($detail['history'] ?? null, $board['history'] ?? null);
-        self::assertNotNull($boardSession['openedAt'] ?? null);
-        $this->assertJsonPath('session.can', ['manage' => true, 'record' => true, 'reopen' => true]);
+        self::assertResponseIsSuccessful();
+        $this->assertJsonPath('state.status', 'completed');
+        $this->assertJsonPath('state.openedAt', '2026-11-08T10:00:00+01:00');
+        $this->assertJsonPath('state.closedAt', '2026-11-08T12:00:00+01:00');
+        $this->assertJsonPath('state.closedBy.id', $leader);
     }
 
     public function testOpenRostersListEveryMarkAsNotOnTheRoster(): void
@@ -172,8 +181,17 @@ final class AttendanceBoardControllerTest extends ApiTestCase
 
         self::assertCount($few, new Logs(self::getContainer())->containing('SELECT'));
 
+        $this->jsonRequest('GET', $this->board($session) . '/corrections');
+        $few = count(new Logs(self::getContainer())->containing('SELECT'));
+        $this->correct($session, null, $rosters->person('Corrected', 'Once'));
+        $this->correct($session, null, $rosters->person('Corrected', 'Twice'));
+        $this->jsonRequest('GET', $this->board($session) . '/corrections');
+        self::assertCount($few, new Logs(self::getContainer())->containing('SELECT'));
+
         $this->signInWithRoles('parent@example.org', 'parent');
         $this->jsonRequest('GET', $this->board($session));
+        $this->assertProblem(403, 'forbidden');
+        $this->jsonRequest('GET', $this->board($session) . '/corrections');
         $this->assertProblem(403, 'forbidden');
 
         $this->jsonRequest('GET', '/api/sessions/' . Uuid::v7()->toRfc4122() . '/attendance');
@@ -192,25 +210,24 @@ final class AttendanceBoardControllerTest extends ApiTestCase
         foreach ($people as $person) {
             $at = new DateTimeImmutable('2026-11-08T12:00:00+01:00')->modify('+' . $minute++ . ' minutes');
 
-            new Database(self::getContainer())->persisted(Attendance::record(
-                $session->id(),
-                $person->id(),
-                $at,
-                $by === null ? null : Uuid::fromString($by),
-            ));
+            new Database(self::getContainer())->persisted(
+                new Attendance($session->id(), $person->id(), $at, $by === null ? null : Uuid::fromString($by)),
+            );
         }
     }
 
-    private function correct(Session $session, string $by, Person $person): void
+    private function correct(Session $session, ?string $by, Person $person): void
     {
-        $mark = Attendance::record(
+        $account = $by === null ? null : Uuid::fromString($by);
+
+        $mark = new Attendance(
             $session->id(),
             $person->id(),
             new DateTimeImmutable('2026-11-08T11:00:00+01:00'),
-            Uuid::fromString($by),
+            $account,
         );
 
-        $mark->remove(Uuid::fromString($by), new DateTimeImmutable('2026-11-08T11:05:00+01:00'), 'wrong child');
+        $mark->remove(Removal::of(new DateTimeImmutable('2026-11-08T11:05:00+01:00'), $account, 'wrong child'));
         new Database(self::getContainer())->persisted($mark);
     }
 

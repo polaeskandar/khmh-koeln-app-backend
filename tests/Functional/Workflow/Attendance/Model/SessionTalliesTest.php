@@ -9,7 +9,7 @@ use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\Attendance\Domain\ValueObject\Removal;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\Entity\Session;
-use App\Context\People\Application\Service\Rosters as PeopleRosters;
+use App\Context\People\Application\Service\Attendees;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Repository\RosterRepositoryInterface;
 use App\Context\People\Domain\ValueObject\RosterKey;
@@ -192,8 +192,8 @@ final class SessionTalliesTest extends KernelTestCase
      */
     private function tallies(ArrayCollection $sessions): ReadableCollection
     {
-        $rosters = self::getContainer()->get(PeopleRosters::class);
-        self::assertInstanceOf(PeopleRosters::class, $rosters);
+        $rosters = self::getContainer()->get(Attendees::class);
+        self::assertInstanceOf(Attendees::class, $rosters);
 
         $marks = self::getContainer()->get(AttendanceMarks::class);
         self::assertInstanceOf(AttendanceMarks::class, $marks);
@@ -204,7 +204,7 @@ final class SessionTalliesTest extends KernelTestCase
         $schedules = $meetings->schedules(SessionTallies::scheduleIdsOf($sessions));
 
         return SessionTallies::of(
-            $rosters->on(SessionTallies::rosterKeysOf($sessions, $schedules)),
+            $rosters->rostersOn(SessionTallies::rosterKeysOf($sessions, $schedules)),
             $marks->presentBySession(SessionTallies::sessionIdsOf($sessions)),
             $sessions,
             $schedules,

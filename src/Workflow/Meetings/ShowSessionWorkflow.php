@@ -20,6 +20,7 @@ use App\Workflow\Meetings\Model\ScheduleRoster;
 use App\Workflow\Meetings\Model\SessionDetail;
 use App\Workflow\Meetings\Model\SessionDetails;
 use App\Workflow\Meetings\Model\SessionProgress;
+use App\Workflow\Meetings\Model\SessionState;
 use App\Workflow\Meetings\Model\SessionTimes;
 use App\Workflow\Meetings\Model\SessionView;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -57,6 +58,7 @@ final readonly class ShowSessionWorkflow
         return new SessionDetail(
             today: $this->calendar->today()->toString(),
             session: $this->viewOf($session, $progress),
+            state: SessionState::of($session, $this->accounts->account($session->progress()->closed->by)),
             schedule: ScheduleBrief::of($session->schedule()),
             history: $history->getValues(),
         );

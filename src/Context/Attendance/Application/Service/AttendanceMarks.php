@@ -7,7 +7,6 @@ namespace App\Context\Attendance\Application\Service;
 use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\Attendance\Domain\Repository\AttendanceRepositoryInterface;
 use App\Context\Attendance\Domain\ValueObject\RecordedMark;
-use App\Context\Attendance\Domain\ValueObject\SessionMarks;
 use App\Context\Attendance\Domain\ValueObject\Removal;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -31,14 +30,20 @@ final readonly class AttendanceMarks
         return $this->attendance->presentBySession($sessionIds);
     }
 
-    public function ofSession(Uuid $sessionId): SessionMarks
+    /**
+     * @return ReadableCollection<int, Attendance>
+     */
+    public function currentOf(Uuid $sessionId): ReadableCollection
     {
-        $marks = $this->attendance->marksOf($sessionId);
+        return $this->attendance->marksOf($sessionId)->filter(static fn (Attendance $mark): bool => $mark->isCurrent());
+    }
 
-        return new SessionMarks(
-            $marks->filter(static fn (Attendance $mark): bool => $mark->isCurrent()),
-            $this->attendance->removedMarksOf($sessionId),
-        );
+    /**
+     * @return ReadableCollection<int, Attendance>
+     */
+    public function removedOf(Uuid $sessionId): ReadableCollection
+    {
+        return $this->attendance->removedMarksOf($sessionId);
     }
 
     public function record(Uuid $sessionId, Uuid $personId, string $accountId): RecordedMark
