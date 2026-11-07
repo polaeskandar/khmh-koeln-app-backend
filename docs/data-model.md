@@ -109,9 +109,11 @@ first name, with the German ICU collation (`de-x-icu`): `Özdemir` sorts between
 service level) or per stage, one statement for any number of services or stages.
 
 A session's roster is its schedule's roster on the session's `occurrence_date` (#16: sessions have no roster of
-their own). `SessionCountsQuery::forSessions()` takes sessions the caller already loaded and returns each one's
-roster ids, present ids and `Counts` (see the API contract) in two statements: one `rostersOn` for the sessions with
-an expected roster and one read of the current marks. Open rosters have no roster ids.
+their own). The Attendance workflow model `SessionTallies::of()` takes sessions and their schedules that the caller
+already looked up, and returns each one's roster ids, present ids and `Counts` (see the API contract) in two more
+statements, whatever the number of sessions: one `rostersOn` for the sessions with an expected roster and one DBAL
+read of the current marks' (session, person) pairs. Both results are grouped in one pass. Open rosters have no
+roster ids.
 
 ## Meetings and attendance
 

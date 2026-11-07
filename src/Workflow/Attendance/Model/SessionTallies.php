@@ -4,41 +4,53 @@ declare(strict_types=1);
 
 namespace App\Workflow\Attendance\Model;
 
-use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\Attendance\Domain\ValueObject\SessionCounts;
+use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Enum\RosterMode;
 use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Collections\Model\Collections;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
+use LogicException;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class SessionTallies
 {
     /**
+     * @var ReadableCollection<non-empty-string, Schedule>
+     */
+    private ReadableCollection $schedules;
+
+    /**
      * @param ReadableCollection<string, list<Uuid>> $rosters
-     * @param ReadableCollection<int, Attendance> $marks
+     * @param ReadableCollection<string, list<string>> $present
+     * @param ReadableCollection<int, Schedule> $schedules
      */
     private function __construct(
         private ReadableCollection $rosters,
-        private ReadableCollection $marks,
+        private ReadableCollection $present,
+        ReadableCollection $schedules,
     ) {
+        $keyOf = static fn (Schedule $schedule): string => $schedule->id()->toRfc4122();
+        $this->schedules = Collections::firstPerKey($schedules, keyOf: $keyOf);
     }
 
     /**
      * @param ReadableCollection<string, list<Uuid>> $rosters
-     * @param ReadableCollection<int, Attendance> $marks
+     * @param ReadableCollection<string, list<string>> $present
      * @param ReadableCollection<int, Session> $sessions
+     * @param ReadableCollection<int, Schedule> $schedules
      *
      * @return ReadableCollection<non-empty-string, SessionTally>
      */
     public static function of(
         ReadableCollection $rosters,
-        ReadableCollection $marks,
+        ReadableCollection $present,
         ReadableCollection $sessions,
+        ReadableCollection $schedules,
     ): ReadableCollection {
-        $tallies = new self($rosters, $marks);
+        $tallies = new self($rosters, $present, $schedules);
 
         return Collections::firstPerKey($sessions, keyOf: self::idOf(...))->map($tallies->tallyOf(...));
     }
@@ -58,14 +70,17 @@ final readonly class SessionTallies
 
     /**
      * @param ReadableCollection<int, Session> $sessions
+     * @param ReadableCollection<int, Schedule> $schedules
      *
      * @return list<RosterKey>
      */
-    public static function rosterKeysOf(ReadableCollection $sessions): array
+    public static function rosterKeysOf(ReadableCollection $sessions, ReadableCollection $schedules): array
     {
+        $tallies = new self(new ArrayCollection(), new ArrayCollection(), $schedules);
+
         return $sessions
-            ->filter(self::isExpected(...))
-            ->map(self::keyOf(...))
+            ->filter($tallies->isExpected(...))
+            ->map($tallies->keyOf(...))
             ->getValues();
     }
 
@@ -81,16 +96,13 @@ final readonly class SessionTallies
 
     private function tallyOf(Session $session): SessionTally
     {
-        $presentIds = $this->marks
-            ->filter(static fn (Attendance $mark): bool => $mark->sessionId()->equals($session->id()))
-            ->map(static fn (Attendance $mark): string => $mark->personId()->toRfc4122())
-            ->getValues();
+        $presentIds = $this->present->get(self::idOf($session)) ?? [];
 
-        if (!self::isExpected($session)) {
+        if (!$this->isExpected($session)) {
             return new SessionTally([], $presentIds, SessionCounts::open($presentIds));
         }
 
-        $rosterIds = new ArrayCollection($this->rosters->get(self::keyOf($session)->id()) ?? [])->map(
+        $rosterIds = new ArrayCollection($this->rosters->get($this->keyOf($session)->id()) ?? [])->map(
             static fn (Uuid $id): string => $id->toRfc4122(),
         )->getValues();
 
@@ -105,15 +117,22 @@ final readonly class SessionTallies
         return $session->id()->toRfc4122();
     }
 
-    private static function isExpected(Session $session): bool
+    private function isExpected(Session $session): bool
     {
-        return $session->schedule()->roster()->mode === RosterMode::Expected;
+        return $this->scheduleOf($session)->roster()->mode === RosterMode::Expected;
     }
 
-    private static function keyOf(Session $session): RosterKey
+    private function keyOf(Session $session): RosterKey
     {
-        $roster = $session->schedule()->roster();
+        $roster = $this->scheduleOf($session)->roster();
 
         return new RosterKey($roster->serviceId, $roster->stageId, $session->occurrenceDate());
+    }
+
+    private function scheduleOf(Session $session): Schedule
+    {
+        $schedule = $this->schedules->get($session->schedule()->id()->toRfc4122());
+
+        return $schedule ?? throw new LogicException('The session\'s schedule was not looked up.');
     }
 }

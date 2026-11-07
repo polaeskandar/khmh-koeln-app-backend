@@ -76,16 +76,30 @@ final class SessionTalliesTest extends KernelTestCase
         $rosters->place($other, $service, null, '2026-09-01');
         $schedules = new Schedules(self::getContainer());
         $session = $schedules->session($schedules->weekly($service, 'Service', 7), self::SUNDAY);
+        $openSchedule = $schedules->weekly($service, 'Open evening', 5);
+        $open = $schedules->session($openSchedule, '2026-11-06');
+
+        new Database(self::getContainer())
+            ->connection()
+            ->update(
+                'meetings.meeting_schedule',
+                ['roster_mode' => 'open'],
+                ['id' => $openSchedule->id()->toRfc4122()],
+            );
+
         $removed = new Attendance($session->id(), $other->id(), new DateTimeImmutable(), recordedBy: null);
         $removed->remove(Removal::of(new DateTimeImmutable(), by: null, reason: null));
 
         new Database(self::getContainer())->persisted(
             new Attendance($session->id(), $member->id(), new DateTimeImmutable(), recordedBy: null),
             new Attendance($session->id(), $visitor->id(), new DateTimeImmutable(), recordedBy: null),
+            new Attendance($open->id(), $other->id(), new DateTimeImmutable(), recordedBy: null),
             $removed,
         );
 
-        $counts = $this->tallies(new ArrayCollection([$session]))->get($session->id()->toRfc4122())?->counts;
+        $tallies = $this->tallies(new ArrayCollection($this->reloaded([$session, $open])));
+        $counts = $tallies->get($session->id()->toRfc4122())?->counts;
+        $openCounts = $tallies->get($open->id()->toRfc4122())?->counts;
 
         self::assertSame([2, 2, 1, 1, 1], [
             $counts?->present,
@@ -94,6 +108,9 @@ final class SessionTalliesTest extends KernelTestCase
             $counts?->notMarked,
             $counts?->notOnRoster,
         ]);
+
+        self::assertSame([1, null, 0], [$openCounts?->present, $openCounts?->rosterSize, $openCounts?->notMarked]);
+        self::assertSame(self::idsOf($other), $tallies->get($open->id()->toRfc4122())?->presentIds);
     }
 
     public function testThirtySessionsTakeAsManyStatementsAsOneAndMatchTheSingleRoster(): void
@@ -119,12 +136,18 @@ final class SessionTalliesTest extends KernelTestCase
             }
         }
 
+        $one = $this->reloaded([$created[0]]);
+        $before = count(new Logs(self::getContainer())->containing('SELECT'));
+        $this->tallies(new ArrayCollection($one));
+        $forOne = count(new Logs(self::getContainer())->containing('SELECT')) - $before;
+
         $sessions = $this->reloaded($created);
         $before = count(new Logs(self::getContainer())->containing('SELECT'));
 
         $tallies = $this->tallies(new ArrayCollection($sessions));
 
-        self::assertLessThanOrEqual(3, count(new Logs(self::getContainer())->containing('SELECT')) - $before);
+        self::assertSame($forOne, count(new Logs(self::getContainer())->containing('SELECT')) - $before);
+        self::assertLessThanOrEqual(3, $forOne);
 
         foreach ($sessions as $session) {
             $single = $this->rosters()->rosterOn(
@@ -180,12 +203,13 @@ final class SessionTalliesTest extends KernelTestCase
         $meetings = self::getContainer()->get(MeetingLookup::class);
         self::assertInstanceOf(MeetingLookup::class, $meetings);
 
-        $meetings->schedules(SessionTallies::scheduleIdsOf($sessions));
+        $schedules = $meetings->schedules(SessionTallies::scheduleIdsOf($sessions));
 
         return SessionTallies::of(
-            $rosters->on(SessionTallies::rosterKeysOf($sessions)),
-            $marks->currentOf(SessionTallies::sessionIdsOf($sessions)),
+            $rosters->on(SessionTallies::rosterKeysOf($sessions, $schedules)),
+            $marks->presentBySession(SessionTallies::sessionIdsOf($sessions)),
             $sessions,
+            $schedules,
         );
     }
 

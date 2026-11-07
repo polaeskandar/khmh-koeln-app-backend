@@ -6,14 +6,23 @@ namespace App\Context\Attendance\Infrastructure\Persistence\Repository;
 
 use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\Attendance\Domain\Repository\AttendanceRepositoryInterface;
+use App\Library\Collections\Model\Groups;
+use App\Library\Types\Model\Type;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineAttendanceRepository implements AttendanceRepositoryInterface
 {
+    private const string PRESENT = <<<'SQL'
+        SELECT session_id, person_id FROM attendance.attendance
+        WHERE removed_at IS NULL AND session_id IN (?)
+        ORDER BY recorded_at, id
+        SQL;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -50,14 +59,22 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
      * @param list<Uuid> $sessionIds
      */
     #[Override]
-    public function currentMarksOf(array $sessionIds): ReadableCollection
+    public function presentBySession(array $sessionIds): ReadableCollection
     {
         if ($sessionIds === []) {
             return new ArrayCollection();
         }
 
-        return new ArrayCollection($this->entityManager
-            ->getRepository(Attendance::class)
-            ->findBy(['sessionId' => $sessionIds, 'removal.at' => null]));
+        $rows = $this->entityManager->getConnection()->fetchAllAssociative(
+            self::PRESENT,
+            [new ArrayCollection($sessionIds)->map(static fn (Uuid $id): string => $id->toRfc4122())->getValues()],
+            [ArrayParameterType::STRING],
+        );
+
+        return Groups::of(
+            new ArrayCollection($rows),
+            keyOf: static fn (array $row): string => Type::of($row['session_id'] ?? null)->toString(),
+            valueOf: static fn (array $row): string => Type::of($row['person_id'] ?? null)->toString(),
+        );
     }
 }
