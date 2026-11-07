@@ -9,8 +9,6 @@ use App\Context\People\Domain\Entity\Person;
 use App\Library\Collections\Model\Collections;
 use App\Workflow\People\Model\PersonReference;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Criteria;
-use Doctrine\Common\Collections\Order;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -45,9 +43,7 @@ final readonly class BoardRows
      */
     public static function recent(ReadableCollection $current, ReadableCollection $people): array
     {
-        $newest = new ArrayCollection($current->getValues())->matching(
-            Criteria::create()->orderBy(['recordedAt' => Order::Descending])->setMaxResults(self::RECENT),
-        );
+        $newest = new ArrayCollection($current->slice(offset: 0, length: self::RECENT));
 
         return Collections::mapPresent($newest, static fn (Attendance $mark): ?BoardRow => self::rowOf(
             $people->get($mark->personId()->toRfc4122()),

@@ -8,6 +8,7 @@ use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Library\Collections\Model\Collections;
+use App\Library\Collections\Model\Groups;
 use App\Workflow\People\Model\PersonReference;
 use App\Workflow\People\Model\Placements;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -31,10 +32,16 @@ final readonly class VisitorRows
         ReadableCollection $memberships,
         Placements $placements,
     ): array {
+        $held = Groups::of(
+            $memberships,
+            keyOf: static fn (Membership $membership): string => $membership->person()->id()->toRfc4122(),
+            valueOf: static fn (Membership $membership): Membership => $membership,
+        );
+
         return Collections::mapPresent(new ArrayCollection($byName), static function (Uuid $id) use (
             $marks,
             $people,
-            $memberships,
+            $held,
             $placements,
         ): ?VisitorRow {
             $person = $people->get($id->toRfc4122());
@@ -44,7 +51,7 @@ final readonly class VisitorRows
                 return null;
             }
 
-            $own = $memberships->filter(static fn (Membership $held): bool => $held->person() === $person);
+            $own = new ArrayCollection($held->get($id->toRfc4122()) ?? []);
 
             return new VisitorRow(PersonReference::of($person), MarkReference::of($mark), $placements->groupsOf($own));
         })->getValues();

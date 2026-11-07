@@ -1212,14 +1212,14 @@ within one service per context.
 - `recentlyMarked`: the six newest current marks, newest first.
 - The lists are filled only for active and completed sessions; scheduled and canceled sessions answer empty lists
   with their counts. The board costs the same number of statements whatever the number of marks.
-- 404 `notFound.session` for an unknown session.
+- 404 `notFound.session` for an unknown session, also for an id that is not a UUID.
 
 #### `GET /api/sessions/{id}/attendance/corrections`
 
 `attendance: read`. `{items: [Correction]}`, the removed marks, oldest removal first. A `Correction` is `{id,
 person: PersonRef, recorded: {at, by: AccountRef | null}, removed: {at, by: AccountRef | null}, reason}`; `by` is
 `null` for a former account. Costs the same number of statements whatever the number of corrections. 404
-`notFound.session` for an unknown session.
+`notFound.session` for an unknown session, also for an id that is not a UUID.
 
 #### `PUT /api/sessions/{id}/attendance/{personId}`
 

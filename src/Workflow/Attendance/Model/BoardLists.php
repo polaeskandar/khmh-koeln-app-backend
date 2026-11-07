@@ -56,10 +56,13 @@ final readonly class BoardLists
      */
     public static function visitorsOf(SessionTally $tally, ReadableCollection $byPerson): ReadableCollection
     {
-        $roster = new ArrayCollection($tally->rosterIds);
+        $roster = Collections::firstPerKey(
+            new ArrayCollection($tally->rosterIds),
+            keyOf: static fn (string $id): string => Uuid::fromString($id)->toRfc4122(),
+        );
 
         return $byPerson->filter(
-            static fn (Attendance $mark): bool => !$roster->contains($mark->personId()->toRfc4122()),
+            static fn (Attendance $mark): bool => !$roster->containsKey($mark->personId()->toRfc4122()),
         );
     }
 
