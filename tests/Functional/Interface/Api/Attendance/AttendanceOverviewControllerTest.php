@@ -24,7 +24,7 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
 
     private const string ACTIVE = "status = 'active', opened_at = created_at";
 
-    public function testTodaysSessionsComeInTimeOrderWithCountsAndArchivedServicesAreLeftOut(): void
+    public function testTodaysSessionsComeInTimeAndNameOrderAndArchivedOnesAreLeftOut(): void
     {
         self::mockTime('2026-11-08T12:08:00+01:00');
         $schedules = new Schedules(self::getContainer());
@@ -37,6 +37,16 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
         $schedules->session($this->at($schedules->weekly($school, 'Choir', 7), '10:00'), '2026-11-08');
         $schedules->session($this->at($schedules->weekly($youth, 'Youth', 7), '18:00'), '2026-11-08');
         $schedules->session($schedules->weekly($old, 'Old', 7), '2026-11-08');
+        $scouts = $this->service('Scout Group');
+        $retired = Structure::stage($scouts, 'Retired');
+        $retired->archive(Structure::now());
+        new Database(self::getContainer())->persisted($retired);
+        $schedules->session($schedules->weekly($scouts, 'Retired class', 7, stage: $retired), '2026-11-08');
+
+        foreach (['Youth Choir', 'chor', 'Ökumene'] as $name) {
+            $schedules->session($schedules->weekly($this->service($name), $name . ' evening', 7), '2026-11-08');
+        }
+
         $this->signInWithRoles('admin@example.org', 'administrator');
 
         $this->jsonRequest('GET', '/api/attendance/overview');
@@ -47,7 +57,10 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
         $this->assertJsonPath('sessions.0.session.title', 'Choir');
         $this->assertJsonPath('sessions.1.session.title', 'Class');
         $this->assertJsonPath('sessions.2.session.title', 'Youth');
-        self::assertCount(3, JsonBody::asArray($this->responseJson()['sessions'] ?? null, 'sessions'));
+        $this->assertJsonPath('sessions.3.session.title', 'chor evening');
+        $this->assertJsonPath('sessions.4.session.title', 'Ökumene evening');
+        $this->assertJsonPath('sessions.5.session.title', 'Youth Choir evening');
+        self::assertCount(6, JsonBody::asArray($this->responseJson()['sessions'] ?? null, 'sessions'));
 
         $this->assertJsonPath('sessions.1.state.status', 'active');
         $this->assertJsonPath('sessions.1.state.openedAt', '2026-11-08T12:08:00+01:00');
@@ -63,6 +76,11 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
         $schedules->session($schedule, '2026-10-25', self::ACTIVE);
         $schedules->session($schedule, '2026-10-18', "status = 'canceled', cancel_reason = 'Holiday'");
         $schedules->session($schedule, '2026-10-11');
+        $saturday = $schedules->weekly($this->service('Youth Meeting'), 'Youth', 6);
+        $schedules->session($saturday, '2026-10-17');
+        $schedules->session($schedules->weekly($this->service('Choir'), 'Choir', 7), '2026-10-18');
+        $schedules->session($schedules->weekly($this->service('Scouts'), 'Scouts', 7), '2026-11-08');
+        $closer = $this->signInWithRoles('servant@example.org', 'servant');
 
         foreach ([
             '2026-09-06',
@@ -78,17 +96,22 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
             $schedules->session(
                 $schedule,
                 $date,
-                "status = 'completed', opened_at = created_at, closed_at = '" . $closedAt . "'",
+                "status = 'completed', opened_at = created_at, closed_at = '"
+                . $closedAt
+                . "', closed_by = '"
+                . $closer
+                . "'",
             );
         }
 
-        $this->signInWithRoles('servant@example.org', 'servant');
-
         $this->jsonRequest('GET', '/api/attendance/overview');
 
-        self::assertCount(2, JsonBody::asArray($this->responseJson()['earlier'] ?? null, 'earlier'));
-        $this->assertJsonPath('earlier.0.session.occurrenceDate', '2026-10-25');
-        $this->assertJsonPath('earlier.1.session.occurrenceDate', '2026-11-01');
+        self::assertCount(3, JsonBody::asArray($this->responseJson()['earlier'] ?? null, 'earlier'));
+        $this->assertJsonPath('earlier.0.session.occurrenceDate', '2026-10-18');
+        $this->assertJsonPath('earlier.1.session.occurrenceDate', '2026-10-25');
+        $this->assertJsonPath('earlier.1.session.startsAt', '2026-10-25T18:30:00+01:00');
+        $this->assertJsonPath('earlier.2.session.occurrenceDate', '2026-11-01');
+        $this->assertJsonPath('closed.0.state.closedBy.id', $closer);
 
         self::assertCount(6, JsonBody::asArray($this->responseJson()['closed'] ?? null, 'closed'));
         $this->assertJsonPath('closed.0.session.occurrenceDate', '2026-10-24');
@@ -183,13 +206,20 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
         );
 
         $this->signInWithRoles('servant@example.org', 'servant');
-        $ids = [$choir->id()->toRfc4122(), Uuid::v7()->toRfc4122(), strtoupper($class->id()->toRfc4122())];
+
+        $ids = [
+            $choir->id()->toRfc4122(),
+            Uuid::v7()->toRfc4122(),
+            strtoupper($class->id()->toRfc4122()),
+            $class->id()->toRfc4122(),
+        ];
 
         $this->jsonRequest('GET', '/api/attendance/counts?' . http_build_query(['sessionIds' => $ids]));
 
         self::assertResponseIsSuccessful();
         self::assertCount(2, JsonBody::asArray($this->responseJson()['items'] ?? null, 'items'));
         $this->assertJsonPath('items.0.sessionId', $choir->id()->toRfc4122());
+        $this->assertJsonPath('items.0.counts.rosterSize', 0);
         $this->assertJsonPath('items.1.sessionId', $class->id()->toRfc4122());
 
         $this->assertJsonPath('items.1.counts', [
@@ -212,7 +242,7 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
 
         $many = array_map(static fn (): string => Uuid::v7()->toRfc4122(), range(start: 1, end: 101));
         $this->jsonRequest('GET', '/api/attendance/counts?' . http_build_query(['sessionIds' => $many]));
-        $this->assertProblem(422, 'checkFields');
+        $this->assertFieldError('sessionIds', 'validation.tooMany', ['max' => 100]);
 
         $this->jsonRequest('GET', '/api/attendance/counts');
         $this->assertJsonPath('items', []);

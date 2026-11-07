@@ -22,11 +22,11 @@ interface SessionListRepositoryInterface
     public function openBetween(LocalDate $from, LocalDate $to): ReadableCollection;
 
     /**
-     * @param list<Uuid> $excludedServiceIds
+     * @param list<Uuid> $archivedIds
      *
      * @return ReadableCollection<int, Session>
      */
-    public function latestClosed(int $limit, array $excludedServiceIds): ReadableCollection;
+    public function latestClosed(int $limit, array $archivedIds): ReadableCollection;
 
     /**
      * @param list<Uuid> $ids

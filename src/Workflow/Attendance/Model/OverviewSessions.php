@@ -6,23 +6,27 @@ namespace App\Workflow\Attendance\Model;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Library\Collections\Model\Collections;
-use App\Library\Strings\Model\Text;
+use App\Library\Collections\Model\Orderings;
 use App\Workflow\Meetings\Model\RosterReferences;
+use Collator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class OverviewSessions
 {
+    private const string COLLATION = 'de';
+
     /**
      * @param ReadableCollection<int, Session> $sessions
      *
      * @return ReadableCollection<int, Session>
      */
-    public static function unarchived(ReadableCollection $sessions, RosterReferences $references): ReadableCollection
+    public static function unarchived(ReadableCollection $sessions, ArchivedStructure $archived): ReadableCollection
     {
-        $isOpen = static fn (Session $session): bool => self::isOpen($session, $references);
+        $isOpen = static fn (Session $session): bool => !$archived->holds($session->schedule()->roster());
 
         return new ArrayCollection($sessions->filter($isOpen)->getValues());
     }
@@ -34,9 +38,10 @@ final readonly class OverviewSessions
      */
     public static function ordered(ReadableCollection $sessions, RosterReferences $references): ReadableCollection
     {
-        $keyOf = static fn (Session $session): string => self::orderOf($session, $references);
+        $collator = new Collator(self::COLLATION);
+        $keysOf = static fn (Session $session): array => self::orderOf($session, $references, $collator);
 
-        return new ArrayCollection(Collections::sortedBy($sessions, keyOf: $keyOf));
+        return new ArrayCollection(Orderings::byKeys($sessions, keysOf: $keysOf));
     }
 
     /**
@@ -62,22 +67,19 @@ final readonly class OverviewSessions
         )->getValues();
     }
 
-    private static function isOpen(Session $session, RosterReferences $references): bool
-    {
-        return $references->serviceOf($session->schedule())?->archived === false;
-    }
-
-    private static function orderOf(Session $session, RosterReferences $references): string
+    /**
+     * @return list<string|int>
+     */
+    private static function orderOf(Session $session, RosterReferences $references, Collator $collator): array
     {
         $schedule = $session->schedule();
 
-        return Text::format(
-            '%s|%s|%s|%04d|%s',
+        return [
             $session->occurrenceDate()->toString(),
             $schedule->timeSlot()->startTime->toString(),
-            $references->serviceOf($schedule)->name ?? '',
+            (string) $collator->getSortKey($references->serviceOf($schedule)->name ?? ''),
             ($references->stageOf($schedule)->position ?? -1) + 1,
             $session->id()->toRfc4122(),
-        )->toString();
+        ];
     }
 }

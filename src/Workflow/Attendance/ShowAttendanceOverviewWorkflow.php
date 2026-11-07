@@ -10,6 +10,7 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Library\Time\Client\Calendar;
 use App\Library\Time\Model\LocalDate;
@@ -22,6 +23,7 @@ use App\Workflow\Meetings\Model\SessionState;
 use App\Workflow\Meetings\Model\SessionView;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class ShowAttendanceOverviewWorkflow
 {
@@ -43,9 +45,11 @@ final readonly class ShowAttendanceOverviewWorkflow
         $this->access->require(Action::Read, Resource::Attendance);
 
         $today = $this->calendar->today();
-        $todays = $this->sessions->on($today);
-        $earlier = $this->earlierThan($today);
-        $closed = $this->recentlyClosed();
+        $archivedIds = $this->structure->archivedIds();
+        $archived = ArchivedStructure::of($archivedIds);
+        $todays = OverviewSessions::unarchived($this->sessions->on($today), $archived);
+        $earlier = OverviewSessions::unarchived($this->earlierThan($today), $archived);
+        $closed = OverviewSessions::unarchived($this->recentlyClosed($archivedIds), $archived);
         $all = new ArrayCollection([...$todays->getValues(), ...$earlier->getValues(), ...$closed->getValues()]);
         $references = $this->referencesOf($all);
         $closers = AccountReferences::of($this->accounts->accounts(OverviewSessions::closerIdsOf($all)));
@@ -53,13 +57,9 @@ final readonly class ShowAttendanceOverviewWorkflow
 
         return AttendanceOverview::of(
             $today->toString(),
-            OverviewSessions::ordered(OverviewSessions::unarchived($todays, $references), $references)->map(
-                $cardOf,
-            )->getValues(),
-            OverviewSessions::ordered(OverviewSessions::unarchived($earlier, $references), $references)->map(
-                $cardOf,
-            )->getValues(),
-            OverviewSessions::unarchived($closed, $references)->map($cardOf)->getValues(),
+            OverviewSessions::ordered($todays, $references)->map($cardOf)->getValues(),
+            OverviewSessions::ordered($earlier, $references)->map($cardOf)->getValues(),
+            $closed->map($cardOf)->getValues(),
         );
     }
 
@@ -74,12 +74,14 @@ final readonly class ShowAttendanceOverviewWorkflow
     }
 
     /**
+     * @param list<Uuid> $archivedIds
+     *
      * @return ReadableCollection<int, Session>
      */
-    private function recentlyClosed(): ReadableCollection
+    private function recentlyClosed(array $archivedIds): ReadableCollection
     {
         return $this->access->allows(Action::Create, Resource::Attendance)
-            ? $this->sessions->latestClosed(self::CLOSED, $this->structure->archivedIds())
+            ? $this->sessions->latestClosed(self::CLOSED, $archivedIds)
             : new ArrayCollection();
     }
 

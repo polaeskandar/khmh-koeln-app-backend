@@ -12,6 +12,7 @@ use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\People\Application\Service\Attendees;
 use App\Workflow\Attendance\Model\CountedSession;
 use App\Workflow\Attendance\Model\CountedSessions;
+use App\Workflow\Attendance\Model\OverviewSessions;
 use App\Workflow\Attendance\Model\SessionTallies;
 
 final readonly class ShowAttendanceCountsWorkflow
@@ -35,7 +36,7 @@ final readonly class ShowAttendanceCountsWorkflow
 
         $ids = CountedSessions::idsOf($sessionIds);
         $sessions = $this->sessions->byIds($ids);
-        $schedules = $this->sessions->schedulesOf($sessions);
+        $schedules = OverviewSessions::schedulesOf($sessions);
 
         $tallies = SessionTallies::of(
             $this->attendees->rostersOn(SessionTallies::rosterKeysOf($sessions, $schedules)),

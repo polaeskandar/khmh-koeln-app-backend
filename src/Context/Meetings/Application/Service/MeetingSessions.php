@@ -43,13 +43,13 @@ final readonly class MeetingSessions
     }
 
     /**
-     * @param list<Uuid> $excludedServiceIds
+     * @param list<Uuid> $archivedIds
      *
      * @return ReadableCollection<int, Session>
      */
-    public function latestClosed(int $limit, array $excludedServiceIds): ReadableCollection
+    public function latestClosed(int $limit, array $archivedIds): ReadableCollection
     {
-        return $this->lists->latestClosed($limit, $excludedServiceIds);
+        return $this->lists->latestClosed($limit, $archivedIds);
     }
 
     /**
