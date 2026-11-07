@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Context\Meetings\Application\Service;
+namespace App\Context\Meetings\Domain\Interface;
 
 interface GeneratorLockInterface
 {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Application\Service;
 
+use App\Context\Meetings\Domain\Interface\GeneratorLockInterface;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\GenerationResult;
 use App\Context\Meetings\Domain\ValueObject\GenerationRun;
