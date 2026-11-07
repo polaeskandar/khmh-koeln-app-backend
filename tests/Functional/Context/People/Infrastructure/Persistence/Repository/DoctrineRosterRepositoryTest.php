@@ -25,9 +25,24 @@ final class DoctrineRosterRepositoryTest extends KernelTestCase
         $starting = $this->rosters()->person('Marina');
         $this->rosters()->place($ended, $service, $third, '2026-09-01', '2026-11-07');
         $this->rosters()->place($starting, $service, $third, '2026-11-08');
+        $this->rosters()->place($this->rosters()->person('Kirollos'), $service, $third, '2026-11-09');
 
         self::assertSame([$ended->id()->toRfc4122()], $this->rosterOf($service, $third, '2026-11-07'));
         self::assertSame([$starting->id()->toRfc4122()], $this->rosterOf($service, $third, '2026-11-08'));
+
+        foreach (['2026-11-07', '2026-11-08'] as $day) {
+            $on = LocalDate::of($day);
+            $stageCounts = $this->repository()->stageMemberCounts([$third->id()], $on);
+            $serviceCounts = $this->repository()->serviceMemberCounts([$service->id()], $on);
+
+            self::assertSame(1, $stageCounts->get($third->id()->toRfc4122()), $day);
+
+            self::assertSame(
+                ['members' => 1, 'serviceLevel' => 0],
+                $serviceCounts->get($service->id()->toRfc4122()),
+                $day,
+            );
+        }
     }
 
     public function testOverlappingMembershipsOfOnePersonPutThemOnTheRosterOnce(): void
@@ -108,10 +123,11 @@ final class DoctrineRosterRepositoryTest extends KernelTestCase
         $mina = $this->rosters()->person('Mina');
         $this->rosters()->place($mina, $service, $third, '2026-09-01');
         $this->rosters()->place($mina, $service, $fourth, '2026-09-01');
+        $this->rosters()->place($mina, $service, null, '2026-09-01');
         $day = LocalDate::of('2026-11-08');
 
         self::assertSame(
-            ['members' => 1, 'serviceLevel' => 0],
+            ['members' => 1, 'serviceLevel' => 1],
             $this->repository()->serviceMemberCounts([$service->id()], $day)->get($service->id()->toRfc4122()),
         );
 

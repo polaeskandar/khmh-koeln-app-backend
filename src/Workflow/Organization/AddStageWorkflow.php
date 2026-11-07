@@ -8,15 +8,14 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ServiceStages;
-use App\Context\People\Application\Service\Rosters;
 use App\Workflow\Organization\Model\StageDetails;
+use Doctrine\Common\Collections\ArrayCollection;
 
 final readonly class AddStageWorkflow
 {
     public function __construct(
         private AccessCheck $access,
         private ServiceStages $stages,
-        private Rosters $rosters,
     ) {
     }
 
@@ -26,6 +25,6 @@ final readonly class AddStageWorkflow
 
         $stage = $this->stages->add($serviceId, $name, $description);
 
-        return StageDetails::of($stage, $this->rosters->stageMembersToday([$stage->id()]));
+        return StageDetails::of($stage, new ArrayCollection());
     }
 }

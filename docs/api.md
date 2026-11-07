@@ -978,6 +978,8 @@ A service row:
   "tone": 1,
   "archived": false,
   "archivedAt": null,
+  "memberCount": 14,
+  "serviceLevelMemberCount": 2,
   "stages": [
     {"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f20", "name": "3rd Class", "position": 2}
   ]
@@ -986,7 +988,8 @@ A service row:
 
 `stages` are the active stages by position, then by name ignoring case. `memberCount` counts the people on any
 roster of the service today (Europe/Berlin), each once; `serviceLevelMemberCount` only those on the
-service-level roster.
+service-level roster. A membership counts from its first day through its last. Archiving a stage keeps its
+memberships open, so its members still count toward the service's `memberCount`.
 
 #### `GET /api/services?status=active|archived|all`
 
