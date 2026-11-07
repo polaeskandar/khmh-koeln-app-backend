@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Workflow\Attendance\Model;
 
-use App\Context\Attendance\Application\Service\AttendanceMarks;
-use App\Context\Attendance\Domain\Entity\Attendance;
-use App\Context\Attendance\Domain\ValueObject\Removal;
+use App\Context\Meetings\Application\Service\AttendanceMarks;
 use App\Context\Meetings\Application\Service\MeetingLookup;
+use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Context\People\Application\Service\Attendees;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Repository\RosterRepositoryInterface;
@@ -86,13 +86,19 @@ final class SessionTalliesTest extends KernelTestCase
                 ['id' => $openSchedule->id()->toRfc4122()],
             );
 
-        $removed = new Attendance($session->id(), $other->id(), new DateTimeImmutable(), recordedBy: null);
+        $removed = new Attendance(
+            $schedules->managed($session),
+            $other->id(),
+            new DateTimeImmutable(),
+            recordedBy: null,
+        );
+
         $removed->remove(Removal::of(new DateTimeImmutable(), by: null, reason: null));
 
         new Database(self::getContainer())->persisted(
-            new Attendance($session->id(), $member->id(), new DateTimeImmutable(), recordedBy: null),
-            new Attendance($session->id(), $visitor->id(), new DateTimeImmutable(), recordedBy: null),
-            new Attendance($open->id(), $other->id(), new DateTimeImmutable(), recordedBy: null),
+            new Attendance($schedules->managed($session), $member->id(), new DateTimeImmutable(), recordedBy: null),
+            new Attendance($schedules->managed($session), $visitor->id(), new DateTimeImmutable(), recordedBy: null),
+            new Attendance($schedules->managed($open), $other->id(), new DateTimeImmutable(), recordedBy: null),
             $removed,
         );
 

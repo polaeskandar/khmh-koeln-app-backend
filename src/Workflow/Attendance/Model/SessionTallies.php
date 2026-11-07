@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Workflow\Attendance\Model;
 
-use App\Context\Attendance\Domain\ValueObject\SessionCounts;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Enum\RosterMode;
+use App\Context\Meetings\Domain\ValueObject\SessionCounts;
 use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Collections\Model\Collections;
 use Doctrine\Common\Collections\ArrayCollection;

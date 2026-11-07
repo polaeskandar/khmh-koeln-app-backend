@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Attendance\Model;
 
-use App\Context\Attendance\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Library\Collections\Model\Collections;

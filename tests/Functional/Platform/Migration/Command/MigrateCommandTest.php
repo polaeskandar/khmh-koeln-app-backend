@@ -17,7 +17,7 @@ final class MigrateCommandTest extends KernelTestCase
 
         self::assertSame(Command::SUCCESS, $tester->execute([]));
 
-        foreach (['identity', 'organization', 'people', 'meetings', 'attendance', 'learning'] as $schema) {
+        foreach (['identity', 'organization', 'people', 'meetings', 'learning'] as $schema) {
             self::assertStringContainsString(sprintf('(schema "%s")', $schema), $tester->getDisplay());
         }
     }

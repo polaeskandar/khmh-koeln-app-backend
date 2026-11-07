@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Context\Attendance\Domain\Repository;
+namespace App\Context\Meetings\Domain\Repository;
 
-use App\Context\Attendance\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\Attendance;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Workflow\Attendance;
 
-use App\Context\Attendance\Application\Service\AttendanceMarks;
-use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Meetings\Application\Service\AttendanceMarks;
 use App\Context\Meetings\Application\Service\MeetingSessions;
+use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\Attendees;

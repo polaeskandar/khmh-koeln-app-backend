@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Attendance;
 
-use App\Context\Attendance\Domain\Entity\Attendance;
-use App\Context\Attendance\Domain\ValueObject\Removal;
+use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Domain\Entity\Person;
@@ -241,7 +241,12 @@ final class AttendanceBoardControllerTest extends ApiTestCase
             $at = new DateTimeImmutable('2026-11-08T12:00:00+01:00')->modify('+' . $minute++ . ' minutes');
 
             new Database(self::getContainer())->persisted(
-                new Attendance($session->id(), $person->id(), $at, $by === null ? null : Uuid::fromString($by)),
+                new Attendance(
+                    new Schedules(self::getContainer())->managed($session),
+                    $person->id(),
+                    $at,
+                    $by === null ? null : Uuid::fromString($by),
+                ),
             );
         }
     }
@@ -254,12 +259,8 @@ final class AttendanceBoardControllerTest extends ApiTestCase
     ): void {
         $account = $by === null ? null : Uuid::fromString($by);
 
-        $mark = new Attendance(
-            $session->id(),
-            $person->id(),
-            new DateTimeImmutable('2026-11-08T11:00:00+01:00'),
-            $account,
-        );
+        $managed = new Schedules(self::getContainer())->managed($session);
+        $mark = new Attendance($managed, $person->id(), new DateTimeImmutable('2026-11-08T11:00:00+01:00'), $account);
 
         $mark->remove(Removal::of(new DateTimeImmutable($removedAt), $account, 'wrong child'));
         new Database(self::getContainer())->persisted($mark);

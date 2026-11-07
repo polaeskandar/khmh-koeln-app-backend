@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Workflow\Attendance;
 
-use App\Context\Attendance\Application\Service\AttendanceMarks;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Meetings\Application\Service\AttendanceMarks;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\People\Application\Service\Attendees;
 use App\Workflow\Attendance\Model\CountedSession;

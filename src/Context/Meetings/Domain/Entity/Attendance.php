@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Context\Attendance\Domain\Entity;
+namespace App\Context\Meetings\Domain\Entity;
 
-use App\Context\Attendance\Domain\ValueObject\Removal;
+use App\Context\Meetings\Domain\ValueObject\Removal;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -12,7 +12,7 @@ use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'attendance', schema: 'attendance')]
+#[ORM\Table(name: 'attendance', schema: 'meetings')]
 #[ORM\UniqueConstraint(
     name: 'attendance_current_unique',
     columns: ['session_id', 'person_id'],
@@ -26,8 +26,9 @@ final class Attendance
     #[ORM\Column(type: UuidType::NAME)]
     private Uuid $id;
 
-    #[ORM\Column(name: 'session_id', type: UuidType::NAME)]
-    private readonly Uuid $sessionId;
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(name: 'session_id', nullable: false, onDelete: 'RESTRICT')]
+    private Session $session;
 
     #[ORM\Column(name: 'person_id', type: UuidType::NAME)]
     private readonly Uuid $personId;
@@ -41,10 +42,10 @@ final class Attendance
     #[ORM\Embedded(Removal::class, columnPrefix: false)]
     private Removal $removal;
 
-    public function __construct(Uuid $sessionId, Uuid $personId, DateTimeImmutable $recordedAt, ?Uuid $recordedBy)
+    public function __construct(Session $session, Uuid $personId, DateTimeImmutable $recordedAt, ?Uuid $recordedBy)
     {
         $this->id = Uuid::v7();
-        $this->sessionId = $sessionId;
+        $this->session = $session;
         $this->personId = $personId;
         $this->recordedAt = $recordedAt;
         $this->recordedBy = $recordedBy;
@@ -66,9 +67,14 @@ final class Attendance
         return $this->id;
     }
 
+    public function session(): Session
+    {
+        return $this->session;
+    }
+
     public function sessionId(): Uuid
     {
-        return $this->sessionId;
+        return $this->session->id();
     }
 
     public function personId(): Uuid

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Attendance\Model;
 
-use App\Context\Attendance\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\Attendance;
 use DateTimeImmutable;
 
 final readonly class MarkReference

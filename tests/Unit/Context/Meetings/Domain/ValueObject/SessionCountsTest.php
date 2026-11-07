@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Context\Attendance\Domain\ValueObject;
+namespace App\Tests\Unit\Context\Meetings\Domain\ValueObject;
 
-use App\Context\Attendance\Domain\ValueObject\SessionCounts;
+use App\Context\Meetings\Domain\ValueObject\SessionCounts;
 use PHPUnit\Framework\TestCase;
 
 final class SessionCountsTest extends TestCase

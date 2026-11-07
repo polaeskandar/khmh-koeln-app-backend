@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Context\Attendance\Domain\ValueObject;
+namespace App\Context\Meetings\Domain\ValueObject;
 
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Strings\Model\InputText;

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Workflow\Attendance;
 
-use App\Context\Attendance\Application\Service\AttendanceMarks;
-use App\Context\Attendance\Domain\ValueObject\RecordedMark;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Meetings\Application\Service\AttendanceMarks;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\ValueObject\RecordedMark;
 use App\Context\People\Application\Service\Attendees;
 use App\Workflow\Attendance\Model\MarkResult;
 use App\Workflow\Attendance\Model\MarkView;
@@ -32,7 +32,7 @@ final readonly class MarkPresentWorkflow
         $this->access->require(Action::Create, Resource::Attendance);
 
         $record = fn (Session $session): RecordedMark => $this->marks->record(
-            $session->id(),
+            $session,
             $this->attendees->markable($personId)->id(),
             $accountId,
         );

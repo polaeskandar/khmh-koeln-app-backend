@@ -17,6 +17,7 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Library\Time\Model\LocalDate;
 use App\Library\Time\Model\LocalTime;
 use App\Tests\Support\Database;
+use PHPUnit\Framework\Assert;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 final readonly class Schedules
@@ -54,6 +55,17 @@ final readonly class Schedules
         }
 
         return $session;
+    }
+
+    public function managed(Session $session): Session
+    {
+        $reference = new Database($this->container)
+            ->entityManager()
+            ->getReference(Session::class, $session->id());
+
+        Assert::assertInstanceOf(Session::class, $reference);
+
+        return $reference;
     }
 
     private function stored(Service $service, string $name, Recurrence $recurrence, ?Stage $stage = null): Schedule
