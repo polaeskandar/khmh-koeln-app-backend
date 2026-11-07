@@ -1243,12 +1243,12 @@ person's status). A refused call writes nothing.
 
 `attendance: read`. The staff home until the dashboard (#108): `{today, sessions, earlier, closed, openCount}`. A
 card is `{session: SessionView, state: {id, status, openedAt, closedAt, closedBy: AccountRef | null}}`, the same
-two parts as `GET /api/sessions/{id}`. Sessions of archived services are left out. The counts of the cards come
+two parts as `GET /api/sessions/{id}`. Sessions of archived services or stages are left out. The counts of the cards come
 from `GET /api/attendance/counts`, so each read stays within one service per context.
 
-- `sessions`: today's sessions of every status, by start time, service name and stage position.
+- `sessions`: today's sessions of every status, by start time, service name (German order) and stage position.
 - `earlier`: sessions still `scheduled` or `active` from 21 days ago to yesterday, oldest first.
-- `closed`: the 6 most recently closed sessions, newest first.
+- `closed`: the 6 most recently closed sessions, newest first (ties by id).
 - `earlier` and `closed` are empty without `attendance: create`.
 - `openCount`: the `active` cards in `sessions` and `earlier`, for the badge.
 
@@ -1256,8 +1256,8 @@ The cards cost the same number of statements whatever their number.
 
 #### `GET /api/attendance/counts`
 
-`attendance: read`. `?sessionIds[]=…` (at most 100; each a UUID, else 422 `validation.invalidType` on
-`sessionIds.N`; more → `validation.tooMany {max: 100}`). `{items: [{sessionId, counts: Counts}]}` in the asked
+`attendance: read`. `?sessionIds[]=…` (at most 100, else 422 `validation.tooMany {max: 100}` on `sessionIds`;
+each a UUID, else `validation.invalidType` on `sessionIds.N`). `{items: [{sessionId, counts: Counts}]}` in the asked
 order, each id once; unknown sessions are left out. The counts follow the session's roster on its date and its
 current marks, as on the board, and cost the same number of statements whatever the number of sessions.
 

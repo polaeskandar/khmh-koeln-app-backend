@@ -46,20 +46,24 @@ final readonly class DoctrineSessionListRepository implements SessionListReposit
     }
 
     /**
-     * @param list<Uuid> $excludedServiceIds
+     * @param list<Uuid> $archivedIds
      */
     #[Override]
-    public function latestClosed(int $limit, array $excludedServiceIds): ReadableCollection
+    public function latestClosed(int $limit, array $archivedIds): ReadableCollection
     {
         $query = $this
             ->withSchedules()
             ->where('s.progress.status = :completed')
             ->setParameter('completed', SessionStatus::Completed)
             ->orderBy('s.progress.closed.at', 'DESC')
+            ->addOrderBy('s.id', 'DESC')
             ->setMaxResults($limit);
 
-        if ($excludedServiceIds !== []) {
-            $query->andWhere('sc.roster.serviceId NOT IN (:excluded)')->setParameter('excluded', $excludedServiceIds);
+        if ($archivedIds !== []) {
+            $query
+                ->andWhere('sc.roster.serviceId NOT IN (:excluded)')
+                ->andWhere('sc.roster.stageId IS NULL OR sc.roster.stageId NOT IN (:excluded)')
+                ->setParameter('excluded', $archivedIds);
         }
 
         return $this->sessions($query);

@@ -12,7 +12,6 @@ final readonly class AttendanceCountsRequest
      * @param list<string> $sessionIds
      */
     public function __construct(
-        #[Assert\Count(max: 100, maxMessage: 'validation.tooMany')]
         #[Assert\All([new Assert\Uuid(message: 'validation.invalidType')])]
         public array $sessionIds = [],
     ) {
