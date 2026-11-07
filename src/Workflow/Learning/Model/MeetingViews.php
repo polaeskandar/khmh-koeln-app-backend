@@ -7,6 +7,7 @@ namespace App\Workflow\Learning\Model;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Library\Collections\Model\Collections;
 use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -21,6 +22,7 @@ final readonly class MeetingViews
     private function __construct(
         private ReadableCollection $schedules,
         private ReadableCollection $sessions,
+        private ArchivedStructure $archived,
     ) {
     }
 
@@ -35,10 +37,12 @@ final readonly class MeetingViews
         ReadableCollection $schedules,
         ReadableCollection $sessions,
         ReadableCollection $lessons,
+        ArchivedStructure $archived,
     ): array {
         $views = new self(
             Collections::firstPerKey($schedules, keyOf: self::scheduleKey(...)),
             Collections::firstPerKey($sessions, keyOf: self::sessionKey(...)),
+            $archived,
         );
 
         return $lessons->map($views->viewOf(...))->getValues();
@@ -78,7 +82,11 @@ final readonly class MeetingViews
         $session = $this->sessions->get(self::key($link->scheduleId, $link->teachingDate));
 
         return $session === null
-            ? MeetingView::forSchedule($this->schedules->get($link->scheduleId->toRfc4122()), $link->teachingDate)
+            ? MeetingView::forSchedule(
+                $this->schedules->get($link->scheduleId->toRfc4122()),
+                $link->teachingDate,
+                $this->archived,
+            )
             : MeetingView::session($session);
     }
 

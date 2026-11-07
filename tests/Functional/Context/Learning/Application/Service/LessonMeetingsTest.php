@@ -11,6 +11,7 @@ use App\Context\Learning\Domain\ValueObject\MeetingChoice;
 use App\Context\Learning\Domain\ValueObject\MeetingLink;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\Entity\Schedule;
+use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Time\Model\LocalDate;
@@ -106,6 +107,50 @@ final class LessonMeetingsTest extends KernelTestCase
         self::assertEquals($kept, $this->link($third->id(), $bySchedule, editing: $lesson));
     }
 
+    public function testAnArchivedServiceDoesNotMeetButAnUnchangedLinkStaysValid(): void
+    {
+        [$third, $sunday] = $this->structure();
+        $planned = new MeetingChoice(scheduleId: $sunday->id()->toRfc4122(), date: '2026-11-15');
+        $monday = new MeetingChoice(scheduleId: $sunday->id()->toRfc4122(), date: '2026-11-16');
+        $archived = [$sunday->roster()->serviceId];
+
+        $this->assertRefused(
+            'lessons.noMeetingThatDay',
+            ['name' => 'Sunday class'],
+            fn () => $this->link($third->id(), $planned, archived: $archived),
+        );
+
+        $kept = new MeetingLink($sunday->id(), LocalDate::of('2026-11-16'));
+        $lesson = new Lesson($third->id(), $kept, new LessonText('Kept after the schedule changed'), null);
+        new Database(self::getContainer())->persisted($lesson);
+
+        self::assertEquals($kept, $this->link($third->id(), $monday, editing: $lesson));
+    }
+
+    public function testASessionIdDoesNotExcuseADayWithoutAMeeting(): void
+    {
+        [$third, $sunday] = $this->structure();
+        $lessons = self::getContainer()->get(LessonMeetings::class);
+        self::assertInstanceOf(LessonMeetings::class, $lessons);
+        $meetings = self::getContainer()->get(MeetingLookup::class);
+        self::assertInstanceOf(MeetingLookup::class, $meetings);
+        $monday = LocalDate::of('2026-11-16');
+
+        $mixed = new MeetingChoice(
+            scheduleId: $sunday->id()->toRfc4122(),
+            sessionId: Uuid::v7()->toRfc4122(),
+            date: $monday->toString(),
+        );
+
+        $offered = OfferedMeetings::of($meetings->slotOfSchedule($sunday->id(), $monday, ArchivedStructure::of([])));
+
+        $this->assertRefused(
+            'lessons.noMeetingThatDay',
+            ['name' => 'Sunday class'],
+            static fn () => $lessons->link($third->id(), $mixed, $offered),
+        );
+    }
+
     /**
      * @return array{Stage, Schedule, Schedule}
      */
@@ -141,8 +186,15 @@ final class LessonMeetingsTest extends KernelTestCase
         self::fail('Expected ' . $code);
     }
 
-    private function link(Uuid $stageId, MeetingChoice $choice, ?Lesson $editing = null): MeetingLink
-    {
+    /**
+     * @param list<Uuid> $archived
+     */
+    private function link(
+        Uuid $stageId,
+        MeetingChoice $choice,
+        ?Lesson $editing = null,
+        array $archived = [],
+    ): MeetingLink {
         $meetings = self::getContainer()->get(MeetingLookup::class);
         self::assertInstanceOf(MeetingLookup::class, $meetings);
         $lessons = self::getContainer()->get(LessonMeetings::class);
@@ -150,7 +202,11 @@ final class LessonMeetingsTest extends KernelTestCase
 
         $slot = match (true) {
             $choice->sessionId !== null => $meetings->slotOfSession($choice->session()),
-            $choice->scheduleId !== null => $meetings->slotOfSchedule($choice->schedule(), $choice->day()),
+            $choice->scheduleId !== null => $meetings->slotOfSchedule(
+                $choice->schedule(),
+                $choice->day(),
+                ArchivedStructure::of($archived),
+            ),
             default => null,
         };
 

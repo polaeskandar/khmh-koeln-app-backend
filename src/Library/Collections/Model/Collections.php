@@ -101,10 +101,14 @@ final readonly class Collections
      */
     public static function sortedBy(ReadableCollection $items, callable $keyOf): array
     {
-        $sorted = $items->getValues();
-        usort($sorted, static fn (mixed $one, mixed $other): int => strcmp($keyOf($one), $keyOf($other)));
+        $keyed = array_map(static fn (mixed $item): array => [
+            'key' => $keyOf($item),
+            'item' => $item,
+        ], $items->getValues());
 
-        return $sorted;
+        usort($keyed, static fn (array $one, array $other): int => strcmp($one['key'], $other['key']));
+
+        return array_column($keyed, 'item');
     }
 
     /**

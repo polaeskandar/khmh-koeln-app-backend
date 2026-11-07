@@ -21,19 +21,20 @@ final class AccountLookupTest extends KernelTestCase
         $daniel = $this->account('Daniel Michael', [], 'servant');
         $christine = $this->account('Christine Adel', [], 'service_leader');
         $both = $this->account('Ölga Bishara', [], 'servant', 'service_leader');
+        $admin = $this->account('Bishoy Fahmy', [], 'administrator');
         $parent = $this->account('Mariam Hanna', [], 'parent');
         $disabled = $this->account('Mina Iskander', ['disabled_at' => '2026-11-09 12:00:00+01'], 'servant');
         $pending = $this->account('Sara Hanna', ['approved_at' => null], 'servant');
 
         self::assertSame(
-            ['Christine Adel', 'Daniel Michael', 'Ölga Bishara'],
+            ['Bishoy Fahmy', 'Christine Adel', 'Daniel Michael', 'Ölga Bishara'],
             array_map(
                 static fn (User $account): string => $account->profile()->displayName->value,
                 $this->lookup()->activeAllowedTo(Action::Update, Resource::Lessons),
             ),
         );
 
-        foreach ([$daniel, $christine, $both] as $id) {
+        foreach ([$daniel, $christine, $both, $admin] as $id) {
             self::assertTrue($this->lookup()->isActiveAndAllowedTo(
                 Uuid::fromString($id),
                 Action::Update,
@@ -41,7 +42,7 @@ final class AccountLookupTest extends KernelTestCase
             ));
         }
 
-        foreach ([$parent, $disabled, $pending] as $id) {
+        foreach ([$parent, $disabled, $pending, Uuid::v7()->toRfc4122()] as $id) {
             self::assertFalse($this->lookup()->isActiveAndAllowedTo(
                 Uuid::fromString($id),
                 Action::Update,

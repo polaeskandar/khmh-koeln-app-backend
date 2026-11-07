@@ -741,7 +741,7 @@ label is its own label, and the 120-character limit applies only to a label that
 | `lessons.noMeetingThatDay` | `name` | {name} does not meet on that date. |
 | `lessons.chooseWhen` | – | Choose when the lesson will be taught. |
 | `lessons.meetingHasLesson` | `title` | This meeting already has a lesson: “{title}”. Edit that one, or pick another date. |
-| `lessons.chooseResponsible` | – | Choose a servant of this stage. |
+| `lessons.chooseResponsible` | – | Choose someone who prepares lessons. |
 | `lessons.helpersInStage` | – | Everyone helping must serve in this stage. |
 | `lessons.prepareStageOnly` | – | Only servants of this stage and service leaders can prepare its lessons. |
 | `lessons.changeStageOnly` | – | Only servants of this stage and service leaders can change its lessons. |
@@ -1060,9 +1060,11 @@ Lesson reads carry a `meeting`, one of:
 
 Writes send `{scheduleId, date}`, `{sessionId}` (stored as its schedule and date) or `{date}` alone. Field errors
 on `meeting`: nothing chosen → `lessons.chooseWhen`; another stage's schedule or session, or a canceled session
-as a new link (chosen by `sessionId` or by `scheduleId` and `date`) → `lessons.chooseMeeting`; an impossible date → `lessons.chooseDate`; no meeting that day →
-`lessons.noMeetingThatDay {name}`; another non-archived lesson already there → `lessons.meetingHasLesson {title}`.
-An existing canceled link stays valid when the lesson is edited.
+as a new link (chosen by `sessionId` or by `scheduleId` and `date`) → `lessons.chooseMeeting`; an impossible date
+→ `lessons.chooseDate`; no meeting that day → `lessons.noMeetingThatDay {name}`. A schedule meets on a day that
+has a session, or on a day its recurrence covers while it is active and neither its service nor its stage is
+archived. Another non-archived lesson already there → `lessons.meetingHasLesson {title}`. An existing link stays
+valid when the lesson is edited, even if its session was canceled or its schedule no longer meets that day.
 
 Lesson preparers (`responsibleId` choices) are the active accounts whose roles grant `lessons: update`, by name
 in German collation.

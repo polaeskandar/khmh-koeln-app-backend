@@ -8,6 +8,7 @@ use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\LessonText;
 use App\Context\Learning\Domain\ValueObject\MeetingLink;
 use App\Context\Meetings\Application\Service\MeetingLookup;
+use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Library\Time\Model\LocalDate;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
@@ -44,11 +45,9 @@ final class MeetingViewsTest extends KernelTestCase
 
         $found = $this->meetings()->schedules(MeetingViews::scheduleIdsOf($lessons));
 
-        $views = MeetingViews::of(
-            $found,
-            $this->meetings()->sessionsOn($found, MeetingViews::datesOf($lessons)),
-            $lessons,
-        );
+        $sessions = $this->meetings()->sessionsOn($found, MeetingViews::datesOf($lessons));
+        $views = MeetingViews::of($found, $sessions, $lessons, ArchivedStructure::of([]));
+        $archived = MeetingViews::of($found, $sessions, $lessons, ArchivedStructure::of([$school->id()]));
 
         self::assertSame(
             ['planned', 'session', 'session', 'not-on-schedule', 'none'],
@@ -59,6 +58,11 @@ final class MeetingViewsTest extends KernelTestCase
         self::assertSame('canceled', $views[2]->members['status'] ?? null);
         self::assertSame('Holiday', $views[2]->members['cancelReason'] ?? null);
         self::assertSame('Old class', $views[3]->members['title'] ?? null);
+
+        self::assertSame(
+            ['not-on-schedule', 'session', 'session', 'not-on-schedule', 'none'],
+            array_map(static fn (MeetingView $view): string => $view->kind, $archived),
+        );
     }
 
     private function lesson(?Uuid $scheduleId, string $date): Lesson

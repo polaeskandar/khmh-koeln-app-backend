@@ -42,20 +42,18 @@ final readonly class AccountLookup
      */
     public function activeAllowedTo(Action $action, Resource $resource): array
     {
-        return Collections::sortedBy($this->users->activeThatCan($action, $resource), keyOf: self::nameKeyOf(...));
+        $collator = new Collator(self::COLLATION);
+
+        $nameKeyOf =
+            static fn (User $user): string => (string) $collator->getSortKey($user->profile()->displayName->value);
+
+        return Collections::sortedBy($this->users->activeThatCan($action, $resource), keyOf: $nameKeyOf);
     }
 
     public function isActiveAndAllowedTo(Uuid $accountId, Action $action, Resource $resource): bool
     {
-        $matching = $this->users
-            ->activeThatCan($action, $resource)
-            ->filter(static fn (User $user): bool => $user->id()->equals($accountId));
+        $user = $this->users->find($accountId);
 
-        return !$matching->isEmpty();
-    }
-
-    private static function nameKeyOf(User $user): string
-    {
-        return (string) new Collator(self::COLLATION)->getSortKey($user->profile()->displayName->value);
+        return $user !== null && RolePermissions::activeAccountHas($user, $action, $resource);
     }
 }

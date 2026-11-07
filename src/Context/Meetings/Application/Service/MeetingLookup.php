@@ -8,6 +8,7 @@ use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
+use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\MeetingSlot;
 use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -28,11 +29,13 @@ final readonly class MeetingLookup
         return $session === null ? null : MeetingSlot::ofSession($session);
     }
 
-    public function slotOfSchedule(Uuid $scheduleId, LocalDate $date): ?MeetingSlot
+    public function slotOfSchedule(Uuid $scheduleId, LocalDate $date, ArchivedStructure $archived): ?MeetingSlot
     {
         $schedule = $this->schedules->find($scheduleId);
 
-        return $schedule === null ? null : new MeetingSlot($schedule, $date, $this->sessions->findOn($schedule, $date));
+        return $schedule === null
+            ? null
+            : new MeetingSlot($schedule, $date, $this->sessions->findOn($schedule, $date), $archived);
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Domain\ValueObject;
 
+use App\Context\Meetings\Domain\Entity\Schedule;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -23,6 +24,11 @@ final readonly class ArchivedStructure
     public static function of(array $ids): self
     {
         return new self(new ArrayCollection($ids)->map(static fn (Uuid $id): string => $id->toRfc4122())->getValues());
+    }
+
+    public function generates(Schedule $schedule): bool
+    {
+        return $schedule->isActive() && !$this->holds($schedule->roster());
     }
 
     public function holds(Roster $roster): bool
