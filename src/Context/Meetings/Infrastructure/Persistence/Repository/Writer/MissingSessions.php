@@ -59,16 +59,25 @@ final readonly class MissingSessions
         $dates = new ArrayCollection($datesOf($schedule));
         $missing = $dates->filter(fn (LocalDate $date): bool => !$this->exists($scheduleId, $date));
 
-        foreach ($missing as $date) {
-            $session = new Session($schedule, $date, SessionPlan::of($schedule));
-            $this->entityManager->persist($session);
+        $events = $missing->map(fn (LocalDate $date): SessionEvent => $this->persisted($schedule, $date, $actor, $at));
+        $this->entityManager->flush();
 
-            $this->entityManager->persist(
-                new SessionEvent($session, SessionEventType::Created, $at, $actor, note: null),
-            );
+        foreach ($events as $event) {
+            $this->entityManager->detach($event);
+            $this->entityManager->detach($event->session());
         }
 
         return new GenerationResult(created: $missing->count(), existing: $dates->count() - $missing->count());
+    }
+
+    private function persisted(Schedule $schedule, LocalDate $date, Actor $actor, DateTimeImmutable $at): SessionEvent
+    {
+        $session = new Session($schedule, $date, SessionPlan::of($schedule));
+        $event = new SessionEvent($session, SessionEventType::Created, $at, $actor, note: null);
+        $this->entityManager->persist($session);
+        $this->entityManager->persist($event);
+
+        return $event;
     }
 
     private function exists(Uuid $scheduleId, LocalDate $date): bool
