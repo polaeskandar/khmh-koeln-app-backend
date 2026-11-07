@@ -33,7 +33,7 @@ final class HomeworkAssignment extends TimestampedEntity
     private HomeworkText $text;
 
     /**
-     * @var list<array{label: string, url: string|null}>
+     * @var list<array{url: string|null, label: string}>
      */
     #[ORM\Column(type: Types::JSON, options: ['jsonb' => true, 'default' => '[]'])]
     private array $resources;
@@ -76,7 +76,7 @@ final class HomeworkAssignment extends TimestampedEntity
     }
 
     /**
-     * @return list<array{label: string, url: string|null}>
+     * @return list<array{url: string|null, label: string}>
      */
     public function resources(): array
     {

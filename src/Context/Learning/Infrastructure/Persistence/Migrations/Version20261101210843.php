@@ -26,7 +26,7 @@ final class Version20261101210843 extends AbstractMigration
                     resources JSONB DEFAULT '[]' NOT NULL,
                     created_by UUID DEFAULT NULL,
                     title VARCHAR(120) NOT NULL,
-                    instructions TEXT DEFAULT NULL,
+                    instructions TEXT NOT NULL,
                     due_date DATE DEFAULT NULL,
                     status VARCHAR(9) NOT NULL,
                     published_at TIMESTAMP(0)
@@ -88,7 +88,10 @@ final class Version20261101210843 extends AbstractMigration
             ALTER TABLE learning.homework_assignment ADD CONSTRAINT homework_assignment_archived_check CHECK ((((status)::text = 'archived'::text) = (archived_at IS NOT NULL)))
             SQL);
         $this->addSql(<<<'SQL'
-            ALTER TABLE learning.homework_assignment ADD CONSTRAINT homework_assignment_instructions_check CHECK ((char_length(instructions) <= 2000))
+            ALTER TABLE learning.homework_assignment ADD CONSTRAINT homework_assignment_instructions_check CHECK (((btrim(instructions) <> ''::text) AND (char_length(instructions) <= 2000)))
+            SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE learning.homework_assignment ADD CONSTRAINT homework_assignment_title_check CHECK ((btrim((title)::text) <> ''::text))
             SQL);
         $this->addSql(<<<'SQL'
             ALTER TABLE learning.homework_assignment ADD CONSTRAINT homework_assignment_resources_check CHECK ((jsonb_array_length(resources) <= 10))

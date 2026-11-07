@@ -15,18 +15,18 @@ final readonly class HomeworkText
     private function __construct(
         #[ORM\Column(name: 'title', length: 120)]
         public string $title,
-        #[ORM\Column(name: 'instructions', type: Types::TEXT, nullable: true)]
-        public ?string $instructions,
+        #[ORM\Column(name: 'instructions', type: Types::TEXT)]
+        public string $instructions,
         #[ORM\Column(name: 'due_date', type: 'local_date', nullable: true)]
         public ?LocalDate $dueDate,
     ) {
     }
 
-    public static function of(string $title, ?string $instructions, ?LocalDate $dueDate): self
+    public static function of(string $title, string $instructions, ?LocalDate $dueDate): self
     {
         return new self(
             InputText::of($title)->collapsed()->toString(),
-            InputText::of($instructions)->trimmed()->toStringOrNull(),
+            InputText::of($instructions)->trimmed()->toString(),
             $dueDate,
         );
     }
