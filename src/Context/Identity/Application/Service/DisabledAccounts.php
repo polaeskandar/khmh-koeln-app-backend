@@ -6,6 +6,7 @@ namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Interface\AdministrationLockInterface;
+use App\Context\Identity\Domain\Repository\PasswordTokenRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
@@ -18,6 +19,7 @@ final readonly class DisabledAccounts
         private LastAdministrator $lastAdministrator,
         private AdministrationLockInterface $administration,
         private Calendar $calendar,
+        private PasswordTokenRepositoryInterface $tokens,
     ) {
     }
 
@@ -32,6 +34,7 @@ final readonly class DisabledAccounts
 
             $user->changeStatus($user->status()->disabledAt($this->calendar->now()));
             $this->users->save($user);
+            $this->tokens->forgetUnusedOf($user->id());
         });
     }
 

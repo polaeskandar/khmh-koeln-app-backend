@@ -23,12 +23,12 @@ final readonly class PasswordChanges
 
     public function fromLink(#[SensitiveParameter] string $token, #[SensitiveParameter] string $password): bool
     {
-        $passwordHash = $this->hasher->hash(PlainPassword::of($password));
+        $plain = PlainPassword::of($password);
 
         return $this->tokens->spend(
             Checksum::sha256($token),
             $this->calendar->now(),
-            static fn (User $user) => $user->changePassword($passwordHash),
+            fn (User $user) => $user->changePassword($this->hasher->hash($plain)),
         );
     }
 }

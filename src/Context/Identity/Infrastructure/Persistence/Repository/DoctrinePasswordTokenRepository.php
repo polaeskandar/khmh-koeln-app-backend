@@ -26,14 +26,19 @@ final readonly class DoctrinePasswordTokenRepository implements PasswordTokenRep
     public function replaceUnused(#[\SensitiveParameter] PasswordToken $token): void
     {
         $this->entityManager->wrapInTransaction(function () use ($token): void {
-            $this->entityManager->getConnection()->delete('identity.password_token', [
-                'user_id' => $token->user()->id()->toRfc4122(),
-                'used_at' => null,
-            ]);
-
+            $this->forgetUnusedOf($token->user()->id());
             $this->entityManager->persist($token);
             $this->entityManager->flush();
         });
+    }
+
+    #[Override]
+    public function forgetUnusedOf(Uuid $userId): void
+    {
+        $this->entityManager->getConnection()->delete('identity.password_token', [
+            'user_id' => $userId->toRfc4122(),
+            'used_at' => null,
+        ]);
     }
 
     #[Override]
@@ -46,6 +51,7 @@ final readonly class DoctrinePasswordTokenRepository implements PasswordTokenRep
                 return false;
             }
 
+            $this->forgetUnusedOf($userId);
             $use(
                 $this->entityManager->find(User::class, $userId) ?? throw new LogicException('The token has no user.'),
             );

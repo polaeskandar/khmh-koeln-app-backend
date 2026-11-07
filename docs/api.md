@@ -189,10 +189,11 @@ Public. Body `{token, password}`: sets a new password with the one-time link fro
 | --- | --- |
 | `password` shorter than 10 or longer than 200 characters | 422 `accounts.passwordTooShort {min: 10}` or `validation.tooLong {max: 200}` on `password`; the link stays usable |
 | Token missing, unknown, used, expired or replaced by a newer link, or the account is pending or disabled | 422 `auth.resetLinkInvalid`, the same body for each |
-| An 11th request from one IP within an hour | 429 `auth.tooManyAttempts` with `Retry-After` |
+| More than 10 requests from one IP within one fixed hour window | 429 `auth.tooManyAttempts` with `Retry-After` |
 
-The password is checked before the link is spent. Spending the link and saving the password happen in one
-transaction, so a link works exactly once.
+The password is checked before the link is spent, and hashed only once the link is valid. Spending the link,
+dropping the account's other unused links and saving the password happen in one transaction, so a link works
+exactly once. Disabling an account drops its unused links, so enabling it again doesn't bring them back.
 
 #### `POST /api/auth/register`
 
