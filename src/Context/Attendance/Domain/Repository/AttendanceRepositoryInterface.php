@@ -22,7 +22,7 @@ interface AttendanceRepositoryInterface
     /**
      * @param list<Uuid> $sessionIds
      *
-     * @return ReadableCollection<int, Attendance>
+     * @return ReadableCollection<string, list<string>>
      */
-    public function currentMarksOf(array $sessionIds): ReadableCollection;
+    public function presentBySession(array $sessionIds): ReadableCollection;
 }

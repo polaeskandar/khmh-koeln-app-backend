@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Context\Attendance\Application\Service;
 
-use App\Context\Attendance\Domain\Entity\Attendance;
 use App\Context\Attendance\Domain\Repository\AttendanceRepositoryInterface;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -19,10 +18,10 @@ final readonly class AttendanceMarks
     /**
      * @param list<Uuid> $sessionIds
      *
-     * @return ReadableCollection<int, Attendance>
+     * @return ReadableCollection<string, list<string>>
      */
-    public function currentOf(array $sessionIds): ReadableCollection
+    public function presentBySession(array $sessionIds): ReadableCollection
     {
-        return $this->attendance->currentMarksOf($sessionIds);
+        return $this->attendance->presentBySession($sessionIds);
     }
 }

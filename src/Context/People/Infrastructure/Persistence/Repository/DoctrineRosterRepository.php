@@ -7,6 +7,7 @@ namespace App\Context\People\Infrastructure\Persistence\Repository;
 use App\Context\People\Domain\Repository\RosterRepositoryInterface;
 use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Collections\Model\Collections;
+use App\Library\Collections\Model\Groups;
 use App\Library\Time\Model\LocalDate;
 use App\Library\Types\Model\Integers;
 use App\Library\Types\Model\Type;
@@ -64,14 +65,13 @@ final readonly class DoctrineRosterRepository implements RosterRepositoryInterfa
             return new ArrayCollection();
         }
 
-        $rows = $this->rosterRows($wanted);
-
-        return $wanted->map(
-            static fn (RosterKey $key): array => $rows
-                ->filter(static fn (array $row): bool => $row['key'] === $key->id())
-                ->map(static fn (array $row): Uuid => $row['personId'])
-                ->getValues(),
+        $rows = Groups::of(
+            $this->rosterRows($wanted),
+            keyOf: static fn (array $row): string => $row['key'],
+            valueOf: static fn (array $row): Uuid => $row['personId'],
         );
+
+        return $wanted->map(static fn (RosterKey $key): array => $rows->get($key->id()) ?? []);
     }
 
     /**
