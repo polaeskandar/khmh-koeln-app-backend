@@ -7,7 +7,7 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
@@ -56,6 +56,7 @@ jobs:
 
   image:
     name: image
+    needs: check
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
@@ -79,6 +80,10 @@ jobs:
       IMAGE: ghcr.io/polaeskandar/khmh-koeln-app-backend:${{ github.sha }}
       APP_SECRET: ci-smoke-test-secret-0123456789ab
       DATABASE_URL: postgresql://khmk:khmk@127.0.0.1:5432/khmk?serverVersion=18&charset=utf8
+      DEFAULT_URI: https://app.khmk-koeln.com
+      MAILER_DSN: null://null
+      TRUSTED_PROXIES: ''
+      RUN_ENV: -e APP_SECRET -e DATABASE_URL -e DEFAULT_URI -e MAILER_DSN -e TRUSTED_PROXIES
       PSQL: docker run --rm --network host postgres:18-alpine psql postgresql://khmk:khmk@127.0.0.1:5432/khmk -tAc
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -105,18 +110,21 @@ jobs:
           docker run --rm --entrypoint sh "$IMAGE" -c '
             test "$(id -u)" != 0 &&
             test ! -e tests && test ! -e vendor/phpunit && test ! -e .env.local && test ! -e .git &&
+          test ! -w src && test -w var &&
+          test -f templates/emails/password_link.html.twig && test -f translations/emails.en.yaml &&
+          test "$(php -r "echo ini_get(\"zend.assertions\");")" = -1 &&
             php bin/console about | grep -Eq "Environment +prod" &&
             php bin/console about | grep -Eq "Debug +false"'
           docker inspect "$IMAGE" --format '{{json .Config.Healthcheck}}' | grep -q 'api/health'
 
       - name: Starting leaves an empty database empty
         run: |
-          docker run -d --name api --network host -e APP_SECRET -e DATABASE_URL "$IMAGE"
+          docker run -d --name api --network host $RUN_ENV "$IMAGE"
           sleep 5
           test "$($PSQL "SELECT count(*) FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog', 'information_schema')")" = 0
 
       - name: Migrate as a one-off command
-        run: docker run --rm --network host -e APP_SECRET -e DATABASE_URL "$IMAGE" php bin/console app:migrations:migrate --no-interaction
+        run: docker run --rm --network host $RUN_ENV "$IMAGE" php bin/console app:migrations:migrate --no-interaction
 
       - name: The API answers
         run: |
