@@ -14,6 +14,7 @@ use App\Context\Meetings\Domain\ValueObject\TimeSlot;
 use App\Context\Meetings\Infrastructure\Lock\SymfonyGeneratorLock;
 use App\Library\Time\Model\LocalDate;
 use App\Library\Time\Model\LocalTime;
+use App\Tests\Support\Context\Meetings\Application\Service\SessionGeneration;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Tests\Support\Logs;
@@ -103,6 +104,17 @@ final class SessionsGenerateCommandTest extends KernelTestCase
 
         self::assertSame(Command::SUCCESS, $this->generate(['--date' => '2026-11-07']));
         self::assertSame(['2026-11-07', '2026-11-08'], $this->sessionDates());
+    }
+
+    public function testAFailingScheduleExitsOneAndTheOthersAreCreated(): void
+    {
+        self::mockTime('2026-11-08T10:00:00+01:00');
+        $broken = SessionGeneration::sundays();
+        new Database(self::getContainer())->persisted(SessionGeneration::sundays(), $broken);
+        new SessionGeneration(self::getContainer())->refuseSessionsOf($broken);
+
+        self::assertSame(Command::FAILURE, $this->generate([]));
+        self::assertSame(['2026-11-08'], $this->sessionDates());
     }
 
     public function testEachRunWritesOneSummaryOnItsChannel(): void
