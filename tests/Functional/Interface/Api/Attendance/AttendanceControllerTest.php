@@ -45,15 +45,16 @@ final class AttendanceControllerTest extends ApiTestCase
             ->id()
             ->toRfc4122();
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $servant = $this->signInWithRoles('servant@example.org', 'servant');
         $this->mark($session, $visitor);
         $first = $this->responseJson();
 
         $this->remove($session, $visitor, ['reason' => '  wrong child ']);
         self::assertResponseStatusCodeSame(204);
+        $this->signInWithRoles('other@example.org', 'servant');
         $this->remove($session, $visitor, ['reason' => 'again']);
         self::assertResponseStatusCodeSame(204);
-        self::assertSame(1, $this->rows("removal_reason = 'wrong child'"));
+        self::assertSame(1, $this->rows("removal_reason = 'wrong child' AND removed_by = '" . $servant . "'"));
 
         $this->mark($session, $visitor);
         self::assertResponseStatusCodeSame(201);
@@ -61,7 +62,9 @@ final class AttendanceControllerTest extends ApiTestCase
         self::assertSame(2, $this->rows('true'));
 
         $this->remove($session, $visitor, ['reason' => str_repeat('a', times: 201)]);
-        $this->assertFieldError('reason', 'validation.tooLong', ['max' => 200, 'limit' => 200]);
+        $this->assertFieldError('reason', 'validation.tooLong', ['max' => 200]);
+        $this->remove($session, $visitor, ['reason' => str_repeat('a', times: 199) . "\u{00A0}\u{00A0}"]);
+        self::assertResponseStatusCodeSame(204);
     }
 
     /**
@@ -88,6 +91,16 @@ final class AttendanceControllerTest extends ApiTestCase
 
         $this->assertProblem($status, $code, $params);
         self::assertSame(0, $this->rows('true'));
+
+        $this->remove($session, $mina->id()->toRfc4122(), []);
+
+        if ($personStatus === 'inactive') {
+            self::assertResponseStatusCodeSame(204);
+
+            return;
+        }
+
+        $this->assertProblem($status, $code);
     }
 
     /**
@@ -152,13 +165,43 @@ final class AttendanceControllerTest extends ApiTestCase
 
         $this->signInWithRoles('servant@example.org', 'servant');
 
+        $insideTheLock = static function (array $lines, string $write): bool {
+            $at =
+                static fn (string $needle): array => array_keys(array_filter($lines, static fn (string $line): bool => str_contains(
+                    $line,
+                    $needle,
+                )));
+
+            $lock = array_values(array_intersect($at('FOR UPDATE'), $at('meetings.meeting_session')))[0] ?? -1;
+            $writes = $at($write);
+            $later = array_filter($at('Committing transaction'), static fn (int $index): bool => $index > $lock);
+            $commit = array_values($later)[0] ?? -1;
+
+            return $lock >= 0 && $writes !== [] && $lock < min($writes) && max($writes) < $commit;
+        };
+
         $this->mark($session, $mina);
-        self::assertNotSame([], new Logs(self::getContainer())->containing('FOR UPDATE'));
+
+        self::assertTrue($insideTheLock(
+            new Logs(self::getContainer())->lines(),
+            write: 'INSERT INTO attendance.attendance',
+        ));
+
+        $this->remove($session, $mina, []);
+
+        self::assertTrue($insideTheLock(
+            new Logs(self::getContainer())->lines(),
+            write: 'UPDATE attendance.attendance',
+        ));
+
+        $this->signInWithRoles('admin@example.org', 'administrator');
+        $this->mark($session, $mina);
+        self::assertResponseStatusCodeSame(201);
 
         $this->signInWithRoles('parent@example.org', 'parent');
         $this->mark($session, $mina);
         $this->assertProblem(403, 'forbidden');
-        $this->remove($session, $mina, []);
+        $this->remove($session, $mina, ['reason' => str_repeat('a', times: 201)]);
         $this->assertProblem(403, 'forbidden');
     }
 

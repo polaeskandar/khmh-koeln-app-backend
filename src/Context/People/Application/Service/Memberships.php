@@ -13,7 +13,6 @@ use App\Context\People\Domain\ValueObject\Placement;
 use App\Context\People\Domain\ValueObject\Tenure;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
-use App\Library\Strings\Model\Text;
 use App\Library\Time\Client\Calendar;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\Uid\Uuid;
@@ -64,8 +63,6 @@ final readonly class Memberships
 
     private static function nameOf(Person $person): string
     {
-        $name = $person->name();
-
-        return Text::format('%s %s', $name->firstName, $name->lastName)->toString();
+        return $person->name()->fullName();
     }
 }

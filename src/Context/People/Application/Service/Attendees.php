@@ -9,7 +9,6 @@ use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
-use App\Library\Strings\Model\Text;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class Attendees
@@ -34,10 +33,6 @@ final readonly class Attendees
             return $person;
         }
 
-        $name = $person->name();
-
-        throw new RuleViolation('attendance.personInactive', [
-            'name' => Text::format('%s %s', $name->firstName, $name->lastName)->toString(),
-        ]);
+        throw new RuleViolation('attendance.personInactive', ['name' => $person->name()->fullName()]);
     }
 }
