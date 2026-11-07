@@ -9,6 +9,7 @@ use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Strings\Model\Text;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -31,7 +32,10 @@ final readonly class ChildChoices
      */
     public function of(array $childIds): ReadableCollection
     {
-        $ids = Collections::firstPerKey(new ArrayCollection($childIds), keyOf: static fn (string $id): string => $id);
+        $ids = Collections::firstPerKey(
+            new ArrayCollection($childIds),
+            keyOf: static fn (string $id): string => Text::of($id)->lower()->toString(),
+        );
 
         if ($ids->isEmpty()) {
             throw InvalidInput::field(self::FIELD, 'accounts.chooseChild');

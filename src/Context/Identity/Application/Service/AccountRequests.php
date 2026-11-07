@@ -41,18 +41,18 @@ final readonly class AccountRequests
         return $this->users->pending(self::LISTED);
     }
 
+    public function ensurePending(string $id): void
+    {
+        self::ensureUndecided($this->users->find(self::idOf($id)) ?? throw NotFound::of('user'));
+    }
+
     /**
      * @param callable(User): void $decision
      */
     public function decide(string $id, callable $decision): void
     {
-        $uuid = Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('user');
-
-        $this->users->withWriteLock($uuid, static function (User $user) use ($decision): void {
-            if (!$user->status()->isPending()) {
-                throw new RuleViolation('accounts.alreadyApproved');
-            }
-
+        $this->users->withWriteLock(self::idOf($id), static function (User $user) use ($decision): void {
+            self::ensureUndecided($user);
             $decision($user);
         });
     }
@@ -61,5 +61,17 @@ final readonly class AccountRequests
     {
         $this->users->remove($user);
         $this->logger->info('Declined an account request.', ['account' => $user->id()->toRfc4122()]);
+    }
+
+    private static function idOf(string $id): Uuid
+    {
+        return Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('user');
+    }
+
+    private static function ensureUndecided(User $user): void
+    {
+        if (!$user->status()->isPending()) {
+            throw new RuleViolation('accounts.alreadyApproved');
+        }
     }
 }
