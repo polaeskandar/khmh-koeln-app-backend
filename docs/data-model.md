@@ -216,12 +216,13 @@ roles. A parent account without any approved child sees an empty portal.
 `learning.lesson` (`Lesson`): `stage_id` (Organization) and `schedule_id` (Meetings) are plain ids without foreign
 keys, checked by the use cases; `teaching_date`; `responsible_id` is an account id nulled by the erasure process
 (D6). Text: `title` ≤160, `summary` ≤1000, `passage` ≤200, `memory_verse` ≤500; plan: `objectives`,
-`teaching_points`, `activities`, `notes` ≤4000 each; `materials` is a jsonb list of `{label, url}` (≤10 rows, label
-≤120, `http(s)` links only; empty rows dropped, a link without a label is its own label); `status`,
-`completed_at`, `archived_at`, timestamps. CHECKs: status enum, `(status = 'completed') = (completed_at IS NOT
-NULL)`, `btrim(title) <> ''`, `jsonb_array_length(materials) <= 10`. Partial UNIQUE `(schedule_id, teaching_date)
-WHERE archived_at IS NULL` (lessons without a schedule never clash); index `(stage_id, teaching_date)`. The use
-cases refuse to delete a stage or schedule that lessons point to, since no foreign key crosses schemas.
+`teaching_points`, `activities`, `notes` ≤4000 each; `materials` is a jsonb list of `{url, label}` (≤10 rows,
+written label ≤120, `http(s)` links ≤2048 without credentials; empty rows dropped, a link without a label is its
+own label; stored as `{url, label}`, jsonb's key order); `status`, `completed_at`, `archived_at`, timestamps.
+CHECKs: status enum, `(status = 'completed') = (completed_at IS NOT NULL)`, `btrim(title) <> ''`,
+`jsonb_array_length(materials) <= 10`. Partial UNIQUE `(schedule_id, teaching_date) WHERE archived_at IS NULL`
+(lessons without a schedule never clash); index `(stage_id, teaching_date)`. No foreign key crosses schemas, so
+whatever deletes a stage or a schedule must first check for lessons.
 
 Lesson status: `draft` → `ready` → `completed` (taught). Completed is only possible on or after the teaching
 date, and each step can be undone. Lessons are archived; a draft lesson can be deleted while none of its

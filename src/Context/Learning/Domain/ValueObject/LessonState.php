@@ -29,6 +29,6 @@ final readonly class LessonState
 
     public function archivedAt(DateTimeImmutable $at): self
     {
-        return new self($this->status, $this->completedAt, $at);
+        return new self($this->status, $this->completedAt, $this->archivedAt ?? $at);
     }
 }
