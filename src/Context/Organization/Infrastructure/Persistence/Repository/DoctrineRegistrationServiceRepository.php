@@ -6,6 +6,7 @@ namespace App\Context\Organization\Infrastructure\Persistence\Repository;
 
 use App\Context\Organization\Domain\Entity\RegistrationService;
 use App\Context\Organization\Domain\Repository\RegistrationServiceRepositoryInterface;
+use App\Library\Types\Model\ListOf;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -32,9 +33,17 @@ final readonly class DoctrineRegistrationServiceRepository implements Registrati
     #[Override]
     public function ofAccounts(array $accountIds): ReadableCollection
     {
-        return new ArrayCollection($this->entityManager
-            ->getRepository(RegistrationService::class)
-            ->findBy(['accountId' => $accountIds]));
+        $query = $this->entityManager
+            ->createQueryBuilder()
+            ->select('r', 's')
+            ->from(RegistrationService::class, 'r')
+            ->join('r.service', 's')
+            ->where('r.accountId IN (:accounts)')
+            ->orderBy('s.name.key', 'ASC')
+            ->setParameter('accounts', $accountIds)
+            ->getQuery();
+
+        return new ArrayCollection(ListOf::instances($query->getResult(), RegistrationService::class));
     }
 
     #[Override]
