@@ -65,6 +65,19 @@ final readonly class DoctrineSessionListRepository implements SessionListReposit
         return $this->sessions($query);
     }
 
+    /**
+     * @param list<Uuid> $ids
+     */
+    #[Override]
+    public function byIds(array $ids): ReadableCollection
+    {
+        if ($ids === []) {
+            return new ArrayCollection();
+        }
+
+        return $this->sessions($this->withSchedules()->where('s.id IN (:ids)')->setParameter('ids', $ids));
+    }
+
     private function withSchedules(): QueryBuilder
     {
         return $this->entityManager

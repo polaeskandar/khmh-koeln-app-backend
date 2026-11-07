@@ -22,6 +22,11 @@ final readonly class SessionState
 
     public static function of(Session $session, ?User $closer): self
     {
+        return self::referencing($session, $closer === null ? null : AccountReference::of($closer));
+    }
+
+    public static function referencing(Session $session, ?AccountReference $closedBy): self
+    {
         $progress = $session->progress();
 
         return new self(
@@ -29,7 +34,7 @@ final readonly class SessionState
             status: $progress->status->value,
             openedAt: $progress->opened->at,
             closedAt: $progress->closed->at,
-            closedBy: $closer === null ? null : AccountReference::of($closer),
+            closedBy: $closedBy,
         );
     }
 }

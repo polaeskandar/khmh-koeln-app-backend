@@ -29,10 +29,9 @@ final readonly class AttendanceOverview
      */
     public static function of(string $today, array $sessions, array $earlier, array $closed): self
     {
-        $open = new ArrayCollection([
-            ...$sessions,
-            ...$earlier,
-        ])->filter(static fn (OverviewCard $card): bool => $card->active);
+        $open = new ArrayCollection([...$sessions, ...$earlier])->filter(
+            static fn (OverviewCard $card): bool => $card->isActive(),
+        );
 
         return new self($today, $sessions, $earlier, $closed, $open->count());
     }

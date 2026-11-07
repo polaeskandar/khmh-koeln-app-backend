@@ -53,6 +53,16 @@ final readonly class MeetingSessions
     }
 
     /**
+     * @param list<Uuid> $ids
+     *
+     * @return ReadableCollection<int, Session>
+     */
+    public function byIds(array $ids): ReadableCollection
+    {
+        return $this->lists->byIds($ids);
+    }
+
+    /**
      * @param ReadableCollection<int, Session> $sessions
      *
      * @return ReadableCollection<int, Schedule>

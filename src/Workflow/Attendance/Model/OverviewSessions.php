@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Workflow\Attendance\Model;
 
+use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Library\Collections\Model\Collections;
 use App\Library\Strings\Model\Text;
 use App\Workflow\Meetings\Model\RosterReferences;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class OverviewSessions
 {
@@ -35,6 +37,29 @@ final readonly class OverviewSessions
         $keyOf = static fn (Session $session): string => self::orderOf($session, $references);
 
         return new ArrayCollection(Collections::sortedBy($sessions, keyOf: $keyOf));
+    }
+
+    /**
+     * @param ReadableCollection<int, Session> $sessions
+     *
+     * @return ReadableCollection<int, Schedule>
+     */
+    public static function schedulesOf(ReadableCollection $sessions): ReadableCollection
+    {
+        return $sessions->map(static fn (Session $session): Schedule => $session->schedule());
+    }
+
+    /**
+     * @param ReadableCollection<int, Session> $sessions
+     *
+     * @return list<Uuid>
+     */
+    public static function closerIdsOf(ReadableCollection $sessions): array
+    {
+        return Collections::mapPresent(
+            $sessions,
+            static fn (Session $session): ?Uuid => $session->progress()->closed->by,
+        )->getValues();
     }
 
     private static function isOpen(Session $session, RosterReferences $references): bool

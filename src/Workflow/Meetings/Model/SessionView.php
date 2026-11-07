@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Workflow\Meetings\Model;
 
+use App\Context\Meetings\Domain\Entity\Session;
+use DateTimeImmutable;
+
 final readonly class SessionView
 {
     public function __construct(
@@ -12,5 +15,19 @@ final readonly class SessionView
         public SessionTimes $times,
         public SessionProgress $progress,
     ) {
+    }
+
+    public static function of(
+        Session $session,
+        RosterReferences $references,
+        DateTimeImmutable $startsAt,
+        ?DateTimeImmutable $endsAt,
+    ): self {
+        return new self(
+            SessionDetails::of($session),
+            ScheduleRoster::of($session->schedule(), $references),
+            SessionTimes::of($session, $startsAt, $endsAt),
+            SessionProgress::of($session),
+        );
     }
 }
