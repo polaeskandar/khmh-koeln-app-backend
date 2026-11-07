@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Interface\Api\People\Response;
 
 use App\Workflow\Organization\Model\ServiceReference;
-use App\Workflow\Organization\Model\StageSummary;
+use App\Workflow\Organization\Model\StageReference;
 use App\Workflow\People\Model\AddedMembership;
 use JsonSerializable;
 use Override;
@@ -22,7 +22,7 @@ final readonly class AddedMembershipResponse implements JsonSerializable
      *     id: string,
      *     personId: string,
      *     service: ServiceReference,
-     *     stage: StageSummary|null,
+     *     stage: StageReference|null,
      *     startsOn: string,
      *     endsOn: null,
      * }
