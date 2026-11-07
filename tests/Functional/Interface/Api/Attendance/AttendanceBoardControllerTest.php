@@ -56,8 +56,9 @@ final class AttendanceBoardControllerTest extends ApiTestCase
         $youth = Structure::service('Youth Meeting');
         new Database(self::getContainer())->persisted($youth);
         $rosters->place($visitor, $youth, null, '2026-09-01');
+        $stranger = $rosters->person('Unplaced', 'Zaki');
         $servant = $this->signInWithRoles('servant@example.org', 'servant');
-        $marks = [...array_slice($children, offset: 0, length: 7), $visitor];
+        $marks = [...array_slice($children, offset: 0, length: 7), $visitor, $stranger];
         $this->mark($session, $servant, ...$marks);
         $this->correct($session, $servant, $children[7]);
 
@@ -66,11 +67,11 @@ final class AttendanceBoardControllerTest extends ApiTestCase
         self::assertResponseIsSuccessful();
 
         $this->assertJsonPath('counts', [
-            'present' => 8,
+            'present' => 9,
             'rosterSize' => 14,
             'rosterPresent' => 7,
             'notMarked' => 7,
-            'notOnRoster' => 1,
+            'notOnRoster' => 2,
         ]);
 
         $roster = JsonBody::asArray($this->responseJson()['roster'] ?? null, 'roster');
@@ -82,19 +83,12 @@ final class AttendanceBoardControllerTest extends ApiTestCase
         $this->assertJsonPath('notOnRoster.0.person.lastName', 'Youth');
         $this->assertJsonPath('notOnRoster.0.placements.0.service.name', 'Youth Meeting');
         $this->assertJsonPath('notOnRoster.0.mark.recordedAt', '2026-11-08T12:07:00+01:00');
+        $this->assertJsonPath('notOnRoster.1.person.lastName', 'Zaki');
+        $this->assertJsonPath('notOnRoster.1.placements', []);
         self::assertCount(6, JsonBody::asArray($this->responseJson()['recentlyMarked'] ?? null, 'recentlyMarked'));
-        $this->assertJsonPath('recentlyMarked.0.person.lastName', 'Youth');
+        $this->assertJsonPath('recentlyMarked.0.person.lastName', 'Zaki');
+        $this->assertJsonPath('recentlyMarked.1.person.lastName', 'Youth');
         self::assertSame(['counts', 'roster', 'notOnRoster', 'recentlyMarked'], array_keys($this->responseJson()));
-
-        $this->jsonRequest('GET', $this->board($session) . '/corrections');
-
-        self::assertResponseIsSuccessful();
-        $this->assertJsonPath('items.0.person.lastName', 'Bishara');
-        $this->assertJsonPath('items.0.reason', 'wrong child');
-        $this->assertJsonPath('items.0.recorded.at', '2026-11-08T11:00:00+01:00');
-        $this->assertJsonPath('items.0.recorded.by.id', $servant);
-        $this->assertJsonPath('items.0.removed.at', '2026-11-08T11:05:00+01:00');
-        $this->assertJsonPath('items.0.removed.by.id', $servant);
     }
 
     public function testTheSessionEndpointCarriesTheOpeningAndClosing(): void
@@ -117,6 +111,31 @@ final class AttendanceBoardControllerTest extends ApiTestCase
         $this->assertJsonPath('state.openedAt', '2026-11-08T10:00:00+01:00');
         $this->assertJsonPath('state.closedAt', '2026-11-08T12:00:00+01:00');
         $this->assertJsonPath('state.closedBy.id', $leader);
+
+        $scheduled = $this->session($service, $third, '');
+        $this->jsonRequest('GET', '/api/sessions/' . $scheduled->id()->toRfc4122());
+
+        $this->assertJsonPath('state', [
+            'id' => $scheduled->id()->toRfc4122(),
+            'status' => 'scheduled',
+            'openedAt' => null,
+            'closedAt' => null,
+            'closedBy' => null,
+        ]);
+
+        foreach (['', '/corrections'] as $part) {
+            $this->jsonRequest('GET', '/api/sessions/' . Uuid::v7()->toRfc4122() . '/attendance' . $part);
+            $this->assertProblem(404, 'notFound.session');
+            $this->jsonRequest('GET', '/api/sessions/not-a-uuid/attendance' . $part);
+            $this->assertProblem(404, 'notFound.session');
+
+            $this->jsonRequest(
+                'GET',
+                '/api/sessions/' . strtoupper($session->id()->toRfc4122()) . '/attendance' . $part,
+            );
+
+            self::assertResponseIsSuccessful();
+        }
     }
 
     public function testOpenRostersListEveryMarkAsNotOnTheRoster(): void
@@ -163,7 +182,7 @@ final class AttendanceBoardControllerTest extends ApiTestCase
         $session = $this->session($service, $third, self::ACTIVE);
         $rosters = new Rosters(self::getContainer());
         $this->mark($session, null, $rosters->person('First'));
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $servant = $this->signInWithRoles('servant@example.org', 'servant');
 
         $this->jsonRequest('GET', $this->board($session));
         $few = count(new Logs(self::getContainer())->containing('SELECT'));
@@ -181,12 +200,23 @@ final class AttendanceBoardControllerTest extends ApiTestCase
 
         self::assertCount($few, new Logs(self::getContainer())->containing('SELECT'));
 
+        $this->correct($session, $servant, $rosters->person('Corrected', 'Later'), '2026-11-08T11:20:00+01:00');
         $this->jsonRequest('GET', $this->board($session) . '/corrections');
         $few = count(new Logs(self::getContainer())->containing('SELECT'));
-        $this->correct($session, null, $rosters->person('Corrected', 'Once'));
-        $this->correct($session, null, $rosters->person('Corrected', 'Twice'));
+        $this->correct($session, $servant, $rosters->person('Corrected', 'First'));
+        $this->correct($session, null, $rosters->person('Corrected', 'Formerly'), '2026-11-08T11:30:00+01:00');
         $this->jsonRequest('GET', $this->board($session) . '/corrections');
         self::assertCount($few, new Logs(self::getContainer())->containing('SELECT'));
+
+        self::assertCount(3, JsonBody::asArray($this->responseJson()['items'] ?? null, 'items'));
+        $this->assertJsonPath('items.0.person.lastName', 'First');
+        $this->assertJsonPath('items.0.reason', 'wrong child');
+        $this->assertJsonPath('items.0.recorded.at', '2026-11-08T11:00:00+01:00');
+        $this->assertJsonPath('items.0.recorded.by.id', $servant);
+        $this->assertJsonPath('items.0.removed.at', '2026-11-08T11:05:00+01:00');
+        $this->assertJsonPath('items.0.removed.by.id', $servant);
+        $this->assertJsonPath('items.1.person.lastName', 'Later');
+        $this->assertJsonPath('items.2.removed.by', null);
 
         $this->signInWithRoles('parent@example.org', 'parent');
         $this->jsonRequest('GET', $this->board($session));
@@ -216,8 +246,12 @@ final class AttendanceBoardControllerTest extends ApiTestCase
         }
     }
 
-    private function correct(Session $session, ?string $by, Person $person): void
-    {
+    private function correct(
+        Session $session,
+        ?string $by,
+        Person $person,
+        string $removedAt = '2026-11-08T11:05:00+01:00',
+    ): void {
         $account = $by === null ? null : Uuid::fromString($by);
 
         $mark = new Attendance(
@@ -227,7 +261,7 @@ final class AttendanceBoardControllerTest extends ApiTestCase
             $account,
         );
 
-        $mark->remove(Removal::of(new DateTimeImmutable('2026-11-08T11:05:00+01:00'), $account, 'wrong child'));
+        $mark->remove(Removal::of(new DateTimeImmutable($removedAt), $account, 'wrong child'));
         new Database(self::getContainer())->persisted($mark);
     }
 

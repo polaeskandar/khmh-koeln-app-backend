@@ -30,4 +30,9 @@ interface AttendanceRepositoryInterface
      * @return ReadableCollection<string, list<string>>
      */
     public function presentBySession(array $sessionIds): ReadableCollection;
+
+    /**
+     * @return ReadableCollection<int, Attendance>
+     */
+    public function currentOf(Uuid $sessionId): ReadableCollection;
 }

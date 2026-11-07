@@ -63,7 +63,16 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
         return $this->entityManager->getRepository(Attendance::class)->matching(Criteria::create()
             ->where(Criteria::expr()->eq('sessionId', $sessionId))
             ->andWhere(Criteria::expr()->neq('removal.at', null))
-            ->orderBy(['removal.at' => Order::Ascending]));
+            ->orderBy(['removal.at' => Order::Ascending, 'id' => Order::Ascending]));
+    }
+
+    #[Override]
+    public function currentOf(Uuid $sessionId): ReadableCollection
+    {
+        return $this->entityManager->getRepository(Attendance::class)->matching(Criteria::create()
+            ->where(Criteria::expr()->eq('sessionId', $sessionId))
+            ->andWhere(Criteria::expr()->isNull('removal.at'))
+            ->orderBy(['recordedAt' => Order::Descending, 'id' => Order::Descending]));
     }
 
     /**

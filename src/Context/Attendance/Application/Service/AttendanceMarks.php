@@ -35,7 +35,7 @@ final readonly class AttendanceMarks
      */
     public function currentOf(Uuid $sessionId): ReadableCollection
     {
-        return $this->attendance->marksOf($sessionId)->filter(static fn (Attendance $mark): bool => $mark->isCurrent());
+        return $this->attendance->currentOf($sessionId);
     }
 
     /**
