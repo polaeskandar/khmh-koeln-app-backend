@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Infrastructure\Lock;
 
-use App\Context\Meetings\Application\Service\GeneratorLockInterface;
+use App\Context\Meetings\Domain\Interface\GeneratorLockInterface;
 use Doctrine\DBAL\Connection;
 use Override;
 use Symfony\Component\Lock\LockFactory;
