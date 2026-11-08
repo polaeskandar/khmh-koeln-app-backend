@@ -37,6 +37,13 @@ final class SourceLayoutTest extends TestCase
         self::assertSame(self::CONTEXTS, self::foldersIn('src/Context'));
     }
 
+    public function testTheWorkflowAndInterfaceAreasMirrorTheContexts(): void
+    {
+        foreach (['src/Workflow', 'src/Interface/Api', 'src/Interface/Console'] as $layer) {
+            self::assertSame([], array_values(array_diff(self::foldersIn($layer), self::CONTEXTS)), $layer);
+        }
+    }
+
     public function testEveryContextHasAnApplicationADomainAndAnInfrastructure(): void
     {
         foreach (self::CONTEXTS as $context) {

@@ -9,7 +9,7 @@ use App\Context\Meetings\Domain\Enum\RosterMode;
 use App\Context\Meetings\Domain\ValueObject\SessionCounts;
 use App\Library\Collections\Model\Collections;
 use App\Library\Types\Model\Ratio;
-use App\Workflow\Attendance\Model\SessionTally;
+use App\Workflow\Meetings\Model\SessionTally;
 use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class AttendanceTrend

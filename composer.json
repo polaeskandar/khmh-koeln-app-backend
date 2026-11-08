@@ -119,9 +119,6 @@
             "@lint",
             "@test"
         ],
-        "db:seed": [
-            "@php bin/console app:demo:seed --no-interaction"
-        ],
         "api:doc": [
             "@php bin/console nelmio:apidoc:dump --format=json --no-pretty > docs/openapi.json"
         ],

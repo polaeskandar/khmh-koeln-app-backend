@@ -16,7 +16,7 @@ use App\Workflow\Identity\Model\CurrentAccount;
 use App\Workflow\Identity\Model\MemberSummary;
 use App\Workflow\Identity\Model\PermissionGrant;
 use App\Workflow\Identity\Model\RoleSummary;
-use App\Workflow\MemberPortal\Model\MemberRoster;
+use App\Workflow\People\Model\MemberRoster;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Order;

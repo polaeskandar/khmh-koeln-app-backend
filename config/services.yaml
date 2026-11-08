@@ -3,7 +3,6 @@
 parameters:
     app.time_zone: 'Europe/Berlin'
     app.privacy_notice_version: '2026-11'
-    env(ALLOW_DEMO_SEED): '0'
 
 services:
     _defaults:

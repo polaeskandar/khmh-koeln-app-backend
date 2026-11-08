@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Meetings\Response;
 
-use App\Workflow\Attendance\Model\AttendanceCounts;
+use App\Workflow\Meetings\Model\AttendanceCounts;
 use App\Workflow\Meetings\Model\SessionView;
 use App\Workflow\Organization\Model\ServiceReference;
 use App\Workflow\Organization\Model\StageReference;

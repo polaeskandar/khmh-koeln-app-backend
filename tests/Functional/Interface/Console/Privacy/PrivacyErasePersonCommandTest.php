@@ -15,7 +15,7 @@ use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
 use App\Tests\Support\Interface\Api\Privacy\ErasureFixture;
-use App\Tests\Support\Workflow\Attendance\Model\SessionTallyLookups;
+use App\Tests\Support\Workflow\Meetings\Model\SessionTallyLookups;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Bundle\FrameworkBundle\Console\Application;

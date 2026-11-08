@@ -39,11 +39,11 @@ namespaces, and calls go one way: **Interface → Workflow → Context**.
 
 | Namespace | Holds |
 | --- | --- |
-| `App\Interface` | Entry points and the shapes they exchange, nothing else: `Api/<Area>/<Name>Controller`, `Api/<Area>/Request/<Name>Request` (the `#[MapRequestPayload]` DTOs with their `#[Assert]` constraints, strings and lists only), `Api/<Area>/Response/<Name>Response` (the JSON an endpoint answers, built with `::of()` from a workflow model), `Console/<Area>/<Name>Command` and `Console/<Area>/Request/<Name>Request`. Interface calls workflows only and never names a context class. The parent portal is `Api/ParentPortal`. |
-| `App\Workflow` | One class per process: `<Area>/<Verb><Subject>Workflow`, run through its only public method `__invoke()`. A workflow sequences the application services of one or more contexts, holds the transaction when several writes must succeed together, checks access, and maps what the contexts return to its models in `<Area>/Model/` (final readonly, scalars, lists and other models). It is the only code that uses the contexts. |
+| `App\Interface` | Entry points and the shapes they exchange, nothing else: `Api/<Area>/<Name>Controller`, `Api/<Area>/Request/<Name>Request` (the `#[MapRequestPayload]` DTOs with their `#[Assert]` constraints, strings and lists only), `Api/<Area>/Response/<Name>Response` (the JSON an endpoint answers, built with `::of()` from a workflow model), `Console/<Area>/<Name>Command` and `Console/<Area>/Request/<Name>Request`. An `<Area>` is the context the endpoint or command belongs to, so `Api/` and `Console/` mirror `Context/`: the parent and member portals' homework is in `Api/Learning`, their children and groups in `Api/People`. Interface calls workflows only and never names a context class; a dry run wraps the workflow in the `Transactions` platform contract. |
+| `App\Workflow` | One class per process: `<Area>/<Verb><Subject>Workflow`, its `<Area>` the context it mainly serves (the same folders as `Context/`), run through its only public method `__invoke()`. A workflow sequences the application services of one or more contexts, holds the transaction when several writes must succeed together, checks access, and maps what the contexts return to its models in `<Area>/Model/` (final readonly, scalars, lists and other models). It is the only code that uses the contexts. |
 | `App\Context` | The bounded contexts: `Identity`, `Organization`, `People`, `Meetings` (schedules, sessions and their attendance marks), `Learning`, `Privacy` (data protection requests). Each has `Application/Service` (the business logic), `Domain` (the model: `Entity`, `ValueObject`, `Enum`, `Repository` interfaces, the `Interface` contracts that its `Infrastructure` or its own rule classes implement, `Exception`, `Attribute`) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations). |
 | `App\Library` | Business-agnostic packages, each split into `Client`, `Model` and `Exception` (and `Mapping` for Doctrine mapped superclasses that entities extend); they wrap PHP's native functions once for the rest of the application (see [Code style](code-style.md)): `Strings` (`Text`, `InputText`, `NameKey`), `Types` (`Type`), `Collections` (`Collections`, next to Doctrine's collections), `Files` (`Path`), `Console` (`HiddenPrompt`), `Problem` (the coded exceptions), `Time` (`LocalDate`, `LocalTime`, `Calendar`, on Carbon), `Persistence` (the `CreatedAtEntity` and `TimestampedEntity` mapped superclasses). Packages never use each other (`mago guard`); a package keeps only the methods something uses, and missing ones are added with their first caller. |
-| `App\Platform` | The runtime: `Kernel`, `Migration`, `Health`, `Http`, `Logging`, `OpenApi` (describes the response classes for `docs/openapi.json`), and the contracts the contexts share, such as `Privacy`'s `AccountReferences` (every context forgets an erased account through it). Each module splits into `Contract` (interfaces the rest may use), `Service`, `Model` and `Command`. |
+| `App\Platform` | The runtime: `Kernel`, `Migration`, `Health` (the `/api/health` probes with their own `Controller` and `Response`), `Http`, `Logging`, `OpenApi` (describes the response classes for `docs/openapi.json`), and the contracts the contexts share, such as `Privacy`'s `AccountReferences` (every context forgets an erased account through it). Each module splits into `Contract` (interfaces the rest may use), `Service`, `Model` and `Command`. |
 
 Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
 
@@ -68,10 +68,6 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   When a rule of one context needs another context's facts, the workflow reads them and hands them over in
   the receiving context's own value object: `OfferedMeetings` maps Meetings' `MeetingSlot` into Learning's
   `OfferedMeeting`, and `ArchivedStructure` carries Organization's archived ids into Meetings.
-- The demo data (`composer db:seed`) follows the same split: each context seeds its own records with a
-  `Demo<Records>` application service, and `SeedDemoDataWorkflow` hands Organization's demo groups to People and
-  Meetings by name and id. `DemoDatabase` refuses a database that is not local, then purges and loads in one
-  transaction.
 - `Domain` holds the model only (`SourceLayoutTest`), and business logic lives in `Application/Service`. Entities hold state and
   nothing else: the constructor assigns the value objects, entities and ids it is given (plus fixed starting
   values such as a new session's `scheduled` progress), getters return them or answer a question about that
@@ -93,7 +89,7 @@ Naming:
 | Response | `Interface/Api/<Area>/Response/` | `<Name>Response` | final readonly |
 | Console command | `Interface/Console/<Area>/` | `<Name>Command` | final, invokable |
 | Console request | `Interface/Console/<Area>/Request/` | `<Name>Request` | final, public properties Symfony fills through `#[MapInput]` |
-| Workflow | `Workflow/<Area>/` | `<Verb><Subject>Workflow`: an imperative verb for a write (`RegisterAccount`, `GiveRole`), `Show` for one thing, `List` for many, `Check` for a probe | final readonly, only `__invoke()` public |
+| Workflow | `Workflow/<Area>/` | `<Verb><Subject>Workflow`: an imperative verb for a write (`RegisterAccount`, `GiveRole`), `Show` for one thing, `List` for many | final readonly, only `__invoke()` public |
 | Workflow model | `Workflow/<Area>/Model/` | a noun (`CurrentAccount`, `AccountDetails`) | final readonly |
 | Application service | `Context/<C>/Application/Service/` | what it manages (`RoleAssignments`, `AccountRegistration`), never `*Service`, `*Manager` or `*Helper` | final readonly |
 | Port | `Context/<C>/Domain/Interface/` | `*Interface` | interface |

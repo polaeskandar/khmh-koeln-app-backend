@@ -8,7 +8,7 @@ use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
 use App\Tests\Support\Database;
-use App\Tests\Support\Interface\Api\Auth\Registrations;
+use App\Tests\Support\Interface\Api\Identity\Registrations;
 use Override;
 use Symfony\Bundle\FrameworkBundle\Test\MailerAssertionsTrait;
 use Symfony\Component\Mime\Email;

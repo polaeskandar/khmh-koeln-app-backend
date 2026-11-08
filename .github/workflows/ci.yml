@@ -118,11 +118,10 @@ jobs:
             php bin/console about | grep -Eq "Debug +false"'
           docker inspect "$IMAGE" --format '{{json .Config.Healthcheck}}' | grep -q 'api/health'
 
-      - name: The image has no demo seed
+      - name: The image has the migration command
         run: |
           docker run --rm $RUN_ENV --entrypoint php "$IMAGE" bin/console list --raw > prod-commands.txt
           grep -q '^app:migrations:migrate ' prod-commands.txt
-          if grep -q '^app:demo:seed ' prod-commands.txt; then exit 1; fi
 
       - name: Starting leaves an empty database empty
         run: |

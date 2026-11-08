@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Workflow\Meetings\Model;
 
-use App\Workflow\Attendance\Model\AttendanceCounts;
-
 final readonly class AgendaItem
 {
     private function __construct(
