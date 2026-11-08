@@ -10,7 +10,8 @@ dot-separated identifier such as `services.hasHistory`; the apps show the text f
 language, and the API never sends sentences.
 
 A machine-readable OpenAPI 3.1 description is generated from the routes, the request classes and the response
-classes into [`openapi.json`](openapi.json) (`composer api:doc`); the frontend generates its API types from it.
+classes into [`openapi.json`](openapi.json) (`composer api:doc`). The dev server also serves it at
+`GET /api/openapi.json`, without signing in; the frontend's `pnpm api:types` generates its API types from there.
 `OpenApiDocumentTest` fails when it is stale, invalid or misses a route, and `OpenApiResponseBodiesTest` when a
 200, 201 or 202 has no body schema. Response bodies come from:
 
@@ -24,7 +25,7 @@ classes into [`openapi.json`](openapi.json) (`composer api:doc`); the frontend g
   `candidates`.
 
 Every functional and journey test checks its response against the document (`ResponseContract`, with closed
-objects): a missing, extra or mistyped field fails the test. The document is served at no URL. This document
+objects): a missing, extra or mistyped field fails the test. Outside dev and test the document is served at no URL. This document
 stays the agreed contract (D5): its conventions, code catalog and endpoint sections win where the two differ.
 
 ## Conventions
