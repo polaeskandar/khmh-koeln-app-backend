@@ -240,8 +240,6 @@ the Symfony secrets vault is not used.
 | `DEFAULT_URI` | `https://app.khmk-koeln.com` | No | Base URL for links generated outside a request (console) |
 | `SENTRY_DSN` | empty, or `https://<key>@<host>/<project>` | Yes | Error tracking for 5xx responses (Sentry's EU region or a self-hosted GlitchTip). Empty, the default: no event is ever built. Set it only once the service's data processing agreement is signed. |
 | `TEST_TOKEN` | `1` | No | Test only: the PHPUnit runner's suffix for parallel test databases |
-| `DEMO_PASSWORD` | `khmk-demo-2026` (`.env.dev`, `.env.test`) | No | `dev`/`test` only: the password of every demo account. Never set it in production. |
-| `ALLOW_DEMO_SEED` | `0` | No | `dev`/`test` only: `1` lets `composer db:seed` (`app:demo:seed`) purge and load the demo data into a database that is not local. The command does not exist in `prod`. |
 
 The production `TRUSTED_HOSTS`, with the probe host added at the end:
 

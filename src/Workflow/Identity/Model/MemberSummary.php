@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Identity\Model;
 
-use App\Workflow\MemberPortal\Model\MemberRoster;
+use App\Workflow\People\Model\MemberRoster;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class MemberSummary

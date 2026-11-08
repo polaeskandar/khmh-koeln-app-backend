@@ -12,7 +12,7 @@ use App\Context\Meetings\Application\Service\StructureUsage;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\Attendees;
-use App\Workflow\Attendance\Model\SessionTallies;
+use App\Workflow\Meetings\Model\SessionTallies;
 use App\Workflow\Organization\Model\RecentAttendance;
 use App\Workflow\Organization\Model\ServiceInsight;
 use App\Workflow\Organization\Model\ServiceInsights;

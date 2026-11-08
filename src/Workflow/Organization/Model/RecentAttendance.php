@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Organization\Model;
 
 use App\Context\Meetings\Domain\Entity\Session;
-use App\Workflow\Attendance\Model\SessionTally;
+use App\Workflow\Meetings\Model\SessionTally;
 use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class RecentAttendance

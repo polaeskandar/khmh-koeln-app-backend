@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Workflow\Meetings\Model;
 
 use App\Context\Meetings\Domain\Entity\Session;
-use App\Workflow\Attendance\Model\AttendanceCounts;
-use App\Workflow\Attendance\Model\SessionTally;
 use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class AgendaCounts

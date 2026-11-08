@@ -53,8 +53,8 @@ No other processor receives personal data. Logs leave the server only without pe
 - **Passwords:** hashed with Symfony's `auto` hasher; set through one-time links valid 24 h; sign-in is throttled.
 - **Logs:** no names, emails or children's data in production logs; request ids instead.
 - **Production access:** only the named operators, through the provider's console with two-factor sign-in.
-- **Fictional data outside production:** development and tests use `app:demo:seed` and fixtures, never copies of
-  production.
+- **Fictional data outside production:** development uses data entered by hand in the app and tests use fixtures,
+  never copies of production.
 - **Confidentiality:** every servant and operator signs the church's confidentiality undertaking before getting an
   account.
 

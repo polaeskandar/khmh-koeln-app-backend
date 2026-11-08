@@ -8,8 +8,8 @@ use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Database;
-use App\Tests\Support\Interface\Api\Auth\Registrations;
 use App\Tests\Support\Interface\Api\Identity\MemberFixture;
+use App\Tests\Support\Interface\Api\Identity\Registrations;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 
 final class AccountRequestsControllerMemberTest extends ApiTestCase
