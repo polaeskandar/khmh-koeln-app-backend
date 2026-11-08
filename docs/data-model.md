@@ -379,23 +379,24 @@ removes the account's link.
 `app:privacy:erase-person` runs `ErasePersonWorkflow` in one transaction; its `:dry-run` runs the same
 workflow inside a transaction that always rolls back:
 
-1. People's `PersonErasures` locks the person row and hands over their names and memberships.
-2. Meetings' `MeetingErasures` finds the counted sessions they were on the roster of or marked present at.
+1. People's `PersonErasures` locks the person row and hands every `PersonReferences`
+   (`Platform\Privacy\Contract`) an `ErasedPerson`: their names, memberships, last group and a way to ask
+   which roster slots they were on.
+2. Meetings' `PersonTraces` finds the counted sessions they were on the roster of or marked present at.
    Each session's counters are raised in the database (`erased_present = erased_present + 1`), not from a
-   loaded session, so two erasures that share a session both count.
-3. Every request about the member keeps only `erased_subject_kind` `member` and `erased_subject_group`, the
-   member's last stage or else its service.
-4. Meetings (the attendance marks), Learning and People delete what they hold about the person.
-5. In the same transaction, every `PersonReferences` (`Platform\Privacy\Contract`) forgets the person: Identity's
-   `PersonTraces` clears an account's link to the person's own record (`person_id`, `age_check`,
-   `guardian_consent_note`).
+   loaded session, so two erasures that share a session both count. Then it deletes the attendance marks.
+3. Privacy's `PersonTraces` leaves every request about the member with only `erased_subject_kind` `member` and
+   `erased_subject_group`, the member's last stage or else its service.
+4. Learning's `PersonTraces` deletes the homework reports, and Identity's `PersonTraces` clears an account's link
+   to the person's own record (`person_id`, `age_check`, `guardian_consent_note`).
+5. People deletes the memberships, guardian links and the person.
 
-An erasure request does the same from the app (`EraseRequestSubjectWorkflow`, through `EraseSubjectWorkflow`
-and the console's workflows), and its review (`ReviewRequestErasureWorkflow`) rehearses it in a transaction
-that is rolled back. `EraseSubjectWorkflow` resolves the counterpart first: Identity's `AccountErasures` names
+An erasure request does the same from the app (`EraseRequestSubjectWorkflow`), and its review runs that workflow
+inside a transaction that is rolled back. It resolves the counterpart first: Identity's `AccountErasures` names
 the account linked to the requested record (`accountOfRecord`) or the record of the requested account
 (`recordOfAccount`), so a member's account and its record belong to the same request. The notes that name the
-member (`ListMentionsWorkflow`) are found by the member's first and display name as a whole word:
+member (`PersonErasures::mentionsOf`, from every `PersonNotes`) are found by the member's first and display name
+as a whole word, oldest first:
 
 - cancel reasons and session notes in the meetings of the member's stages, and in their services' meetings
   without a stage;
@@ -429,10 +430,11 @@ point to the account become null (`recorded_by`, `removed_by`, `closed_by`, `act
 `EraseAccountWorkflow`. Identity's `AccountErasures` locks role administration and the account row, refuses
 the last administrator, counts the roles and password links, lets every context forget the account, and
 deletes it in one transaction. Each context forgets through its `AccountTraces` service, which implements the
-`AccountReferences` platform contract and nulls its actor columns or deletes the rows the account owned; the workflow
-collects them by the contract's tag, so a new context only adds its own service. A request that was already
-running can still write the account's id after that transaction, so the workflow sweeps the contexts once
-more after the commit, and a rerun on an erased account sweeps again before it reports `notFound.account`.
+`AccountReferences` platform contract and nulls its actor columns or deletes the rows the account owned;
+Identity's `AccountSweeps` collects them by the contract's tag, so a new context only adds its own service. A
+request that was already running can still write the account's id after that transaction, so `AccountErasures`
+sweeps the contexts once more after the commit (an erasure request once more after its own transaction), and a
+rerun on an erased account sweeps again before it reports `notFound.account`.
 
 **Past totals stay right.** A session's counts ("12 of 14 present") would shrink when someone is erased.
 Three counters on `meeting_session` keep them: `erased_roster`, `erased_present` and

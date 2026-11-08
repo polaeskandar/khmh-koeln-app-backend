@@ -18,11 +18,8 @@ final readonly class ErasureReview
     ) {
     }
 
-    /**
-     * @param list<Mention> $mentions
-     */
-    public static function of(ErasureOutcome $outcome, array $mentions): self
+    public static function of(ErasureOutcome $outcome): self
     {
-        return new self($outcome->erased(), $outcome->kept(), $mentions);
+        return new self($outcome->erased(), $outcome->kept(), $outcome->mentions);
     }
 }

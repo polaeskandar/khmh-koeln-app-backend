@@ -10,4 +10,6 @@ use Symfony\Component\Uid\Uuid;
 interface PersonTraceRepositoryInterface
 {
     public function forget(Uuid $personId): ForgottenPerson;
+
+    public function guardianLinksOf(Uuid $accountId): int;
 }

@@ -6,12 +6,15 @@ namespace App\Context\People\Infrastructure\Persistence\Repository;
 
 use App\Context\People\Domain\Repository\PersonTraceRepositoryInterface;
 use App\Context\People\Domain\ValueObject\ForgottenPerson;
+use App\Library\Types\Model\Integers;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrinePersonTraceRepository implements PersonTraceRepositoryInterface
 {
+    private const string GUARDIAN_LINKS = 'SELECT count(*) FROM people.guardian_relationship WHERE user_id = :account';
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -32,5 +35,13 @@ final readonly class DoctrinePersonTraceRepository implements PersonTraceReposit
         $this->entityManager->clear();
 
         return $forgotten;
+    }
+
+    #[Override]
+    public function guardianLinksOf(Uuid $accountId): int
+    {
+        return Integers::of($this->entityManager->getConnection()->fetchOne(self::GUARDIAN_LINKS, [
+            'account' => $accountId->toRfc4122(),
+        ]));
     }
 }

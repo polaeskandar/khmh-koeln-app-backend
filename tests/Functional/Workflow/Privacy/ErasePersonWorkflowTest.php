@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Workflow\Privacy;
 
-use App\Context\Identity\Application\Service\PersonTraces;
-use App\Context\Learning\Application\Service\LearningErasures;
-use App\Context\Meetings\Application\Service\MeetingErasures;
+use App\Context\Identity\Application\Service\PersonTraces as IdentityTraces;
+use App\Context\Learning\Application\Service\PersonTraces as LearningTraces;
+use App\Context\Meetings\Application\Service\PersonTraces as MeetingTraces;
 use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Application\Service\StructureLookup;
@@ -15,7 +15,7 @@ use App\Context\People\Domain\Repository\PersonTraceRepositoryInterface;
 use App\Context\People\Domain\Repository\RosterRepositoryInterface;
 use App\Context\People\Domain\ValueObject\ForgottenPerson;
 use App\Context\People\Infrastructure\Persistence\Repository\DoctrinePersonRepository;
-use App\Context\Privacy\Application\Service\RequestErasures;
+use App\Context\Privacy\Application\Service\PersonTraces as PrivacyTraces;
 use App\Platform\Doctrine\Contract\Transactions;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
@@ -97,20 +97,29 @@ final class ErasePersonWorkflowTest extends ApiTestCase
             {
                 throw new RuntimeException('Midway.');
             }
+
+            #[Override]
+            public function guardianLinksOf(Uuid $accountId): int
+            {
+                return 0;
+            }
         };
 
         $erasure = new ErasePersonWorkflow(
             new PersonErasures(
-                self::service(Transactions::class),
                 new DoctrinePersonRepository($entityManager),
                 self::service(RosterRepositoryInterface::class),
                 $failing,
-                [self::service(PersonTraces::class)],
+                [
+                    self::service(MeetingTraces::class),
+                    self::service(LearningTraces::class),
+                    self::service(PrivacyTraces::class),
+                    self::service(IdentityTraces::class),
+                ],
+                [],
             ),
-            self::service(MeetingErasures::class),
-            self::service(LearningErasures::class),
-            self::service(RequestErasures::class),
             self::service(StructureLookup::class),
+            self::service(Transactions::class),
         );
 
         try {

@@ -2,15 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Workflow\Privacy\Model;
+namespace App\Context\Meetings\Domain\ValueObject;
 
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Enum\RosterMode;
-use App\Context\Meetings\Domain\ValueObject\ErasedCounts;
-use App\Context\Meetings\Domain\ValueObject\RosterPlace;
-use App\Context\People\Domain\Entity\Membership;
-use App\Context\People\Domain\ValueObject\ErasablePerson;
-use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Collections\Model\Collections;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -20,14 +15,14 @@ final readonly class ErasedShares
 {
     /**
      * @param ReadableCollection<int, Session> $sessions
-     * @param list<string> $rosteredKeys
+     * @param list<string> $rosteredIds
      * @param list<Uuid> $presentAt
      *
      * @return ReadableCollection<string, ErasedCounts>
      */
-    public static function of(ReadableCollection $sessions, array $rosteredKeys, array $presentAt): ReadableCollection
+    public static function of(ReadableCollection $sessions, array $rosteredIds, array $presentAt): ReadableCollection
     {
-        $rostered = new ArrayCollection($rosteredKeys);
+        $rostered = new ArrayCollection($rosteredIds);
         $present = new ArrayCollection($presentAt)->map(static fn (Uuid $id): string => $id->toRfc4122());
 
         return Collections::firstPerKey($sessions, keyOf: self::idOf(...))->map(
@@ -36,32 +31,13 @@ final readonly class ErasedShares
     }
 
     /**
-     * @return list<RosterPlace>
-     */
-    public static function placesOf(ErasablePerson $person): array
-    {
-        return $person
-            ->memberships
-            ->map(
-                static fn (Membership $membership): RosterPlace => new RosterPlace(
-                    $membership->serviceId(),
-                    $membership->stageId(),
-                ),
-            )
-            ->getValues();
-    }
-
-    /**
      * @param ReadableCollection<int, Session> $sessions
      *
-     * @return list<RosterKey>
+     * @return ReadableCollection<int, Session>
      */
-    public static function expectedKeysOf(ReadableCollection $sessions): array
+    public static function expectedOf(ReadableCollection $sessions): ReadableCollection
     {
-        return $sessions
-            ->filter(self::isExpected(...))
-            ->map(self::keyOf(...))
-            ->getValues();
+        return $sessions->filter(self::isExpected(...));
     }
 
     /**
@@ -73,7 +49,7 @@ final readonly class ErasedShares
         ReadableCollection $rostered,
         ReadableCollection $present,
     ): ErasedCounts {
-        $roster = self::one(self::isExpected($session) && $rostered->contains(self::keyOf($session)->id()));
+        $roster = self::one(self::isExpected($session) && $rostered->contains(self::idOf($session)));
         $marked = self::one($present->contains(self::idOf($session)));
 
         return new ErasedCounts($roster, $marked, $roster * $marked);
@@ -82,13 +58,6 @@ final readonly class ErasedShares
     private static function isExpected(Session $session): bool
     {
         return $session->plan()->rosterMode === RosterMode::Expected;
-    }
-
-    private static function keyOf(Session $session): RosterKey
-    {
-        $roster = $session->schedule()->roster();
-
-        return new RosterKey($roster->serviceId, $roster->stageId, $session->occurrenceDate());
     }
 
     private static function one(bool $counted): int

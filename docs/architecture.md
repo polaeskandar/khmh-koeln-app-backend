@@ -57,11 +57,13 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   (`mago guard`). Read models carry no permission flags: clients take what the viewer may do from the
   `permissions` of `GET /api/me`.
 - A workflow takes at most five collaborators, like any other constructor; one that needs more is split, never
-  suppressed. A process made of whole processes composes their workflows: erasing a data request's subject runs
-  `EraseSubjectWorkflow`, which runs `ClearMentionsWorkflow` and the console's `ErasePersonWorkflow` and
-  `EraseAccountWorkflow`. The inner workflows don't check access; the outer one does. Each context takes part in
-  an erasure through its `*Erasures` service: People's `PersonErasures`, Meetings' `MeetingErasures`, Learning's
-  `LearningErasures`, Privacy's `RequestErasures` and Identity's `AccountErasures`.
+  suppressed. A workflow never runs another workflow: when two processes share steps, both call the same context
+  services, and a context takes over the steps that only fan out to the others through a platform contract. A
+  dry run is the real workflow inside `Transactions::rehearse()`, called by the entry point.
+- Erasure fans out through the tagged contracts in `Platform\Privacy\Contract`: People's `PersonErasures` hands
+  every `PersonReferences` (each context's `PersonTraces`) the `ErasedPerson` to forget and asks every
+  `PersonNotes` for the free-text notes that may name them; Identity's `AccountErasures` sweeps every
+  `AccountReferences` (each context's `AccountTraces`).
 - A context never uses another context. Only a context's own `Infrastructure` uses its `Infrastructure`.
   When a rule of one context needs another context's facts, the workflow reads them and hands them over in
   the receiving context's own value object: `OfferedMeetings` maps Meetings' `MeetingSlot` into Learning's

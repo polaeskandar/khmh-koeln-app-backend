@@ -6,7 +6,6 @@ namespace App\Context\Privacy\Application\Service;
 
 use App\Context\Privacy\Domain\Entity\DataRequest;
 use App\Context\Privacy\Domain\Repository\DataRequestRepositoryInterface;
-use App\Context\Privacy\Domain\Repository\PersonTraceRepositoryInterface;
 use App\Context\Privacy\Domain\ValueObject\ErasableSubject;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
@@ -16,7 +15,6 @@ final readonly class RequestErasures
 {
     public function __construct(
         private DataRequestRepositoryInterface $requests,
-        private PersonTraceRepositoryInterface $traces,
         private Calendar $calendar,
     ) {
     }
@@ -46,10 +44,5 @@ final readonly class RequestErasures
         $request = $this->requests->find(Uuid::fromString($requestId)) ?? throw NotFound::of('request');
         $request->complete($this->calendar->now()->toDateTimeImmutable(), Uuid::fromString($by), $outcome);
         $this->requests->save($request);
-    }
-
-    public function forgetPerson(Uuid $personId, ?string $group): int
-    {
-        return $this->traces->forget($personId, $group);
     }
 }

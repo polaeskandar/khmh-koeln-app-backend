@@ -7,8 +7,10 @@ namespace App\Interface\Api\Privacy;
 use App\Interface\Api\Privacy\Request\EraseRequestRequest;
 use App\Interface\Api\Privacy\Response\DataRequestRowResponse;
 use App\Interface\Api\Privacy\Response\ErasureReviewResponse;
+use App\Platform\Doctrine\Contract\Transactions;
 use App\Workflow\Privacy\EraseRequestSubjectWorkflow;
-use App\Workflow\Privacy\ReviewRequestErasureWorkflow;
+use App\Workflow\Privacy\Model\ErasureChoice;
+use App\Workflow\Privacy\Model\ErasureReview;
 use App\Workflow\Privacy\ShowDataRequestWorkflow;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
@@ -34,9 +36,16 @@ final class DataRequestErasureController extends AbstractController
         string $id,
         #[CurrentUser]
         UserInterface $viewer,
-        ReviewRequestErasureWorkflow $reviewRequestErasure,
+        EraseRequestSubjectWorkflow $eraseRequestSubject,
+        Transactions $transactions,
     ): JsonResponse {
-        return $this->json(ErasureReviewResponse::of($reviewRequestErasure($id, $viewer->getUserIdentifier())));
+        $review = $transactions->rehearse(static fn (): ErasureReview => $eraseRequestSubject(
+            $id,
+            $viewer->getUserIdentifier(),
+            new ErasureChoice(clearNotes: false),
+        ));
+
+        return $this->json(ErasureReviewResponse::of($review));
     }
 
     #[Route('/erase', name: 'api_data_requests_erase', methods: ['POST'])]
