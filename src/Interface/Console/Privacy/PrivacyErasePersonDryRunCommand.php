@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Interface\Console\Privacy;
 
 use App\Library\Problem\Exception\NotFound;
-use App\Workflow\Privacy\RehearsePersonErasureWorkflow;
+use App\Platform\Doctrine\Contract\Transactions;
+use App\Workflow\Privacy\ErasePersonWorkflow;
+use App\Workflow\Privacy\Model\PersonErasureCounts;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -18,14 +20,15 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final readonly class PrivacyErasePersonDryRunCommand
 {
     public function __construct(
-        private RehearsePersonErasureWorkflow $rehearsePersonErasure,
+        private ErasePersonWorkflow $erasePerson,
+        private Transactions $transactions,
     ) {
     }
 
     public function __invoke(SymfonyStyle $io, #[Argument(description: 'The member (person) id')] string $person): int
     {
         try {
-            $counts = ($this->rehearsePersonErasure)($person);
+            $counts = $this->transactions->rehearse(fn (): PersonErasureCounts => ($this->erasePerson)($person));
         } catch (NotFound $missing) {
             $io->error($missing->getMessage());
 

@@ -8,11 +8,15 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class ErasureOutcome
 {
+    /**
+     * @param list<Mention> $mentions
+     */
     public function __construct(
         private int $notes,
         private ?PersonErasureCounts $person,
         private ?ErasureCounts $account,
         public ?Uuid $accountId,
+        public array $mentions,
     ) {
     }
 

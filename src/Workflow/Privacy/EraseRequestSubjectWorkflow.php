@@ -5,51 +5,106 @@ declare(strict_types=1);
 namespace App\Workflow\Privacy;
 
 use App\Context\Identity\Application\Service\AccessCheck;
+use App\Context\Identity\Application\Service\AccountErasures;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Organization\Application\Service\StructureLookup;
+use App\Context\People\Application\Service\PersonErasures;
+use App\Context\People\Domain\ValueObject\ErasablePerson;
 use App\Context\Privacy\Application\Service\RequestErasures;
 use App\Context\Privacy\Domain\ValueObject\ErasableSubject;
-use App\Platform\Privacy\Contract\AccountReferences;
+use App\Workflow\People\Model\DirectoryEntries;
+use App\Workflow\People\Model\Placements;
+use App\Workflow\Privacy\Model\ErasedGroup;
 use App\Workflow\Privacy\Model\ErasureChoice;
-use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
+use App\Workflow\Privacy\Model\ErasureCounts;
+use App\Workflow\Privacy\Model\ErasureOutcome;
+use App\Workflow\Privacy\Model\ErasureReview;
+use App\Workflow\Privacy\Model\Mentions;
+use App\Workflow\Privacy\Model\PersonErasureCounts;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class EraseRequestSubjectWorkflow
 {
-    /**
-     * @param iterable<AccountReferences> $references
-     */
     public function __construct(
         private AccessCheck $access,
         private RequestErasures $requests,
-        private EraseSubjectWorkflow $eraseSubject,
-        #[AutowireIterator(AccountReferences::TAG)]
-        private iterable $references,
+        private PersonErasures $people,
+        private AccountErasures $accounts,
+        private StructureLookup $structure,
     ) {
     }
 
-    public function __invoke(string $requestId, string $viewerId, ErasureChoice $choice): void
+    public function __invoke(string $requestId, string $viewerId, ErasureChoice $choice): ErasureReview
     {
         $this->access->require(Action::Update, Resource::Users, refusal: 'privacy.adminOnly');
 
-        $erase = function (ErasableSubject $subject) use ($requestId, $viewerId, $choice): ?Uuid {
-            $outcome = ($this->eraseSubject)($subject, $choice);
-            $this->requests->complete($requestId, $viewerId, $outcome->counts());
+        $outcome = $this->requests->whileErasable(
+            $requestId,
+            $viewerId,
+            fn (ErasableSubject $asked): ErasureOutcome => $this->erased($asked, $choice, $requestId, $viewerId),
+        );
 
-            return $outcome->accountId;
-        };
-
-        $accountId = $this->requests->whileErasable($requestId, $viewerId, $erase);
-
-        if ($accountId !== null) {
-            $this->sweep($accountId);
+        if ($outcome->accountId !== null) {
+            $this->accounts->sweep($outcome->accountId);
         }
+
+        return ErasureReview::of($outcome);
     }
 
-    private function sweep(Uuid $accountId): void
+    private function erased(
+        ErasableSubject $asked,
+        ErasureChoice $choice,
+        string $requestId,
+        string $viewerId,
+    ): ErasureOutcome {
+        $subject = $asked->joined(
+            $this->accounts->recordOfAccount($asked->accountId),
+            $this->accounts->accountOfRecord($asked->personId),
+        );
+
+        $found = $subject->personId === null ? [] : $this->people->mentionsOf($subject->personId);
+
+        $outcome = new ErasureOutcome(
+            $this->people->clearMentions($choice->notesToClear($found)),
+            $this->personCounts($subject->personId),
+            $this->accountCounts($subject->accountId),
+            $subject->accountId,
+            Mentions::of($found, $this->structure->stages(Mentions::stageIdsOf($found))),
+        );
+
+        $this->requests->complete($requestId, $viewerId, $outcome->counts());
+
+        return $outcome;
+    }
+
+    private function personCounts(?Uuid $personId): ?PersonErasureCounts
     {
-        foreach ($this->references as $context) {
-            $context->forget($accountId);
+        if ($personId === null) {
+            return null;
         }
+
+        return PersonErasureCounts::of($this->people->erase($personId->toRfc4122(), $this->groupOf(...)));
+    }
+
+    private function accountCounts(?Uuid $accountId): ?ErasureCounts
+    {
+        if ($accountId === null) {
+            return null;
+        }
+
+        $guardianLinks = $this->people->guardianLinksOf($accountId);
+
+        return ErasureCounts::of($this->accounts->erase($accountId), $guardianLinks);
+    }
+
+    private function groupOf(ErasablePerson $person): ?string
+    {
+        $memberships = $person->memberships;
+
+        return ErasedGroup::of($memberships, Placements::of(
+            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+        ));
     }
 }

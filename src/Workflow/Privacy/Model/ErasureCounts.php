@@ -17,9 +17,9 @@ final readonly class ErasureCounts
     ) {
     }
 
-    public static function of(AccountErased $erased, int $guardianLinks, int $lateRows): self
+    public static function of(AccountErased $erased, int $guardianLinks): self
     {
-        return new self($erased->roles, $guardianLinks, $erased->passwordLinks, $erased->rowsKept + $lateRows);
+        return new self($erased->roles, $guardianLinks, $erased->passwordLinks, $erased->rowsKept);
     }
 
     public function summary(): string

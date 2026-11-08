@@ -6,7 +6,9 @@ namespace App\Interface\Console\Privacy;
 
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
-use App\Workflow\Privacy\RehearseAccountErasureWorkflow;
+use App\Platform\Doctrine\Contract\Transactions;
+use App\Workflow\Privacy\EraseAccountWorkflow;
+use App\Workflow\Privacy\Model\ErasureCounts;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -19,14 +21,15 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final readonly class PrivacyEraseAccountDryRunCommand
 {
     public function __construct(
-        private RehearseAccountErasureWorkflow $rehearseAccountErasure,
+        private EraseAccountWorkflow $eraseAccount,
+        private Transactions $transactions,
     ) {
     }
 
     public function __invoke(SymfonyStyle $io, #[Argument(description: 'The account id')] string $account): int
     {
         try {
-            $counts = ($this->rehearseAccountErasure)($account);
+            $counts = $this->transactions->rehearse(fn (): ErasureCounts => ($this->eraseAccount)($account));
         } catch (NotFound|RuleViolation $refused) {
             $io->error($refused->getMessage());
 

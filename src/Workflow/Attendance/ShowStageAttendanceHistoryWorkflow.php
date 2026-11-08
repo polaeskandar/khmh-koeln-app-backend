@@ -7,7 +7,9 @@ namespace App\Workflow\Attendance;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Meetings\Application\Service\StageHistory;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\ValueObject\MarkedSessions;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\Attendees;
@@ -18,6 +20,7 @@ use App\Workflow\Attendance\Model\AttendanceHistory;
 use App\Workflow\Attendance\Model\HistoryRow;
 use App\Workflow\Attendance\Model\HistoryRows;
 use App\Workflow\Attendance\Model\HistorySession;
+use App\Workflow\Attendance\Model\SessionTallies;
 use App\Workflow\Attendance\Model\TalliedSessions;
 
 final readonly class ShowStageAttendanceHistoryWorkflow
@@ -29,7 +32,7 @@ final readonly class ShowStageAttendanceHistoryWorkflow
         private StructureLookup $structure,
         private Attendees $attendees,
         private Calendar $calendar,
-        private TallyCompletedSessionsWorkflow $tallyCompletedSessions,
+        private StageHistory $history,
     ) {
     }
 
@@ -39,7 +42,7 @@ final readonly class ShowStageAttendanceHistoryWorkflow
 
         $stage = $this->structure->stage($stageId);
         $today = $this->calendar->today();
-        $tallied = ($this->tallyCompletedSessions)($stage->id(), self::SESSIONS);
+        $tallied = $this->talliedOf($this->history->latestCompleted($stage->id(), self::SESSIONS));
 
         return new AttendanceHistory(
             $today->toString(),
@@ -48,6 +51,19 @@ final readonly class ShowStageAttendanceHistoryWorkflow
                 ->map(fn (Session $session): HistorySession => $this->sessionOf($tallied, $session))
                 ->getValues(),
             $this->rowsOf($stage, $today, $tallied),
+        );
+    }
+
+    private function talliedOf(MarkedSessions $marked): TalliedSessions
+    {
+        return new TalliedSessions(
+            $marked->sessions,
+            SessionTallies::of(
+                $this->attendees->rostersOn(SessionTallies::rosterKeysOf($marked->sessions, $marked->schedules)),
+                $marked->present,
+                $marked->sessions,
+                $marked->schedules,
+            ),
         );
     }
 

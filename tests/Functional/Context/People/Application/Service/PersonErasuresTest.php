@@ -2,18 +2,20 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Functional\Workflow\Privacy;
+namespace App\Tests\Functional\Context\People\Application\Service;
 
+use App\Context\Organization\Application\Service\StructureLookup;
+use App\Context\People\Application\Service\PersonErasures;
 use App\Context\People\Domain\Entity\Person;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
 use App\Tests\Support\Interface\Api\Privacy\ErasureFixture;
-use App\Workflow\Privacy\ListMentionsWorkflow;
 use App\Workflow\Privacy\Model\Mention;
+use App\Workflow\Privacy\Model\Mentions;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-final class ListMentionsWorkflowTest extends KernelTestCase
+final class PersonErasuresTest extends KernelTestCase
 {
     public function testANameMatchesAsAWholeWordInTheMembersGroupsOnly(): void
     {
@@ -49,14 +51,20 @@ final class ListMentionsWorkflowTest extends KernelTestCase
      */
     private function mentionsOf(Person $person): array
     {
-        $listMentions = self::getContainer()->get(ListMentionsWorkflow::class);
-        self::assertInstanceOf(ListMentionsWorkflow::class, $listMentions);
+        $erasures = self::getContainer()->get(PersonErasures::class);
+        self::assertInstanceOf(PersonErasures::class, $erasures);
+        $structure = self::getContainer()->get(StructureLookup::class);
+        self::assertInstanceOf(StructureLookup::class, $structure);
+        $found = $erasures->mentionsOf($person->id());
 
-        return array_map(static fn (Mention $mention): array => [
-            $mention->where,
-            $mention->text,
-            $mention->date,
-            $mention->group,
-        ], $listMentions($person->id()));
+        return array_map(
+            static fn (Mention $mention): array => [
+                $mention->where,
+                $mention->text,
+                $mention->date,
+                $mention->group,
+            ],
+            Mentions::of($found, $structure->stages(Mentions::stageIdsOf($found))),
+        );
     }
 }

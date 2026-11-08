@@ -6,8 +6,8 @@ namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Repository\PersonTraceRepositoryInterface;
 use App\Platform\Privacy\Contract\PersonReferences;
+use App\Platform\Privacy\Model\ErasedPerson;
 use Override;
-use Symfony\Component\Uid\Uuid;
 
 final readonly class PersonTraces implements PersonReferences
 {
@@ -16,9 +16,14 @@ final readonly class PersonTraces implements PersonReferences
     ) {
     }
 
+    /**
+     * @return array<string, int>
+     */
     #[Override]
-    public function forgetPerson(Uuid $personId): int
+    public function forgetPerson(ErasedPerson $person): array
     {
-        return $this->traces->forget($personId);
+        $this->traces->forget($person->id);
+
+        return [];
     }
 }
