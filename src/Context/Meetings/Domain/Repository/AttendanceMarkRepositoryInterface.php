@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Domain\Repository;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
-interface AttendanceRepositoryInterface
+interface AttendanceMarkRepositoryInterface
 {
-    public function save(Attendance $attendance): void;
+    public function save(AttendanceMark $mark): void;
 
-    public function currentMark(Uuid $sessionId, Uuid $personId): ?Attendance;
+    public function currentMark(Uuid $sessionId, Uuid $personId): ?AttendanceMark;
 
     /**
-     * @return ReadableCollection<int, Attendance>
+     * @return ReadableCollection<int, AttendanceMark>
      */
     public function marksOf(Uuid $sessionId): ReadableCollection;
 
     /**
-     * @return ReadableCollection<int, Attendance>
+     * @return ReadableCollection<int, AttendanceMark>
      */
     public function removedMarksOf(Uuid $sessionId): ReadableCollection;
 
@@ -32,12 +32,12 @@ interface AttendanceRepositoryInterface
     public function presentBySession(array $sessionIds): ReadableCollection;
 
     /**
-     * @return ReadableCollection<int, Attendance>
+     * @return ReadableCollection<int, AttendanceMark>
      */
     public function currentOf(Uuid $sessionId): ReadableCollection;
 
     /**
-     * @return ReadableCollection<int, Attendance>
+     * @return ReadableCollection<int, AttendanceMark>
      */
     public function ofPerson(Uuid $personId): ReadableCollection;
 }

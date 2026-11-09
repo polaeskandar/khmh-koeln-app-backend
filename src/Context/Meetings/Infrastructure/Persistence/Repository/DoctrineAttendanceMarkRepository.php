@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Infrastructure\Persistence\Repository;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
-use App\Context\Meetings\Domain\Repository\AttendanceRepositoryInterface;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
+use App\Context\Meetings\Domain\Repository\AttendanceMarkRepositoryInterface;
 use App\Library\Collections\Model\Groups;
 use App\Library\Types\Model\Type;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -17,7 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class DoctrineAttendanceRepository implements AttendanceRepositoryInterface
+final readonly class DoctrineAttendanceMarkRepository implements AttendanceMarkRepositoryInterface
 {
     private const string PRESENT = <<<'SQL'
         SELECT session_id, person_id FROM meetings.attendance
@@ -31,17 +31,17 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
     }
 
     #[Override]
-    public function save(Attendance $attendance): void
+    public function save(AttendanceMark $mark): void
     {
-        $this->entityManager->persist($attendance);
+        $this->entityManager->persist($mark);
         $this->entityManager->flush();
     }
 
     #[Override]
-    public function currentMark(Uuid $sessionId, Uuid $personId): ?Attendance
+    public function currentMark(Uuid $sessionId, Uuid $personId): ?AttendanceMark
     {
         return $this->entityManager
-            ->getRepository(Attendance::class)
+            ->getRepository(AttendanceMark::class)
             ->findOneBy([
                 'session' => $sessionId,
                 'personId' => $personId,
@@ -52,7 +52,7 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
     #[Override]
     public function marksOf(Uuid $sessionId): ReadableCollection
     {
-        return new ArrayCollection($this->entityManager->getRepository(Attendance::class)->findBy([
+        return new ArrayCollection($this->entityManager->getRepository(AttendanceMark::class)->findBy([
             'session' => $sessionId,
         ], ['recordedAt' => 'ASC', 'id' => 'ASC']));
     }
@@ -60,7 +60,7 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
     #[Override]
     public function removedMarksOf(Uuid $sessionId): ReadableCollection
     {
-        return $this->entityManager->getRepository(Attendance::class)->matching(Criteria::create()
+        return $this->entityManager->getRepository(AttendanceMark::class)->matching(Criteria::create()
             ->where(Criteria::expr()->eq('session', $sessionId))
             ->andWhere(Criteria::expr()->neq('removal.at', null))
             ->orderBy(['removal.at' => Order::Ascending, 'id' => Order::Ascending]));
@@ -69,7 +69,7 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
     #[Override]
     public function ofPerson(Uuid $personId): ReadableCollection
     {
-        return new ArrayCollection($this->entityManager->getRepository(Attendance::class)->findBy([
+        return new ArrayCollection($this->entityManager->getRepository(AttendanceMark::class)->findBy([
             'personId' => $personId,
         ], ['recordedAt' => 'ASC', 'id' => 'ASC']));
     }
@@ -77,7 +77,7 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
     #[Override]
     public function currentOf(Uuid $sessionId): ReadableCollection
     {
-        return $this->entityManager->getRepository(Attendance::class)->matching(Criteria::create()
+        return $this->entityManager->getRepository(AttendanceMark::class)->matching(Criteria::create()
             ->where(Criteria::expr()->eq('session', $sessionId))
             ->andWhere(Criteria::expr()->isNull('removal.at'))
             ->orderBy(['recordedAt' => Order::Descending, 'id' => Order::Descending]));

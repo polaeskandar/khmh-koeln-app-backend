@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Meetings\Model;
 
 use App\Context\Identity\Domain\Entity\Account;
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Workflow\Identity\Model\AccountReference;
 use DateTimeImmutable;
 
@@ -20,7 +20,7 @@ final readonly class MarkView
     ) {
     }
 
-    public static function of(Attendance $mark, ?Account $recorder): self
+    public static function of(AttendanceMark $mark, ?Account $recorder): self
     {
         return new self(
             $mark->id()->toRfc4122(),

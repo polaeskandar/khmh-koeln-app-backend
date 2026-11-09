@@ -6,7 +6,7 @@ namespace App\Context\Meetings\Application\Service;
 
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Enum\SessionStatus;
-use App\Context\Meetings\Domain\Repository\AttendanceRepositoryInterface;
+use App\Context\Meetings\Domain\Repository\AttendanceMarkRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
@@ -28,7 +28,7 @@ final readonly class ServiceMeetings
         private ScheduleRepositoryInterface $schedules,
         private SessionRepositoryInterface $sessions,
         private PlannedDates $plannedDates,
-        private AttendanceRepositoryInterface $attendance,
+        private AttendanceMarkRepositoryInterface $marks,
         private Calendar $calendar,
     ) {
     }
@@ -44,7 +44,7 @@ final readonly class ServiceMeetings
 
         $ids = $completed->map(static fn (Session $session): Uuid => $session->id())->getValues();
 
-        return new MarkedSessions($completed, $schedules, $this->attendance->presentBySession($ids));
+        return new MarkedSessions($completed, $schedules, $this->marks->presentBySession($ids));
     }
 
     /**

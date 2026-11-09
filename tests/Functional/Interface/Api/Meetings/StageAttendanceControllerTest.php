@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Meetings;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Domain\Entity\Service;
@@ -192,7 +192,7 @@ final class StageAttendanceControllerTest extends ApiTestCase
     private function mark(Session $session, Person $person): void
     {
         new Database(self::getContainer())->persisted(
-            new Attendance(
+            new AttendanceMark(
                 new Schedules(self::getContainer())->managed($session),
                 $person->id(),
                 new DateTimeImmutable($session->occurrenceDate()->toString() . 'T18:45:00+01:00'),

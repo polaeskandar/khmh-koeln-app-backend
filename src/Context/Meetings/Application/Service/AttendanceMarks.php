@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Application\Service;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\Meetings\Domain\Entity\Session;
-use App\Context\Meetings\Domain\Repository\AttendanceRepositoryInterface;
+use App\Context\Meetings\Domain\Repository\AttendanceMarkRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\RecordedMark;
 use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Library\Time\Client\Calendar;
@@ -16,7 +16,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class AttendanceMarks
 {
     public function __construct(
-        private AttendanceRepositoryInterface $attendance,
+        private AttendanceMarkRepositoryInterface $marks,
         private Calendar $calendar,
     ) {
     }
@@ -28,50 +28,50 @@ final readonly class AttendanceMarks
      */
     public function presentBySession(array $sessionIds): ReadableCollection
     {
-        return $this->attendance->presentBySession($sessionIds);
+        return $this->marks->presentBySession($sessionIds);
     }
 
     /**
-     * @return ReadableCollection<int, Attendance>
+     * @return ReadableCollection<int, AttendanceMark>
      */
     public function currentOf(Uuid $sessionId): ReadableCollection
     {
-        return $this->attendance->currentOf($sessionId);
+        return $this->marks->currentOf($sessionId);
     }
 
     /**
-     * @return ReadableCollection<int, Attendance>
+     * @return ReadableCollection<int, AttendanceMark>
      */
     public function removedOf(Uuid $sessionId): ReadableCollection
     {
-        return $this->attendance->removedMarksOf($sessionId);
+        return $this->marks->removedMarksOf($sessionId);
     }
 
     /**
-     * @return ReadableCollection<int, Attendance>
+     * @return ReadableCollection<int, AttendanceMark>
      */
     public function ofPerson(Uuid $personId): ReadableCollection
     {
-        return $this->attendance->ofPerson($personId);
+        return $this->marks->ofPerson($personId);
     }
 
     public function record(Session $session, Uuid $personId, string $accountId): RecordedMark
     {
-        $current = $this->attendance->currentMark($session->id(), $personId);
+        $current = $this->marks->currentMark($session->id(), $personId);
 
         if ($current !== null) {
             return new RecordedMark($current, created: false);
         }
 
-        $mark = new Attendance($session, $personId, $this->calendar->now(), Uuid::fromString($accountId));
-        $this->attendance->save($mark);
+        $mark = new AttendanceMark($session, $personId, $this->calendar->now(), Uuid::fromString($accountId));
+        $this->marks->save($mark);
 
         return new RecordedMark($mark, created: true);
     }
 
     public function remove(Uuid $sessionId, Uuid $personId, string $accountId, ?string $reason): void
     {
-        $current = $this->attendance->currentMark($sessionId, $personId);
+        $current = $this->marks->currentMark($sessionId, $personId);
 
         if ($current === null) {
             return;
@@ -79,6 +79,6 @@ final readonly class AttendanceMarks
 
         $current->remove(Removal::of($this->calendar->now(), Uuid::fromString($accountId), $reason));
 
-        $this->attendance->save($current);
+        $this->marks->save($current);
     }
 }

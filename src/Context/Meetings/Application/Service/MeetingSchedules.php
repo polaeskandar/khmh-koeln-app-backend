@@ -6,7 +6,7 @@ namespace App\Context\Meetings\Application\Service;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
-use App\Context\Meetings\Domain\Repository\AttendanceRepositoryInterface;
+use App\Context\Meetings\Domain\Repository\AttendanceMarkRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\AgendaDates;
 use App\Context\Meetings\Domain\ValueObject\AgendaRange;
@@ -21,7 +21,7 @@ final readonly class MeetingSchedules
     public function __construct(
         private ScheduleRepositoryInterface $schedules,
         private PlannedDates $plannedDates,
-        private AttendanceRepositoryInterface $attendance,
+        private AttendanceMarkRepositoryInterface $marks,
     ) {
     }
 
@@ -95,7 +95,7 @@ final readonly class MeetingSchedules
             ->map(static fn (Session $session): Uuid => $session->id())
             ->getValues();
 
-        return $dates->withPresent($this->attendance->presentBySession($opened));
+        return $dates->withPresent($this->marks->presentBySession($opened));
     }
 
     private static function idOf(string $field, ?string $value): ?Uuid

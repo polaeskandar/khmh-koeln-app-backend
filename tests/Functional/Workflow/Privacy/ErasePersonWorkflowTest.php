@@ -7,7 +7,7 @@ namespace App\Tests\Functional\Workflow\Privacy;
 use App\Context\Identity\Application\Service\PersonTraces as IdentityTraces;
 use App\Context\Learning\Application\Service\PersonTraces as LearningTraces;
 use App\Context\Meetings\Application\Service\PersonTraces as MeetingTraces;
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\PersonErasures;
@@ -167,7 +167,7 @@ final class ErasePersonWorkflowTest extends ApiTestCase
             $at = new DateTimeImmutable('2026-11-01T12:00:00+01:00');
 
             new Database(self::getContainer())->persisted(
-                new Attendance($schedules->managed($session), $person->id(), $at, recordedBy: null),
+                new AttendanceMark($schedules->managed($session), $person->id(), $at, recordedBy: null),
             );
 
             $ids[] = $person->id()->toRfc4122();

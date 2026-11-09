@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Meetings\Model;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\People\Domain\Entity\Person;
 use App\Library\Collections\Model\Collections;
 use App\Workflow\Identity\Model\AccountReferences;
@@ -16,7 +16,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class Corrections
 {
     /**
-     * @param ReadableCollection<int, Attendance> $removed
+     * @param ReadableCollection<int, AttendanceMark> $removed
      * @param ReadableCollection<non-empty-string, Person> $people
      *
      * @return list<Correction>
@@ -26,7 +26,7 @@ final readonly class Corrections
         ReadableCollection $people,
         AccountReferences $accounts,
     ): array {
-        return Collections::mapPresent($removed, static function (Attendance $mark) use (
+        return Collections::mapPresent($removed, static function (AttendanceMark $mark) use (
             $people,
             $accounts,
         ): ?Correction {
@@ -37,29 +37,29 @@ final readonly class Corrections
     }
 
     /**
-     * @param ReadableCollection<int, Attendance> $removed
+     * @param ReadableCollection<int, AttendanceMark> $removed
      *
      * @return list<Uuid>
      */
     public static function personIdsOf(ReadableCollection $removed): array
     {
-        return self::unique($removed->map(static fn (Attendance $mark): Uuid => $mark->personId())->getValues());
+        return self::unique($removed->map(static fn (AttendanceMark $mark): Uuid => $mark->personId())->getValues());
     }
 
     /**
-     * @param ReadableCollection<int, Attendance> $removed
+     * @param ReadableCollection<int, AttendanceMark> $removed
      *
      * @return list<Uuid>
      */
     public static function accountIdsOf(ReadableCollection $removed): array
     {
-        $recorders = Collections::mapPresent($removed, static fn (Attendance $mark): ?Uuid => $mark->recordedBy());
-        $removers = Collections::mapPresent($removed, static fn (Attendance $mark): ?Uuid => $mark->removal()->by);
+        $recorders = Collections::mapPresent($removed, static fn (AttendanceMark $mark): ?Uuid => $mark->recordedBy());
+        $removers = Collections::mapPresent($removed, static fn (AttendanceMark $mark): ?Uuid => $mark->removal()->by);
 
         return self::unique([...$recorders->getValues(), ...$removers->getValues()]);
     }
 
-    private static function correctionOf(Attendance $mark, Person $person, AccountReferences $accounts): Correction
+    private static function correctionOf(AttendanceMark $mark, Person $person, AccountReferences $accounts): Correction
     {
         $removal = $mark->removal();
 

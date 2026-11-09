@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\Meetings\Domain\Entity\Session;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -22,24 +22,24 @@ final readonly class AttendanceRow
     }
 
     /**
-     * @param ReadableCollection<int, Attendance> $marks
+     * @param ReadableCollection<int, AttendanceMark> $marks
      *
      * @return list<Uuid>
      */
     public static function sessionIdsOf(ReadableCollection $marks): array
     {
-        return $marks->map(static fn (Attendance $mark): Uuid => $mark->sessionId())->getValues();
+        return $marks->map(static fn (AttendanceMark $mark): Uuid => $mark->sessionId())->getValues();
     }
 
     /**
-     * @param ReadableCollection<int, Attendance> $marks
+     * @param ReadableCollection<int, AttendanceMark> $marks
      * @param ReadableCollection<string, Session> $sessions
      *
      * @return list<self>
      */
     public static function listOf(ReadableCollection $marks, ReadableCollection $sessions): array
     {
-        return $marks->map(static function (Attendance $mark) use ($sessions): self {
+        return $marks->map(static function (AttendanceMark $mark) use ($sessions): self {
             $session = $sessions->get($mark->sessionId()->toRfc4122());
             $removal = $mark->removal();
 

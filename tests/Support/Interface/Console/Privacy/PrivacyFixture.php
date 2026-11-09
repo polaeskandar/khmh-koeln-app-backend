@@ -7,7 +7,7 @@ namespace App\Tests\Support\Interface\Console\Privacy;
 use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Context\People\Domain\Entity\Person;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
@@ -53,7 +53,7 @@ final readonly class PrivacyFixture
         new RoleGrants($this->container)->grant($parent, 'parent');
         $families->link($parent, $mina);
 
-        $mark = new Attendance(
+        $mark = new AttendanceMark(
             $schedules->managed($session),
             $mina->id(),
             new DateTimeImmutable('2026-11-08T12:00:00+01:00'),

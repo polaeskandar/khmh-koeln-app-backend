@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Meetings\Model;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Library\Collections\Model\Collections;
@@ -18,7 +18,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class VisitorRows
 {
     /**
-     * @param ReadableCollection<non-empty-string, Attendance> $marks
+     * @param ReadableCollection<non-empty-string, AttendanceMark> $marks
      * @param list<Uuid> $byName
      * @param ReadableCollection<non-empty-string, Person> $people
      * @param ReadableCollection<int, Membership> $memberships

@@ -9,7 +9,7 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\AttendanceMarks;
 use App\Context\Meetings\Application\Service\MeetingSessions;
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\Attendees;
@@ -52,7 +52,7 @@ final readonly class ShowAttendanceBoardWorkflow
     }
 
     /**
-     * @param ReadableCollection<int, Attendance> $current
+     * @param ReadableCollection<int, AttendanceMark> $current
      */
     private function tallyOf(Session $session, ReadableCollection $current): SessionTally
     {
@@ -65,7 +65,7 @@ final readonly class ShowAttendanceBoardWorkflow
     }
 
     /**
-     * @param ReadableCollection<int, Attendance> $current
+     * @param ReadableCollection<int, AttendanceMark> $current
      */
     private function boardOf(
         AttendanceCounts $counts,

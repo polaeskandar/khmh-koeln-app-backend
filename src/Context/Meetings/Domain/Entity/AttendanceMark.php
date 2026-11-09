@@ -20,7 +20,7 @@ use Symfony\Component\Uid\Uuid;
 )]
 #[ORM\Index(name: 'attendance_session_idx', columns: ['session_id'])]
 #[ORM\Index(name: 'attendance_person_idx', columns: ['person_id'])]
-final class Attendance
+final class AttendanceMark
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]

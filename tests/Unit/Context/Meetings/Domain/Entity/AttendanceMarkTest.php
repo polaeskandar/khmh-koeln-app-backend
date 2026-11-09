@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Context\Meetings\Domain\Entity;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Meetings;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
 
-final class AttendanceTest extends TestCase
+final class AttendanceMarkTest extends TestCase
 {
     public function testRecordingKeepsTheRecorderAndTheTime(): void
     {
         $recorder = Uuid::v7();
         $at = new DateTimeImmutable('2026-11-08T12:05:00+01:00');
 
-        $mark = new Attendance(Meetings::session(Meetings::schedule()), Uuid::v7(), $at, $recorder);
+        $mark = new AttendanceMark(Meetings::session(Meetings::schedule()), Uuid::v7(), $at, $recorder);
 
         self::assertTrue($mark->isCurrent());
         self::assertSame($recorder, $mark->recordedBy());
@@ -27,7 +27,7 @@ final class AttendanceTest extends TestCase
 
     public function testRemovingKeepsTheRemoval(): void
     {
-        $mark = new Attendance(
+        $mark = new AttendanceMark(
             Meetings::session(Meetings::schedule()),
             Uuid::v7(),
             new DateTimeImmutable('2026-11-08T12:05:00+01:00'),

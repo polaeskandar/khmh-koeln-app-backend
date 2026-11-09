@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Organization;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\People\Domain\Entity\Person;
@@ -171,7 +171,7 @@ final class ServicesControllerTrendTest extends ApiTestCase
 
         foreach ($people as $person) {
             new Database(self::getContainer())->persisted(
-                new Attendance(
+                new AttendanceMark(
                     new Schedules(self::getContainer())->managed($session),
                     $person->id(),
                     $at,

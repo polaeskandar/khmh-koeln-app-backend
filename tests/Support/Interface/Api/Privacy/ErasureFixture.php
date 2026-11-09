@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Interface\Api\Privacy;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Context\Organization\Domain\Entity\Service;
@@ -117,8 +117,8 @@ final readonly class ErasureFixture
         ));
 
         $at = new DateTimeImmutable('2026-10-25T12:00:00+01:00');
-        $present = new Attendance($session, $kiro->id(), $at, recordedBy: null);
-        $removed = new Attendance($session, $mina->id(), $at, recordedBy: null);
+        $present = new AttendanceMark($session, $kiro->id(), $at, recordedBy: null);
+        $removed = new AttendanceMark($session, $mina->id(), $at, recordedBy: null);
 
         $removed->remove(Removal::of(
             new DateTimeImmutable('2026-10-25T12:05:00+01:00'),

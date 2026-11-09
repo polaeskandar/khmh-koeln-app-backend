@@ -142,7 +142,7 @@ roster ids.
 | `session_event` | The session's history: created, opened, closed, reopened, canceled, edited, with who and an optional note. | Append-only. |
 | `attendance` | A "present" mark. | At most one current mark per session and person (`removed_at` null). A correction sets `removed_at`, `removed_by` and a reason. There are no absence rows: not marked present is not the same as absent. |
 
-`meetings.attendance` (`Attendance`, part of Meetings): `session_id`, a foreign key to `meeting_session` with
+`meetings.attendance` (`AttendanceMark`, part of Meetings): `session_id`, a foreign key to `meeting_session` with
 RESTRICT, so a session with marks can't be deleted; `person_id` (People), a plain id without a foreign key;
 `recorded_at`, `recorded_by` and the `Removal` (`removed_at`, `removed_by`, `removal_reason` ≤200, trimmed, blank →
 null). The account columns are nulled by the erasure process (D6). No foreign key crosses schemas, so whatever

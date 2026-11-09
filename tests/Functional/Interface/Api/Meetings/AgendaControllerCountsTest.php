@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Meetings;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Context\Organization\Domain\Entity\Service;
@@ -136,14 +136,14 @@ final class AgendaControllerCountsTest extends ApiTestCase
             $rosters->place($member, $service, $third, '2026-09-01');
 
             if ($n <= 8) {
-                $marks[] = new Attendance($managed, $member->id(), $at, recordedBy: null);
+                $marks[] = new AttendanceMark($managed, $member->id(), $at, recordedBy: null);
             }
         }
 
         $removed = end($marks);
-        self::assertInstanceOf(Attendance::class, $removed);
+        self::assertInstanceOf(AttendanceMark::class, $removed);
         $removed->remove(Removal::of($at, by: null, reason: 'Wrong child'));
-        $marks[] = new Attendance($managed, $rosters->person('Visiting', 'Cousin')->id(), $at, recordedBy: null);
+        $marks[] = new AttendanceMark($managed, $rosters->person('Visiting', 'Cousin')->id(), $at, recordedBy: null);
         new Database(self::getContainer())->persisted(...$marks);
 
         return $session;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Console\Privacy;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Context\People\Domain\Entity\Person;
@@ -260,7 +260,7 @@ final class PrivacyErasePersonCommandTest extends KernelTestCase
 
         foreach ([$expected, $other, $open] as $session) {
             new Database(self::getContainer())->persisted(
-                new Attendance(
+                new AttendanceMark(
                     $schedules->managed($session),
                     $mina->id(),
                     new DateTimeImmutable('2026-11-01T12:00:00+01:00'),
@@ -269,7 +269,7 @@ final class PrivacyErasePersonCommandTest extends KernelTestCase
             );
         }
 
-        $mark = new Attendance(
+        $mark = new AttendanceMark(
             $schedules->managed($removed),
             $mina->id(),
             new DateTimeImmutable('2026-11-01T12:00:00+01:00'),

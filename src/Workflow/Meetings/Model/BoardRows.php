@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Meetings\Model;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\People\Domain\Entity\Person;
 use App\Library\Collections\Model\Collections;
 use App\Workflow\People\Model\PersonReference;
@@ -19,7 +19,7 @@ final readonly class BoardRows
     /**
      * @param list<string> $rosterIds
      * @param ReadableCollection<non-empty-string, Person> $people
-     * @param ReadableCollection<non-empty-string, Attendance> $byPerson
+     * @param ReadableCollection<non-empty-string, AttendanceMark> $byPerson
      *
      * @return list<BoardRow>
      */
@@ -36,7 +36,7 @@ final readonly class BoardRows
     }
 
     /**
-     * @param ReadableCollection<int, Attendance> $current
+     * @param ReadableCollection<int, AttendanceMark> $current
      * @param ReadableCollection<non-empty-string, Person> $people
      *
      * @return list<BoardRow>
@@ -45,13 +45,13 @@ final readonly class BoardRows
     {
         $newest = new ArrayCollection($current->slice(offset: 0, length: self::RECENT));
 
-        return Collections::mapPresent($newest, static fn (Attendance $mark): ?BoardRow => self::rowOf(
+        return Collections::mapPresent($newest, static fn (AttendanceMark $mark): ?BoardRow => self::rowOf(
             $people->get($mark->personId()->toRfc4122()),
             $mark,
         ))->getValues();
     }
 
-    private static function rowOf(?Person $person, ?Attendance $mark): ?BoardRow
+    private static function rowOf(?Person $person, ?AttendanceMark $mark): ?BoardRow
     {
         $reference = $mark === null ? null : MarkReference::of($mark);
 

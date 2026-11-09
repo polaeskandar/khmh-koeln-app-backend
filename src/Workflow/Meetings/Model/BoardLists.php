@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Meetings\Model;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
+use App\Context\Meetings\Domain\Entity\AttendanceMark;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Context\People\Domain\Entity\Person;
@@ -24,7 +24,7 @@ final readonly class BoardLists
     }
 
     /**
-     * @param ReadableCollection<int, Attendance> $current
+     * @param ReadableCollection<int, AttendanceMark> $current
      *
      * @return ReadableCollection<string, non-empty-list<string>>
      */
@@ -32,27 +32,27 @@ final readonly class BoardLists
     {
         return Groups::of(
             $current,
-            keyOf: static fn (Attendance $mark): string => $mark->sessionId()->toRfc4122(),
-            valueOf: static fn (Attendance $mark): string => $mark->personId()->toRfc4122(),
+            keyOf: static fn (AttendanceMark $mark): string => $mark->sessionId()->toRfc4122(),
+            valueOf: static fn (AttendanceMark $mark): string => $mark->personId()->toRfc4122(),
         );
     }
 
     /**
-     * @param ReadableCollection<int, Attendance> $current
+     * @param ReadableCollection<int, AttendanceMark> $current
      *
-     * @return ReadableCollection<non-empty-string, Attendance>
+     * @return ReadableCollection<non-empty-string, AttendanceMark>
      */
     public static function byPerson(ReadableCollection $current): ReadableCollection
     {
-        $keyOf = static fn (Attendance $mark): string => $mark->personId()->toRfc4122();
+        $keyOf = static fn (AttendanceMark $mark): string => $mark->personId()->toRfc4122();
 
         return Collections::firstPerKey($current, keyOf: $keyOf);
     }
 
     /**
-     * @param ReadableCollection<non-empty-string, Attendance> $byPerson
+     * @param ReadableCollection<non-empty-string, AttendanceMark> $byPerson
      *
-     * @return ReadableCollection<non-empty-string, Attendance>
+     * @return ReadableCollection<non-empty-string, AttendanceMark>
      */
     public static function visitorsOf(SessionTally $tally, ReadableCollection $byPerson): ReadableCollection
     {
@@ -62,12 +62,12 @@ final readonly class BoardLists
         );
 
         return $byPerson->filter(
-            static fn (Attendance $mark): bool => !$roster->containsKey($mark->personId()->toRfc4122()),
+            static fn (AttendanceMark $mark): bool => !$roster->containsKey($mark->personId()->toRfc4122()),
         );
     }
 
     /**
-     * @param ReadableCollection<int, Attendance> $current
+     * @param ReadableCollection<int, AttendanceMark> $current
      *
      * @return list<Uuid>
      */
@@ -75,24 +75,24 @@ final readonly class BoardLists
     {
         $ids = new ArrayCollection([
             ...new ArrayCollection($tally->rosterIds)->map(Uuid::fromString(...))->getValues(),
-            ...$current->map(static fn (Attendance $mark): Uuid => $mark->personId())->getValues(),
+            ...$current->map(static fn (AttendanceMark $mark): Uuid => $mark->personId())->getValues(),
         ]);
 
         return Collections::firstPerKey($ids, keyOf: static fn (Uuid $id): string => $id->toRfc4122())->getValues();
     }
 
     /**
-     * @param ReadableCollection<non-empty-string, Attendance> $visitors
+     * @param ReadableCollection<non-empty-string, AttendanceMark> $visitors
      *
      * @return list<Uuid>
      */
     public static function visitorIdsOf(ReadableCollection $visitors): array
     {
-        return $visitors->map(static fn (Attendance $mark): Uuid => $mark->personId())->getValues();
+        return $visitors->map(static fn (AttendanceMark $mark): Uuid => $mark->personId())->getValues();
     }
 
     /**
-     * @param ReadableCollection<non-empty-string, Attendance> $visitors
+     * @param ReadableCollection<non-empty-string, AttendanceMark> $visitors
      * @param ReadableCollection<non-empty-string, Person> $people
      *
      * @return ReadableCollection<int, Person>
@@ -100,7 +100,7 @@ final readonly class BoardLists
     public static function peopleOf(ReadableCollection $visitors, ReadableCollection $people): ReadableCollection
     {
         return new ArrayCollection(
-            Collections::mapPresent($visitors, static fn (Attendance $mark): ?Person => $people->get(
+            Collections::mapPresent($visitors, static fn (AttendanceMark $mark): ?Person => $people->get(
                 $mark->personId()->toRfc4122(),
             ))->getValues(),
         );
