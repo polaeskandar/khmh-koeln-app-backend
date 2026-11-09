@@ -16,7 +16,7 @@ use App\Context\People\Application\Service\ParentChildren;
 use App\Workflow\Learning\Model\VisibleHomework;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class UndoHomeworkReportWorkflow
+final readonly class UndoChildHomeworkReportWorkflow
 {
     public function __construct(
         private AccessCheck $access,

@@ -15,7 +15,7 @@ use App\Workflow\Learning\Model\OwnHomework;
 use App\Workflow\Learning\Model\ReportResult;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class ReportOwnHomeworkWorkflow
+final readonly class ReportMemberHomeworkWorkflow
 {
     public function __construct(
         private MemberCheck $member,

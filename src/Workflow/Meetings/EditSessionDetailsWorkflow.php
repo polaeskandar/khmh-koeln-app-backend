@@ -9,7 +9,7 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\SessionDetailChanges;
 
-final readonly class RenameSessionWorkflow
+final readonly class EditSessionDetailsWorkflow
 {
     public function __construct(
         private AccessCheck $access,

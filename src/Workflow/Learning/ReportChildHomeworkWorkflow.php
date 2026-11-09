@@ -17,7 +17,7 @@ use App\Workflow\Learning\Model\ReportResult;
 use App\Workflow\Learning\Model\VisibleHomework;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class ReportHomeworkDoneWorkflow
+final readonly class ReportChildHomeworkWorkflow
 {
     public function __construct(
         private AccessCheck $access,

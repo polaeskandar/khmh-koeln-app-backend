@@ -34,7 +34,7 @@ final readonly class ScheduleOutlooks
         return $this->outlooksOf($this->schedules->recurring($serviceId, $stageId), $archived, $today);
     }
 
-    public function found(string $id, ArchivedStructure $archived, LocalDate $today): ScheduleOutlook
+    public function get(string $id, ArchivedStructure $archived, LocalDate $today): ScheduleOutlook
     {
         $schedules = new ArrayCollection([$this->schedules->get($id)]);
         $outlook = new ArrayCollection($this->outlooksOf($schedules, $archived, $today))->first();

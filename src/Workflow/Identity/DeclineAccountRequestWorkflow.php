@@ -26,7 +26,7 @@ final readonly class DeclineAccountRequestWorkflow
     {
         $this->access->require(Action::Delete, Resource::Users, refusal: 'accounts.adminOnly');
 
-        $this->transactions->run(fn () => $this->requests->decide($id, function (Account $account): void {
+        $this->transactions->run(fn () => $this->requests->whileUndecided($id, function (Account $account): void {
             $this->registrations->forget($account->id());
             $this->requests->decline($account);
         }));

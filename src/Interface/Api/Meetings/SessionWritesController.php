@@ -7,7 +7,7 @@ namespace App\Interface\Api\Meetings;
 use App\Interface\Api\Meetings\Request\OneOffSessionRequest;
 use App\Interface\Api\Meetings\Request\SessionDetailsRequest;
 use App\Workflow\Meetings\CreateOneOffSessionWorkflow;
-use App\Workflow\Meetings\RenameSessionWorkflow;
+use App\Workflow\Meetings\EditSessionDetailsWorkflow;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -52,15 +52,15 @@ final class SessionWritesController extends AbstractController
         ]),
     )]
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
-    public function rename(
+    public function editDetails(
         string $id,
         #[CurrentUser]
         UserInterface $user,
         #[MapRequestPayload]
         SessionDetailsRequest $request,
-        RenameSessionWorkflow $renameSession,
+        EditSessionDetailsWorkflow $editSessionDetails,
     ): JsonResponse {
-        $renamed = $renameSession($id, $user->getUserIdentifier(), $request->title, $request->location);
+        $renamed = $editSessionDetails($id, $user->getUserIdentifier(), $request->title, $request->location);
 
         return $this->json(['id' => $renamed]);
     }

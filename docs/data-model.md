@@ -167,7 +167,7 @@ to a schedule and sessions are not moved. A one-off session (`CreateOneOffSessio
 schedule: `one_off = true`, inactive (`CHECK (NOT one_off OR NOT active)`) and recurring once on its date, so its
 roster, times and title live where every other session reads them. The generator skips it because it is inactive,
 the schedule list leaves it out, and the schedule routes answer 404 for it (`MeetingSchedules::get()` only gets
-recurring schedules). `PUT /api/sessions/{id}/details` (`RenameSessionWorkflow`) replaces the title and place in
+recurring schedules). `PUT /api/sessions/{id}/details` (`EditSessionDetailsWorkflow`) replaces the title and place in
 the session's own plan (`SessionPlan`), which every view, the data export and the mention review read.
 
 Session status: `scheduled` → `active` (attendance open) → `completed` (attendance closed). A service leader

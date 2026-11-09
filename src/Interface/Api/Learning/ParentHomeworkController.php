@@ -9,9 +9,9 @@ use App\Interface\Api\Learning\Response\ChildHomeworkDetailResponse;
 use App\Interface\Api\Learning\Response\ChildHomeworkListResponse;
 use App\Interface\Api\Learning\Response\ReportResultResponse;
 use App\Workflow\Learning\ListChildHomeworkWorkflow;
-use App\Workflow\Learning\ReportHomeworkDoneWorkflow;
+use App\Workflow\Learning\ReportChildHomeworkWorkflow;
 use App\Workflow\Learning\ShowChildHomeworkWorkflow;
-use App\Workflow\Learning\UndoHomeworkReportWorkflow;
+use App\Workflow\Learning\UndoChildHomeworkReportWorkflow;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -85,9 +85,9 @@ final class ParentHomeworkController extends AbstractController
         string $homeworkId,
         #[CurrentUser]
         UserInterface $user,
-        ReportHomeworkDoneWorkflow $reportHomeworkDone,
+        ReportChildHomeworkWorkflow $reportChildHomework,
     ): JsonResponse {
-        $result = $reportHomeworkDone($user->getUserIdentifier(), $childId, $homeworkId);
+        $result = $reportChildHomework($user->getUserIdentifier(), $childId, $homeworkId);
 
         return $this->json(
             new ReportResultResponse($result),
@@ -104,9 +104,9 @@ final class ParentHomeworkController extends AbstractController
         string $homeworkId,
         #[CurrentUser]
         UserInterface $user,
-        UndoHomeworkReportWorkflow $undoHomeworkReport,
+        UndoChildHomeworkReportWorkflow $undoChildHomeworkReport,
     ): Response {
-        $undoHomeworkReport($user->getUserIdentifier(), $childId, $homeworkId);
+        $undoChildHomeworkReport($user->getUserIdentifier(), $childId, $homeworkId);
 
         return new Response(status: Response::HTTP_NO_CONTENT);
     }

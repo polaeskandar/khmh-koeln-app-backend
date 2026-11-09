@@ -37,7 +37,7 @@ final readonly class ShowScheduleWorkflow
 
         $today = $this->calendar->today();
         $archived = ArchivedStructure::of($this->structure->archivedIds());
-        $outlook = $this->outlooks->found($id, $archived, $today);
+        $outlook = $this->outlooks->get($id, $archived, $today);
         $schedules = RosterSizes::schedulesOf([$outlook]);
 
         return new DatedSchedule($today->toString(), ScheduleSummary::of(

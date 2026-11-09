@@ -13,7 +13,7 @@ use App\Context\People\Application\Service\MemberRecords;
 use App\Workflow\Learning\Model\OwnHomework;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class UndoOwnReportWorkflow
+final readonly class UndoMemberHomeworkReportWorkflow
 {
     public function __construct(
         private MemberCheck $member,
