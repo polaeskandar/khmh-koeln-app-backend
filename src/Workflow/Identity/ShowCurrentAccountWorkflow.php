@@ -6,7 +6,6 @@ namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\CurrentAccounts;
 use App\Context\Identity\Domain\Entity\User;
-use App\Context\Identity\Domain\ValueObject\Access;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\MemberRecords;
 use App\Library\Collections\Model\Collections;
@@ -38,7 +37,9 @@ final readonly class ShowCurrentAccountWorkflow
         return new CurrentAccount(
             account: AccountSummary::of($user),
             roles: self::rolesOf($user),
-            permissions: new ArrayCollection($this->accounts->grantsOf($user))->map(self::grantOf(...))->getValues(),
+            permissions: new ArrayCollection($this->accounts->grantsOf($user))->map(
+                PermissionGrant::of(...),
+            )->getValues(),
             today: $this->calendar->today()->toString(),
             member: $this->memberOf($user),
         );
@@ -59,11 +60,6 @@ final readonly class ShowCurrentAccountWorkflow
             $this->structure->services(MemberRoster::serviceIdsOf($record)),
             $this->structure->stages(MemberRoster::stageIdsOf($record)),
         ));
-    }
-
-    private static function grantOf(Access $access): PermissionGrant
-    {
-        return new PermissionGrant($access->action, $access->resource);
     }
 
     /**

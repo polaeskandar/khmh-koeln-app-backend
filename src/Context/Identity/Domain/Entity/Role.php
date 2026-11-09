@@ -51,6 +51,11 @@ final class Role extends TimestampedEntity
         return $this->name;
     }
 
+    public function rename(RoleName $name): void
+    {
+        $this->name = $name;
+    }
+
     /**
      * @return ReadableCollection<int, Permission>
      */
@@ -67,5 +72,13 @@ final class Role extends TimestampedEntity
     public function revoke(Permission $permission): void
     {
         $this->permissions->removeElement($permission);
+    }
+
+    /**
+     * @param list<Permission> $permissions
+     */
+    public function replacePermissions(array $permissions): void
+    {
+        $this->permissions = new ArrayCollection($permissions);
     }
 }

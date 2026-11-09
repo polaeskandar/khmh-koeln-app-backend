@@ -851,6 +851,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `roles.stageOnlyForServants` | – | **New.** Field error on `stageId`: only servant roles can be narrowed to a stage. |
 | `roles.lastAdministrator` | – | **New.** 409: the last active account that can manage roles (`roles: update`) keeps that permission. |
 | `roles.nameRequired` | – | **New.** Field error on `name`: enter a name for the role. |
+| `roles.nameTaken` | `name` | **New.** Field error on `name`: a role called {name} already exists. |
 | `roles.unknown` | – | **New.** Field error on `role` or `roleIds`: no role has this name or id. |
 | `roles.chooseRole` | – | **New.** Field error on `roleIds`: choose at least one role. |
 | `roles.notHeld` | `name` | **New.** 409: {name} doesn't have this role. |
@@ -1161,6 +1162,67 @@ nobody to manage roles.
 `password_link` valid for 24 hours (`created_by` = the viewer) that replaces any older unused link, as
 `app:user:password-link` does. The link itself is never returned, stored or logged. 404 `notFound.user`; 409
 `accounts.passwordLinkUnavailable` for a pending or disabled account.
+
+### Roles
+
+The role catalog for administrators: roles with their permissions, as the roles list, the role page and the staff
+accounts' role choices show them. A permission is one action (`create`, `read`, `update`, `delete`) on one resource
+of the catalog (`users`, `roles`, `services`, `stages`, `sessions`, `attendance`, `members`, `lessons`, `homework`,
+`parentPortal`); roles are global (D7). Each endpoint needs its own `roles` permission, else 403 `roles.adminOnly`.
+`permissions` are `[{action, resource}]` in the order of the catalog, as in `GET /api/me`.
+
+#### `GET /api/roles`
+
+`roles: read`. `{items: [{id, name, permissions, holderCount}]}`: every role, by name ignoring case. `holderCount`
+counts the accounts that have the role, disabled ones included.
+
+#### `GET /api/roles/{id}`
+
+`roles: read`. `{id, name, permissions, createdAt, updatedAt, holders: [{id, displayName, email, disabled}],
+onlyWayToChangeRoles}`. `createdAt` and `updatedAt` are instants. `holders` are the accounts that have the role, by
+name ignoring case, disabled ones included. `onlyWayToChangeRoles` is true when no active account could change roles
+without this role's `roles: update`: taking that permission from the role, or deleting it, answers 409
+`roles.lastAdministrator`. 404 `notFound.role`, also for an id that is not a UUID.
+
+```json
+{
+  "id": "019a3f00-0000-7000-8000-000000000003",
+  "name": "Servant",
+  "permissions": [{"action": "read", "resource": "services"}, {"action": "create", "resource": "attendance"}],
+  "createdAt": "2026-11-01T01:00:00+01:00",
+  "updatedAt": "2026-11-01T01:00:00+01:00",
+  "holders": [
+    {"id": "019a3f02-0000-7000-8000-000000000001", "displayName": "Bishoy Adel", "email": "bishoy@example.org", "disabled": false}
+  ],
+  "onlyWayToChangeRoles": false
+}
+```
+
+#### `POST /api/roles`
+
+`roles: create`. Body `{name, permissions: [{action, resource}]}` → 201 `{id}` with `Location`. The role has no
+holders yet; `POST /api/accounts/{id}/roles` gives it. Every field error comes back at once, and a refusal stores
+nothing.
+
+| Field | Codes |
+| --- | --- |
+| `name` | `roles.nameRequired` (missing or blank), `validation.tooLong {max: 80}`, `roles.nameTaken {name}` (another role has this name, ignoring case and spacing; `name` is that role's name). The name is trimmed and inner spaces are collapsed. |
+| `permissions` | `validation.invalidChoice` (an action or resource outside the catalog, or the same permission twice) |
+
+#### `PUT /api/roles/{id}`
+
+`roles: update`. The same body, the whole role: the name and the permissions replace the old ones → 200 with the role
+as `GET /api/roles/{id}` answers it. The holders have the new permissions from their next request. The same field
+errors as `POST`; 404 `notFound.role`, also for an id that is not a UUID; 409 `roles.lastAdministrator` when the role
+loses `roles: update` and no other active account could change roles (`onlyWayToChangeRoles`). The administration
+lock serialises the change with the role removals, disables and erasures. A refusal stores nothing.
+
+#### `DELETE /api/roles/{id}`
+
+`roles: delete`. Body `{}` → 204: the role is deleted and its holders lose it and its permissions at once, from their
+next request (`GET /api/me` no longer lists them). 404 `notFound.role`, also for an id that is not a UUID; 409
+`roles.lastAdministrator` when no other active account could change roles (`onlyWayToChangeRoles`), under the same
+administration lock.
 
 ### Member accounts
 

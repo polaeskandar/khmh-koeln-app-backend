@@ -28,6 +28,19 @@ final readonly class DoctrineRoleRepository implements RoleRepositoryInterface
     }
 
     #[Override]
+    public function remove(Role $role): void
+    {
+        $this->entityManager->remove($role);
+        $this->entityManager->flush();
+    }
+
+    #[Override]
+    public function find(Uuid $id): ?Role
+    {
+        return $this->entityManager->find(Role::class, $id);
+    }
+
+    #[Override]
     public function findByName(string $name): ?Role
     {
         return $this->entityManager->getRepository(Role::class)->findOneBy(['name.key' => NameKey::of($name)]);
@@ -46,7 +59,7 @@ final readonly class DoctrineRoleRepository implements RoleRepositoryInterface
     public function byName(): ReadableCollection
     {
         return new ArrayCollection($this->entityManager->getRepository(Role::class)->findBy([], [
-            'name.value' => 'ASC',
+            'name.key' => 'ASC',
         ]));
     }
 }
