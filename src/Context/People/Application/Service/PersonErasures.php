@@ -96,9 +96,9 @@ final readonly class PersonErasures
         return new ArrayCollection($refs)->count();
     }
 
-    public function guardianLinksOf(Uuid $accountId): int
+    public function countGuardianLinksOf(Uuid $accountId): int
     {
-        return $this->traces->guardianLinksOf($accountId);
+        return $this->traces->countGuardianLinksOf($accountId);
     }
 
     private function erasable(Uuid $personId): ErasablePerson

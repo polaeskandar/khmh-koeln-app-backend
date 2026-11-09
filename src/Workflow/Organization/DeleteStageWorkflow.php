@@ -8,8 +8,8 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\StageLessons;
-use App\Context\Meetings\Application\Service\ScheduleRemovals;
-use App\Context\Organization\Application\Service\StructureRemovals;
+use App\Context\Meetings\Application\Service\ScheduleDeletions;
+use App\Context\Organization\Application\Service\StructureDeletions;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\ValueObject\StructureUse;
 use App\Context\People\Application\Service\Memberships;
@@ -18,8 +18,8 @@ final readonly class DeleteStageWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private StructureRemovals $removals,
-        private ScheduleRemovals $schedules,
+        private StructureDeletions $deletions,
+        private ScheduleDeletions $schedules,
         private StageLessons $lessons,
         private Memberships $memberships,
     ) {
@@ -29,13 +29,13 @@ final readonly class DeleteStageWorkflow
     {
         $this->access->require(Action::Delete, Resource::Stages);
 
-        $this->removals->removeStage($id, release: $this->released(...));
+        $this->deletions->deleteStage($id, release: $this->released(...));
     }
 
     private function released(Stage $stage): StructureUse
     {
         return new StructureUse(
-            sessions: $this->schedules->releaseOfStage($stage->id()),
+            sessions: $this->schedules->deleteSchedulesOfStage($stage->id()),
             lessons: $this->lessons->countIn([$stage->id()]),
             members: $this->memberships->countInStage($stage->id()),
         );

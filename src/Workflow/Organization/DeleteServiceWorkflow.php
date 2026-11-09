@@ -8,8 +8,8 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\StageLessons;
-use App\Context\Meetings\Application\Service\ScheduleRemovals;
-use App\Context\Organization\Application\Service\StructureRemovals;
+use App\Context\Meetings\Application\Service\ScheduleDeletions;
+use App\Context\Organization\Application\Service\StructureDeletions;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\ValueObject\StructureUse;
 use App\Context\People\Application\Service\Memberships;
@@ -19,8 +19,8 @@ final readonly class DeleteServiceWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private StructureRemovals $removals,
-        private ScheduleRemovals $schedules,
+        private StructureDeletions $deletions,
+        private ScheduleDeletions $schedules,
         private StageLessons $lessons,
         private Memberships $memberships,
     ) {
@@ -30,7 +30,7 @@ final readonly class DeleteServiceWorkflow
     {
         $this->access->require(Action::Delete, Resource::Services, refusal: 'services.adminOnlyDelete');
 
-        $this->removals->removeService($id, release: $this->released(...));
+        $this->deletions->deleteService($id, release: $this->released(...));
     }
 
     /**
@@ -39,7 +39,7 @@ final readonly class DeleteServiceWorkflow
     private function released(Service $service, array $stageIds): StructureUse
     {
         return new StructureUse(
-            sessions: $this->schedules->releaseOfService($service->id()),
+            sessions: $this->schedules->deleteSchedulesOfService($service->id()),
             lessons: $this->lessons->countIn($stageIds),
             members: $this->memberships->countInService($service->id()),
         );

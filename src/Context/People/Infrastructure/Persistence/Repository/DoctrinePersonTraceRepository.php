@@ -38,7 +38,7 @@ final readonly class DoctrinePersonTraceRepository implements PersonTraceReposit
     }
 
     #[Override]
-    public function guardianLinksOf(Uuid $accountId): int
+    public function countGuardianLinksOf(Uuid $accountId): int
     {
         return Integers::of($this->entityManager->getConnection()->fetchOne(self::GUARDIAN_LINKS, [
             'account' => $accountId->toRfc4122(),

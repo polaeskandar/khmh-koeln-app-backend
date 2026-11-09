@@ -21,7 +21,7 @@ final readonly class EraseAccountWorkflow
     public function __invoke(string $accountId): ErasureCounts
     {
         $id = Uuid::isValid($accountId) ? Uuid::fromString($accountId) : throw NotFound::of('account');
-        $guardianLinks = $this->people->guardianLinksOf($id);
+        $guardianLinks = $this->people->countGuardianLinksOf($id);
 
         return ErasureCounts::of($this->accounts->erase($id), $guardianLinks);
     }

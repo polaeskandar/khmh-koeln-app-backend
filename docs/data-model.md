@@ -98,9 +98,9 @@ only with a parent's or guardian's agreement. Younger children never have accoun
   importing members, creating a schedule or a one-off session, and creating a lesson. Deleting a service or a stage
   (`DeleteServiceWorkflow`, `DeleteStageWorkflow`) holds the structure lock, so it waits for those writes and they
   wait for it; a write that waited then finds the service or stage gone.
-- **Deleting** is for a service or stage created by mistake. Under the structure lock, Meetings' `ScheduleRemovals`
+- **Deleting** is for a service or stage created by mistake. Under the structure lock, Meetings' `ScheduleDeletions`
   locks the schedules of the service or stage (so the generator can't add a session meanwhile), counts their
-  sessions and, without any, removes them; Learning counts the lessons and People the memberships. Any of the three
+  sessions and, without any, deletes them; Learning counts the lessons and People the memberships. Any of the three
   refuses the deletion and the transaction rolls back.
 
 `person` and `membership` live in the `people` schema. A person's names are cleaned like service names; `name_key`

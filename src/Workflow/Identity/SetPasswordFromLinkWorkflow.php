@@ -16,6 +16,6 @@ final readonly class SetPasswordFromLinkWorkflow
 
     public function __invoke(#[SensitiveParameter] string $token, #[SensitiveParameter] string $password): bool
     {
-        return $this->passwords->fromLink($token, $password);
+        return $this->passwords->changeFromLink($token, $password);
     }
 }

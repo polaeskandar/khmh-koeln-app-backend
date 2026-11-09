@@ -25,7 +25,7 @@ final readonly class PasswordChanges
     ) {
     }
 
-    public function fromLink(#[SensitiveParameter] string $token, #[SensitiveParameter] string $password): bool
+    public function changeFromLink(#[SensitiveParameter] string $token, #[SensitiveParameter] string $password): bool
     {
         $plain = PlainPassword::of($password);
 

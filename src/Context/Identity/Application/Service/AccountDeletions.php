@@ -13,7 +13,7 @@ use App\Library\Problem\Exception\RuleViolation;
 use LogicException;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class AccountRemovals
+final readonly class AccountDeletions
 {
     public function __construct(
         private AdministrationLockInterface $administration,
@@ -24,20 +24,20 @@ final readonly class AccountRemovals
     ) {
     }
 
-    public function remove(Uuid $accountId): AccountErased
+    public function delete(Uuid $accountId): AccountErased
     {
         $erased = null;
 
         $this->administration->whileLocked(function () use ($accountId, &$erased): void {
             $this->accounts->withWriteLock($accountId, function (Account $account) use (&$erased): void {
-                $erased = $this->removed($account);
+                $erased = $this->deleted($account);
             });
         });
 
         return $erased ?? throw new LogicException('The account was not erased.');
     }
 
-    private function removed(Account $account): AccountErased
+    private function deleted(Account $account): AccountErased
     {
         if ($this->lastAdministrator->is($account)) {
             throw new RuleViolation('roles.lastAdministrator');

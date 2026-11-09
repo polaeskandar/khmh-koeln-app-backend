@@ -15,7 +15,7 @@ final readonly class AccountErasures
     public function __construct(
         private AccountRepositoryInterface $accounts,
         private PersonTraceRepositoryInterface $people,
-        private AccountRemovals $removals,
+        private AccountDeletions $deletions,
         private AccountSweeps $sweeps,
     ) {
     }
@@ -38,12 +38,12 @@ final readonly class AccountErasures
             throw NotFound::of('account');
         }
 
-        $removed = $this->removals->remove($accountId);
+        $deleted = $this->deletions->delete($accountId);
 
         return new AccountErased(
-            $removed->roles,
-            $removed->passwordLinks,
-            $removed->rowsKept + $this->sweeps->sweep($accountId),
+            $deleted->roles,
+            $deleted->passwordLinks,
+            $deleted->rowsKept + $this->sweeps->sweep($accountId),
         );
     }
 

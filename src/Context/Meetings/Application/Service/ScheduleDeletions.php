@@ -14,7 +14,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class ScheduleRemovals
+final readonly class ScheduleDeletions
 {
     public function __construct(
         private ScheduleRepositoryInterface $schedules,
@@ -26,7 +26,7 @@ final readonly class ScheduleRemovals
     /**
      * @param callable(Uuid): int $lessonsOf
      */
-    public function remove(string $id, callable $lessonsOf): void
+    public function delete(string $id, callable $lessonsOf): void
     {
         $scheduleId = Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('schedule');
 
@@ -44,14 +44,14 @@ final readonly class ScheduleRemovals
         });
     }
 
-    public function releaseOfService(Uuid $serviceId): int
+    public function deleteSchedulesOfService(Uuid $serviceId): int
     {
         $this->usage->lockSchedulesOf($serviceId, stageId: null);
 
         return $this->released($this->schedules->listed($serviceId, stageId: null));
     }
 
-    public function releaseOfStage(Uuid $stageId): int
+    public function deleteSchedulesOfStage(Uuid $stageId): int
     {
         $this->usage->lockSchedulesOf(serviceId: null, stageId: $stageId);
 

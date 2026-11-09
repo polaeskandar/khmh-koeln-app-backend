@@ -99,7 +99,7 @@ final class ErasePersonWorkflowTest extends ApiTestCase
             }
 
             #[Override]
-            public function guardianLinksOf(Uuid $accountId): int
+            public function countGuardianLinksOf(Uuid $accountId): int
             {
                 return 0;
             }

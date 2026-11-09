@@ -11,5 +11,5 @@ interface PersonTraceRepositoryInterface
 {
     public function forget(Uuid $personId): ForgottenPerson;
 
-    public function guardianLinksOf(Uuid $accountId): int;
+    public function countGuardianLinksOf(Uuid $accountId): int;
 }

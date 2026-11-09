@@ -13,7 +13,7 @@ use App\Library\Problem\Exception\RuleViolation;
 use App\Platform\Doctrine\Contract\Transactions;
 use Doctrine\Common\Collections\ArrayCollection;
 
-final readonly class LessonRemovals
+final readonly class LessonDeletions
 {
     public function __construct(
         private LessonRepositoryInterface $lessons,

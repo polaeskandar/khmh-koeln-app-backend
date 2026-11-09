@@ -13,7 +13,7 @@ use App\Context\Organization\Domain\ValueObject\StructureUse;
 use App\Library\Problem\Exception\NotFound;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class StructureRemovals
+final readonly class StructureDeletions
 {
     public function __construct(
         private ServiceRepositoryInterface $services,
@@ -25,7 +25,7 @@ final readonly class StructureRemovals
     /**
      * @param callable(Service, list<Uuid>): StructureUse $release
      */
-    public function removeService(string $id, callable $release): void
+    public function deleteService(string $id, callable $release): void
     {
         $serviceId = Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('service');
 
@@ -47,7 +47,7 @@ final readonly class StructureRemovals
     /**
      * @param callable(Stage): StructureUse $release
      */
-    public function removeStage(string $id, callable $release): void
+    public function deleteStage(string $id, callable $release): void
     {
         $stageId = Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('stage');
         $serviceId = $this->stages->serviceIdOf($stageId) ?? throw NotFound::of('stage');

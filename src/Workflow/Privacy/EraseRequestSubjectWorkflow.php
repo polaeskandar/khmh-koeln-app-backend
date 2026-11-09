@@ -93,7 +93,7 @@ final readonly class EraseRequestSubjectWorkflow
             return null;
         }
 
-        $guardianLinks = $this->people->guardianLinksOf($accountId);
+        $guardianLinks = $this->people->countGuardianLinksOf($accountId);
 
         return ErasureCounts::of($this->accounts->erase($accountId), $guardianLinks);
     }
