@@ -10,8 +10,8 @@ use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Organization\Application\Service\RegistrationServices;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Platform\Doctrine\Contract\Transactions;
-use App\Workflow\Identity\Model\AccountDetails;
-use App\Workflow\Identity\Model\RegistrationDetails;
+use App\Workflow\Identity\Model\AccountChoice;
+use App\Workflow\Identity\Model\RegistrationChoice;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -27,7 +27,7 @@ final readonly class RegisterAccountWorkflow
     ) {
     }
 
-    public function __invoke(AccountDetails $account, RegistrationDetails $registration): void
+    public function __invoke(AccountChoice $account, RegistrationChoice $registration): void
     {
         $profile = $this->profileOf($account);
         $registeredAs = RegisteredAs::from($registration->registeredAs);
@@ -51,7 +51,7 @@ final readonly class RegisterAccountWorkflow
         $this->accounts->sendConfirmation($accountId);
     }
 
-    private function profileOf(AccountDetails $account): Profile
+    private function profileOf(AccountChoice $account): Profile
     {
         return $this->accounts->profile($account->firstName, $account->lastName, $account->email, $account->language);
     }
@@ -64,7 +64,7 @@ final readonly class RegisterAccountWorkflow
         #[SensitiveParameter]
         string $password,
         RegisteredAs $registeredAs,
-        RegistrationDetails $registration,
+        RegistrationChoice $registration,
         ReadableCollection $services,
     ): ?Uuid {
         $accountId = $this->accounts->registerUnlessTaken(

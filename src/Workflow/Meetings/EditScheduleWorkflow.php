@@ -12,7 +12,7 @@ use App\Context\Meetings\Application\Service\ScheduleWrites;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\ArchiveGuard;
 use App\Context\Organization\Application\Service\StructureLookup;
-use App\Workflow\Meetings\Model\ScheduleChanges;
+use App\Workflow\Meetings\Model\ScheduleChangeChoice;
 use App\Workflow\Meetings\Model\WrittenSchedule;
 
 final readonly class EditScheduleWorkflow
@@ -26,7 +26,7 @@ final readonly class EditScheduleWorkflow
     ) {
     }
 
-    public function __invoke(string $id, ScheduleChanges $changes): WrittenSchedule
+    public function __invoke(string $id, ScheduleChangeChoice $changes): WrittenSchedule
     {
         $this->access->require(Action::Update, Resource::Sessions);
 

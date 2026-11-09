@@ -6,7 +6,7 @@ namespace App\Interface\Api\Identity\Request;
 
 use App\Library\Strings\Model\InputText;
 use App\Workflow\Identity\Model\ApprovalChoice;
-use App\Workflow\Identity\Model\MemberApproval;
+use App\Workflow\Identity\Model\MemberApprovalChoice;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -44,9 +44,9 @@ final readonly class ApprovalRequest
         return new ApprovalChoice($this->as ?? '', $this->roleIds, $this->childIds);
     }
 
-    public function memberApproval(): MemberApproval
+    public function memberApprovalChoice(): MemberApprovalChoice
     {
-        return new MemberApproval(
+        return new MemberApprovalChoice(
             $this->member->personId ?? '',
             $this->member->ageCheck ?? '',
             $this->member->guardianConsentNote,

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\People\Request;
 
-use App\Workflow\People\Model\PersonDraft;
+use App\Workflow\People\Model\PersonChoice;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class CreatePersonRequest
@@ -20,9 +20,9 @@ final readonly class CreatePersonRequest
     ) {
     }
 
-    public function draft(): PersonDraft
+    public function choice(): PersonChoice
     {
-        return new PersonDraft(
+        return new PersonChoice(
             $this->firstName,
             $this->lastName,
             $this->displayName,

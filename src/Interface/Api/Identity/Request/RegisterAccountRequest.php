@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Identity\Request;
 
-use App\Workflow\Identity\Model\AccountDetails;
-use App\Workflow\Identity\Model\RegistrationDetails;
+use App\Workflow\Identity\Model\AccountChoice;
+use App\Workflow\Identity\Model\RegistrationChoice;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class RegisterAccountRequest
@@ -20,14 +20,14 @@ final readonly class RegisterAccountRequest
     ) {
     }
 
-    public function accountDetails(): AccountDetails
+    public function accountChoice(): AccountChoice
     {
-        return $this->account->details();
+        return $this->account->choice();
     }
 
-    public function registrationDetails(): RegistrationDetails
+    public function registrationChoice(): RegistrationChoice
     {
-        return new RegistrationDetails(
+        return new RegistrationChoice(
             $this->registration->registeredAs ?? '',
             $this->registration->note ?? '',
             $this->registration->serviceIds,

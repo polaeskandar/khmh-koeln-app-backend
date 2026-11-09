@@ -38,7 +38,7 @@ final class ScheduleWritesController extends AbstractController
         CreateScheduleRequest $schedule,
         CreateScheduleWorkflow $createSchedule,
     ): JsonResponse {
-        $written = $createSchedule($schedule->schedule());
+        $written = $createSchedule($schedule->choice());
 
         return $this->json(WrittenScheduleResponse::of($written), status: Response::HTTP_CREATED, headers: [
             'Location' => $this->generateUrl('api_schedules_show', ['id' => $written->id]),
@@ -59,7 +59,7 @@ final class ScheduleWritesController extends AbstractController
         ScheduleChangesRequest $changes,
         EditScheduleWorkflow $editSchedule,
     ): JsonResponse {
-        return $this->json(WrittenScheduleResponse::of($editSchedule($id, $changes->changes())));
+        return $this->json(WrittenScheduleResponse::of($editSchedule($id, $changes->choice())));
     }
 
     #[Route('/{id}/occurrences/{date}/cancel', name: 'api_schedules_cancel_occurrence', methods: ['POST'])]

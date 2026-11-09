@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\People\Request;
 
-use App\Workflow\People\Model\PeopleQuery;
+use App\Workflow\People\Model\PeopleFilter;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class PeopleQueryRequest
@@ -24,8 +24,8 @@ final readonly class PeopleQueryRequest
     ) {
     }
 
-    public function query(): PeopleQuery
+    public function filter(): PeopleFilter
     {
-        return new PeopleQuery($this->status, $this->serviceId, $this->stageId, $this->q, $this->page);
+        return new PeopleFilter($this->status, $this->serviceId, $this->stageId, $this->q, $this->page);
     }
 }

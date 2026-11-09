@@ -13,7 +13,7 @@ use App\Context\Privacy\Application\Service\DataRequests;
 use App\Context\Privacy\Domain\ValueObject\ReceiptDraft;
 use App\Context\Privacy\Domain\ValueObject\RequestDraft;
 use App\Context\Privacy\Domain\ValueObject\RequestSubject;
-use App\Workflow\Privacy\Model\DataRequestDetails;
+use App\Workflow\Privacy\Model\DataRequestChoice;
 use App\Workflow\Privacy\Model\RequestSubjects;
 use Symfony\Component\Uid\Uuid;
 
@@ -27,7 +27,7 @@ final readonly class RecordDataRequestWorkflow
     ) {
     }
 
-    public function __invoke(DataRequestDetails $details): string
+    public function __invoke(DataRequestChoice $details): string
     {
         $this->access->require(Action::Update, Resource::Users, refusal: 'privacy.adminOnly');
 
@@ -45,7 +45,7 @@ final readonly class RecordDataRequestWorkflow
             ->toRfc4122();
     }
 
-    private function subjectOf(DataRequestDetails $details): RequestSubject
+    private function subjectOf(DataRequestChoice $details): RequestSubject
     {
         $person = $details->personId === null ? null : $this->people->findPerson($details->personId);
 

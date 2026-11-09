@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Identity\Request;
 
-use App\Workflow\Identity\Model\AccountDetails;
+use App\Workflow\Identity\Model\AccountChoice;
 use SensitiveParameter;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -31,9 +31,9 @@ final readonly class AccountRequest
     ) {
     }
 
-    public function details(): AccountDetails
+    public function choice(): AccountChoice
     {
-        return new AccountDetails(
+        return new AccountChoice(
             $this->firstName ?? '',
             $this->lastName ?? '',
             $this->email ?? '',

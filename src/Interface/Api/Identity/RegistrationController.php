@@ -54,7 +54,7 @@ final class RegistrationController extends AbstractController
             throw new TooManyRequestsHttpException($seconds, 'auth.tooManyAttempts');
         }
 
-        $registerAccount($registration->accountDetails(), $registration->registrationDetails());
+        $registerAccount($registration->accountChoice(), $registration->registrationChoice());
 
         return $this->json(new RegistrationReceivedResponse(), status: Response::HTTP_ACCEPTED);
     }

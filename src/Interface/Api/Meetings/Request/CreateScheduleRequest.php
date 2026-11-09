@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Meetings\Request;
 
-use App\Workflow\Meetings\Model\NewSchedule;
+use App\Workflow\Meetings\Model\NewScheduleChoice;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class CreateScheduleRequest
@@ -21,9 +21,9 @@ final readonly class CreateScheduleRequest
     ) {
     }
 
-    public function schedule(): NewSchedule
+    public function choice(): NewScheduleChoice
     {
-        return new NewSchedule(
+        return new NewScheduleChoice(
             $this->roster->choice(),
             $this->details->choice(),
             $this->recurrence->choice(),

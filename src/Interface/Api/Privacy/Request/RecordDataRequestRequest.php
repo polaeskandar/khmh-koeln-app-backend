@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Privacy\Request;
 
-use App\Workflow\Privacy\Model\DataRequestDetails;
+use App\Workflow\Privacy\Model\DataRequestChoice;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class RecordDataRequestRequest
@@ -22,13 +22,13 @@ final readonly class RecordDataRequestRequest
     ) {
     }
 
-    public function details(): DataRequestDetails
+    public function choice(): DataRequestChoice
     {
-        return new DataRequestDetails(
+        return new DataRequestChoice(
             $this->kind ?? '',
             $this->subject->personId,
             $this->subject->accountId,
-            $this->receipt->details(),
+            $this->receipt->choice(),
             $this->note,
         );
     }

@@ -16,7 +16,7 @@ use App\Context\People\Application\Service\MemberRecords;
 use App\Context\People\Domain\Entity\Person;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Workflow\Identity\Model\AccountSummary;
-use App\Workflow\Identity\Model\MemberApproval;
+use App\Workflow\Identity\Model\MemberApprovalChoice;
 use Doctrine\Common\Collections\ArrayCollection;
 
 final readonly class ApproveMemberRequestWorkflow
@@ -32,7 +32,7 @@ final readonly class ApproveMemberRequestWorkflow
     ) {
     }
 
-    public function __invoke(string $id, string $actorId, MemberApproval $member): AccountSummary
+    public function __invoke(string $id, string $actorId, MemberApprovalChoice $member): AccountSummary
     {
         $this->access->require(Action::Update, Resource::Users, refusal: 'accounts.adminOnly');
 
@@ -50,7 +50,7 @@ final readonly class ApproveMemberRequestWorkflow
         return AccountSummary::of($approved);
     }
 
-    private function approved(string $id, string $actorId, Person $person, MemberApproval $member): Account
+    private function approved(string $id, string $actorId, Person $person, MemberApprovalChoice $member): Account
     {
         $record = new MemberRecord($person->id(), $person->name()->fullName());
 

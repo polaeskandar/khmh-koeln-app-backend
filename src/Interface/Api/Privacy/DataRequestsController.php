@@ -36,7 +36,7 @@ final class DataRequestsController extends AbstractController
         RecordDataRequestRequest $request,
         RecordDataRequestWorkflow $recordDataRequest,
     ): JsonResponse {
-        return $this->json(['id' => $recordDataRequest($request->details())], status: Response::HTTP_CREATED);
+        return $this->json(['id' => $recordDataRequest($request->choice())], status: Response::HTTP_CREATED);
     }
 
     #[Route('', name: 'api_data_requests_list', methods: ['GET'])]

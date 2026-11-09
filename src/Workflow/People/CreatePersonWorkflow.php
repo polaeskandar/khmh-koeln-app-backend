@@ -21,7 +21,7 @@ use App\Library\Strings\Model\Text;
 use App\Workflow\People\Model\CreatedPerson;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\DirectoryEntry;
-use App\Workflow\People\Model\PersonDraft;
+use App\Workflow\People\Model\PersonChoice;
 use App\Workflow\People\Model\PlacementChoice;
 use Doctrine\Common\Collections\ReadableCollection;
 
@@ -36,7 +36,7 @@ final readonly class CreatePersonWorkflow
     ) {
     }
 
-    public function __invoke(PersonDraft $draft): CreatedPerson
+    public function __invoke(PersonChoice $draft): CreatedPerson
     {
         $this->access->require(Action::Create, Resource::Members, refusal: 'people.addNotAllowed');
 

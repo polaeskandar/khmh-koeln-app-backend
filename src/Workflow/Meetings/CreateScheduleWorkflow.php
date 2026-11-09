@@ -14,7 +14,7 @@ use App\Context\Organization\Application\Service\PlacementChoices;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\ValueObject\ChosenPlacement;
 use App\Library\Problem\Exception\InvalidInput;
-use App\Workflow\Meetings\Model\NewSchedule;
+use App\Workflow\Meetings\Model\NewScheduleChoice;
 use App\Workflow\Meetings\Model\WrittenSchedule;
 
 final readonly class CreateScheduleWorkflow
@@ -27,7 +27,7 @@ final readonly class CreateScheduleWorkflow
     ) {
     }
 
-    public function __invoke(NewSchedule $schedule): WrittenSchedule
+    public function __invoke(NewScheduleChoice $schedule): WrittenSchedule
     {
         $this->access->require(Action::Create, Resource::Sessions);
 
@@ -36,7 +36,7 @@ final readonly class CreateScheduleWorkflow
         ));
     }
 
-    private function created(NewSchedule $schedule): WrittenSchedule
+    private function created(NewScheduleChoice $schedule): WrittenSchedule
     {
         $roster = $schedule->roster;
 

@@ -14,8 +14,8 @@ use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\PageInfo;
+use App\Workflow\People\Model\PeopleFilter;
 use App\Workflow\People\Model\PeoplePage;
-use App\Workflow\People\Model\PeopleQuery;
 use App\Workflow\People\Model\PersonRow;
 use App\Workflow\People\Model\Placements;
 
@@ -29,7 +29,7 @@ final readonly class ListPeopleWorkflow
     ) {
     }
 
-    public function __invoke(PeopleQuery $query): PeoplePage
+    public function __invoke(PeopleFilter $query): PeoplePage
     {
         $this->access->require(Action::Read, Resource::Members);
 

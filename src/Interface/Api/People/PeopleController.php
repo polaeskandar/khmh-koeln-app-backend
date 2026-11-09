@@ -43,7 +43,7 @@ final class PeopleController extends AbstractController
         ], validationFailedStatusCode: Response::HTTP_UNPROCESSABLE_ENTITY)]
         PeopleQueryRequest $query = new PeopleQueryRequest(),
     ): JsonResponse {
-        return $this->json(new PeoplePageResponse($listPeople($query->query())));
+        return $this->json(new PeoplePageResponse($listPeople($query->filter())));
     }
 
     #[Route('', name: 'api_people_create', methods: ['POST'])]
@@ -80,7 +80,7 @@ final class PeopleController extends AbstractController
         CreatePersonRequest $person,
         CreatePersonWorkflow $createPerson,
     ): JsonResponse {
-        return $this->json(CreatedPersonResponse::of($createPerson($person->draft())), status: Response::HTTP_CREATED);
+        return $this->json(CreatedPersonResponse::of($createPerson($person->choice())), status: Response::HTTP_CREATED);
     }
 
     #[Route('/{id}', name: 'api_people_rename', methods: ['PUT'])]

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Privacy\Request;
 
-use App\Workflow\Privacy\Model\ReceiptDetails;
+use App\Workflow\Privacy\Model\ReceiptChoice;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class ReceiptRequest
@@ -22,8 +22,8 @@ final readonly class ReceiptRequest
     ) {
     }
 
-    public function details(): ReceiptDetails
+    public function choice(): ReceiptChoice
     {
-        return new ReceiptDetails($this->requestedBy ?? '', $this->channel ?? '', $this->receivedOn ?? '');
+        return new ReceiptChoice($this->requestedBy ?? '', $this->channel ?? '', $this->receivedOn ?? '');
     }
 }

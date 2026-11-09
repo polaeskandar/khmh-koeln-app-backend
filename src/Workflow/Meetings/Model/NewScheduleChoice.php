@@ -7,13 +7,13 @@ namespace App\Workflow\Meetings\Model;
 use App\Context\Meetings\Domain\Enum\RosterMode;
 use App\Context\Meetings\Domain\ValueObject\ScheduleDraft;
 
-final readonly class ScheduleChanges
+final readonly class NewScheduleChoice
 {
     public function __construct(
+        public RosterChoice $roster,
         public DetailsChoice $details,
         public RecurrenceChoice $recurrence,
         public TimesChoice $times,
-        public ?string $rosterMode,
     ) {
     }
 
@@ -23,7 +23,7 @@ final readonly class ScheduleChanges
             $this->details->draft(),
             $this->recurrence->draft(),
             $this->times->draft(),
-            RosterMode::from($this->rosterMode ?? ''),
+            RosterMode::from($this->roster->mode ?? ''),
         );
     }
 }

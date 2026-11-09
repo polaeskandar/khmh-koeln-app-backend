@@ -76,7 +76,7 @@ final class AccountRequestsController extends AbstractController
         $actorId = $actor->getUserIdentifier();
 
         if ($approval->isMember()) {
-            return $this->json($approveMemberRequest($id, $actorId, $approval->memberApproval()));
+            return $this->json($approveMemberRequest($id, $actorId, $approval->memberApprovalChoice()));
         }
 
         return $this->json($approveAccountRequest($id, $actorId, $approval->choice()));

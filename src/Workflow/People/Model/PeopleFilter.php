@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\People\Model;
 
-final readonly class PeopleQuery
+final readonly class PeopleFilter
 {
     public function __construct(
         public string $status,

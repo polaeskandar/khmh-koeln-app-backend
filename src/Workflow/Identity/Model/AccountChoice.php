@@ -6,7 +6,7 @@ namespace App\Workflow\Identity\Model;
 
 use SensitiveParameter;
 
-final readonly class AccountDetails
+final readonly class AccountChoice
 {
     public function __construct(
         public string $firstName,
