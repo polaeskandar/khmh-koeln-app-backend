@@ -25,10 +25,10 @@ final class UserCreateCommandTest extends KernelTestCase
             'name' => 'Sara Hanna',
         ]));
 
-        $user = $this->accounts()->withEmail('sara.hanna@example.org');
-        self::assertTrue($user->status()->isActive());
-        self::assertSame(['ROLE_USER'], SecurityUser::of($user)->getRoles());
-        self::assertTrue($this->accounts()->acceptsSecret($user, self::TYPED));
+        $account = $this->accounts()->withEmail('sara.hanna@example.org');
+        self::assertTrue($account->status()->isActive());
+        self::assertSame(['ROLE_USER'], SecurityUser::of($account)->getRoles());
+        self::assertTrue($this->accounts()->acceptsSecret($account, self::TYPED));
         self::assertStringNotContainsString(self::TYPED, $tester->getDisplay());
     }
 

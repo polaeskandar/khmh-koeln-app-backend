@@ -126,9 +126,9 @@ final class AccountTest extends KernelTestCase
     {
         $this->database()->connection()->insert('identity.app_user', Accounts::row($columns));
 
-        $user = new DoctrineAccountRepository($this->database()->entityManager())->findByEmail('sara@example.org');
+        $account = new DoctrineAccountRepository($this->database()->entityManager())->findByEmail('sara@example.org');
 
-        self::assertSame($active, $user?->status()->isActive());
+        self::assertSame($active, $account?->status()->isActive());
     }
 
     /**

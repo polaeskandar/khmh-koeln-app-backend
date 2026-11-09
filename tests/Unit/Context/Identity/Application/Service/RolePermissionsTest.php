@@ -25,37 +25,42 @@ final class RolePermissionsTest extends TestCase
 
     public function testAnAccountHasWhatAnyOfItsRolesAllows(): void
     {
-        $user = Accounts::approved('sara@example.org');
-        $user->assign(Roles::named('Servant', new Permission(Action::Create, Resource::Attendance)));
-        $user->assign(Roles::named('Parent', new Permission(Action::Read, Resource::ParentPortal)));
+        $account = Accounts::approved('sara@example.org');
+        $account->assign(Roles::named('Servant', new Permission(Action::Create, Resource::Attendance)));
+        $account->assign(Roles::named('Parent', new Permission(Action::Read, Resource::ParentPortal)));
 
-        self::assertTrue(RolePermissions::accountHas($user, Action::Create, Resource::Attendance));
-        self::assertTrue(RolePermissions::accountHas($user, Action::Read, Resource::ParentPortal));
-        self::assertFalse(RolePermissions::accountHas($user, Action::Delete, Resource::Users));
+        self::assertTrue(RolePermissions::accountHas($account, Action::Create, Resource::Attendance));
+        self::assertTrue(RolePermissions::accountHas($account, Action::Read, Resource::ParentPortal));
+        self::assertFalse(RolePermissions::accountHas($account, Action::Delete, Resource::Users));
     }
 
     public function testOnlyAnActiveAccountHasWhatItsRolesAllow(): void
     {
-        $user = Accounts::approved('sara@example.org');
-        $user->assign(Roles::named('Servant', new Permission(Action::Create, Resource::Attendance)));
+        $account = Accounts::approved('sara@example.org');
+        $account->assign(Roles::named('Servant', new Permission(Action::Create, Resource::Attendance)));
 
-        self::assertTrue(RolePermissions::activeAccountHas($user, Action::Create, Resource::Attendance));
+        self::assertTrue(RolePermissions::activeAccountHas($account, Action::Create, Resource::Attendance));
 
-        $user->changeStatus(AccountStatus::pending());
-        self::assertFalse(RolePermissions::activeAccountHas($user, Action::Create, Resource::Attendance));
+        $account->changeStatus(AccountStatus::pending());
+        self::assertFalse(RolePermissions::activeAccountHas($account, Action::Create, Resource::Attendance));
     }
 
     public function testAnAccountHasWithoutARoleOnlyWhatItsOtherRolesAllow(): void
     {
-        $user = Accounts::approved('sara@example.org');
+        $account = Accounts::approved('sara@example.org');
         $administrator = Roles::named('Administrator', new Permission(Action::Update, Resource::Roles));
-        $user->assign($administrator);
-        $user->assign(Roles::named('Servant', new Permission(Action::Create, Resource::Attendance)));
+        $account->assign($administrator);
+        $account->assign(Roles::named('Servant', new Permission(Action::Create, Resource::Attendance)));
 
-        self::assertFalse(RolePermissions::accountHasWithout($user, $administrator, Action::Update, Resource::Roles));
+        self::assertFalse(RolePermissions::accountHasWithout(
+            $account,
+            $administrator,
+            Action::Update,
+            Resource::Roles,
+        ));
 
         self::assertTrue(RolePermissions::accountHasWithout(
-            $user,
+            $account,
             $administrator,
             Action::Create,
             Resource::Attendance,

@@ -84,7 +84,7 @@ final class HomeworkTaskTest extends KernelTestCase
         self::assertSame('archived', $connection->fetchOne('SELECT status FROM learning.homework_assignment'));
     }
 
-    public function testCompletionChecksAndTheLessonCanNotBeDeleted(): void
+    public function testReportChecksHoldAndTheLessonCanNotBeDeleted(): void
     {
         $task = $this->task();
 

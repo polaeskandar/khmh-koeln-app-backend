@@ -93,7 +93,7 @@ final class RoleTest extends KernelTestCase
         yield 'twice' => [['resource' => 'users', 'action' => 'read'], Database::UNIQUE_VIOLATION];
     }
 
-    public function testDeletingARoleTakesItFromItsUsersAndKeepsThePermissions(): void
+    public function testDeletingARoleTakesItFromItsAccountsAndKeepsThePermissions(): void
     {
         $connection = $this->database()->connection();
 

@@ -14,29 +14,29 @@ final class SecurityUserTest extends TestCase
 {
     public function testTheAccountIsKnownByItsIdWithTheUserRoleOnly(): void
     {
-        $user = Accounts::approved('sara@example.org');
-        $securityUser = SecurityUser::of($user);
+        $account = Accounts::approved('sara@example.org');
+        $securityUser = SecurityUser::of($account);
 
-        self::assertSame($user->id()->toRfc4122(), $securityUser->getUserIdentifier());
+        self::assertSame($account->id()->toRfc4122(), $securityUser->getUserIdentifier());
         self::assertSame(['ROLE_USER'], $securityUser->getRoles());
-        self::assertSame($user->passwordHash(), $securityUser->getPassword());
+        self::assertSame($account->passwordHash(), $securityUser->getPassword());
     }
 
     public function testASessionHoldsNeitherTheEmailNorThePasswordHash(): void
     {
-        $user = Accounts::approved('sara@example.org', passwordHash: '$2y$04$abcdefghijklmnopqrstuv');
+        $account = Accounts::approved('sara@example.org', passwordHash: '$2y$04$abcdefghijklmnopqrstuv');
 
-        $stored = serialize(SecurityUser::of($user));
+        $stored = serialize(SecurityUser::of($account));
 
         self::assertStringNotContainsString('sara@example.org', $stored);
         self::assertStringNotContainsString('$2y$04$abcdefghijklmnopqrstuv', $stored);
-        self::assertTrue(self::restored($stored)->isEqualTo(SecurityUser::of($user)));
+        self::assertTrue(self::restored($stored)->isEqualTo(SecurityUser::of($account)));
     }
 
     public function testADifferentPasswordHashMakesItAnotherUser(): void
     {
-        $user = Accounts::approved('sara@example.org', passwordHash: 'first-hash');
-        $stored = self::restored(serialize(SecurityUser::of($user)));
+        $account = Accounts::approved('sara@example.org', passwordHash: 'first-hash');
+        $stored = self::restored(serialize(SecurityUser::of($account)));
 
         self::assertFalse($stored->isEqualTo(SecurityUser::of(Accounts::approved(
             'sara@example.org',
@@ -46,20 +46,20 @@ final class SecurityUserTest extends TestCase
 
     public function testASessionStoredInAnEarlierShapeEndsInsteadOfFailing(): void
     {
-        $user = Accounts::approved('sara@example.org');
-        $earlier = serialize(SecurityUser::of($user)) |> self::withoutStatusFingerprint(...);
+        $account = Accounts::approved('sara@example.org');
+        $earlier = serialize(SecurityUser::of($account)) |> self::withoutStatusFingerprint(...);
 
-        self::assertFalse(self::restored($earlier)->isEqualTo(SecurityUser::of($user)));
+        self::assertFalse(self::restored($earlier)->isEqualTo(SecurityUser::of($account)));
     }
 
     public function testADisabledAccountIsAnotherUser(): void
     {
-        $user = Accounts::approved('sara@example.org');
-        $stored = self::restored(serialize(SecurityUser::of($user)));
+        $account = Accounts::approved('sara@example.org');
+        $stored = self::restored(serialize(SecurityUser::of($account)));
 
-        $user->changeStatus($user->status()->disabledAt(new DateTimeImmutable('2026-11-09T12:00:00+01:00')));
+        $account->changeStatus($account->status()->disabledAt(new DateTimeImmutable('2026-11-09T12:00:00+01:00')));
 
-        self::assertFalse($stored->isEqualTo(SecurityUser::of($user)));
+        self::assertFalse($stored->isEqualTo(SecurityUser::of($account)));
     }
 
     private static function withoutStatusFingerprint(string $stored): string

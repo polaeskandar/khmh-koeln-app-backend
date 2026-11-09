@@ -11,24 +11,24 @@ use PHPUnit\Framework\TestCase;
 
 final class AccountTest extends TestCase
 {
-    public function testAUserHoldsTheRolesItIsAssigned(): void
+    public function testAnAccountHoldsTheRolesItIsAssigned(): void
     {
-        $user = Accounts::approved('sara@example.org');
+        $account = Accounts::approved('sara@example.org');
         $servant = Roles::named('Servant');
 
-        $user->assign($servant);
-        self::assertSame([$servant], $user->roles()->getValues());
+        $account->assign($servant);
+        self::assertSame([$servant], $account->roles()->getValues());
 
-        $user->unassign($servant);
-        self::assertTrue($user->roles()->isEmpty());
+        $account->unassign($servant);
+        self::assertTrue($account->roles()->isEmpty());
     }
 
-    public function testAUserTakesTheStatusItIsGiven(): void
+    public function testAnAccountTakesTheStatusItIsGiven(): void
     {
-        $user = Accounts::approved('sara@example.org');
+        $account = Accounts::approved('sara@example.org');
 
-        $user->changeStatus(AccountStatus::pending());
+        $account->changeStatus(AccountStatus::pending());
 
-        self::assertTrue($user->status()->isPending());
+        self::assertTrue($account->status()->isPending());
     }
 }
