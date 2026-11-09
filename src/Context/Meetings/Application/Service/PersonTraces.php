@@ -20,7 +20,7 @@ use App\Platform\Privacy\Contract\PersonReferencesInterface;
 use App\Platform\Privacy\Model\ErasedPerson;
 use App\Platform\Privacy\Model\ErasedPlace;
 use App\Platform\Privacy\Model\FoundNote;
-use App\Platform\Privacy\Model\NoteRef;
+use App\Platform\Privacy\Model\NoteReference;
 use App\Platform\Privacy\Model\RosterSlot;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -71,7 +71,7 @@ final readonly class PersonTraces implements PersonReferencesInterface, PersonNo
 
         return new ArrayCollection($this->notes->notesOf($ids, $person->id))->map(
             static fn (array $note): FoundNote => new FoundNote(
-                new NoteRef($note['where'], $note['id']),
+                new NoteReference($note['where'], $note['id']),
                 $note['text'],
                 $note['date'],
                 $note['meeting'],
@@ -81,7 +81,7 @@ final readonly class PersonTraces implements PersonReferencesInterface, PersonNo
     }
 
     /**
-     * @param list<NoteRef> $notes
+     * @param list<NoteReference> $notes
      */
     #[Override]
     public function clearNotes(array $notes): void

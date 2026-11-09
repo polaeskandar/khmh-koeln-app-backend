@@ -12,7 +12,7 @@ use App\Platform\Privacy\Contract\PersonReferencesInterface;
 use App\Platform\Privacy\Model\ErasedPerson;
 use App\Platform\Privacy\Model\ErasedPlace;
 use App\Platform\Privacy\Model\FoundNote;
-use App\Platform\Privacy\Model\NoteRef;
+use App\Platform\Privacy\Model\NoteReference;
 use Doctrine\Common\Collections\ArrayCollection;
 use Override;
 use Symfony\Component\Uid\Uuid;
@@ -49,7 +49,7 @@ final readonly class PersonTraces implements PersonReferencesInterface, PersonNo
 
         return new ArrayCollection($this->lessonNotes->notesOf($stageIds))->map(
             static fn (array $note): FoundNote => new FoundNote(
-                new NoteRef(self::LESSON_NOTE, $note['id']),
+                new NoteReference(self::LESSON_NOTE, $note['id']),
                 $note['text'],
                 $note['date'],
                 meeting: null,
@@ -59,13 +59,13 @@ final readonly class PersonTraces implements PersonReferencesInterface, PersonNo
     }
 
     /**
-     * @param list<NoteRef> $notes
+     * @param list<NoteReference> $notes
      */
     #[Override]
     public function clearNotes(array $notes): void
     {
         $lessonNotes = new ArrayCollection($notes)->filter(
-            static fn (NoteRef $note): bool => $note->where === self::LESSON_NOTE,
+            static fn (NoteReference $note): bool => $note->where === self::LESSON_NOTE,
         );
 
         foreach ($lessonNotes as $note) {

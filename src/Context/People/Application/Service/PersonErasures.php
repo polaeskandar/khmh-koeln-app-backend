@@ -21,7 +21,7 @@ use App\Platform\Privacy\Contract\PersonReferencesInterface;
 use App\Platform\Privacy\Model\ErasedPerson;
 use App\Platform\Privacy\Model\ErasedPlace;
 use App\Platform\Privacy\Model\FoundNote;
-use App\Platform\Privacy\Model\NoteRef;
+use App\Platform\Privacy\Model\NoteReference;
 use App\Platform\Privacy\Model\RosterSlot;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
@@ -87,13 +87,15 @@ final readonly class PersonErasures
      */
     public function clearMentions(array $mentions): int
     {
-        $refs = new ArrayCollection($mentions)->map(static fn (FoundNote $note): NoteRef => $note->ref)->getValues();
+        $references = new ArrayCollection(
+            $mentions,
+        )->map(static fn (FoundNote $note): NoteReference => $note->reference)->getValues();
 
         foreach ($this->notes as $context) {
-            $context->clearNotes($refs);
+            $context->clearNotes($references);
         }
 
-        return new ArrayCollection($refs)->count();
+        return new ArrayCollection($references)->count();
     }
 
     public function countGuardianLinksOf(Uuid $accountId): int

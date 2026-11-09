@@ -24,13 +24,13 @@ final readonly class Mentions
     {
         $ordered = Orderings::byKeys(new ArrayCollection($notes), keysOf: static fn (FoundNote $note): array => [
             $note->date,
-            $note->ref->id,
+            $note->reference->id,
         ]);
 
         return new ArrayCollection($ordered)->map(
             static fn (FoundNote $note): Mention => new Mention(
-                $note->ref->id,
-                $note->ref->where,
+                $note->reference->id,
+                $note->reference->where,
                 $note->text,
                 $note->date,
                 $note->meeting ?? self::stageNameOf($stages, $note->stageId),

@@ -9,7 +9,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class FoundNote
 {
     public function __construct(
-        public NoteRef $ref,
+        public NoteReference $reference,
         public string $text,
         public string $date,
         public ?string $meeting,

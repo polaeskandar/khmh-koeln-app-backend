@@ -6,7 +6,7 @@ namespace App\Platform\Privacy\Contract;
 
 use App\Platform\Privacy\Model\ErasedPerson;
 use App\Platform\Privacy\Model\FoundNote;
-use App\Platform\Privacy\Model\NoteRef;
+use App\Platform\Privacy\Model\NoteReference;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
 #[AutoconfigureTag(self::NOTES_TAG)]
@@ -20,7 +20,7 @@ interface PersonNotesInterface
     public function notesAbout(ErasedPerson $person): array;
 
     /**
-     * @param list<NoteRef> $notes
+     * @param list<NoteReference> $notes
      */
     public function clearNotes(array $notes): void;
 }
