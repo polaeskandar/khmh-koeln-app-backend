@@ -12,7 +12,7 @@ use Throwable;
  * @template TException of Throwable
  */
 #[AutoconfigureTag(self::TAG)]
-interface ProblemTranslator
+interface ProblemTranslatorInterface
 {
     public const string TAG = 'app.problem_translator';
 

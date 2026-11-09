@@ -14,9 +14,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 /**
- * @implements ProblemTranslator<Throwable>
+ * @implements ProblemTranslatorInterface<Throwable>
  */
-final readonly class FixedProblemTranslator implements ProblemTranslator
+final readonly class FixedProblemTranslator implements ProblemTranslatorInterface
 {
     private const array PROBLEMS = [
         UniqueConstraintViolationException::class => [Response::HTTP_CONFLICT, 'conflict'],

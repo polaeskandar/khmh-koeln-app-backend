@@ -356,7 +356,8 @@ reason = "A library client holds only its injected collaborators."
 [[guard.structural.rules]]
 on = "App\\Platform\\*\\Contract\\**"
 must-be = ["interface"]
-reason = "A platform contract is an interface the rest of the application may use."
+must-be-named = "*Interface"
+reason = "A platform contract is an interface the rest of the application may use, suffixed like every interface."
 
 [[guard.structural.rules]]
 on = "App\\Platform\\*\\Command\\**"

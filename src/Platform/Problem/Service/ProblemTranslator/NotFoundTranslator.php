@@ -11,9 +11,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 /**
- * @implements ProblemTranslator<NotFound>
+ * @implements ProblemTranslatorInterface<NotFound>
  */
-final readonly class NotFoundTranslator implements ProblemTranslator
+final readonly class NotFoundTranslator implements ProblemTranslatorInterface
 {
     #[Override]
     public function supports(Throwable $exception): bool

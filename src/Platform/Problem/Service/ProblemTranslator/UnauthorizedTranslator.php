@@ -11,9 +11,9 @@ use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Throwable;
 
 /**
- * @implements ProblemTranslator<UnauthorizedHttpException>
+ * @implements ProblemTranslatorInterface<UnauthorizedHttpException>
  */
-final readonly class UnauthorizedTranslator implements ProblemTranslator
+final readonly class UnauthorizedTranslator implements ProblemTranslatorInterface
 {
     #[Override]
     public function supports(Throwable $exception): bool

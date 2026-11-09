@@ -12,9 +12,9 @@ use Symfony\Component\Validator\Exception\ValidationFailedException;
 use Throwable;
 
 /**
- * @implements ProblemTranslator<ValidationFailedException>
+ * @implements ProblemTranslatorInterface<ValidationFailedException>
  */
-final readonly class ValidationFailedTranslator implements ProblemTranslator
+final readonly class ValidationFailedTranslator implements ProblemTranslatorInterface
 {
     #[Override]
     public function supports(Throwable $exception): bool

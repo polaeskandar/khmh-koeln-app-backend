@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Platform\Problem\Service;
 
 use App\Platform\Problem\Model\Problem;
-use App\Platform\Problem\Service\ProblemTranslator\ProblemTranslator;
+use App\Platform\Problem\Service\ProblemTranslator\ProblemTranslatorInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Throwable;
@@ -13,10 +13,10 @@ use Throwable;
 final readonly class ProblemTranslation
 {
     /**
-     * @param iterable<ProblemTranslator<Throwable>> $translators
+     * @param iterable<ProblemTranslatorInterface<Throwable>> $translators
      */
     public function __construct(
-        #[AutowireIterator(ProblemTranslator::TAG)]
+        #[AutowireIterator(ProblemTranslatorInterface::TAG)]
         private iterable $translators,
     ) {
     }

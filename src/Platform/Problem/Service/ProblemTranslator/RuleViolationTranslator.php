@@ -12,9 +12,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 /**
- * @implements ProblemTranslator<RuleViolation>
+ * @implements ProblemTranslatorInterface<RuleViolation>
  */
-final readonly class RuleViolationTranslator implements ProblemTranslator
+final readonly class RuleViolationTranslator implements ProblemTranslatorInterface
 {
     #[Override]
     public function supports(Throwable $exception): bool

@@ -13,9 +13,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 /**
- * @implements ProblemTranslator<InvalidInput>
+ * @implements ProblemTranslatorInterface<InvalidInput>
  */
-final readonly class InvalidInputTranslator implements ProblemTranslator
+final readonly class InvalidInputTranslator implements ProblemTranslatorInterface
 {
     #[Override]
     public function supports(Throwable $exception): bool

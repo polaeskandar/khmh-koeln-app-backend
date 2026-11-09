@@ -15,9 +15,9 @@ use Symfony\Component\Serializer\Exception\ExtraAttributesException;
 use Throwable;
 
 /**
- * @implements ProblemTranslator<ExtraAttributesException>
+ * @implements ProblemTranslatorInterface<ExtraAttributesException>
  */
-final readonly class ExtraAttributesTranslator implements ProblemTranslator
+final readonly class ExtraAttributesTranslator implements ProblemTranslatorInterface
 {
     #[Override]
     public function supports(Throwable $exception): bool

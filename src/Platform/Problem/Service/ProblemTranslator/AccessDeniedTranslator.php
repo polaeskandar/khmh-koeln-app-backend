@@ -11,9 +11,9 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Throwable;
 
 /**
- * @implements ProblemTranslator<AccessDeniedHttpException>
+ * @implements ProblemTranslatorInterface<AccessDeniedHttpException>
  */
-final readonly class AccessDeniedTranslator implements ProblemTranslator
+final readonly class AccessDeniedTranslator implements ProblemTranslatorInterface
 {
     #[Override]
     public function supports(Throwable $exception): bool

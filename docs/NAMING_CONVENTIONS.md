@@ -235,10 +235,12 @@ One term per concept. Use the term in code, docs and commits; the right column l
 
 ## 8. Enforcement
 
-- `mago guard`: folders and suffixes of §2 (`mago.toml`).
+- `mago guard`: the folders and suffixes of §2 (`mago.toml`), platform contracts included.
 - `mago lint`: camelCase names (`variable-name`, `method-name`, `property-name`); PHP Insights: PSR-1.
-- `tests/Architecture/NamingConventionsTest`: no generic suffixes on application services; no instance method named
-  `of()`; an application service's or repository's `get…()` never returns `null` and its `find…()` always may; a
-  workflow's input models end in `Choice` or `Filter`; every interface ends in `Interface`.
+- `tests/Architecture/NamingConventionsTest`: every interface ends in `Interface`; no instance method is called `of()`;
+  an application service's or repository's `get…()` never returns `null` and its `find…()` may find nothing; a
+  workflow's input models end in `Choice` or `Filter`.
+- `tests/Architecture/WorkflowLayoutTest`: application services never end in `Service`, `Manager`, `Helper`,
+  `Processor` or `Util`; workflows run only through `__invoke()`.
 - `tests/Architecture/TestLayoutTest`: test classes and helpers mirror `src`.
 - Reviews: whether a name says what the code does, and whether it is the glossary's word.

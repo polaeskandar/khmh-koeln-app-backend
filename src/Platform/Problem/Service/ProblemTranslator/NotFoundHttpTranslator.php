@@ -11,9 +11,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 /**
- * @implements ProblemTranslator<NotFoundHttpException>
+ * @implements ProblemTranslatorInterface<NotFoundHttpException>
  */
-final readonly class NotFoundHttpTranslator implements ProblemTranslator
+final readonly class NotFoundHttpTranslator implements ProblemTranslatorInterface
 {
     #[Override]
     public function supports(Throwable $exception): bool

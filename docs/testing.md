@@ -11,7 +11,8 @@ transaction that is rolled back afterwards (DAMA), schema changes included, so t
   `tests/Functional/<src path>/<Class>Test.php` for tests with it. The name starts with the class it covers.
 - Helpers mirror `src` in `tests/Support/<src path>/`; generic ones (`ApiTestCase`) sit at its root. Fixtures
   live in `tests/Fixtures/Context/<Context>/`. Tests of helpers sit under `tests/Functional/Support/`.
-- `tests/Architecture` checks the layout of `src` and `tests` and the context wiring.
+- `tests/Architecture` checks the layout of `src` and `tests`, the context wiring and the objective naming rules
+  of [Naming conventions](NAMING_CONVENTIONS.md#8-enforcement).
 - API tests extend `App\Tests\Support\ApiTestCase` (an HTTPS client; `signInAs($email, $secret)` signs in through `POST /api/auth/sign-in`, with accounts from `SignInAccounts::add()`): `jsonRequest()` sends JSON like the frontend (`{}` when
   an unsafe request has no body), `responseJson()` decodes the answer, `assertJsonPath('fieldErrors.name.code', …)`
   checks one value, `assertProblem(status, code, params)` and `assertFieldError(field, code, params)` check a
