@@ -33,6 +33,19 @@ final class RoleTest extends TestCase
         self::assertTrue($role->permissions()->isEmpty());
     }
 
+    public function testARoleIsRenamedAndItsPermissionsAreReplacedWhole(): void
+    {
+        $readServices = new Permission(Action::Read, Resource::Services);
+        $readLessons = new Permission(Action::Read, Resource::Lessons);
+        $role = Roles::named('Choir leader', $readServices);
+
+        $role->rename(RoleName::of('Choir'));
+        $role->replacePermissions([$readLessons]);
+
+        self::assertSame('Choir', $role->name()->value);
+        self::assertSame([$readLessons], $role->permissions()->getValues());
+    }
+
     public function testARoleNeedsAName(): void
     {
         self::assertSame(

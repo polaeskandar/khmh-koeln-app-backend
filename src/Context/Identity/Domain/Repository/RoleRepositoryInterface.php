@@ -12,6 +12,10 @@ interface RoleRepositoryInterface
 {
     public function save(Role $role): void;
 
+    public function remove(Role $role): void;
+
+    public function find(Uuid $id): ?Role;
+
     public function findByName(string $name): ?Role;
 
     /**
