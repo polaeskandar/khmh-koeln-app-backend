@@ -6,7 +6,7 @@ namespace App\Tests\Functional\Interface\Api\Identity;
 
 use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\People\Application\Service\Guardianship;
-use App\Context\People\Domain\Entity\GuardianRelationship;
+use App\Context\People\Domain\Entity\GuardianLink;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
@@ -79,7 +79,7 @@ final class AccountRequestsControllerApprovalTest extends ApiTestCase
         $children = $this
             ->guardianship()
             ->approvedOf($parent->id())
-            ->map(static fn (GuardianRelationship $link): string => $link->child()->id()->toRfc4122());
+            ->map(static fn (GuardianLink $link): string => $link->child()->id()->toRfc4122());
 
         self::assertSame([$mina2], $children->getValues());
         $this->signInAs(self::PARENT, SignInAccounts::TYPED);

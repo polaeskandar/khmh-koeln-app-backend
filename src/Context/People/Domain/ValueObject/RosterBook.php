@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\People\Domain\ValueObject;
 
-use App\Context\People\Domain\Entity\GuardianRelationship;
+use App\Context\People\Domain\Entity\GuardianLink;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\PersonStatus;
 use App\Library\Collections\Model\Collections;
@@ -17,7 +17,7 @@ final readonly class RosterBook
     /**
      * @param ReadableCollection<string, list<Uuid>> $rosters
      * @param ReadableCollection<string, Person> $people
-     * @param ReadableCollection<int, GuardianRelationship> $links
+     * @param ReadableCollection<int, GuardianLink> $links
      */
     public function __construct(
         private ReadableCollection $rosters,
@@ -55,8 +55,8 @@ final readonly class RosterBook
     public function guardianAccountIdsOf(Person $child): array
     {
         return $this->links
-            ->filter(static fn (GuardianRelationship $link): bool => $link->child()->id()->equals($child->id()))
-            ->map(static fn (GuardianRelationship $link): Uuid => $link->accountId())
+            ->filter(static fn (GuardianLink $link): bool => $link->child()->id()->equals($child->id()))
+            ->map(static fn (GuardianLink $link): Uuid => $link->accountId())
             ->getValues();
     }
 
@@ -65,6 +65,6 @@ final readonly class RosterBook
      */
     public function guardianAccountIds(): array
     {
-        return $this->links->map(static fn (GuardianRelationship $link): Uuid => $link->accountId())->getValues();
+        return $this->links->map(static fn (GuardianLink $link): Uuid => $link->accountId())->getValues();
     }
 }

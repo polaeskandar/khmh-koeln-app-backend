@@ -9,7 +9,7 @@ use App\Tests\Support\Database;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-final class GuardianRelationshipTest extends KernelTestCase
+final class GuardianLinkTest extends KernelTestCase
 {
     public function testAnAccountHasOneCurrentLinkPerChild(): void
     {

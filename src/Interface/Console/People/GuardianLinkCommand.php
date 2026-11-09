@@ -8,7 +8,7 @@ use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\Text;
-use App\Workflow\People\LinkGuardianWorkflow;
+use App\Workflow\People\LinkGuardianByEmailWorkflow;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Attribute\Option;
@@ -19,7 +19,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final readonly class GuardianLinkCommand
 {
     public function __construct(
-        private LinkGuardianWorkflow $linkGuardian,
+        private LinkGuardianByEmailWorkflow $linkGuardianByEmail,
     ) {
     }
 
@@ -33,7 +33,7 @@ final readonly class GuardianLinkCommand
         string $relationship = 'parent',
     ): int {
         try {
-            ($this->linkGuardian)($email, $personId, $relationship);
+            ($this->linkGuardianByEmail)($email, $personId, $relationship);
         } catch (InvalidInput $invalid) {
             self::report($io, $invalid);
 

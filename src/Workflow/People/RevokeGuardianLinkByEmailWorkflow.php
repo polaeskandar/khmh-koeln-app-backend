@@ -9,7 +9,7 @@ use App\Context\People\Application\Service\Children;
 use App\Context\People\Application\Service\Guardianship;
 use App\Library\Problem\Exception\NotFound;
 
-final readonly class RevokeGuardianWorkflow
+final readonly class RevokeGuardianLinkByEmailWorkflow
 {
     public function __construct(
         private ParentAccounts $accounts,

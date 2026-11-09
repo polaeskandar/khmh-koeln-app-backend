@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Context\People\Application\Service;
 
-use App\Context\People\Domain\Entity\GuardianRelationship;
+use App\Context\People\Domain\Entity\GuardianLink;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
-use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
+use App\Context\People\Domain\Repository\GuardianLinkRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\ValueObject\Family;
 use App\Library\Time\Client\Calendar;
@@ -16,7 +16,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class ParentChildren
 {
     public function __construct(
-        private GuardianRelationshipRepositoryInterface $links,
+        private GuardianLinkRepositoryInterface $links,
         private PersonRepositoryInterface $people,
         private Calendar $calendar,
     ) {
@@ -26,9 +26,7 @@ final readonly class ParentChildren
     {
         $today = $this->calendar->today();
 
-        $children = $this->links->approvedOf($accountId)->map(
-            static fn (GuardianRelationship $link): Person => $link->child(),
-        );
+        $children = $this->links->approvedOf($accountId)->map(static fn (GuardianLink $link): Person => $link->child());
 
         $current = $this->people
             ->membershipsOf($children)

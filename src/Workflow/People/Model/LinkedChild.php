@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Workflow\People\Model;
 
-use App\Context\People\Domain\Entity\GuardianRelationship;
+use App\Context\People\Domain\Entity\GuardianLink;
 use App\Library\Strings\Model\Text;
 
-final readonly class GuardianLink
+final readonly class LinkedChild
 {
     public function __construct(
         public string $personId,
@@ -16,7 +16,7 @@ final readonly class GuardianLink
     ) {
     }
 
-    public static function of(GuardianRelationship $link): self
+    public static function of(GuardianLink $link): self
     {
         $child = $link->child();
 

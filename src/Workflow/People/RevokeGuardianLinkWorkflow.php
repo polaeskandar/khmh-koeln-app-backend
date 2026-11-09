@@ -9,7 +9,7 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\People\Application\Service\ParentAccess;
 
-final readonly class RevokeParentAccessWorkflow
+final readonly class RevokeGuardianLinkWorkflow
 {
     public function __construct(
         private AccessCheck $access,

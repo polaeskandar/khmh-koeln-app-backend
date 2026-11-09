@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Context\People\Application\Service;
 
-use App\Context\People\Domain\Entity\GuardianRelationship;
+use App\Context\People\Domain\Entity\GuardianLink;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
-use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
+use App\Context\People\Domain\Repository\GuardianLinkRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
@@ -17,7 +17,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class ParentAccess
 {
     public function __construct(
-        private GuardianRelationshipRepositoryInterface $links,
+        private GuardianLinkRepositoryInterface $links,
         private PersonRepositoryInterface $people,
         private Calendar $calendar,
     ) {
@@ -26,7 +26,7 @@ final readonly class ParentAccess
     /**
      * @param positive-int $limit
      *
-     * @return ReadableCollection<int, GuardianRelationship>
+     * @return ReadableCollection<int, GuardianLink>
      */
     public function approved(int $limit): ReadableCollection
     {

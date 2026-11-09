@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\People\Model;
 
 use App\Context\Identity\Domain\Entity\Account;
-use App\Context\People\Domain\Entity\GuardianRelationship;
+use App\Context\People\Domain\Entity\GuardianLink;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Library\Collections\Model\Collections;
@@ -31,7 +31,7 @@ final readonly class ParentAccessItems
     }
 
     /**
-     * @param ReadableCollection<int, GuardianRelationship> $links
+     * @param ReadableCollection<int, GuardianLink> $links
      * @param ReadableCollection<int, Account> $accounts the parents and approvers
      * @param ReadableCollection<int, Membership> $memberships the children's current memberships
      *
@@ -54,21 +54,21 @@ final readonly class ParentAccessItems
     }
 
     /**
-     * @param ReadableCollection<int, GuardianRelationship> $links
+     * @param ReadableCollection<int, GuardianLink> $links
      *
      * @return list<Uuid>
      */
     public static function accountIdsOf(ReadableCollection $links): array
     {
-        $ids = $links->map(static fn (GuardianRelationship $link): Uuid => $link->accountId())->getValues();
-        $approverOf = static fn (GuardianRelationship $link): ?Uuid => $link->approvedBy();
+        $ids = $links->map(static fn (GuardianLink $link): Uuid => $link->accountId())->getValues();
+        $approverOf = static fn (GuardianLink $link): ?Uuid => $link->approvedBy();
         $approvers = Collections::mapPresent($links, $approverOf);
 
         return [...$ids, ...$approvers->getValues()];
     }
 
     /**
-     * @param ReadableCollection<int, GuardianRelationship> $links
+     * @param ReadableCollection<int, GuardianLink> $links
      *
      * @return ReadableCollection<int, Person>
      */
@@ -76,13 +76,13 @@ final readonly class ParentAccessItems
     {
         return new ArrayCollection(
             Collections::firstPerKey(
-                $links->map(static fn (GuardianRelationship $link): Person => $link->child()),
+                $links->map(static fn (GuardianLink $link): Person => $link->child()),
                 keyOf: static fn (Person $child): string => $child->id()->toRfc4122(),
             )->getValues(),
         );
     }
 
-    private function itemOf(GuardianRelationship $link): ?ParentAccessItem
+    private function itemOf(GuardianLink $link): ?ParentAccessItem
     {
         $parent = $this->accounts->get($link->accountId()->toRfc4122());
 

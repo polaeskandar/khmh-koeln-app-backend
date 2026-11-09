@@ -12,7 +12,7 @@ use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\StageRosters;
-use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
+use App\Context\People\Domain\Repository\GuardianLinkRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\Repository\RosterRepositoryInterface;
 use App\Library\Time\Client\Calendar;
@@ -62,7 +62,7 @@ final readonly class TaskAudienceLookups
         return new StageRosters(
             $this->service(RosterRepositoryInterface::class),
             $this->service(PersonRepositoryInterface::class),
-            $this->service(GuardianRelationshipRepositoryInterface::class),
+            $this->service(GuardianLinkRepositoryInterface::class),
         );
     }
 

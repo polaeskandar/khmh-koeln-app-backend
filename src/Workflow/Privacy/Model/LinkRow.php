@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Privacy\Model;
 
 use App\Context\Identity\Domain\Entity\Account;
-use App\Context\People\Domain\Entity\GuardianRelationship;
+use App\Context\People\Domain\Entity\GuardianLink;
 use App\Library\Collections\Model\Collections;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -23,7 +23,7 @@ final readonly class LinkRow
     }
 
     /**
-     * @param ReadableCollection<int, GuardianRelationship> $links
+     * @param ReadableCollection<int, GuardianLink> $links
      * @param ReadableCollection<int, Account> $accounts
      *
      * @return list<self>
@@ -33,7 +33,7 @@ final readonly class LinkRow
         $names = Collections::firstPerKey($accounts, keyOf: self::accountKey(...));
 
         return $links->map(
-            static fn (GuardianRelationship $link): self => new self(
+            static fn (GuardianLink $link): self => new self(
                 $names->get($link->accountId()->toRfc4122())?->profile()->displayName->value,
                 self::statusOf($link),
             ),
@@ -41,30 +41,30 @@ final readonly class LinkRow
     }
 
     /**
-     * @param ReadableCollection<int, GuardianRelationship> $links
+     * @param ReadableCollection<int, GuardianLink> $links
      *
      * @return list<Uuid>
      */
     public static function accountIdsOf(ReadableCollection $links): array
     {
-        return $links->map(static fn (GuardianRelationship $link): Uuid => $link->accountId())->getValues();
+        return $links->map(static fn (GuardianLink $link): Uuid => $link->accountId())->getValues();
     }
 
     /**
-     * @param ReadableCollection<int, GuardianRelationship> $links
+     * @param ReadableCollection<int, GuardianLink> $links
      *
      * @return list<self>
      */
     public static function childrenOf(ReadableCollection $links): array
     {
-        return $links->map(static function (GuardianRelationship $link): self {
+        return $links->map(static function (GuardianLink $link): self {
             $name = $link->child()->name();
 
             return new self($name->firstName . ' ' . $name->lastName, self::statusOf($link));
         })->getValues();
     }
 
-    private static function statusOf(GuardianRelationship $link): string
+    private static function statusOf(GuardianLink $link): string
     {
         return $link->isApproved() ? self::APPROVED : self::REVOKED;
     }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\People\Model;
 
 use App\Context\Identity\Domain\Entity\Account;
-use App\Context\People\Domain\Entity\GuardianRelationship;
+use App\Context\People\Domain\Entity\GuardianLink;
 use App\Workflow\Identity\Model\AccountReference;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -21,7 +21,7 @@ final readonly class AccessApproval
     /**
      * @param ReadableCollection<non-empty-string, Account> $accounts
      */
-    public static function of(GuardianRelationship $link, ReadableCollection $accounts): self
+    public static function of(GuardianLink $link, ReadableCollection $accounts): self
     {
         $approvedBy = $link->approvedBy();
         $approver = $approvedBy === null ? null : $accounts->get($approvedBy->toRfc4122());

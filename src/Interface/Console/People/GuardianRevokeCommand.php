@@ -6,9 +6,9 @@ namespace App\Interface\Console\People;
 
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Strings\Model\Text;
-use App\Workflow\People\ListGuardianLinksWorkflow;
-use App\Workflow\People\Model\GuardianLink;
-use App\Workflow\People\RevokeGuardianWorkflow;
+use App\Workflow\People\ListGuardianLinksByEmailWorkflow;
+use App\Workflow\People\Model\LinkedChild;
+use App\Workflow\People\RevokeGuardianLinkByEmailWorkflow;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -19,8 +19,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final readonly class GuardianRevokeCommand
 {
     public function __construct(
-        private ListGuardianLinksWorkflow $listLinks,
-        private RevokeGuardianWorkflow $revokeGuardian,
+        private ListGuardianLinksByEmailWorkflow $listGuardianLinksByEmail,
+        private RevokeGuardianLinkByEmailWorkflow $revokeGuardianLinkByEmail,
     ) {
     }
 
@@ -50,13 +50,15 @@ final readonly class GuardianRevokeCommand
             return;
         }
 
-        ($this->revokeGuardian)($email, $personId);
+        ($this->revokeGuardianLinkByEmail)($email, $personId);
         $io->success(Text::format('%s no longer acts for the child.', $email)->toString());
     }
 
     private function show(SymfonyStyle $io, string $email): void
     {
-        $rows = new ArrayCollection(($this->listLinks)($email))->map(static fn (GuardianLink $link): array => [
+        $rows = new ArrayCollection(($this->listGuardianLinksByEmail)(
+            $email,
+        ))->map(static fn (LinkedChild $link): array => [
             $link->name,
             $link->personId,
             $link->relationship,

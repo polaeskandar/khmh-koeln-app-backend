@@ -21,7 +21,7 @@ use Symfony\Component\Uid\Uuid;
     options: ['where' => "((status)::text <> 'revoked'::text)"],
 )]
 #[ORM\Index(name: 'guardian_relationship_person_idx', columns: ['person_id'])]
-final class GuardianRelationship extends CreatedAtEntity
+final class GuardianLink extends CreatedAtEntity
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]

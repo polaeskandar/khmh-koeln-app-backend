@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Context\People\Infrastructure\Persistence\Repository;
 
-use App\Context\People\Domain\Entity\GuardianRelationship;
+use App\Context\People\Domain\Entity\GuardianLink;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\GuardianStatus;
-use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
+use App\Context\People\Domain\Repository\GuardianLinkRepositoryInterface;
 use App\Library\Types\Model\ListOf;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -16,7 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class DoctrineGuardianRelationshipRepository implements GuardianRelationshipRepositoryInterface
+final readonly class DoctrineGuardianLinkRepository implements GuardianLinkRepositoryInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -24,16 +24,16 @@ final readonly class DoctrineGuardianRelationshipRepository implements GuardianR
     }
 
     #[Override]
-    public function save(GuardianRelationship $relationship): void
+    public function save(GuardianLink $link): void
     {
-        $this->entityManager->persist($relationship);
+        $this->entityManager->persist($link);
         $this->entityManager->flush();
     }
 
     #[Override]
-    public function find(Uuid $id): ?GuardianRelationship
+    public function find(Uuid $id): ?GuardianLink
     {
-        return $this->entityManager->find(GuardianRelationship::class, $id);
+        return $this->entityManager->find(GuardianLink::class, $id);
     }
 
     /**
@@ -45,7 +45,7 @@ final readonly class DoctrineGuardianRelationshipRepository implements GuardianR
         $query = $this->entityManager
             ->createQueryBuilder()
             ->select('g', 'p')
-            ->from(GuardianRelationship::class, 'g')
+            ->from(GuardianLink::class, 'g')
             ->join('g.child', 'p')
             ->where('g.status = :approved')
             ->setParameter('approved', GuardianStatus::Approved)
@@ -54,14 +54,14 @@ final readonly class DoctrineGuardianRelationshipRepository implements GuardianR
             ->setMaxResults($limit)
             ->getQuery();
 
-        return new ArrayCollection(ListOf::instances($query->getResult(), GuardianRelationship::class));
+        return new ArrayCollection(ListOf::instances($query->getResult(), GuardianLink::class));
     }
 
     #[Override]
-    public function approvedFor(Uuid $accountId, Person $child): ?GuardianRelationship
+    public function approvedFor(Uuid $accountId, Person $child): ?GuardianLink
     {
         return $this->entityManager
-            ->getRepository(GuardianRelationship::class)
+            ->getRepository(GuardianLink::class)
             ->findOneBy([
                 'accountId' => $accountId,
                 'child' => $child,
@@ -75,7 +75,7 @@ final readonly class DoctrineGuardianRelationshipRepository implements GuardianR
         $query = $this->entityManager
             ->createQueryBuilder()
             ->select('g', 'p')
-            ->from(GuardianRelationship::class, 'g')
+            ->from(GuardianLink::class, 'g')
             ->join('g.child', 'p')
             ->where('g.accountId = :account')
             ->andWhere('g.status = :approved')
@@ -84,7 +84,7 @@ final readonly class DoctrineGuardianRelationshipRepository implements GuardianR
             ->orderBy('p.name.firstName')
             ->getQuery();
 
-        return new ArrayCollection(ListOf::instances($query->getResult(), GuardianRelationship::class));
+        return new ArrayCollection(ListOf::instances($query->getResult(), GuardianLink::class));
     }
 
     /**
@@ -100,7 +100,7 @@ final readonly class DoctrineGuardianRelationshipRepository implements GuardianR
         $query = $this->entityManager
             ->createQueryBuilder()
             ->select('g')
-            ->from(GuardianRelationship::class, 'g')
+            ->from(GuardianLink::class, 'g')
             ->where('IDENTITY(g.child) IN (:children)')
             ->andWhere('g.status = :approved')
             ->setParameter(
@@ -111,13 +111,13 @@ final readonly class DoctrineGuardianRelationshipRepository implements GuardianR
             ->setParameter('approved', GuardianStatus::Approved)
             ->getQuery();
 
-        return new ArrayCollection(ListOf::instances($query->getResult(), GuardianRelationship::class));
+        return new ArrayCollection(ListOf::instances($query->getResult(), GuardianLink::class));
     }
 
     #[Override]
     public function allForChild(Person $child): ReadableCollection
     {
-        return new ArrayCollection($this->entityManager->getRepository(GuardianRelationship::class)->findBy([
+        return new ArrayCollection($this->entityManager->getRepository(GuardianLink::class)->findBy([
             'child' => $child,
         ], ['approvedAt' => 'ASC', 'id' => 'ASC']));
     }
@@ -125,7 +125,7 @@ final readonly class DoctrineGuardianRelationshipRepository implements GuardianR
     #[Override]
     public function allOfAccount(Uuid $accountId): ReadableCollection
     {
-        return new ArrayCollection($this->entityManager->getRepository(GuardianRelationship::class)->findBy([
+        return new ArrayCollection($this->entityManager->getRepository(GuardianLink::class)->findBy([
             'accountId' => $accountId,
         ], ['approvedAt' => 'ASC', 'id' => 'ASC']));
     }

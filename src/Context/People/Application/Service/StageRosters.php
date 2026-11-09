@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Context\People\Application\Service;
 
 use App\Context\People\Domain\Entity\Person;
-use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
+use App\Context\People\Domain\Repository\GuardianLinkRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\Repository\RosterRepositoryInterface;
 use App\Context\People\Domain\ValueObject\RosterBook;
@@ -19,7 +19,7 @@ final readonly class StageRosters
     public function __construct(
         private RosterRepositoryInterface $rosters,
         private PersonRepositoryInterface $people,
-        private GuardianRelationshipRepositoryInterface $guardians,
+        private GuardianLinkRepositoryInterface $guardians,
     ) {
     }
 

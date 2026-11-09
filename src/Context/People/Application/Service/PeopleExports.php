@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Context\People\Application\Service;
 
-use App\Context\People\Domain\Entity\GuardianRelationship;
+use App\Context\People\Domain\Entity\GuardianLink;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
-use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
+use App\Context\People\Domain\Repository\GuardianLinkRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -17,7 +17,7 @@ final readonly class PeopleExports
 {
     public function __construct(
         private PersonRepositoryInterface $people,
-        private GuardianRelationshipRepositoryInterface $links,
+        private GuardianLinkRepositoryInterface $links,
     ) {
     }
 
@@ -35,7 +35,7 @@ final readonly class PeopleExports
     }
 
     /**
-     * @return ReadableCollection<int, GuardianRelationship>
+     * @return ReadableCollection<int, GuardianLink>
      */
     public function linksOfChild(Person $child): ReadableCollection
     {
@@ -43,7 +43,7 @@ final readonly class PeopleExports
     }
 
     /**
-     * @return ReadableCollection<int, GuardianRelationship>
+     * @return ReadableCollection<int, GuardianLink>
      */
     public function linksOfAccount(Uuid $accountId): ReadableCollection
     {

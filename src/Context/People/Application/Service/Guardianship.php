@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Context\People\Application\Service;
 
-use App\Context\People\Domain\Entity\GuardianRelationship;
+use App\Context\People\Domain\Entity\GuardianLink;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\GuardianKind;
-use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
+use App\Context\People\Domain\Repository\GuardianLinkRepositoryInterface;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -16,7 +16,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class Guardianship
 {
     public function __construct(
-        private GuardianRelationshipRepositoryInterface $links,
+        private GuardianLinkRepositoryInterface $links,
         private Calendar $calendar,
     ) {
     }
@@ -33,14 +33,14 @@ final readonly class Guardianship
         }
 
         $this->links->save(
-            new GuardianRelationship($accountId, $child, $kind, approvedAt: $this->calendar->now(), approvedBy: null),
+            new GuardianLink($accountId, $child, $kind, approvedAt: $this->calendar->now(), approvedBy: null),
         );
     }
 
     public function linkParent(Uuid $accountId, Person $child, string $approvedBy): void
     {
         $this->links->save(
-            new GuardianRelationship(
+            new GuardianLink(
                 $accountId,
                 $child,
                 GuardianKind::Parent,
@@ -63,7 +63,7 @@ final readonly class Guardianship
     }
 
     /**
-     * @return ReadableCollection<int, GuardianRelationship>
+     * @return ReadableCollection<int, GuardianLink>
      */
     public function approvedOf(Uuid $accountId): ReadableCollection
     {

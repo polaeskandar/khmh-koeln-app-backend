@@ -7,9 +7,9 @@ namespace App\Interface\Api\People;
 use App\Interface\Api\People\Request\ParentAccessRequest;
 use App\Interface\Api\People\Response\ParentAccessItemResponse;
 use App\Interface\Api\People\Response\ParentAccessListResponse;
-use App\Workflow\People\GiveParentAccessWorkflow;
-use App\Workflow\People\ListParentAccessWorkflow;
-use App\Workflow\People\RevokeParentAccessWorkflow;
+use App\Workflow\People\LinkGuardianWorkflow;
+use App\Workflow\People\ListGuardianLinksWorkflow;
+use App\Workflow\People\RevokeGuardianLinkWorkflow;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,9 +31,9 @@ final class GuardianLinksController extends AbstractController
         content: new OA\JsonContent(ref: new Model(type: ParentAccessListResponse::class)),
     )]
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
-    public function list(ListParentAccessWorkflow $listParentAccess): JsonResponse
+    public function list(ListGuardianLinksWorkflow $listGuardianLinks): JsonResponse
     {
-        return $this->json(ParentAccessListResponse::of($listParentAccess()));
+        return $this->json(ParentAccessListResponse::of($listGuardianLinks()));
     }
 
     #[Route('', name: 'api_guardian_links_give', methods: ['POST'])]
@@ -49,9 +49,9 @@ final class GuardianLinksController extends AbstractController
         UserInterface $user,
         #[MapRequestPayload]
         ParentAccessRequest $request,
-        GiveParentAccessWorkflow $giveParentAccess,
+        LinkGuardianWorkflow $linkGuardian,
     ): JsonResponse {
-        $item = $giveParentAccess(
+        $item = $linkGuardian(
             $request->userId ?? '',
             $request->personId ?? '',
             $request->relationship,
@@ -70,9 +70,9 @@ final class GuardianLinksController extends AbstractController
         string $id,
         #[CurrentUser]
         UserInterface $user,
-        RevokeParentAccessWorkflow $revokeParentAccess,
+        RevokeGuardianLinkWorkflow $revokeGuardianLink,
     ): Response {
-        $revokeParentAccess($id, $user->getUserIdentifier());
+        $revokeGuardianLink($id, $user->getUserIdentifier());
 
         return new Response(status: Response::HTTP_NO_CONTENT);
     }

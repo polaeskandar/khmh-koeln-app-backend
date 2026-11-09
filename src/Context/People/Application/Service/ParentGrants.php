@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Context\People\Application\Service;
 
-use App\Context\People\Domain\Entity\GuardianRelationship;
+use App\Context\People\Domain\Entity\GuardianLink;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\GuardianKind;
-use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
+use App\Context\People\Domain\Repository\GuardianLinkRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\ValueObject\AccessGrant;
 use App\Context\People\Domain\ValueObject\ActiveChild;
@@ -20,7 +20,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class ParentGrants
 {
     public function __construct(
-        private GuardianRelationshipRepositoryInterface $links,
+        private GuardianLinkRepositoryInterface $links,
         private PersonRepositoryInterface $people,
         private Transactions $transactions,
         private Calendar $calendar,
@@ -35,13 +35,13 @@ final readonly class ParentGrants
     /**
      * @param callable(): void $alongside
      */
-    public function grant(AccessGrant $grant, Person $child, callable $alongside): GuardianRelationship
+    public function grant(AccessGrant $grant, Person $child, callable $alongside): GuardianLink
     {
         if ($this->links->approvedFor($grant->accountId, $child) !== null) {
             throw self::taken($grant, $child);
         }
 
-        $link = new GuardianRelationship(
+        $link = new GuardianLink(
             $grant->accountId,
             $child,
             GuardianKind::from($grant->relationship),
@@ -50,7 +50,7 @@ final readonly class ParentGrants
         );
 
         try {
-            return $this->transactions->run(function () use ($link, $alongside): GuardianRelationship {
+            return $this->transactions->run(function () use ($link, $alongside): GuardianLink {
                 $this->links->save($link);
                 $alongside();
 
