@@ -1,0 +1,7 @@
+{% extends 'emails/layout.txt.twig' %}
+
+{% block body %}{{ 'data_copy.body'|trans({'%validUntil%': validUntil}, 'emails') }}
+
+{{ url }}
+
+{{ 'data_copy.ignore'|trans({}, 'emails') }}{% endblock %}
