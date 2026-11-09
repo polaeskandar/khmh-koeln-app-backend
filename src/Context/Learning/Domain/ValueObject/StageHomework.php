@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Domain\ValueObject;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -36,7 +36,7 @@ final readonly class StageHomework
     private function countOf(HomeworkStatus $status): int
     {
         return new ArrayCollection($this->reports->tasks)
-            ->filter(static fn (HomeworkAssignment $task): bool => $task->state()->status === $status)
+            ->filter(static fn (HomeworkTask $task): bool => $task->state()->status === $status)
             ->count();
     }
 }

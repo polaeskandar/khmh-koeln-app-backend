@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Application\Service;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
@@ -34,10 +34,10 @@ final readonly class HomeworkWrites
         return $found;
     }
 
-    public function create(Lesson $lesson, HomeworkDraft $draft, string $accountId): HomeworkAssignment
+    public function create(Lesson $lesson, HomeworkDraft $draft, string $accountId): HomeworkTask
     {
         $content = $draft->contentFor($lesson, storedDueDate: null);
-        $task = new HomeworkAssignment($lesson, $content->text, $content->resources, Uuid::fromString($accountId));
+        $task = new HomeworkTask($lesson, $content->text, $content->resources, Uuid::fromString($accountId));
         $this->homework->save($task);
 
         return $task;
@@ -46,13 +46,13 @@ final readonly class HomeworkWrites
     /**
      * @template T of object
      *
-     * @param callable(HomeworkAssignment): T $work
+     * @param callable(HomeworkTask): T $work
      *
      * @return T
      */
     public function whileEditable(string $id, ?int $version, callable $work): object
     {
-        return $this->locked($id, function (HomeworkAssignment $task) use ($version, $work): object {
+        return $this->locked($id, function (HomeworkTask $task) use ($version, $work): object {
             $this->versions->ensureCurrent($task, $version, 'homework.changedMeanwhile');
             $task->state()->ensureEditable();
             $task->lesson()->state()->ensureEditable();
@@ -64,7 +64,7 @@ final readonly class HomeworkWrites
     /**
      * @template T of object
      *
-     * @param callable(HomeworkAssignment): T $work
+     * @param callable(HomeworkTask): T $work
      *
      * @return T
      */
@@ -75,7 +75,7 @@ final readonly class HomeworkWrites
         return $this->homework->withLock($taskId, $work);
     }
 
-    public function publish(HomeworkAssignment $task): HomeworkAssignment
+    public function publish(HomeworkTask $task): HomeworkTask
     {
         $state = $task->state()->published($this->calendar->now());
 
@@ -91,7 +91,7 @@ final readonly class HomeworkWrites
         return $task;
     }
 
-    public function edit(HomeworkAssignment $task, HomeworkDraft $draft): HomeworkAssignment
+    public function edit(HomeworkTask $task, HomeworkDraft $draft): HomeworkTask
     {
         $content = $draft->contentFor($task->lesson(), $task->text()->dueDate);
         $task->edit($content->text, $content->resources);

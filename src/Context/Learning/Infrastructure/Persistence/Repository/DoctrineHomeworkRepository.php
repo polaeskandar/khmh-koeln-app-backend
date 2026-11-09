@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Infrastructure\Persistence\Repository;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkCounts;
@@ -29,20 +29,20 @@ final readonly class DoctrineHomeworkRepository implements HomeworkRepositoryInt
     }
 
     #[Override]
-    public function save(HomeworkAssignment $assignment): void
+    public function save(HomeworkTask $task): void
     {
-        $this->entityManager->persist($assignment);
+        $this->entityManager->persist($task);
         $this->entityManager->flush();
     }
 
     #[Override]
-    public function find(Uuid $id): ?HomeworkAssignment
+    public function find(Uuid $id): ?HomeworkTask
     {
-        return $this->entityManager->find(HomeworkAssignment::class, $id);
+        return $this->entityManager->find(HomeworkTask::class, $id);
     }
 
     /**
-     * @return list<HomeworkAssignment>
+     * @return list<HomeworkTask>
      */
     #[Override]
     public function ofStage(Uuid $stageId): array
@@ -50,28 +50,28 @@ final readonly class DoctrineHomeworkRepository implements HomeworkRepositoryInt
         $query = $this->entityManager
             ->createQueryBuilder()
             ->select('h', 'l')
-            ->from(HomeworkAssignment::class, 'h')
+            ->from(HomeworkTask::class, 'h')
             ->join('h.lesson', 'l')
             ->where('h.stageId = :stage')
             ->setParameter('stage', $stageId, 'uuid')
             ->getQuery();
 
-        return ListOf::instances($query->getResult(), HomeworkAssignment::class);
+        return ListOf::instances($query->getResult(), HomeworkTask::class);
     }
 
     #[Override]
     public function withLock(Uuid $id, callable $work): object
     {
         return $this->entityManager->wrapInTransaction(function () use ($id, $work): object {
-            $loaded = $this->entityManager->getUnitOfWork()->tryGetById(['id' => $id], HomeworkAssignment::class);
+            $loaded = $this->entityManager->getUnitOfWork()->tryGetById(['id' => $id], HomeworkTask::class);
 
             if ($loaded !== false) {
                 $this->entityManager->detach($loaded);
             }
 
-            $assignment = $this->entityManager->find(HomeworkAssignment::class, $id, LockMode::PESSIMISTIC_WRITE);
+            $task = $this->entityManager->find(HomeworkTask::class, $id, LockMode::PESSIMISTIC_WRITE);
 
-            return $work($assignment ?? throw NotFound::of('homework'));
+            return $work($task ?? throw NotFound::of('homework'));
         });
     }
 
@@ -101,7 +101,7 @@ final readonly class DoctrineHomeworkRepository implements HomeworkRepositoryInt
     /**
      * @param list<Uuid> $stageIds
      *
-     * @return list<HomeworkAssignment>
+     * @return list<HomeworkTask>
      */
     #[Override]
     public function publishedInStages(array $stageIds): array
@@ -113,7 +113,7 @@ final readonly class DoctrineHomeworkRepository implements HomeworkRepositoryInt
         $query = $this->entityManager
             ->createQueryBuilder()
             ->select('h', 'l')
-            ->from(HomeworkAssignment::class, 'h')
+            ->from(HomeworkTask::class, 'h')
             ->join('h.lesson', 'l')
             ->where('h.stageId IN (:stages)')
             ->andWhere('h.state.status = :published')
@@ -121,7 +121,7 @@ final readonly class DoctrineHomeworkRepository implements HomeworkRepositoryInt
             ->setParameter('published', HomeworkStatus::Published)
             ->getQuery();
 
-        return ListOf::instances($query->getResult(), HomeworkAssignment::class);
+        return ListOf::instances($query->getResult(), HomeworkTask::class);
     }
 
     /**

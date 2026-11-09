@@ -38,7 +38,12 @@ final readonly class ChildSummary
             keyOf: self::groupKey(...),
         );
 
-        return new self(ChildName::of($child->child), $groups[0] ?? null, $child->tasks->toDo(), $child->tasks->done());
+        return new self(
+            ChildName::of($child->child),
+            $groups[0] ?? null,
+            $child->tasks->countToDo(),
+            $child->tasks->countDone(),
+        );
     }
 
     private static function groupKey(PersonGroup $group): string

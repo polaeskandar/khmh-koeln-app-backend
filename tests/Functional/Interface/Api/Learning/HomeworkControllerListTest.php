@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Learning;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
-use App\Context\Learning\Domain\Entity\HomeworkCompletion;
+use App\Context\Learning\Domain\Entity\HomeworkReport;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
@@ -55,7 +55,7 @@ final class HomeworkControllerListTest extends ApiTestCase
         }
 
         new Database(self::getContainer())->persisted(
-            new HomeworkCompletion(
+            new HomeworkReport(
                 $reported,
                 ($children[0] ?? self::fail('No children.'))->id(),
                 new DateTimeImmutable('2026-11-07T10:00:00+01:00'),
@@ -181,9 +181,9 @@ final class HomeworkControllerListTest extends ApiTestCase
         );
     }
 
-    private function task(Lesson $lesson, string $title, ?string $dueDate, string $set): HomeworkAssignment
+    private function task(Lesson $lesson, string $title, ?string $dueDate, string $set): HomeworkTask
     {
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of($title, 'Read it twice.', $dueDate === null ? null : LocalDate::of($dueDate)),
             Materials::none(),

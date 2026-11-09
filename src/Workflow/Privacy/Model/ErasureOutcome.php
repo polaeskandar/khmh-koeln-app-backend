@@ -32,7 +32,7 @@ final readonly class ErasureOutcome
             'person' => (int) ($person !== null),
             'memberships' => $person->memberships ?? 0,
             'attendance' => $person->attendance ?? 0,
-            'completions' => $person->completions ?? 0,
+            'completions' => $person->reports ?? 0,
             'guardianLinks' => ($person->guardianLinks ?? 0) + ($account->guardianLinks ?? 0),
             'account' => (int) ($account !== null),
             'roles' => $account->roles ?? 0,

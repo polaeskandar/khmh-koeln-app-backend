@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Context\Learning\Infrastructure\Persistence\Repository;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\LessonText;
@@ -27,7 +27,7 @@ use Symfony\Component\Uid\Uuid;
 #[SkipDatabaseRollback]
 final class DoctrineHomeworkReportRepositoryTest extends KernelTestCase
 {
-    private ?HomeworkAssignment $task = null;
+    private ?HomeworkTask $task = null;
 
     #[Override]
     protected function setUp(): void
@@ -39,7 +39,7 @@ final class DoctrineHomeworkReportRepositoryTest extends KernelTestCase
             null,
         );
 
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of('Learn the verse', 'Read it.', null),
             Materials::none(),
@@ -95,7 +95,7 @@ final class DoctrineHomeworkReportRepositoryTest extends KernelTestCase
 
         $entityManager = new Database(self::getContainer())->entityManager();
         self::assertTrue($entityManager->isOpen());
-        self::assertNotNull($entityManager->find(HomeworkAssignment::class, $this->task()->id()));
+        self::assertNotNull($entityManager->find(HomeworkTask::class, $this->task()->id()));
 
         $reports->undo($this->task()->id(), $child, new DateTimeImmutable('2026-11-08T11:00:00+01:00'), null);
         self::assertNull($reports->currentReport($this->task()->id(), $child));
@@ -114,7 +114,7 @@ final class DoctrineHomeworkReportRepositoryTest extends KernelTestCase
         try {
             new DoctrineHomeworkRepository(
                 $database->entityManager(),
-            )->withLock($this->task()->id(), fn (HomeworkAssignment $task): HomeworkAssignment => $this->reports()->reportDone(
+            )->withLock($this->task()->id(), fn (HomeworkTask $task): HomeworkTask => $this->reports()->reportDone(
                 $task->id(),
                 Uuid::v7(),
                 new DateTimeImmutable(),
@@ -139,9 +139,9 @@ final class DoctrineHomeworkReportRepositoryTest extends KernelTestCase
         return new DoctrineHomeworkReportRepository(new Database(self::getContainer())->entityManager());
     }
 
-    private function task(): HomeworkAssignment
+    private function task(): HomeworkTask
     {
-        self::assertInstanceOf(HomeworkAssignment::class, $this->task);
+        self::assertInstanceOf(HomeworkTask::class, $this->task);
 
         return $this->task;
     }

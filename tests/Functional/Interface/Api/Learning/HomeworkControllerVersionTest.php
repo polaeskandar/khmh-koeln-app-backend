@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Learning;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Tests\Support\ApiTestCase;
@@ -69,14 +69,14 @@ final class HomeworkControllerVersionTest extends ApiTestCase
         $this->assertJsonPath('version', 3);
     }
 
-    private function path(HomeworkAssignment $task): string
+    private function path(HomeworkTask $task): string
     {
         return '/api/homework/' . $task->id()->toRfc4122();
     }
 
-    private function task(): HomeworkAssignment
+    private function task(): HomeworkTask
     {
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             new Lessons(self::getContainer())->inThirdClass(),
             HomeworkText::of('Learn the verse', 'Read it twice.', null),
             Materials::none(),

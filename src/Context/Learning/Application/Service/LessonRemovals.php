@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Application\Service;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Context\Learning\Domain\Repository\LessonHomeworkRepositoryInterface;
@@ -30,9 +30,7 @@ final readonly class LessonRemovals
 
         $this->transactions->run(function () use ($lesson): void {
             $tasks = new ArrayCollection($this->homework->lockedOf($lesson->id()));
-            $published = $tasks->filter(
-                static fn (HomeworkAssignment $task): bool => $task->state()->publishedAt !== null,
-            );
+            $published = $tasks->filter(static fn (HomeworkTask $task): bool => $task->state()->publishedAt !== null);
 
             if (!$published->isEmpty()) {
                 throw new RuleViolation('lessons.homeworkPublished');

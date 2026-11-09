@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Interface\Api\People;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
@@ -26,9 +26,9 @@ final readonly class ParentFixture
     ) {
     }
 
-    public function task(Lesson $lesson, string $title, ?string $dueDate, ?string $publishedAt): HomeworkAssignment
+    public function task(Lesson $lesson, string $title, ?string $dueDate, ?string $publishedAt): HomeworkTask
     {
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of($title, 'Read it.', $dueDate === null ? null : LocalDate::of($dueDate)),
             Materials::none(),

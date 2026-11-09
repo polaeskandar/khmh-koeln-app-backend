@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Domain\ValueObject;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Library\Collections\Model\Collections;
 use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -14,8 +14,8 @@ use Symfony\Component\Uid\Uuid;
 final readonly class TaskReports
 {
     /**
-     * @param list<HomeworkAssignment> $tasks
-     * @param list<HomeworkReport> $reports
+     * @param list<HomeworkTask> $tasks
+     * @param list<TaskReport> $reports
      */
     public function __construct(
         public LocalDate $today,
@@ -25,12 +25,12 @@ final readonly class TaskReports
     }
 
     /**
-     * @return ReadableCollection<string, HomeworkReport>
+     * @return ReadableCollection<string, TaskReport>
      */
-    public function of(HomeworkAssignment $task): ReadableCollection
+    public function of(HomeworkTask $task): ReadableCollection
     {
         $own = new ArrayCollection($this->reports)->filter(
-            static fn (HomeworkReport $report): bool => $report->taskId->equals($task->id()),
+            static fn (TaskReport $report): bool => $report->taskId->equals($task->id()),
         );
 
         return Collections::firstPerKey($own, keyOf: self::personKey(...));
@@ -51,16 +51,16 @@ final readonly class TaskReports
     {
         return Collections::mapPresent(
             new ArrayCollection($this->reports),
-            static fn (HomeworkReport $report): ?Uuid => $report->completedBy,
+            static fn (TaskReport $report): ?Uuid => $report->completedBy,
         )->getValues();
     }
 
-    private static function personIdOf(HomeworkReport $report): Uuid
+    private static function personIdOf(TaskReport $report): Uuid
     {
         return $report->personId;
     }
 
-    private static function personKey(HomeworkReport $report): string
+    private static function personKey(TaskReport $report): string
     {
         return $report->personId->toRfc4122();
     }

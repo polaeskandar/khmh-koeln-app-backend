@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\ValueObject\Materials;
 
 final readonly class HomeworkTextView
@@ -20,7 +20,7 @@ final readonly class HomeworkTextView
     ) {
     }
 
-    public static function of(HomeworkAssignment $task): self
+    public static function of(HomeworkTask $task): self
     {
         $text = $task->text();
 

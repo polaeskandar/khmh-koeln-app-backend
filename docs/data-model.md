@@ -280,7 +280,7 @@ Lesson status: `draft` → `ready` → `completed` (taught). Completed is only p
 date, and each step can be undone. Lessons are archived; a draft lesson can be deleted while none of its
 homework was ever published.
 
-`learning.homework_assignment` (`HomeworkAssignment`): `lesson_id` (RESTRICT, so deleting a draft lesson deletes
+`learning.homework_assignment` (`HomeworkTask`): `lesson_id` (RESTRICT, so deleting a draft lesson deletes
 its draft homework first); `stage_id`, the lesson's stage, fixed when the task is created; `title` ≤120 (spaces
 collapsed, required), `instructions` ≤2000 (trimmed, newlines kept, required), `due_date`, `resources` (jsonb, the
 lesson's `Material` rules, ≤10), `status`, `published_at`, `archived_at`, `created_by` (an account id nulled by the
@@ -290,7 +290,7 @@ status)` and `lesson_id`. Lifecycle changes and parents' reports take the task r
 (`HomeworkRepositoryInterface::withLock()`), so "back to draft" and a new report never interleave. The due date is
 checked against the lesson's date by the workflow (#60), because it spans two rows.
 
-`learning.homework_completion` (`HomeworkCompletion`): `assignment_id` (RESTRICT), `person_id` (People, plain id),
+`learning.homework_completion` (`HomeworkReport`): `assignment_id` (RESTRICT), `person_id` (People, plain id),
 `completed_at`, `completed_by`, `undone_at`, `undone_by` (account ids nulled by erasure). Partial UNIQUE
 `(assignment_id, person_id) WHERE undone_at IS NULL`; CHECKs: `undone_by` only with `undone_at`, `undone_at >=
 completed_at`; index `person_id`.

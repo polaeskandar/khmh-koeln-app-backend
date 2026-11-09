@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Learning\Domain\ValueObject\HomeworkReport;
+use App\Context\Learning\Domain\ValueObject\TaskReport;
 use App\Context\People\Domain\Entity\Person;
 use App\Workflow\Identity\Model\AccountReference;
 use DateTimeImmutable;
@@ -19,7 +19,7 @@ final readonly class ReportView
     ) {
     }
 
-    public static function of(?HomeworkReport $report, AudienceAccounts $accounts, Person $person): ?self
+    public static function of(?TaskReport $report, AudienceAccounts $accounts, Person $person): ?self
     {
         if ($report === null) {
             return null;

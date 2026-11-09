@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Learning;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
@@ -123,7 +123,7 @@ final class HomeworkControllerShowTest extends ApiTestCase
         }
     }
 
-    private function path(HomeworkAssignment $task): string
+    private function path(HomeworkTask $task): string
     {
         return '/api/homework/' . $task->id()->toRfc4122();
     }
@@ -142,9 +142,9 @@ final class HomeworkControllerShowTest extends ApiTestCase
         }
     }
 
-    private function task(Lesson $lesson, ?string $dueDate): HomeworkAssignment
+    private function task(Lesson $lesson, ?string $dueDate): HomeworkTask
     {
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of('Learn the verse', 'Read it twice.', $dueDate === null ? null : LocalDate::of($dueDate)),
             Materials::of([['label' => 'Psalm 23', 'url' => 'https://example.org/psalm']], 'resources'),

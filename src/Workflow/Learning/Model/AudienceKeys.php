@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\ValueObject\TaskReports;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Domain\ValueObject\RosterKey;
@@ -22,7 +22,7 @@ final readonly class AudienceKeys
     public static function stageIdsOf(TaskReports $reports): array
     {
         return new ArrayCollection($reports->tasks)->map(
-            static fn (HomeworkAssignment $task): Uuid => $task->stageId(),
+            static fn (HomeworkTask $task): Uuid => $task->stageId(),
         )->getValues();
     }
 

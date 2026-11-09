@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Interface\Console\Privacy;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Context\Meetings\Domain\Entity\Attendance;
@@ -63,7 +63,7 @@ final readonly class PrivacyFixture
         $mark->remove(Removal::of(new DateTimeImmutable('2026-11-08T12:05:00+01:00'), by: null, reason: 'Wrong child'));
         $lesson = new Lessons($this->container)->stored($third, $class, '2026-11-15');
 
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of('Learn the verse', 'Read it.', null),
             Materials::none(),

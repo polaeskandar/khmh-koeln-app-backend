@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use DateTimeImmutable;
 
 final readonly class HomeworkSummary
@@ -18,7 +18,7 @@ final readonly class HomeworkSummary
     ) {
     }
 
-    public static function of(HomeworkAssignment $task): self
+    public static function of(HomeworkTask $task): self
     {
         return new self(
             id: $task->id()->toRfc4122(),

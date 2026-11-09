@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 
 final readonly class WrittenHomework
 {
@@ -15,7 +15,7 @@ final readonly class WrittenHomework
     ) {
     }
 
-    public static function of(HomeworkAssignment $task): self
+    public static function of(HomeworkTask $task): self
     {
         return new self($task->id()->toRfc4122(), $task->state()->status->value, $task->version());
     }

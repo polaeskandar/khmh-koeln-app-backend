@@ -7,7 +7,7 @@ namespace App\Context\Learning\Domain\ValueObject;
 use DateTimeImmutable;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class HomeworkReport
+final readonly class TaskReport
 {
     public function __construct(
         public Uuid $taskId,

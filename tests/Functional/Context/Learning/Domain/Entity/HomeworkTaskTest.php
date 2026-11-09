@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Context\Learning\Domain\Entity;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
-use App\Context\Learning\Domain\Entity\HomeworkCompletion;
+use App\Context\Learning\Domain\Entity\HomeworkReport;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\LessonText;
@@ -18,7 +18,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Uid\Uuid;
 
-final class HomeworkAssignmentTest extends KernelTestCase
+final class HomeworkTaskTest extends KernelTestCase
 {
     #[DataProvider('violations')]
     public function testEachCheckRefusesItsRow(string $sqlState, string $set): void
@@ -53,16 +53,16 @@ final class HomeworkAssignmentTest extends KernelTestCase
     {
         $task = $this->task();
         $child = Uuid::v7();
-        $undone = new HomeworkCompletion($task, $child, new DateTimeImmutable('2026-11-16T18:00:00+01:00'), null);
+        $undone = new HomeworkReport($task, $child, new DateTimeImmutable('2026-11-16T18:00:00+01:00'), null);
         $undone->undo(new DateTimeImmutable('2026-11-16T18:05:00+01:00'), null);
 
         $this->database()->persisted(
             $undone,
-            new HomeworkCompletion($task, $child, new DateTimeImmutable('2026-11-16T18:06:00+01:00'), null),
+            new HomeworkReport($task, $child, new DateTimeImmutable('2026-11-16T18:06:00+01:00'), null),
         );
 
         $this->database()->assertRefused(Database::UNIQUE_VIOLATION, fn () => $this->database()->persisted(
-            new HomeworkCompletion($task, $child, new DateTimeImmutable('2026-11-16T18:07:00+01:00'), null),
+            new HomeworkReport($task, $child, new DateTimeImmutable('2026-11-16T18:07:00+01:00'), null),
         ));
     }
 
@@ -89,7 +89,7 @@ final class HomeworkAssignmentTest extends KernelTestCase
         $task = $this->task();
 
         $this->database()->persisted(
-            new HomeworkCompletion($task, Uuid::v7(), new DateTimeImmutable('2026-11-16T18:00:00+01:00'), null),
+            new HomeworkReport($task, Uuid::v7(), new DateTimeImmutable('2026-11-16T18:00:00+01:00'), null),
         );
 
         $this->database()->assertRefused(
@@ -106,7 +106,7 @@ final class HomeworkAssignmentTest extends KernelTestCase
         $this->database()->assertRefused(Database::RESTRICT_VIOLATION, 'DELETE FROM learning.homework_assignment');
     }
 
-    private function task(): HomeworkAssignment
+    private function task(): HomeworkTask
     {
         $lesson = new Lesson(
             Uuid::v7(),
@@ -115,7 +115,7 @@ final class HomeworkAssignmentTest extends KernelTestCase
             null,
         );
 
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of('Learn the verse', 'Say it aloud.', null),
             Materials::none(),

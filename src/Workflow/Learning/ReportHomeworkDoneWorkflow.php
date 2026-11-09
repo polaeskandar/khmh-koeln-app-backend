@@ -8,10 +8,10 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Learning\Application\Service\HomeworkCompletions;
+use App\Context\Learning\Application\Service\HomeworkReportWrites;
 use App\Context\Learning\Application\Service\PupilHomework;
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
-use App\Context\Learning\Domain\ValueObject\CompletionOutcome;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
+use App\Context\Learning\Domain\ValueObject\ReportOutcome;
 use App\Context\People\Application\Service\ParentChildren;
 use App\Workflow\Learning\Model\ReportResult;
 use App\Workflow\Learning\Model\VisibleHomework;
@@ -24,7 +24,7 @@ final readonly class ReportHomeworkDoneWorkflow
         private AccountLookup $accounts,
         private ParentChildren $families,
         private PupilHomework $homework,
-        private HomeworkCompletions $completions,
+        private HomeworkReportWrites $reports,
     ) {
     }
 
@@ -34,21 +34,21 @@ final readonly class ReportHomeworkDoneWorkflow
 
         $viewer = Uuid::fromString($viewerId);
 
-        $outcome = $this->families->whileKept($childId, fn (): CompletionOutcome => $this->completions->whileLocked(
+        $outcome = $this->families->whileKept($childId, fn (): ReportOutcome => $this->reports->whileLocked(
             $homeworkId,
-            fn (HomeworkAssignment $task): CompletionOutcome => $this->reported($viewer, $childId, $task),
+            fn (HomeworkTask $task): ReportOutcome => $this->reported($viewer, $childId, $task),
             fn (): never => $this->visibleTo($viewer)->missingTask($childId),
         ));
 
         return ReportResult::of($outcome, $this->accounts->account($outcome->completedBy), $viewer);
     }
 
-    private function reported(Uuid $viewer, string $childId, HomeworkAssignment $task): CompletionOutcome
+    private function reported(Uuid $viewer, string $childId, HomeworkTask $task): ReportOutcome
     {
         $visible = $this->visibleTo($viewer);
         $shown = $visible->requireTask($childId, $task->id()->toRfc4122());
 
-        return $this->completions->report($shown, $visible->requireChild($childId)->child->id(), by: $viewer);
+        return $this->reports->report($shown, $visible->requireChild($childId)->child->id(), by: $viewer);
     }
 
     private function visibleTo(Uuid $viewer): VisibleHomework

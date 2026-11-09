@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Learning;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
@@ -154,7 +154,7 @@ final class HomeworkLifecycleControllerTest extends ApiTestCase
         $this->assertProblem(404, 'notFound.homework');
     }
 
-    private function act(HomeworkAssignment $task, string $action): void
+    private function act(HomeworkTask $task, string $action): void
     {
         if ($action === 'delete') {
             $this->jsonRequest('DELETE', $this->path($task));
@@ -165,14 +165,14 @@ final class HomeworkLifecycleControllerTest extends ApiTestCase
         $this->jsonRequest('POST', $this->path($task) . '/' . $action, []);
     }
 
-    private function path(HomeworkAssignment $task): string
+    private function path(HomeworkTask $task): string
     {
         return '/api/homework/' . $task->id()->toRfc4122();
     }
 
-    private function task(Lesson $lesson, string $set): HomeworkAssignment
+    private function task(Lesson $lesson, string $set): HomeworkTask
     {
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of('Learn the verse', 'Read it twice.', null),
             Materials::none(),

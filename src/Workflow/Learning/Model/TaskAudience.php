@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Learning\Domain\ValueObject\HomeworkReport;
+use App\Context\Learning\Domain\ValueObject\TaskReport;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\ValueObject\RosterBook;
 use App\Library\Collections\Model\Collections;
@@ -15,7 +15,7 @@ final readonly class TaskAudience
 {
     /**
      * @param list<Person> $members
-     * @param ReadableCollection<string, HomeworkReport> $reports
+     * @param ReadableCollection<string, TaskReport> $reports
      * @param list<Person> $leavers
      */
     private function __construct(
@@ -27,7 +27,7 @@ final readonly class TaskAudience
 
     /**
      * @param list<Person> $members
-     * @param ReadableCollection<string, HomeworkReport> $reports
+     * @param ReadableCollection<string, TaskReport> $reports
      */
     public static function of(array $members, ReadableCollection $reports, RosterBook $rosters): self
     {
@@ -35,13 +35,13 @@ final readonly class TaskAudience
 
         $leavers = Collections::mapPresent(
             Collections::withoutKeys($reports, $memberIds->getValues()),
-            static fn (HomeworkReport $report): ?Person => $rosters->personOf($report->personId),
+            static fn (TaskReport $report): ?Person => $rosters->personOf($report->personId),
         );
 
         return new self($members, $reports, $leavers->getValues());
     }
 
-    public function reportOf(Person $person): ?HomeworkReport
+    public function reportOf(Person $person): ?TaskReport
     {
         return $this->reports->get(self::keyOf($person));
     }

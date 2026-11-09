@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 
 final readonly class ParentTaskView
 {
@@ -17,7 +17,7 @@ final readonly class ParentTaskView
     ) {
     }
 
-    public static function of(HomeworkAssignment $task, ?string $stage): self
+    public static function of(HomeworkTask $task, ?string $stage): self
     {
         return new self(
             id: $task->id()->toRfc4122(),

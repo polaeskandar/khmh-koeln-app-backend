@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\ValueObject\TaskReports;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\ValueObject\RosterBook;
@@ -47,7 +47,7 @@ final readonly class TaskAudiences
         return [...$book->guardianAccountIds(), ...$reports->completerIds()];
     }
 
-    public function countsOf(HomeworkAssignment $task): AudienceCounts
+    public function countsOf(HomeworkTask $task): AudienceCounts
     {
         return AudienceCounts::of($this->audienceOf($task), $this->accounts);
     }
@@ -55,7 +55,7 @@ final readonly class TaskAudiences
     /**
      * @return list<AudienceRow>
      */
-    public function rowsOf(HomeworkAssignment $task): array
+    public function rowsOf(HomeworkTask $task): array
     {
         $audience = $this->audienceOf($task);
 
@@ -70,7 +70,7 @@ final readonly class TaskAudiences
         return new ArrayCollection([...$audience->members, ...$audience->leavers])->map($rowOf)->getValues();
     }
 
-    private function audienceOf(HomeworkAssignment $task): TaskAudience
+    private function audienceOf(HomeworkTask $task): TaskAudience
     {
         $key = $this->keys->get($task->stageId()->toRfc4122());
         $members = $key === null ? [] : $this->rosters->activeMembersOf($key);

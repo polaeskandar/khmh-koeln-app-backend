@@ -8,7 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\HomeworkWrites;
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Workflow\Learning\Model\HomeworkChoice;
 use App\Workflow\Learning\Model\LessonStages;
@@ -27,12 +27,12 @@ final readonly class EditHomeworkWorkflow
     {
         $this->access->require(Action::Update, Resource::Homework, refusal: 'homework.changeStageOnly');
 
-        $edit = fn (HomeworkAssignment $task): HomeworkAssignment => $this->edited($task, $choice);
+        $edit = fn (HomeworkTask $task): HomeworkTask => $this->edited($task, $choice);
 
         return WrittenHomework::of($this->homework->whileEditable($id, $version, $edit));
     }
 
-    private function edited(HomeworkAssignment $task, HomeworkChoice $choice): HomeworkAssignment
+    private function edited(HomeworkTask $task, HomeworkChoice $choice): HomeworkTask
     {
         LessonStages::opened($this->structure->stage($task->stageId()->toRfc4122()));
 

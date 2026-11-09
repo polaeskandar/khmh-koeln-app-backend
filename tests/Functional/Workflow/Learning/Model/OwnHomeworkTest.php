@@ -7,7 +7,7 @@ namespace App\Tests\Functional\Workflow\Learning\Model;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Learning\Application\Service\HomeworkReports;
 use App\Context\Learning\Application\Service\PupilHomework;
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\MemberRecords;
@@ -144,7 +144,7 @@ final class OwnHomeworkTest extends KernelTestCase
     /**
      * @return list<string>
      */
-    private function audienceOf(HomeworkAssignment $task): array
+    private function audienceOf(HomeworkTask $task): array
     {
         $reports = self::service(HomeworkReports::class)->reading($task->id()->toRfc4122())->reports;
         $stage = self::service(StructureLookup::class)->stage($task->stageId()->toRfc4122());

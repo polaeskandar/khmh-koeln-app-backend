@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use DateTimeImmutable;
 
 final readonly class ChangedHomework
@@ -18,7 +18,7 @@ final readonly class ChangedHomework
     ) {
     }
 
-    public static function of(HomeworkAssignment $task): self
+    public static function of(HomeworkTask $task): self
     {
         $state = $task->state();
 

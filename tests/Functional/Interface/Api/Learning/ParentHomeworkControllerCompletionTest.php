@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Learning;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\People\Domain\Entity\Person;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Reports;
@@ -114,7 +114,7 @@ final class ParentHomeworkControllerCompletionTest extends ApiTestCase
         $this->assertProblem(404, 'homework.notAvailable');
     }
 
-    private function completion(string $method, ?Person $child, ?HomeworkAssignment $task): void
+    private function completion(string $method, ?Person $child, ?HomeworkTask $task): void
     {
         $childId = $child?->id()->toRfc4122() ?? Uuid::v7()->toRfc4122();
         $taskId = $task?->id()->toRfc4122() ?? Uuid::v7()->toRfc4122();

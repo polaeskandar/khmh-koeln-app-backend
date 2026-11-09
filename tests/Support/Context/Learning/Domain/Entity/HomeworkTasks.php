@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Context\Learning\Domain\Entity;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
-use App\Context\Learning\Domain\Entity\HomeworkCompletion;
+use App\Context\Learning\Domain\Entity\HomeworkReport;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
@@ -25,9 +25,9 @@ final readonly class HomeworkTasks
     ) {
     }
 
-    public function draft(Lesson $lesson, ?string $dueDate): HomeworkAssignment
+    public function draft(Lesson $lesson, ?string $dueDate): HomeworkTask
     {
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of('Learn the verse', 'Read it twice.', $dueDate === null ? null : LocalDate::of($dueDate)),
             Materials::none(),
@@ -39,9 +39,9 @@ final readonly class HomeworkTasks
         return $task;
     }
 
-    public function report(HomeworkAssignment $task, Person $child, string $at, ?string $undone = null): void
+    public function report(HomeworkTask $task, Person $child, string $at, ?string $undone = null): void
     {
-        $report = new HomeworkCompletion($task, $child->id(), new DateTimeImmutable($at), completedBy: null);
+        $report = new HomeworkReport($task, $child->id(), new DateTimeImmutable($at), completedBy: null);
 
         if ($undone !== null) {
             $report->undo(new DateTimeImmutable($undone), by: null);
@@ -53,7 +53,7 @@ final readonly class HomeworkTasks
     /**
      * @return array{Service, Stage}
      */
-    public function stageOf(HomeworkAssignment $task): array
+    public function stageOf(HomeworkTask $task): array
     {
         $stage = new Database($this->container)
             ->entityManager()

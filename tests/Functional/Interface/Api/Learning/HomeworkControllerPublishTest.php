@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Learning;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
@@ -100,14 +100,14 @@ final class HomeworkControllerPublishTest extends ApiTestCase
         }
     }
 
-    private function publish(HomeworkAssignment $task): void
+    private function publish(HomeworkTask $task): void
     {
         $this->jsonRequest('POST', '/api/homework/' . $task->id()->toRfc4122() . '/publish', []);
     }
 
-    private function task(Lesson $lesson): HomeworkAssignment
+    private function task(Lesson $lesson): HomeworkTask
     {
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of('Learn the verse', 'Read it twice.', null),
             Materials::none(),

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Context\Learning\Domain\Entity;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
@@ -16,7 +16,7 @@ use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
 
-final class HomeworkAssignmentTest extends TestCase
+final class HomeworkTaskTest extends TestCase
 {
     public function testANewTaskTakesTheLessonsStageAndStartsAsADraft(): void
     {
@@ -29,7 +29,7 @@ final class HomeworkAssignmentTest extends TestCase
             null,
         );
 
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of("  Learn   the\tverse ", "  Read it twice.\nThen say it aloud.  ", null),
             Materials::none(),
@@ -42,9 +42,9 @@ final class HomeworkAssignmentTest extends TestCase
         self::assertSame(HomeworkStatus::Draft, $task->state()->status);
     }
 
-    public function testOnlyAPublishedTaskIsVisibleToParentsAndARepublishKeepsItsTime(): void
+    public function testPublishingMakesTheTaskPublishedAndARepublishKeepsItsTime(): void
     {
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             new Lesson(
                 Uuid::v7(),
                 new MeetingLink(null, LocalDate::of('2026-11-15')),
@@ -56,13 +56,13 @@ final class HomeworkAssignmentTest extends TestCase
             createdBy: null,
         );
 
-        self::assertFalse($task->isVisibleToParents());
+        self::assertFalse($task->isPublished());
 
         $published = $task->state()->published(new DateTimeImmutable('2026-11-08T10:00:00+01:00'));
         $task->changeState($published);
         self::assertSame($published, $published->published(new DateTimeImmutable('2026-11-09T10:00:00+01:00')));
 
-        self::assertTrue($task->isVisibleToParents());
+        self::assertTrue($task->isPublished());
         self::assertSame('2026-11-08T10:00:00+01:00', $task->state()->publishedAt?->format(DATE_ATOM));
     }
 }

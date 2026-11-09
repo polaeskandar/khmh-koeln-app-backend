@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Context\Learning\Domain\Entity;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
-use App\Context\Learning\Domain\Entity\HomeworkCompletion;
+use App\Context\Learning\Domain\Entity\HomeworkReport;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\People\Domain\Entity\Person;
 use App\Tests\Support\Database;
 use DateTimeImmutable;
@@ -20,13 +20,13 @@ final readonly class Reports
     }
 
     public function stored(
-        HomeworkAssignment $task,
+        HomeworkTask $task,
         Person $child,
         string $at = '2026-11-07T10:00:00+01:00',
         ?string $undoneAt = null,
         ?string $by = null,
-    ): HomeworkCompletion {
-        $report = new HomeworkCompletion(
+    ): HomeworkReport {
+        $report = new HomeworkReport(
             $task,
             $child->id(),
             new DateTimeImmutable($at),

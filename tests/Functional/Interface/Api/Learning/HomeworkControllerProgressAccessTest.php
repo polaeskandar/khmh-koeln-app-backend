@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Learning;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Interface\Api\Learning\ProgressFixture;
 use App\Tests\Support\JsonBody;
@@ -80,7 +80,7 @@ final class HomeworkControllerProgressAccessTest extends ApiTestCase
         }
     }
 
-    private function path(HomeworkAssignment $task): string
+    private function path(HomeworkTask $task): string
     {
         return '/api/homework/' . $task->id()->toRfc4122() . '/progress';
     }

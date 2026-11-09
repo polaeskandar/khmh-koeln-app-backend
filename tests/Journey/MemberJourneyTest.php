@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Journey;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Context\Meetings\Domain\Entity\Schedule;
@@ -90,7 +90,7 @@ final class MemberJourneyTest extends ApiTestCase
         $rosters->place($youth, $youthMeeting, null, '2026-09-01');
         $rosters->place($youth, $deacons, $advanced, '2026-09-01');
 
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             new Lessons(self::getContainer())->stored($third, $sunday, '2026-11-08'),
             HomeworkText::of('Tell the story at home', 'Tell it to your family.', null),
             Materials::none(),

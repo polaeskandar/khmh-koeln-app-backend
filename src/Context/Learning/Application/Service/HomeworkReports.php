@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Application\Service;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
-use App\Context\Learning\Domain\Entity\HomeworkCompletion;
+use App\Context\Learning\Domain\Entity\HomeworkReport;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Repository\HomeworkReportRepositoryInterface;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkReading;
-use App\Context\Learning\Domain\ValueObject\HomeworkReport;
 use App\Context\Learning\Domain\ValueObject\StageHomework;
+use App\Context\Learning\Domain\ValueObject\TaskReport;
 use App\Context\Learning\Domain\ValueObject\TaskReports;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
@@ -22,20 +22,20 @@ final readonly class HomeworkReports
 {
     public function __construct(
         private HomeworkRepositoryInterface $homework,
-        private HomeworkReportRepositoryInterface $completions,
+        private HomeworkReportRepositoryInterface $reports,
         private LessonRepositoryInterface $lessons,
         private Calendar $calendar,
     ) {
     }
 
     /**
-     * @param list<HomeworkAssignment> $tasks
+     * @param list<HomeworkTask> $tasks
      */
     public function of(array $tasks): TaskReports
     {
-        $reports = $this->completions->currentReportsOf($tasks)->map($this->reportOf(...));
+        $taskReports = $this->reports->currentReportsOf($tasks)->map($this->taskReportOf(...));
 
-        return new TaskReports($this->calendar->today(), $tasks, $reports->getValues());
+        return new TaskReports($this->calendar->today(), $tasks, $taskReports->getValues());
     }
 
     public function reading(string $id): HomeworkReading
@@ -52,32 +52,32 @@ final readonly class HomeworkReports
     }
 
     /**
-     * @return ReadableCollection<int, HomeworkCompletion>
+     * @return ReadableCollection<int, HomeworkReport>
      */
     public function about(Uuid $personId): ReadableCollection
     {
-        return $this->completions->allAbout($personId);
+        return $this->reports->allAbout($personId);
     }
 
     /**
-     * @return ReadableCollection<int, HomeworkCompletion>
+     * @return ReadableCollection<int, HomeworkReport>
      */
     public function madeBy(Uuid $accountId): ReadableCollection
     {
-        return $this->completions->allBy($accountId);
+        return $this->reports->allBy($accountId);
     }
 
-    private function reportOf(HomeworkCompletion $completion): HomeworkReport
+    private function taskReportOf(HomeworkReport $report): TaskReport
     {
-        $task = $completion->assignment();
+        $task = $report->task();
         $dueDate = $task->text()->dueDate;
-        $completedOn = $this->calendar->localDateOf($completion->completedAt());
+        $completedOn = $this->calendar->localDateOf($report->completedAt());
 
-        return new HomeworkReport(
+        return new TaskReport(
             taskId: $task->id(),
-            personId: $completion->personId(),
-            completedAt: $completion->completedAt(),
-            completedBy: $completion->completedBy(),
+            personId: $report->personId(),
+            completedAt: $report->completedAt(),
+            completedBy: $report->completedBy(),
             late: $dueDate?->isBefore($completedOn) === true,
         );
     }

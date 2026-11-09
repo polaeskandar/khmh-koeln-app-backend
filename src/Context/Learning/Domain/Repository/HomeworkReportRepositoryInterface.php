@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Domain\Repository;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
-use App\Context\Learning\Domain\Entity\HomeworkCompletion;
+use App\Context\Learning\Domain\Entity\HomeworkReport;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\ValueObject\CurrentReport;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -14,16 +14,16 @@ use Symfony\Component\Uid\Uuid;
 interface HomeworkReportRepositoryInterface
 {
     /**
-     * @param list<HomeworkAssignment> $tasks
+     * @param list<HomeworkTask> $tasks
      *
-     * @return ReadableCollection<int, HomeworkCompletion>
+     * @return ReadableCollection<int, HomeworkReport>
      */
     public function currentReportsOf(array $tasks): ReadableCollection;
 
     /**
      * @param list<Uuid> $personIds
      *
-     * @return ReadableCollection<int, HomeworkCompletion>
+     * @return ReadableCollection<int, HomeworkReport>
      */
     public function currentReportsAbout(array $personIds): ReadableCollection;
 
@@ -41,12 +41,12 @@ interface HomeworkReportRepositoryInterface
     public function undo(Uuid $taskId, Uuid $personId, DateTimeImmutable $at, ?Uuid $by): void;
 
     /**
-     * @return ReadableCollection<int, HomeworkCompletion>
+     * @return ReadableCollection<int, HomeworkReport>
      */
     public function allAbout(Uuid $personId): ReadableCollection;
 
     /**
-     * @return ReadableCollection<int, HomeworkCompletion>
+     * @return ReadableCollection<int, HomeworkReport>
      */
     public function allBy(Uuid $accountId): ReadableCollection;
 }

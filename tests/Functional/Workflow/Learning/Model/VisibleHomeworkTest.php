@@ -6,7 +6,7 @@ namespace App\Tests\Functional\Workflow\Learning\Model;
 
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Learning\Application\Service\PupilHomework;
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Repository\HomeworkReportRepositoryInterface;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
@@ -149,7 +149,7 @@ final class VisibleHomeworkTest extends KernelTestCase
             $families->link($parent, $this->child('Child ' . $number, $third, '2026-09-01', null));
         }
 
-        array_map(fn (): HomeworkAssignment => $this->task($third, 'published'), range(start: 1, end: 19));
+        array_map(fn (): HomeworkTask => $this->task($third, 'published'), range(start: 1, end: 19));
 
         $start = count($logs->containing('SELECT'));
         $counts = $this->counts($parent, self::TODAY);
@@ -166,7 +166,7 @@ final class VisibleHomeworkTest extends KernelTestCase
         $counts = [];
 
         foreach ($this->visibleTo($viewer, $today)->children as $child) {
-            $counts[$child->child->name()->firstName] = [$child->tasks->done(), $child->tasks->toDo()];
+            $counts[$child->child->name()->firstName] = [$child->tasks->countDone(), $child->tasks->countToDo()];
         }
 
         ksort($counts);
@@ -188,9 +188,9 @@ final class VisibleHomeworkTest extends KernelTestCase
         return $child;
     }
 
-    private function task(Lesson $lesson, string $status): HomeworkAssignment
+    private function task(Lesson $lesson, string $status): HomeworkTask
     {
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of('Learn the verse', 'Read it.', null),
             Materials::none(),

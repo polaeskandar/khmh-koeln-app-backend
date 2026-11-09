@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Context\Learning\Infrastructure\Persistence\Repository;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
@@ -33,7 +33,7 @@ final class DoctrineHomeworkRepositoryTest extends KernelTestCase
         UPDATE learning.homework_assignment SET status = 'published', published_at = now() WHERE id = ?
         SQL;
 
-    private ?HomeworkAssignment $task = null;
+    private ?HomeworkTask $task = null;
 
     #[Override]
     protected function setUp(): void
@@ -45,7 +45,7 @@ final class DoctrineHomeworkRepositoryTest extends KernelTestCase
             null,
         );
 
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of('Learn the verse', 'Say it aloud.', null),
             Materials::none(),
@@ -74,9 +74,9 @@ final class DoctrineHomeworkRepositoryTest extends KernelTestCase
     {
         $other = DriverManager::getConnection($this->database()->connection()->getParams());
 
-        $this->homework()->withLock($this->task()->id(), static function (HomeworkAssignment $task) use (
+        $this->homework()->withLock($this->task()->id(), static function (HomeworkTask $task) use (
             $other,
-        ): HomeworkAssignment {
+        ): HomeworkTask {
             $sqlState = null;
 
             try {
@@ -103,9 +103,7 @@ final class DoctrineHomeworkRepositoryTest extends KernelTestCase
         try {
             $this->homework()->withLock(
                 $this->task()->id(),
-                static fn (HomeworkAssignment $task): HomeworkAssignment => throw new RuntimeException(
-                    $task->id()->toRfc4122(),
-                ),
+                static fn (HomeworkTask $task): HomeworkTask => throw new RuntimeException($task->id()->toRfc4122()),
             );
         } catch (RuntimeException $caught) {
             $failure = $caught->getMessage();
@@ -120,14 +118,11 @@ final class DoctrineHomeworkRepositoryTest extends KernelTestCase
         $id = $this->task()->id();
         $this->database()->connection()->executeStatement(self::PUBLISH, [$id->toRfc4122()]);
 
-        self::assertInstanceOf(HomeworkAssignment::class, $this
-            ->database()
-            ->entityManager()
-            ->find(HomeworkAssignment::class, $id));
+        self::assertInstanceOf(HomeworkTask::class, $this->database()->entityManager()->find(HomeworkTask::class, $id));
 
         $this->database()->connection()->executeStatement(self::PUBLISH, [$id->toRfc4122()]);
 
-        $locked = $this->homework()->withLock($id, static fn (HomeworkAssignment $task): HomeworkAssignment => $task);
+        $locked = $this->homework()->withLock($id, static fn (HomeworkTask $task): HomeworkTask => $task);
 
         self::assertSame(HomeworkStatus::Published, $locked->state()->status);
         self::assertNotNull($locked->state()->publishedAt);
@@ -137,7 +132,7 @@ final class DoctrineHomeworkRepositoryTest extends KernelTestCase
     {
         $this->expectExceptionObject(NotFound::of('homework'));
 
-        $this->homework()->withLock(Uuid::v7(), static fn (HomeworkAssignment $task): HomeworkAssignment => $task);
+        $this->homework()->withLock(Uuid::v7(), static fn (HomeworkTask $task): HomeworkTask => $task);
     }
 
     private function assertFree(): void
@@ -154,9 +149,9 @@ final class DoctrineHomeworkRepositoryTest extends KernelTestCase
         return new DoctrineHomeworkRepository($this->database()->entityManager());
     }
 
-    private function task(): HomeworkAssignment
+    private function task(): HomeworkTask
     {
-        self::assertInstanceOf(HomeworkAssignment::class, $this->task);
+        self::assertInstanceOf(HomeworkTask::class, $this->task);
 
         return $this->task;
     }

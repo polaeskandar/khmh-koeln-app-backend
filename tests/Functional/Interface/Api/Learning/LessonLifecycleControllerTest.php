@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Learning;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\LessonText;
@@ -149,9 +149,9 @@ final class LessonLifecycleControllerTest extends ApiTestCase
         $this->jsonRequest('POST', '/api/lessons/' . $lesson->id()->toRfc4122() . '/' . $action);
     }
 
-    private function draftTask(Lesson $lesson): HomeworkAssignment
+    private function draftTask(Lesson $lesson): HomeworkTask
     {
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of('Learn the verse', 'Read it.', null),
             Materials::none(),
@@ -163,9 +163,9 @@ final class LessonLifecycleControllerTest extends ApiTestCase
         return $task;
     }
 
-    private function publishedTask(Lesson $lesson): HomeworkAssignment
+    private function publishedTask(Lesson $lesson): HomeworkTask
     {
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of('Learn the verse', 'Read it.', null),
             Materials::none(),

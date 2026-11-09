@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Infrastructure\Persistence\Repository;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
-use App\Context\Learning\Domain\Entity\HomeworkCompletion;
+use App\Context\Learning\Domain\Entity\HomeworkReport;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Repository\HomeworkReportRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\CurrentReport;
 use App\Library\Types\Model\ListOf;
@@ -38,7 +38,7 @@ final readonly class DoctrineHomeworkReportRepository implements HomeworkReportR
     }
 
     /**
-     * @param list<HomeworkAssignment> $tasks
+     * @param list<HomeworkTask> $tasks
      */
     #[Override]
     public function currentReportsOf(array $tasks): ReadableCollection
@@ -50,14 +50,14 @@ final readonly class DoctrineHomeworkReportRepository implements HomeworkReportR
         $query = $this->entityManager
             ->createQueryBuilder()
             ->select('c')
-            ->from(HomeworkCompletion::class, 'c')
-            ->where('c.assignment IN (:tasks)')
+            ->from(HomeworkReport::class, 'c')
+            ->where('c.task IN (:tasks)')
             ->andWhere('c.undoneAt IS NULL')
             ->orderBy('c.completedAt')
             ->setParameter('tasks', $tasks)
             ->getQuery();
 
-        return new ArrayCollection(ListOf::instances($query->getResult(), HomeworkCompletion::class));
+        return new ArrayCollection(ListOf::instances($query->getResult(), HomeworkReport::class));
     }
 
     /**
@@ -73,8 +73,8 @@ final readonly class DoctrineHomeworkReportRepository implements HomeworkReportR
         $query = $this->entityManager
             ->createQueryBuilder()
             ->select('c', 'h', 'l')
-            ->from(HomeworkCompletion::class, 'c')
-            ->join('c.assignment', 'h')
+            ->from(HomeworkReport::class, 'c')
+            ->join('c.task', 'h')
             ->join('h.lesson', 'l')
             ->where('c.personId IN (:people)')
             ->andWhere('c.undoneAt IS NULL')
@@ -85,7 +85,7 @@ final readonly class DoctrineHomeworkReportRepository implements HomeworkReportR
             )
             ->getQuery();
 
-        return new ArrayCollection(ListOf::instances($query->getResult(), HomeworkCompletion::class));
+        return new ArrayCollection(ListOf::instances($query->getResult(), HomeworkReport::class));
     }
 
     /**
@@ -164,7 +164,7 @@ final readonly class DoctrineHomeworkReportRepository implements HomeworkReportR
     #[Override]
     public function allAbout(Uuid $personId): ReadableCollection
     {
-        return new ArrayCollection($this->entityManager->getRepository(HomeworkCompletion::class)->findBy([
+        return new ArrayCollection($this->entityManager->getRepository(HomeworkReport::class)->findBy([
             'personId' => $personId,
         ], ['completedAt' => 'ASC', 'id' => 'ASC']));
     }
@@ -172,7 +172,7 @@ final readonly class DoctrineHomeworkReportRepository implements HomeworkReportR
     #[Override]
     public function allBy(Uuid $accountId): ReadableCollection
     {
-        return new ArrayCollection($this->entityManager->getRepository(HomeworkCompletion::class)->findBy([
+        return new ArrayCollection($this->entityManager->getRepository(HomeworkReport::class)->findBy([
             'completedBy' => $accountId,
         ], ['completedAt' => 'ASC', 'id' => 'ASC']));
     }

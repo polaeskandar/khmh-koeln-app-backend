@@ -18,7 +18,7 @@ use Symfony\Component\Uid\Uuid;
     options: ['where' => '(undone_at IS NULL)'],
 )]
 #[ORM\Index(name: 'homework_completion_person_idx', columns: ['person_id'])]
-final class HomeworkCompletion
+final class HomeworkReport
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
@@ -26,7 +26,7 @@ final class HomeworkCompletion
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'assignment_id', nullable: false, onDelete: 'RESTRICT')]
-    private HomeworkAssignment $assignment;
+    private HomeworkTask $task;
 
     #[ORM\Column(name: 'person_id', type: UuidType::NAME)]
     private Uuid $personId;
@@ -43,14 +43,10 @@ final class HomeworkCompletion
     #[ORM\Column(type: UuidType::NAME, nullable: true)]
     private ?Uuid $undoneBy = null;
 
-    public function __construct(
-        HomeworkAssignment $assignment,
-        Uuid $personId,
-        DateTimeImmutable $completedAt,
-        ?Uuid $completedBy,
-    ) {
+    public function __construct(HomeworkTask $task, Uuid $personId, DateTimeImmutable $completedAt, ?Uuid $completedBy)
+    {
         $this->id = Uuid::v7();
-        $this->assignment = $assignment;
+        $this->task = $task;
         $this->personId = $personId;
         $this->completedAt = $completedAt;
         $this->completedBy = $completedBy;
@@ -67,9 +63,9 @@ final class HomeworkCompletion
         return $this->id;
     }
 
-    public function assignment(): HomeworkAssignment
+    public function task(): HomeworkTask
     {
-        return $this->assignment;
+        return $this->task;
     }
 
     public function personId(): Uuid

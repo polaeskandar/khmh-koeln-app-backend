@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Application\Service;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Repository\LessonHomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
@@ -44,7 +44,7 @@ final readonly class LessonArchives
 
             $lesson->archive($at);
             $archived = new ArrayCollection($this->homework->lockedOf($lesson->id()))->filter(
-                static fn (HomeworkAssignment $task): bool => $task->state()->archivedAt === null,
+                static fn (HomeworkTask $task): bool => $task->state()->archivedAt === null,
             );
 
             foreach ($archived as $task) {

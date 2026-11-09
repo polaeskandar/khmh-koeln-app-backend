@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Interface\Api\Learning;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
-use App\Context\Learning\Domain\Entity\HomeworkCompletion;
+use App\Context\Learning\Domain\Entity\HomeworkReport;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
@@ -44,7 +44,7 @@ final readonly class ProgressFixture
     }
 
     /**
-     * @return array{HomeworkAssignment, Person, string}
+     * @return array{HomeworkTask, Person, string}
      */
     public function create(): array
     {
@@ -76,9 +76,9 @@ final readonly class ProgressFixture
         return [$task, $mina, $hoda];
     }
 
-    private function publishedTask(Lesson $lesson): HomeworkAssignment
+    private function publishedTask(Lesson $lesson): HomeworkTask
     {
-        $task = new HomeworkAssignment(
+        $task = new HomeworkTask(
             $lesson,
             HomeworkText::of('Learn the verse', 'Read it twice.', null),
             Materials::none(),
@@ -91,10 +91,10 @@ final readonly class ProgressFixture
         return $task;
     }
 
-    private function report(HomeworkAssignment $task, Person $child, string $at, ?string $by): void
+    private function report(HomeworkTask $task, Person $child, string $at, ?string $by): void
     {
         new Database($this->container)->persisted(
-            new HomeworkCompletion(
+            new HomeworkReport(
                 $task,
                 $child->id(),
                 new DateTimeImmutable($at),

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Workflow\Learning\Model;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Tests\Support\Context\Learning\Domain\Entity\CopticCourse;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
@@ -133,7 +133,7 @@ final class TaskAudiencesMemberTest extends KernelTestCase
         return [$counts->open->withoutParentAccount, $counts->open->withoutAccount];
     }
 
-    private function row(string $firstName, HomeworkAssignment $task): AudienceRow
+    private function row(string $firstName, HomeworkTask $task): AudienceRow
     {
         $rows = array_filter(
             $this->audiences($task)->rowsOf($task),
@@ -143,7 +143,7 @@ final class TaskAudiencesMemberTest extends KernelTestCase
         return array_values($rows)[0] ?? self::fail('No row for ' . $firstName . '.');
     }
 
-    private function audiences(HomeworkAssignment $task): TaskAudiences
+    private function audiences(HomeworkTask $task): TaskAudiences
     {
         return new TaskAudienceLookups(self::getContainer())->audiences([$task]);
     }

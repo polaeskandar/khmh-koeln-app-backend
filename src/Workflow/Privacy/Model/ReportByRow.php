@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Learning\Domain\Entity\HomeworkCompletion;
+use App\Context\Learning\Domain\Entity\HomeworkReport;
 use App\Context\People\Domain\Entity\Person;
 use App\Library\Collections\Model\Collections;
 use DateTimeImmutable;
@@ -22,17 +22,17 @@ final readonly class ReportByRow
     }
 
     /**
-     * @param ReadableCollection<int, HomeworkCompletion> $reports
+     * @param ReadableCollection<int, HomeworkReport> $reports
      *
      * @return list<Uuid>
      */
     public static function childIdsOf(ReadableCollection $reports): array
     {
-        return $reports->map(static fn (HomeworkCompletion $report): Uuid => $report->personId())->getValues();
+        return $reports->map(static fn (HomeworkReport $report): Uuid => $report->personId())->getValues();
     }
 
     /**
-     * @param ReadableCollection<int, HomeworkCompletion> $reports
+     * @param ReadableCollection<int, HomeworkReport> $reports
      * @param ReadableCollection<int, Person> $people
      *
      * @return list<self>
@@ -42,8 +42,8 @@ final readonly class ReportByRow
         $children = Collections::firstPerKey($people, keyOf: self::childKey(...));
 
         return $reports->map(
-            static fn (HomeworkCompletion $report): self => new self(
-                $report->assignment()->text()->title,
+            static fn (HomeworkReport $report): self => new self(
+                $report->task()->text()->title,
                 $children->get($report->personId()->toRfc4122())?->name()->firstName,
                 $report->completedAt(),
                 $report->undoneAt(),

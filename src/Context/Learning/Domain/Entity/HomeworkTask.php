@@ -17,7 +17,7 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Entity]
 #[ORM\Table(name: 'homework_assignment', schema: 'learning')]
 #[ORM\Index(name: 'homework_assignment_stage_status_idx', columns: ['stage_id', 'status'])]
-final class HomeworkAssignment extends TimestampedEntity
+final class HomeworkTask extends TimestampedEntity
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
@@ -103,7 +103,7 @@ final class HomeworkAssignment extends TimestampedEntity
         return $this->createdBy;
     }
 
-    public function isVisibleToParents(): bool
+    public function isPublished(): bool
     {
         return $this->state->status === HomeworkStatus::Published;
     }

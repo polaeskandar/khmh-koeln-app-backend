@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Domain\ValueObject;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 
 final readonly class HomeworkReading
 {
     public function __construct(
-        public HomeworkAssignment $task,
+        public HomeworkTask $task,
         public TaskReports $reports,
     ) {
     }

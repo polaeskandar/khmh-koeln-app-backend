@@ -8,9 +8,9 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Learning\Application\Service\HomeworkCompletions;
+use App\Context\Learning\Application\Service\HomeworkReportWrites;
 use App\Context\Learning\Application\Service\PupilHomework;
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Context\People\Application\Service\ParentChildren;
 use App\Workflow\Learning\Model\VisibleHomework;
@@ -23,7 +23,7 @@ final readonly class UndoHomeworkReportWorkflow
         private AccountLookup $accounts,
         private ParentChildren $families,
         private PupilHomework $homework,
-        private HomeworkCompletions $completions,
+        private HomeworkReportWrites $reports,
     ) {
     }
 
@@ -33,19 +33,19 @@ final readonly class UndoHomeworkReportWorkflow
 
         $viewer = Uuid::fromString($viewerId);
 
-        $this->completions->whileLocked(
+        $this->reports->whileLocked(
             $homeworkId,
-            fn (HomeworkAssignment $task): VisibleTask => $this->undone($viewer, $childId, $task),
+            fn (HomeworkTask $task): VisibleTask => $this->undone($viewer, $childId, $task),
             fn (): never => $this->visibleTo($viewer)->missingTask($childId),
         );
     }
 
-    private function undone(Uuid $viewer, string $childId, HomeworkAssignment $task): VisibleTask
+    private function undone(Uuid $viewer, string $childId, HomeworkTask $task): VisibleTask
     {
         $visible = $this->visibleTo($viewer);
         $shown = $visible->requireTask($childId, $task->id()->toRfc4122());
 
-        return $this->completions->undo($shown, $visible->requireChild($childId)->child->id(), by: $viewer);
+        return $this->reports->undo($shown, $visible->requireChild($childId)->child->id(), by: $viewer);
     }
 
     private function visibleTo(Uuid $viewer): VisibleHomework

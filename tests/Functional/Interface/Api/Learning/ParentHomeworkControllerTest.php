@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Learning;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\People\Domain\Entity\Person;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
@@ -204,7 +204,7 @@ final class ParentHomeworkControllerTest extends ApiTestCase
         return '/api/parent/children/' . ($child?->id()->toRfc4122() ?? Uuid::v7()->toRfc4122()) . '/homework';
     }
 
-    private function detail(Person $child, ?HomeworkAssignment $task): string
+    private function detail(Person $child, ?HomeworkTask $task): string
     {
         return $this->list($child) . '/' . ($task?->id()->toRfc4122() ?? Uuid::v7()->toRfc4122());
     }

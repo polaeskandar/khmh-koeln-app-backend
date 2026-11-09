@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Context\Learning\Domain\Entity;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
@@ -24,7 +24,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 final readonly class CopticCourse
 {
     /**
-     * @param array<string, HomeworkAssignment> $tasks
+     * @param array<string, HomeworkTask> $tasks
      */
     private function __construct(
         private ContainerInterface $container,
@@ -72,7 +72,7 @@ final readonly class CopticCourse
         return $person;
     }
 
-    public function task(string $name): HomeworkAssignment
+    public function task(string $name): HomeworkTask
     {
         return $this->tasks[$name] ?? throw new LogicException('No such task.');
     }
@@ -105,7 +105,7 @@ final readonly class CopticCourse
         Lesson $lesson,
         string $title,
         ?string $dueDate,
-    ): HomeworkAssignment {
+    ): HomeworkTask {
         $task = self::draftOf($lesson, $title, $dueDate);
         $task->changeState($task->state()->published(new DateTimeImmutable('2026-10-27T09:00:00+01:00')));
         new Database($container)->persisted($task);
@@ -113,7 +113,7 @@ final readonly class CopticCourse
         return $task;
     }
 
-    private static function archived(ContainerInterface $container, Lesson $lesson, string $title): HomeworkAssignment
+    private static function archived(ContainerInterface $container, Lesson $lesson, string $title): HomeworkTask
     {
         $task = self::draftOf($lesson, $title, null);
         $task->changeState($task->state()->published(new DateTimeImmutable('2026-10-27T09:00:00+01:00')));
@@ -123,7 +123,7 @@ final readonly class CopticCourse
         return $task;
     }
 
-    private static function draft(ContainerInterface $container, Lesson $lesson, string $title): HomeworkAssignment
+    private static function draft(ContainerInterface $container, Lesson $lesson, string $title): HomeworkTask
     {
         $task = self::draftOf($lesson, $title, null);
         new Database($container)->persisted($task);
@@ -131,7 +131,7 @@ final readonly class CopticCourse
         return $task;
     }
 
-    private static function draftOf(Lesson $lesson, string $title, ?string $dueDate): HomeworkAssignment
+    private static function draftOf(Lesson $lesson, string $title, ?string $dueDate): HomeworkTask
     {
         $resources = $title === 'Write the first eight letters'
             ? Materials::of([[
@@ -140,7 +140,7 @@ final readonly class CopticCourse
             ]], 'resources')
             : Materials::none();
 
-        return new HomeworkAssignment(
+        return new HomeworkTask(
             $lesson,
             HomeworkText::of($title, 'Practise at home.', $dueDate === null ? null : LocalDate::of($dueDate)),
             $resources,

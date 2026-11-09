@@ -6,7 +6,7 @@ namespace App\Tests\Support\Workflow\Learning\Model;
 
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Learning\Application\Service\HomeworkReports;
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Repository\HomeworkReportRepositoryInterface;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
@@ -30,7 +30,7 @@ final readonly class TaskAudienceLookups
     }
 
     /**
-     * @param list<HomeworkAssignment> $tasks
+     * @param list<HomeworkTask> $tasks
      */
     public function audiences(array $tasks): TaskAudiences
     {

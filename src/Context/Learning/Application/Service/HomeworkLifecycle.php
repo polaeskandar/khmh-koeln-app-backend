@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Application\Service;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Repository\HomeworkReportRepositoryInterface;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonHomeworkRepositoryInterface;
@@ -22,7 +22,7 @@ final readonly class HomeworkLifecycle
     ) {
     }
 
-    public function unpublish(HomeworkAssignment $task): HomeworkAssignment
+    public function unpublish(HomeworkTask $task): HomeworkTask
     {
         $drafted = $task->state()->drafted();
 
@@ -33,12 +33,12 @@ final readonly class HomeworkLifecycle
         return $this->changed($task, $drafted);
     }
 
-    public function archive(HomeworkAssignment $task): HomeworkAssignment
+    public function archive(HomeworkTask $task): HomeworkTask
     {
         return $this->changed($task, $task->state()->archived($this->calendar->now()));
     }
 
-    public function restore(HomeworkAssignment $task): HomeworkAssignment
+    public function restore(HomeworkTask $task): HomeworkTask
     {
         $restored = $task->state()->restored();
 
@@ -49,7 +49,7 @@ final readonly class HomeworkLifecycle
         return $this->changed($task, $restored);
     }
 
-    public function delete(HomeworkAssignment $task): HomeworkAssignment
+    public function delete(HomeworkTask $task): HomeworkTask
     {
         $task->state()->ensureNeverPublished();
         $this->lessonHomework->remove($task);
@@ -57,7 +57,7 @@ final readonly class HomeworkLifecycle
         return $task;
     }
 
-    private function changed(HomeworkAssignment $task, HomeworkState $state): HomeworkAssignment
+    private function changed(HomeworkTask $task, HomeworkState $state): HomeworkTask
     {
         $task->changeState($state);
         $this->homework->save($task);

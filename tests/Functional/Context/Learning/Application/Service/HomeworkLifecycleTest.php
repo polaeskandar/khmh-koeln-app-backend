@@ -6,7 +6,7 @@ namespace App\Tests\Functional\Context\Learning\Application\Service;
 
 use App\Context\Learning\Application\Service\HomeworkLifecycle;
 use App\Context\Learning\Application\Service\HomeworkWrites;
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
@@ -35,7 +35,7 @@ final class HomeworkLifecycleTest extends KernelTestCase
 
     private ?Lesson $lesson = null;
 
-    private ?HomeworkAssignment $task = null;
+    private ?HomeworkTask $task = null;
 
     #[Override]
     protected function setUp(): void
@@ -45,7 +45,7 @@ final class HomeworkLifecycleTest extends KernelTestCase
         new Database(self::getContainer())->persisted($this->service, $this->stage);
         $this->lesson = new Lessons(self::getContainer())->stored($this->stage, null, '2026-11-15');
 
-        $this->task = new HomeworkAssignment(
+        $this->task = new HomeworkTask(
             $this->lesson,
             HomeworkText::of('Learn the verse', 'Read it twice.', null),
             Materials::none(),
@@ -85,7 +85,7 @@ final class HomeworkLifecycleTest extends KernelTestCase
         try {
             $this->service(
                 HomeworkWrites::class,
-            )->locked($taskId, fn (HomeworkAssignment $task): HomeworkAssignment => $this->service(
+            )->locked($taskId, fn (HomeworkTask $task): HomeworkTask => $this->service(
                 HomeworkLifecycle::class,
             )->unpublish($task));
         } catch (DriverException $refused) {

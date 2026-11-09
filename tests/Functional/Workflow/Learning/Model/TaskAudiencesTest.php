@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Workflow\Learning\Model;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Library\Time\Model\LocalDate;
 use App\Tests\Support\Context\Learning\Domain\Entity\HomeworkTasks;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
@@ -212,10 +212,7 @@ final class TaskAudiencesTest extends KernelTestCase
         new TaskAudienceLookups(self::getContainer())->audiences([$first])->countsOf($first);
         $one = count($logs->containing('SELECT')) - $start;
 
-        $tasks = array_map(
-            fn (): HomeworkAssignment => $this->homework()->draft($lesson, null),
-            range(start: 1, end: 20),
-        );
+        $tasks = array_map(fn (): HomeworkTask => $this->homework()->draft($lesson, null), range(start: 1, end: 20));
 
         $before = count($logs->containing('SELECT'));
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Infrastructure\Persistence\Repository;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Repository\LessonHomeworkRepositoryInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,7 +23,7 @@ final readonly class DoctrineLessonHomeworkRepository implements LessonHomeworkR
     }
 
     /**
-     * @return list<HomeworkAssignment>
+     * @return list<HomeworkTask>
      */
     #[Override]
     public function lockedOf(Uuid $lessonId): array
@@ -31,14 +31,14 @@ final readonly class DoctrineLessonHomeworkRepository implements LessonHomeworkR
         $this->entityManager->getConnection()->executeQuery(self::LOCK, [$lessonId->toRfc4122()]);
 
         return new ArrayCollection($this->entityManager
-            ->getRepository(HomeworkAssignment::class)
+            ->getRepository(HomeworkTask::class)
             ->findBy(['lesson' => $lessonId]))->getValues();
     }
 
     #[Override]
-    public function remove(HomeworkAssignment $assignment): void
+    public function remove(HomeworkTask $task): void
     {
-        $this->entityManager->remove($assignment);
+        $this->entityManager->remove($task);
         $this->entityManager->flush();
     }
 }

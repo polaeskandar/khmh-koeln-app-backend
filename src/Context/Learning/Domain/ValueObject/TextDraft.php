@@ -26,9 +26,9 @@ final readonly class TextDraft
 
         return new LessonText(
             $title,
-            DraftText::of($this->summary),
-            DraftText::of($this->passage),
-            DraftText::of($this->memoryVerse),
+            OptionalText::of($this->summary),
+            OptionalText::of($this->passage),
+            OptionalText::of($this->memoryVerse),
         );
     }
 }

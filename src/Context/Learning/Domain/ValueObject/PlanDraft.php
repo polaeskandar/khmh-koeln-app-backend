@@ -23,10 +23,10 @@ final readonly class PlanDraft
     public function plan(): LessonPlan
     {
         return new LessonPlan(
-            DraftText::of($this->objectives),
-            DraftText::of($this->teachingPoints),
-            DraftText::of($this->activities),
-            DraftText::of($this->notes),
+            OptionalText::of($this->objectives),
+            OptionalText::of($this->teachingPoints),
+            OptionalText::of($this->activities),
+            OptionalText::of($this->notes),
         );
     }
 

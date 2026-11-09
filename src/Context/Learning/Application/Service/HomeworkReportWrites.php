@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Application\Service;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Learning\Domain\Repository\HomeworkReportRepositoryInterface;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
-use App\Context\Learning\Domain\ValueObject\CompletionOutcome;
+use App\Context\Learning\Domain\ValueObject\ReportOutcome;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
 use LogicException;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class HomeworkCompletions
+final readonly class HomeworkReportWrites
 {
     private const string MISSING_TASK = 'notFound.homework';
 
@@ -28,7 +28,7 @@ final readonly class HomeworkCompletions
     /**
      * @template T of object
      *
-     * @param callable(HomeworkAssignment): T $work
+     * @param callable(HomeworkTask): T $work
      * @param callable(): never $whenMissing
      *
      * @return T
@@ -50,18 +50,18 @@ final readonly class HomeworkCompletions
         }
     }
 
-    public function report(VisibleTask $visible, Uuid $childId, Uuid $by): CompletionOutcome
+    public function report(VisibleTask $visible, Uuid $personId, Uuid $by): ReportOutcome
     {
         $taskId = $visible->task->id();
-        $created = $this->reports->reportDone($taskId, $childId, $this->calendar->now(), $by);
-        $current = $this->reports->currentReport($taskId, $childId) ?? throw new LogicException('No current report.');
+        $created = $this->reports->reportDone($taskId, $personId, $this->calendar->now(), $by);
+        $current = $this->reports->currentReport($taskId, $personId) ?? throw new LogicException('No current report.');
 
-        return new CompletionOutcome($created, $current->completedAt, $current->completedBy);
+        return new ReportOutcome($created, $current->completedAt, $current->completedBy);
     }
 
-    public function undo(VisibleTask $visible, Uuid $childId, Uuid $by): VisibleTask
+    public function undo(VisibleTask $visible, Uuid $personId, Uuid $by): VisibleTask
     {
-        $this->reports->undo($visible->task->id(), $childId, $this->calendar->now(), $by);
+        $this->reports->undo($visible->task->id(), $personId, $this->calendar->now(), $by);
 
         return $visible;
     }

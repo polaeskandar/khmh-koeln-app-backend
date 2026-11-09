@@ -12,7 +12,7 @@ final readonly class PersonErasureCounts
     public function __construct(
         public int $memberships,
         public int $attendance,
-        public int $completions,
+        public int $reports,
         public int $guardianLinks,
         public int $sessions,
     ) {
@@ -37,7 +37,7 @@ final readonly class PersonErasureCounts
             '%d memberships, %d marks, %d reports, %d guardian links deleted; %d sessions keep their totals.',
             $this->memberships,
             $this->attendance,
-            $this->completions,
+            $this->reports,
             $this->guardianLinks,
             $this->sessions,
         )->toString();

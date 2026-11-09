@@ -9,7 +9,7 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\HomeworkLifecycle;
 use App\Context\Learning\Application\Service\HomeworkWrites;
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Entity\HomeworkTask;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Workflow\Learning\Model\ChangedHomework;
 use App\Workflow\Learning\Model\LessonStages;
@@ -31,7 +31,7 @@ final readonly class ArchiveHomeworkWorkflow
         return ChangedHomework::of($this->homework->locked($id, $this->changed(...)));
     }
 
-    private function changed(HomeworkAssignment $task): HomeworkAssignment
+    private function changed(HomeworkTask $task): HomeworkTask
     {
         LessonStages::opened($this->structure->stage($task->stageId()->toRfc4122()));
 
