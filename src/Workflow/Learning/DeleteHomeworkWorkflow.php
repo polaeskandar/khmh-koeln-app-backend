@@ -27,7 +27,7 @@ final readonly class DeleteHomeworkWorkflow
     {
         $this->access->require(Action::Update, Resource::Homework, refusal: 'homework.changeStageOnly');
 
-        $this->homework->locked($id, $this->deleted(...));
+        $this->homework->whileLocked($id, $this->deleted(...));
     }
 
     private function deleted(HomeworkTask $task): HomeworkTask

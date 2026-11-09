@@ -85,7 +85,7 @@ final class HomeworkLifecycleTest extends KernelTestCase
         try {
             $this->service(
                 HomeworkWrites::class,
-            )->locked($taskId, fn (HomeworkTask $task): HomeworkTask => $this->service(
+            )->whileLocked($taskId, fn (HomeworkTask $task): HomeworkTask => $this->service(
                 HomeworkLifecycle::class,
             )->unpublish($task));
         } catch (DriverException $refused) {

@@ -26,7 +26,7 @@ final readonly class PublishHomeworkWorkflow
     {
         $this->access->require(Action::Update, Resource::Homework, refusal: 'homework.changeStageOnly');
 
-        return ChangedHomework::of($this->homework->locked($id, $this->published(...)));
+        return ChangedHomework::of($this->homework->whileLocked($id, $this->published(...)));
     }
 
     private function published(HomeworkTask $task): HomeworkTask

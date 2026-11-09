@@ -73,19 +73,19 @@ blank lines never follow each other.
 $email = Email::of($command->email);
 $displayName = DisplayName::of($command->displayName);
 
-if ($this->users->findByEmail($email->value) !== null) {
+if ($this->accounts->findByEmail($email->value) !== null) {
     throw InvalidInput::field('email', 'accounts.emailTaken');
 }
 
-$user = User::approved(
+$account = new Account(
     new Profile($email, $displayName, $command->language),
     passwordHash: $this->passwordHash($command->password),
     approvedAt: $this->calendar->now(),
 );
 
-$this->users->save($user);
+$this->accounts->save($account);
 
-return $user->id();
+return $account->id();
 ```
 
 `composer format` adds missing blank lines (`phpcbf`) and `composer check` fails on them (`phpcs`), in `src`,

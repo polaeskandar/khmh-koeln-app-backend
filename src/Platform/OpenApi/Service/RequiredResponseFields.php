@@ -20,7 +20,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutowireDecorated;
 use Symfony\Component\TypeInfo\Type\ObjectType;
 
 #[AsDecorator('nelmio_api_doc.model_describers.object')]
-final readonly class ResponseModelsSendEveryField implements ModelDescriberInterface, ModelRegistryAwareInterface
+final readonly class RequiredResponseFields implements ModelDescriberInterface, ModelRegistryAwareInterface
 {
     private const string RESPONSE_NAMESPACES = '~\\\\(Response|Model)\\\\~';
 
