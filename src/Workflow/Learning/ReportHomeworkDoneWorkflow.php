@@ -46,17 +46,17 @@ final readonly class ReportHomeworkDoneWorkflow
     private function reported(Uuid $viewer, string $childId, HomeworkTask $task): ReportOutcome
     {
         $visible = $this->visibleTo($viewer);
-        $shown = $visible->requireTask($childId, $task->id()->toRfc4122());
+        $shown = $visible->getTask($childId, $task->id()->toRfc4122());
 
-        return $this->reports->report($shown, $visible->requireChild($childId)->child->id(), by: $viewer);
+        return $this->reports->report($shown, $visible->getChild($childId)->child->id(), by: $viewer);
     }
 
     private function visibleTo(Uuid $viewer): VisibleHomework
     {
-        $family = $this->families->of($viewer);
+        $family = $this->families->ofParent($viewer);
 
         return $this->accounts->find($viewer)?->status()->isActive() === true
-            ? VisibleHomework::forFamily($family, $this->homework->of(VisibleHomework::pupilsOf($family)))
+            ? VisibleHomework::forFamily($family, $this->homework->visibleTo(VisibleHomework::pupilsOf($family)))
             : VisibleHomework::none($family);
     }
 }

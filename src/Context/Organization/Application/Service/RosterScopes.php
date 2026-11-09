@@ -18,7 +18,7 @@ final readonly class RosterScopes
     ) {
     }
 
-    public function of(?string $serviceId, ?string $stageId): ?ChosenPlacement
+    public function chosen(?string $serviceId, ?string $stageId): ?ChosenPlacement
     {
         if ($stageId !== null) {
             $stage = $this->stages->find(Uuid::fromString($stageId)) ?? throw NotFound::of('stage');

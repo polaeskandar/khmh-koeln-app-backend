@@ -31,7 +31,7 @@ final readonly class HomeworkReports
     /**
      * @param list<HomeworkTask> $tasks
      */
-    public function of(array $tasks): TaskReports
+    public function ofTasks(array $tasks): TaskReports
     {
         $taskReports = $this->reports->currentReportsOf($tasks)->map($this->taskReportOf(...));
 
@@ -43,12 +43,12 @@ final readonly class HomeworkReports
         $task = Uuid::isValid($id) ? $this->homework->find(Uuid::fromString($id)) : null;
         $found = $task ?? throw NotFound::of('homework');
 
-        return new HomeworkReading($found, $this->of([$found]));
+        return new HomeworkReading($found, $this->ofTasks([$found]));
     }
 
     public function ofStage(Uuid $stageId): StageHomework
     {
-        return new StageHomework($this->of($this->homework->ofStage($stageId)), $this->lessons->ofStage($stageId));
+        return new StageHomework($this->ofTasks($this->homework->ofStage($stageId)), $this->lessons->ofStage($stageId));
     }
 
     /**

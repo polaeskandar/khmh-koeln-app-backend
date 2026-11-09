@@ -39,7 +39,7 @@ final readonly class ListMemberHomeworkWorkflow
     {
         $record = $this->records->ownRecord($this->member->require($viewerId));
 
-        return OwnHomework::of($record, $this->homework->of(OwnHomework::pupilsOf($record)));
+        return OwnHomework::of($record, $this->homework->visibleTo(OwnHomework::pupilsOf($record)));
     }
 
     /**

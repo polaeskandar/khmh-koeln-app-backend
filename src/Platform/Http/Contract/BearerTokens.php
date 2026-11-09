@@ -8,5 +8,5 @@ use Symfony\Component\HttpFoundation\Request;
 
 interface BearerTokens
 {
-    public function of(Request $request): ?string;
+    public function tokenOf(Request $request): ?string;
 }

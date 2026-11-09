@@ -33,7 +33,7 @@ final readonly class ListPeopleWorkflow
     {
         $this->access->require(Action::Read, Resource::Members);
 
-        $scope = $this->scopes->of($query->serviceId, $query->stageId);
+        $scope = $this->scopes->chosen($query->serviceId, $query->stageId);
         $filter = $this->lists->filterOf($query->status, $scope?->service->id(), $scope?->stage?->id(), $query->text);
         $people = $this->lists->page($filter, $query->page);
         $memberships = $this->lists->membershipsOf($people);

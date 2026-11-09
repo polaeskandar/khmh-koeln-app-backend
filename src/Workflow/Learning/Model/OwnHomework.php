@@ -49,7 +49,7 @@ final readonly class OwnHomework
         return $this->homework?->tasks->task($homeworkId);
     }
 
-    public function requireTask(string $homeworkId): VisibleTask
+    public function getTask(string $homeworkId): VisibleTask
     {
         $task = Uuid::isValid($homeworkId) ? $this->task(Uuid::fromString($homeworkId)) : null;
 

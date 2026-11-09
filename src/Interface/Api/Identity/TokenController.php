@@ -50,7 +50,7 @@ final readonly class TokenController
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function revoke(Request $request, #[\SensitiveParameter] RevokeApiTokenWorkflow $revokeApiToken): Response
     {
-        $token = $this->bearerTokens->of($request) ?? throw new LogicException(
+        $token = $this->bearerTokens->tokenOf($request) ?? throw new LogicException(
             'The bearer firewall signed this request in.',
         );
 

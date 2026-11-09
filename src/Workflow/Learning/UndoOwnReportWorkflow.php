@@ -38,8 +38,8 @@ final readonly class UndoOwnReportWorkflow
     private function undone(Uuid $personId, Uuid $viewer, HomeworkTask $task): VisibleTask
     {
         $record = $this->records->ownRecord($personId);
-        $own = OwnHomework::of($record, $this->homework->of(OwnHomework::pupilsOf($record)));
+        $own = OwnHomework::of($record, $this->homework->visibleTo(OwnHomework::pupilsOf($record)));
 
-        return $this->reports->undo($own->requireTask($task->id()->toRfc4122()), $personId, by: $viewer);
+        return $this->reports->undo($own->getTask($task->id()->toRfc4122()), $personId, by: $viewer);
     }
 }

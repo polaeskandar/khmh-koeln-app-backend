@@ -24,7 +24,7 @@ final readonly class PupilHomework
      *
      * @return list<PupilTasks>
      */
-    public function of(array $pupils): array
+    public function visibleTo(array $pupils): array
     {
         $all = new ArrayCollection($pupils);
 

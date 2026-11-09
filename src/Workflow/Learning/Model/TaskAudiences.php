@@ -75,6 +75,6 @@ final readonly class TaskAudiences
         $key = $this->keys->get($task->stageId()->toRfc4122());
         $members = $key === null ? [] : $this->rosters->activeMembersOf($key);
 
-        return TaskAudience::of($members, $this->reports->of($task), $this->rosters);
+        return TaskAudience::of($members, $this->reports->ofTask($task), $this->rosters);
     }
 }

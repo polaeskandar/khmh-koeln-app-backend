@@ -50,7 +50,7 @@ final readonly class VisibleHomework
         return new self($family->today, ChildHomeworks::of($family, $tasks));
     }
 
-    public function of(string $childId): ?ChildHomework
+    public function findChild(string $childId): ?ChildHomework
     {
         $id = InputText::of($childId)->lowered()->toString();
 
@@ -61,16 +61,16 @@ final readonly class VisibleHomework
         return $matching->getValues()[0] ?? null;
     }
 
-    public function requireChild(string $childId): ChildHomework
+    public function getChild(string $childId): ChildHomework
     {
-        return $this->of($childId) ?? throw NotFound::of('person');
+        return $this->findChild($childId) ?? throw NotFound::of('person');
     }
 
-    public function requireTask(string $childId, string $homeworkId): VisibleTask
+    public function getTask(string $childId, string $homeworkId): VisibleTask
     {
         $id = InputText::of($homeworkId)->lowered()->toString();
 
-        $matching = new ArrayCollection($this->requireChild($childId)->tasks->tasks)->filter(
+        $matching = new ArrayCollection($this->getChild($childId)->tasks->tasks)->filter(
             static fn (VisibleTask $visible): bool => $visible->task->id()->toRfc4122() === $id,
         );
 
@@ -79,7 +79,7 @@ final readonly class VisibleHomework
 
     public function missingTask(string $childId): never
     {
-        $this->requireChild($childId);
+        $this->getChild($childId);
 
         throw NotFound::coded('homework.notAvailable');
     }

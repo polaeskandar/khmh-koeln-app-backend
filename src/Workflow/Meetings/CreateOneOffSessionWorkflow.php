@@ -36,7 +36,7 @@ final readonly class CreateOneOffSessionWorkflow
     private function created(OneOffChoice $oneOff, string $accountId): string
     {
         $roster = $oneOff->roster;
-        $chosen = $this->placements->of($roster->serviceId, $roster->stageId, fieldPrefix: 'roster.');
+        $chosen = $this->placements->chosen($roster->serviceId, $roster->stageId, fieldPrefix: 'roster.');
 
         $draft = new OneOffDraft(
             new Roster($chosen->service->id(), $chosen->stage?->id(), RosterMode::from($roster->mode ?? '')),

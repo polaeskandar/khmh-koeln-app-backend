@@ -30,7 +30,7 @@ final readonly class ChildChoices
      *
      * @return ReadableCollection<int, Person>
      */
-    public function of(array $childIds): ReadableCollection
+    public function chosen(array $childIds): ReadableCollection
     {
         $ids = Collections::firstPerKey(
             new ArrayCollection($childIds),

@@ -26,7 +26,7 @@ final readonly class LessonRows
         $rowOf = static fn (Lesson $lesson, int $index): LessonRow => new LessonRow(
             LessonSummary::of($lesson),
             $responsibles->referenceOf($lesson->responsibleId()),
-            $responsibles->byNameOf($listing->helpers->of($lesson)),
+            $responsibles->byNameOf($listing->helpers->accountIdsOf($lesson)),
             $meetings[$index] ?? throw new LogicException('Every shown lesson needs its meeting view.'),
             LessonHomework::of($listing->homeworkOf($lesson)),
         );

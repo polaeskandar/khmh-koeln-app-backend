@@ -21,7 +21,7 @@ final readonly class ProblemTranslation
     ) {
     }
 
-    public function of(Throwable $exception): ?Problem
+    public function problemOf(Throwable $exception): ?Problem
     {
         $chain = new ArrayCollection(self::outermostFirst($exception));
 

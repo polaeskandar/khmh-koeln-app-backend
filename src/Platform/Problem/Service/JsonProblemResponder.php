@@ -28,7 +28,7 @@ final readonly class JsonProblemResponder implements ProblemResponder
     #[Override]
     public function respond(Throwable $exception): Response
     {
-        $problem = $this->translation->of($exception) ?? $this->internal($exception);
+        $problem = $this->translation->problemOf($exception) ?? $this->internal($exception);
 
         $response = new JsonResponse($problem->toArray(), status: $problem->status, headers: [
             'Content-Type' => 'application/problem+json',

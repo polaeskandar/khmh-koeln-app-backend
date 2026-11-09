@@ -40,7 +40,7 @@ final readonly class ApproveAccountRequestWorkflow
             ? fn (): ReadableCollection => $this->approvals->chosenParentRoles($choice->roleIds)
             : fn (): ReadableCollection => $this->approvals->chosenRoles($choice->roleIds);
         $chooseChildren = $choice->isParent()
-            ? fn (): ReadableCollection => $this->children->of($choice->childIds)
+            ? fn (): ReadableCollection => $this->children->chosen($choice->childIds)
             : static fn (): ReadableCollection => new ArrayCollection();
 
         InvalidInput::all($chooseRoles, $chooseChildren);

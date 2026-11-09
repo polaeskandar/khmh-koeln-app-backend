@@ -124,12 +124,12 @@ final class VisibleHomeworkTest extends KernelTestCase
 
         $visible = $this->visibleTo($parent, self::TODAY);
 
-        self::assertNull($visible->of($theirs->id()->toRfc4122()));
-        self::assertNull($visible->of('not-a-uuid'));
-        self::assertSame($task, $visible->requireTask($mina->id()->toRfc4122(), $task->id()->toRfc4122())->task);
+        self::assertNull($visible->findChild($theirs->id()->toRfc4122()));
+        self::assertNull($visible->findChild('not-a-uuid'));
+        self::assertSame($task, $visible->getTask($mina->id()->toRfc4122(), $task->id()->toRfc4122())->task);
 
         $this->expectExceptionObject(NotFound::coded('homework.notAvailable'));
-        $visible->requireTask($mina->id()->toRfc4122(), Uuid::v7()->toRfc4122());
+        $visible->getTask($mina->id()->toRfc4122(), Uuid::v7()->toRfc4122());
     }
 
     public function testMoreChildrenAndTasksCostNoMoreStatements(): void
@@ -239,13 +239,13 @@ final class VisibleHomeworkTest extends KernelTestCase
         self::assertInstanceOf(HomeworkReportRepositoryInterface::class, $reports);
 
         $viewerId = Uuid::fromString($viewer);
-        $family = new ParentChildren($links, $people, $calendar)->of($viewerId);
+        $family = new ParentChildren($links, $people, $calendar)->ofParent($viewerId);
 
         if ($accounts->find($viewerId)?->status()->isActive() !== true) {
             return VisibleHomework::none($family);
         }
 
-        $tasks = new PupilHomework($homework, $reports)->of(VisibleHomework::pupilsOf($family));
+        $tasks = new PupilHomework($homework, $reports)->visibleTo(VisibleHomework::pupilsOf($family));
 
         return VisibleHomework::forFamily($family, $tasks);
     }

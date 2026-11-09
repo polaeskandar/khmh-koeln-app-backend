@@ -40,7 +40,7 @@ final readonly class CreateScheduleWorkflow
     {
         $roster = $schedule->roster;
 
-        $placementOf = fn (): ChosenPlacement => $this->placements->of(
+        $placementOf = fn (): ChosenPlacement => $this->placements->chosen(
             $roster->serviceId,
             $roster->stageId,
             fieldPrefix: 'roster.',

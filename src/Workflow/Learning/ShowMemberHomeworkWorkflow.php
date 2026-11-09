@@ -31,7 +31,7 @@ final readonly class ShowMemberHomeworkWorkflow
     public function __invoke(string $viewerId, string $homeworkId): MemberHomeworkDetail
     {
         $own = $this->ownOf($viewerId);
-        $shown = $own->requireTask($homeworkId);
+        $shown = $own->getTask($homeworkId);
 
         return new MemberHomeworkDetail(
             today: $own->today->toString(),
@@ -45,7 +45,7 @@ final readonly class ShowMemberHomeworkWorkflow
     {
         $record = $this->records->ownRecord($this->member->require($viewerId));
 
-        return OwnHomework::of($record, $this->homework->of(OwnHomework::pupilsOf($record)));
+        return OwnHomework::of($record, $this->homework->visibleTo(OwnHomework::pupilsOf($record)));
     }
 
     /**

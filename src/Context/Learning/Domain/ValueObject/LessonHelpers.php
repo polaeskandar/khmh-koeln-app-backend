@@ -29,7 +29,7 @@ final readonly class LessonHelpers
     /**
      * @return list<Uuid>
      */
-    public function of(Lesson $lesson): array
+    public function accountIdsOf(Lesson $lesson): array
     {
         return new ArrayCollection($this->idsOf($lesson))->map(Uuid::fromString(...))->getValues();
     }

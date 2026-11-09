@@ -37,8 +37,8 @@ final readonly class ShowChildHomeworkWorkflow
 
         $viewer = Uuid::fromString($viewerId);
         $visible = $this->visibleTo($viewer);
-        $child = $visible->requireChild($childId);
-        $shown = $visible->requireTask($childId, $homeworkId);
+        $child = $visible->getChild($childId);
+        $shown = $visible->getTask($childId, $homeworkId);
 
         return new ChildHomeworkDetail(
             today: $visible->today->toString(),
@@ -51,10 +51,10 @@ final readonly class ShowChildHomeworkWorkflow
 
     private function visibleTo(Uuid $viewer): VisibleHomework
     {
-        $family = $this->families->of($viewer);
+        $family = $this->families->ofParent($viewer);
 
         return $this->accounts->find($viewer)?->status()->isActive() === true
-            ? VisibleHomework::forFamily($family, $this->homework->of(VisibleHomework::pupilsOf($family)))
+            ? VisibleHomework::forFamily($family, $this->homework->visibleTo(VisibleHomework::pupilsOf($family)))
             : VisibleHomework::none($family);
     }
 

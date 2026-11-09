@@ -72,7 +72,7 @@ final readonly class ShowLessonWorkflow
         return new LessonRow(
             LessonSummary::of($lesson),
             $accounts->referenceOf($lesson->responsibleId()),
-            $accounts->byNameOf($reading->helpers->of($lesson)),
+            $accounts->byNameOf($reading->helpers->accountIdsOf($lesson)),
             $this->meetingOf($lesson),
             LessonHomework::of($reading->homework),
         );

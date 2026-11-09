@@ -27,7 +27,7 @@ final readonly class TaskReports
     /**
      * @return ReadableCollection<string, TaskReport>
      */
-    public function of(HomeworkTask $task): ReadableCollection
+    public function ofTask(HomeworkTask $task): ReadableCollection
     {
         $own = new ArrayCollection($this->reports)->filter(
             static fn (TaskReport $report): bool => $report->taskId->equals($task->id()),

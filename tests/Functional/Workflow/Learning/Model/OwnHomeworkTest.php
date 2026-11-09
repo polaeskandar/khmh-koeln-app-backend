@@ -123,12 +123,12 @@ final class OwnHomeworkTest extends KernelTestCase
         $families->link($hoda, $youssef);
         $course->report('greeting', $youssef, 'hoda@example.org');
 
-        $family = self::service(ParentChildren::class)->of(Uuid::fromString($hoda));
+        $family = self::service(ParentChildren::class)->ofParent(Uuid::fromString($hoda));
 
         $asParent = VisibleHomework::forFamily(
             $family,
-            self::service(PupilHomework::class)->of(VisibleHomework::pupilsOf($family)),
-        )->of($youssef->id()->toRfc4122());
+            self::service(PupilHomework::class)->visibleTo(VisibleHomework::pupilsOf($family)),
+        )->findChild($youssef->id()->toRfc4122());
 
         $own = $this->own($youssef)->homework;
 
@@ -182,7 +182,7 @@ final class OwnHomeworkTest extends KernelTestCase
     {
         $record = self::service(MemberRecords::class)->ownRecord($member->id());
 
-        return OwnHomework::of($record, self::service(PupilHomework::class)->of(OwnHomework::pupilsOf($record)));
+        return OwnHomework::of($record, self::service(PupilHomework::class)->visibleTo(OwnHomework::pupilsOf($record)));
     }
 
     /**

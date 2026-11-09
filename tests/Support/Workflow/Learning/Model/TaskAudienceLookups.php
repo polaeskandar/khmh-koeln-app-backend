@@ -39,7 +39,7 @@ final readonly class TaskAudienceLookups
             $this->service(HomeworkReportRepositoryInterface::class),
             $this->service(LessonRepositoryInterface::class),
             $this->service(Calendar::class),
-        )->of($tasks);
+        )->ofTasks($tasks);
 
         $keys = AudienceKeys::of(
             $this->service(StructureLookup::class)->stages(AudienceKeys::stageIdsOf($reports)),

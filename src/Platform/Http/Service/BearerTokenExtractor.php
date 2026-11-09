@@ -12,7 +12,7 @@ use Symfony\Component\Security\Http\AccessToken\AccessTokenExtractorInterface;
 final readonly class BearerTokenExtractor implements BearerTokens, AccessTokenExtractorInterface
 {
     #[Override]
-    public function of(Request $request): ?string
+    public function tokenOf(Request $request): ?string
     {
         return ApiRequest::bearerToken($request);
     }
@@ -20,6 +20,6 @@ final readonly class BearerTokenExtractor implements BearerTokens, AccessTokenEx
     #[Override]
     public function extractAccessToken(Request $request): ?string
     {
-        return $this->of($request);
+        return $this->tokenOf($request);
     }
 }

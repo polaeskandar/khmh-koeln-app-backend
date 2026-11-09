@@ -37,7 +37,7 @@ final readonly class AddMembershipWorkflow
 
     private function added(Person $person, PlacementChoice $choice): AddedMembership
     {
-        $chosen = $this->placements->of($choice->serviceId, $choice->stageId, fieldPrefix: '');
+        $chosen = $this->placements->chosen($choice->serviceId, $choice->stageId, fieldPrefix: '');
         $place = $chosen->stage?->name()->value ?? $chosen->service->name()->value;
 
         return AddedMembership::of(

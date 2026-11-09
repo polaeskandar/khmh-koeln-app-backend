@@ -17,7 +17,7 @@ final readonly class StageChoices
     ) {
     }
 
-    public function of(?string $stageId, Service $service, string $field): ?Stage
+    public function chosen(?string $stageId, Service $service, string $field): ?Stage
     {
         if ($stageId === null) {
             return null;
