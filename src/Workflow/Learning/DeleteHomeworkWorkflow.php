@@ -32,7 +32,7 @@ final readonly class DeleteHomeworkWorkflow
 
     private function deleted(HomeworkTask $task): HomeworkTask
     {
-        LessonStages::opened($this->structure->stage($task->stageId()->toRfc4122()));
+        LessonStages::opened($this->structure->getStage($task->stageId()->toRfc4122()));
 
         return $this->lifecycle->delete($task);
     }

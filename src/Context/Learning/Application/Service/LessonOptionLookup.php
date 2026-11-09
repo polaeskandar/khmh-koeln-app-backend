@@ -20,7 +20,7 @@ final readonly class LessonOptionLookup
     ) {
     }
 
-    public function edited(Uuid $stageId, ?string $lessonId): ?Lesson
+    public function findEdited(Uuid $stageId, ?string $lessonId): ?Lesson
     {
         if ($lessonId === null) {
             return null;

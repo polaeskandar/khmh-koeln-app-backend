@@ -25,7 +25,7 @@ final readonly class HomeworkWrites
     ) {
     }
 
-    public function lessonToAssign(string $lessonId): Lesson
+    public function getEditableLesson(string $lessonId): Lesson
     {
         $lesson = Uuid::isValid($lessonId) ? $this->lessons->find(Uuid::fromString($lessonId)) : null;
         $found = $lesson ?? throw NotFound::of('lesson');

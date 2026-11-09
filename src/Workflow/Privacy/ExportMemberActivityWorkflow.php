@@ -24,7 +24,7 @@ final readonly class ExportMemberActivityWorkflow
 
     public function __invoke(?string $personId): ?MemberActivity
     {
-        $person = $personId === null ? null : $this->people->person($personId);
+        $person = $personId === null ? null : $this->people->findPerson($personId);
 
         if ($person === null) {
             return null;

@@ -50,7 +50,7 @@ final readonly class ServiceStages
         return $this->stages->ofService($service);
     }
 
-    public function find(string $id): Stage
+    public function get(string $id): Stage
     {
         $stage = Uuid::isValid($id) ? $this->stages->find(Uuid::fromString($id)) : null;
 
@@ -87,7 +87,7 @@ final readonly class ServiceStages
     {
         StageChecks::ensureOpen($service);
 
-        $stage = $this->find($stageId);
+        $stage = $this->get($stageId);
 
         $this->checks->ensureFree($service, $name, $stage);
         $stage->edit($name, $description);

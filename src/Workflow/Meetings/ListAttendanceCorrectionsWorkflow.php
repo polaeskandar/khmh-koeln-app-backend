@@ -33,7 +33,7 @@ final readonly class ListAttendanceCorrectionsWorkflow
     {
         $this->access->require(Action::Read, Resource::Attendance);
 
-        $removed = $this->marks->removedOf($this->sessions->find($sessionId)->id());
+        $removed = $this->marks->removedOf($this->sessions->get($sessionId)->id());
 
         return Corrections::of(
             $removed,

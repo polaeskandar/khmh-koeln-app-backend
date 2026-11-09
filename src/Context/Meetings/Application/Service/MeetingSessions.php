@@ -89,7 +89,7 @@ final readonly class MeetingSessions
         );
     }
 
-    public function find(string $id): Session
+    public function get(string $id): Session
     {
         $session = Uuid::isValid($id) ? $this->sessions->find(Uuid::fromString($id)) : null;
 

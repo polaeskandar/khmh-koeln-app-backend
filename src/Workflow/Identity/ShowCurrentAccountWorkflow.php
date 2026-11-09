@@ -33,7 +33,7 @@ final readonly class ShowCurrentAccountWorkflow
 
     public function __invoke(string $accountId): CurrentAccount
     {
-        $account = $this->accounts->find($accountId);
+        $account = $this->accounts->get($accountId);
 
         return new CurrentAccount(
             account: AccountSummary::of($account),

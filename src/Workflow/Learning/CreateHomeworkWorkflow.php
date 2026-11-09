@@ -26,8 +26,8 @@ final readonly class CreateHomeworkWorkflow
     {
         $this->access->require(Action::Create, Resource::Homework, refusal: 'homework.assignStageOnly');
 
-        $lesson = $this->homework->lessonToAssign($lessonId);
-        LessonStages::opened($this->structure->stage($lesson->stageId()->toRfc4122()));
+        $lesson = $this->homework->getEditableLesson($lessonId);
+        LessonStages::opened($this->structure->getStage($lesson->stageId()->toRfc4122()));
 
         return WrittenHomework::of($this->homework->create($lesson, $choice->draft(), $accountId));
     }

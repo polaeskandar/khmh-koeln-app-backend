@@ -40,7 +40,7 @@ final readonly class ShowSessionWorkflow
     {
         $this->access->require(Action::Read, Resource::Services);
 
-        $session = $this->sessions->find($id);
+        $session = $this->sessions->get($id);
         $events = $this->sessions->historyOf($session);
 
         $history = new ArrayCollection(HistoryEntry::listOf(
@@ -58,7 +58,7 @@ final readonly class ShowSessionWorkflow
         return new SessionDetail(
             today: $this->calendar->today()->toString(),
             session: $this->viewOf($session, $progress),
-            state: SessionState::of($session, $this->accounts->account($session->progress()->closed->by)),
+            state: SessionState::of($session, $this->accounts->find($session->progress()->closed->by)),
             schedule: ScheduleBrief::ofRecurring($session->schedule()),
             history: $history->getValues(),
         );

@@ -33,7 +33,7 @@ final readonly class MarkPresentWorkflow
 
         $record = fn (Session $session): RecordedMark => $this->marks->record(
             $session,
-            $this->attendees->markable($personId)->id(),
+            $this->attendees->getMarkable($personId)->id(),
             $accountId,
         );
 
@@ -44,6 +44,6 @@ final readonly class MarkPresentWorkflow
 
         $mark = $recorded->mark;
 
-        return new MarkResult(MarkView::of($mark, $this->accounts->account($mark->recordedBy())), $recorded->created);
+        return new MarkResult(MarkView::of($mark, $this->accounts->find($mark->recordedBy())), $recorded->created);
     }
 }

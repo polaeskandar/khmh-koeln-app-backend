@@ -26,7 +26,7 @@ final readonly class LessonArchives
     ) {
     }
 
-    public function find(string $id): Lesson
+    public function get(string $id): Lesson
     {
         $lesson = Uuid::isValid($id) ? $this->lessons->find(Uuid::fromString($id)) : null;
 

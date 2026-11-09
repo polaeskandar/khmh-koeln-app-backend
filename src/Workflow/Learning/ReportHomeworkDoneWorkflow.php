@@ -40,7 +40,7 @@ final readonly class ReportHomeworkDoneWorkflow
             fn (): never => $this->visibleTo($viewer)->missingTask($childId),
         ));
 
-        return ReportResult::of($outcome, $this->accounts->account($outcome->completedBy), $viewer);
+        return ReportResult::of($outcome, $this->accounts->find($outcome->completedBy), $viewer);
     }
 
     private function reported(Uuid $viewer, string $childId, HomeworkTask $task): ReportOutcome
@@ -55,7 +55,7 @@ final readonly class ReportHomeworkDoneWorkflow
     {
         $family = $this->families->of($viewer);
 
-        return $this->accounts->account($viewer)?->status()->isActive() === true
+        return $this->accounts->find($viewer)?->status()->isActive() === true
             ? VisibleHomework::forFamily($family, $this->homework->of(VisibleHomework::pupilsOf($family)))
             : VisibleHomework::none($family);
     }

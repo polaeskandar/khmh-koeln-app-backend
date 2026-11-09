@@ -27,7 +27,7 @@ final readonly class ParentGrants
     ) {
     }
 
-    public function child(string $personId): Person
+    public function getChild(string $personId): Person
     {
         return ActiveChild::of(Uuid::isValid($personId) ? $this->people->find(Uuid::fromString($personId)) : null);
     }

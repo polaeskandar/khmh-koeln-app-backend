@@ -20,7 +20,7 @@ final readonly class RequestOwnErasureWorkflow
 
     public function __invoke(string $accountId, ?string $note): OwnErasureRequest
     {
-        $account = $this->accounts->account(Uuid::fromString($accountId)) ?? throw NotFound::of('account');
+        $account = $this->accounts->find(Uuid::fromString($accountId)) ?? throw NotFound::of('account');
         $requestedBy = $account->profile()->displayName->value;
 
         return OwnErasureRequest::of($this->requests->request($account->id(), $requestedBy, $note));

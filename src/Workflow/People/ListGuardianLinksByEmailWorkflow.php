@@ -21,7 +21,7 @@ final readonly class ListGuardianLinksByEmailWorkflow
      */
     public function __invoke(string $email): array
     {
-        $account = $this->accounts->byEmail($email);
+        $account = $this->accounts->getByEmail($email);
 
         return $this->guardianship
             ->approvedOf($account->id())

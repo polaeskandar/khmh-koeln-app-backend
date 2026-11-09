@@ -32,8 +32,8 @@ final readonly class ListLessonOptionsWorkflow
     {
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.prepareStageOnly');
 
-        $stage = $this->structure->stage($stageId);
-        $edited = $this->lessons->edited($stage->id(), $lessonId);
+        $stage = $this->structure->getStage($stageId);
+        $edited = $this->lessons->findEdited($stage->id(), $lessonId);
         $window = $this->lessons->windowFor($edited);
         $archived = ArchivedStructure::of($this->structure->archivedIds());
         $dates = $this->meetings->datesOfStage($stage->id(), $archived, $window->from, $window->to);

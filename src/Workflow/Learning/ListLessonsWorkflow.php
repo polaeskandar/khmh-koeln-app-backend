@@ -38,7 +38,7 @@ final readonly class ListLessonsWorkflow
     {
         $this->access->require(Action::Read, Resource::Lessons);
 
-        $stage = $this->structure->stage($stageId);
+        $stage = $this->structure->getStage($stageId);
         $listing = $this->lessons->listed($stage->id(), $tab, $query);
         $shown = new ArrayCollection($listing->shown);
         $preparers = $this->accounts->activeAllowedTo(Action::Update, Resource::Lessons);

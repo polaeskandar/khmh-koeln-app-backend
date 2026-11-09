@@ -33,7 +33,7 @@ final readonly class UnpublishHomeworkWorkflow
 
     private function changed(HomeworkTask $task): HomeworkTask
     {
-        LessonStages::opened($this->structure->stage($task->stageId()->toRfc4122()));
+        LessonStages::opened($this->structure->getStage($task->stageId()->toRfc4122()));
 
         return $this->lifecycle->unpublish($task);
     }

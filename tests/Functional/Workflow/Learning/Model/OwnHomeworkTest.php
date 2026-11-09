@@ -147,7 +147,7 @@ final class OwnHomeworkTest extends KernelTestCase
     private function audienceOf(HomeworkTask $task): array
     {
         $reports = self::service(HomeworkReports::class)->reading($task->id()->toRfc4122())->reports;
-        $stage = self::service(StructureLookup::class)->stage($task->stageId()->toRfc4122());
+        $stage = self::service(StructureLookup::class)->getStage($task->stageId()->toRfc4122());
         $key = AudienceKeys::keyOf($stage, $reports->today);
         $book = self::service(StageRosters::class)->on([$key], $reports->reporterIds());
 

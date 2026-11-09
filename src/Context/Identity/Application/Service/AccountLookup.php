@@ -55,7 +55,7 @@ final readonly class AccountLookup
         return $this->accounts->findByIds($ids);
     }
 
-    public function account(?Uuid $id): ?Account
+    public function find(?Uuid $id): ?Account
     {
         return $id === null ? null : $this->accounts->find($id);
     }

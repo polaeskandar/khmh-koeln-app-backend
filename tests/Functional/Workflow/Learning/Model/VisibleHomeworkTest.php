@@ -241,7 +241,7 @@ final class VisibleHomeworkTest extends KernelTestCase
         $viewerId = Uuid::fromString($viewer);
         $family = new ParentChildren($links, $people, $calendar)->of($viewerId);
 
-        if ($accounts->account($viewerId)?->status()->isActive() !== true) {
+        if ($accounts->find($viewerId)?->status()->isActive() !== true) {
             return VisibleHomework::none($family);
         }
 

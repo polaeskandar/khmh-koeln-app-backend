@@ -23,7 +23,7 @@ final readonly class Children
         return Uuid::isValid($personId) ? $this->people->find(Uuid::fromString($personId)) : null;
     }
 
-    public function active(string $personId): Person
+    public function getActive(string $personId): Person
     {
         $child = $this->find($personId) ?? throw NotFound::of('person');
 

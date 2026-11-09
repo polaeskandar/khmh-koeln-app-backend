@@ -23,6 +23,6 @@ final readonly class DeactivateScheduleWorkflow
     {
         $this->access->require(Action::Update, Resource::Sessions);
 
-        return $this->writes->deactivate($this->schedules->find($id))->id()->toRfc4122();
+        return $this->writes->deactivate($this->schedules->get($id))->id()->toRfc4122();
     }
 }

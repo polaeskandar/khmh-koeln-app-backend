@@ -31,7 +31,7 @@ final readonly class RemoveMarkWorkflow
             $accountId,
             $reason,
         ): Session {
-            $this->marks->remove($session->id(), $this->attendees->find($personId)->id(), $accountId, $reason);
+            $this->marks->remove($session->id(), $this->attendees->get($personId)->id(), $accountId, $reason);
 
             return $session;
         });

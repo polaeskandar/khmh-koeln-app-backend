@@ -21,8 +21,8 @@ final readonly class LinkGuardianByEmailWorkflow
 
     public function __invoke(string $email, string $personId, string $relationship): void
     {
-        $account = $this->accounts->activeByEmail($email);
-        $child = $this->children->active($personId);
+        $account = $this->accounts->getActiveByEmail($email);
+        $child = $this->children->getActive($personId);
 
         $this->transactions->run(function () use ($account, $child, $relationship): void {
             $this->guardianship->link($account->id(), $child, $relationship);

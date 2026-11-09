@@ -45,7 +45,7 @@ final readonly class ShowLessonWorkflow
 
         $reading = $this->lessons->reading($id);
         $lesson = $reading->lesson;
-        $stage = $this->structure->stage($lesson->stageId()->toRfc4122());
+        $stage = $this->structure->getStage($lesson->stageId()->toRfc4122());
         $plan = LessonPlanView::of($lesson);
 
         return new LessonDetail(

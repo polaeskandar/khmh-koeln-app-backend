@@ -37,7 +37,7 @@ final readonly class ReportOwnHomeworkWorkflow
             OwnHomework::notAvailable(...),
         ));
 
-        return ReportResult::of($outcome, $this->accounts->account($outcome->completedBy), $viewer);
+        return ReportResult::of($outcome, $this->accounts->find($outcome->completedBy), $viewer);
     }
 
     private function reported(Uuid $personId, Uuid $viewer, HomeworkTask $task): ReportOutcome

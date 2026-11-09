@@ -40,8 +40,8 @@ final readonly class LinkGuardianWorkflow
     ): ParentAccessItem {
         $this->access->require(Action::Update, Resource::Users, refusal: 'guardians.adminOnlyGrant');
 
-        $parent = $this->accounts->active($accountId);
-        $child = $this->grants->child($personId);
+        $parent = $this->accounts->getActive($accountId);
+        $child = $this->grants->getChild($personId);
         $grant = new AccessGrant($parent->id(), $parent->profile()->displayName->value, $relationship, $approvedBy);
 
         $link = $this->grants->grant($grant, $child, alongside: fn () => $this->accounts->giveParentRole($parent));

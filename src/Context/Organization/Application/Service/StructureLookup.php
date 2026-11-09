@@ -52,7 +52,7 @@ final readonly class StructureLookup
         return $this->stages->findByIds($ids);
     }
 
-    public function stage(string $id): Stage
+    public function getStage(string $id): Stage
     {
         $stage = Uuid::isValid($id) ? $this->stages->find(Uuid::fromString($id)) : null;
 

@@ -78,7 +78,7 @@ final readonly class AccountApprovals
      */
     public function approve(string $id, string $actorId, ReadableCollection $roles, callable $alongside): Account
     {
-        $actor = $this->account($actorId);
+        $actor = $this->getAccount($actorId);
 
         $this->requests->decide($id, function (Account $account) use ($actor, $roles, $alongside): void {
             $account->changeApproval(
@@ -94,7 +94,7 @@ final readonly class AccountApprovals
             $alongside($account);
         });
 
-        return $this->account($id);
+        return $this->getAccount($id);
     }
 
     public function announce(Account $approved): void
@@ -102,7 +102,7 @@ final readonly class AccountApprovals
         $this->notices->send($approved);
     }
 
-    public function account(string $id): Account
+    public function getAccount(string $id): Account
     {
         return $this->accounts->find(Uuid::fromString($id)) ?? throw NotFound::of('user');
     }

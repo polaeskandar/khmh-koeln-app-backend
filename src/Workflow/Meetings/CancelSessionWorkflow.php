@@ -26,6 +26,6 @@ final readonly class CancelSessionWorkflow
 
         $session = $this->transitions->cancel($sessionId, $accountId, $reason);
 
-        return SessionState::of($session, $this->accounts->account($session->progress()->closed->by));
+        return SessionState::of($session, $this->accounts->find($session->progress()->closed->by));
     }
 }

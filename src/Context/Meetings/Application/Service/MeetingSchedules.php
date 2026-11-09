@@ -81,7 +81,7 @@ final readonly class MeetingSchedules
         return $id === null ? $this->listed($serviceId, $stageId) : $this->schedules->findByIds([$id]);
     }
 
-    public function find(string $id): Schedule
+    public function get(string $id): Schedule
     {
         $schedule = Uuid::isValid($id) ? $this->schedules->find(Uuid::fromString($id)) : null;
 

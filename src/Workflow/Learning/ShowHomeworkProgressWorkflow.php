@@ -40,7 +40,7 @@ final readonly class ShowHomeworkProgressWorkflow
 
         $reading = $this->homework->reading($id);
         $task = $reading->task;
-        $stage = $this->structure->stage($task->stageId()->toRfc4122());
+        $stage = $this->structure->getStage($task->stageId()->toRfc4122());
         $audiences = $this->audiencesOf($reading, $stage);
 
         return new HomeworkProgress(

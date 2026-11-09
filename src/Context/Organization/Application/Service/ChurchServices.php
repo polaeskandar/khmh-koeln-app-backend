@@ -23,7 +23,7 @@ final readonly class ChurchServices
     ) {
     }
 
-    public function find(string $id): Service
+    public function get(string $id): Service
     {
         $service = Uuid::isValid($id) ? $this->services->find(Uuid::fromString($id)) : null;
 
@@ -48,7 +48,7 @@ final readonly class ChurchServices
 
     public function edit(string $id, string $name, ?string $description): Service
     {
-        $service = $this->find($id);
+        $service = $this->get($id);
         self::check($name, $description);
         $serviceName = ServiceName::of($name);
 

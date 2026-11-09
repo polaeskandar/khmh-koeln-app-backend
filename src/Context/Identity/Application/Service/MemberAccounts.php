@@ -24,7 +24,7 @@ final readonly class MemberAccounts
     ) {
     }
 
-    public function linkable(string $email): Account
+    public function getLinkable(string $email): Account
     {
         $account = $this->byEmail($email);
 

@@ -31,7 +31,7 @@ final readonly class PublishHomeworkWorkflow
 
     private function published(HomeworkTask $task): HomeworkTask
     {
-        LessonStages::opened($this->structure->stage($task->stageId()->toRfc4122()));
+        LessonStages::opened($this->structure->getStage($task->stageId()->toRfc4122()));
 
         return $this->homework->publish($task);
     }

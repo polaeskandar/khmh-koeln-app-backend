@@ -45,7 +45,7 @@ final readonly class ShowHomeworkWorkflow
 
         $reading = $this->homework->reading($id);
         $task = $reading->task;
-        $stage = $this->structure->stage($task->stageId()->toRfc4122());
+        $stage = $this->structure->getStage($task->stageId()->toRfc4122());
 
         return new HomeworkDetail(
             task: HomeworkView::of($reading),

@@ -24,7 +24,7 @@ final readonly class CancelOccurrenceWorkflow
     {
         $this->access->require(Action::Update, Resource::Sessions);
 
-        $planned = $this->cancellations->cancelable($scheduleId, $date);
+        $planned = $this->cancellations->getCancelable($scheduleId, $date);
         $this->archive->ensureOpen($planned->schedule->roster()->serviceId, $planned->schedule->roster()->stageId);
 
         return CanceledOccurrence::of($this->cancellations->cancel($planned, $accountId, $reason));

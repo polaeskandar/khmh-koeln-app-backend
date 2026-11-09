@@ -87,16 +87,16 @@ final readonly class Attendees
         return Uuid::isValid($personId) ? $this->people->withShareLock(Uuid::fromString($personId), $work) : $work();
     }
 
-    public function find(string $personId): Person
+    public function get(string $personId): Person
     {
         $person = Uuid::isValid($personId) ? $this->people->find(Uuid::fromString($personId)) : null;
 
         return $person ?? throw NotFound::of('person');
     }
 
-    public function markable(string $personId): Person
+    public function getMarkable(string $personId): Person
     {
-        $person = $this->find($personId);
+        $person = $this->get($personId);
 
         if ($person->status() !== PersonStatus::Inactive) {
             return $person;

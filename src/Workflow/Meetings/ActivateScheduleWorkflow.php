@@ -29,7 +29,7 @@ final readonly class ActivateScheduleWorkflow
     {
         $this->access->require(Action::Update, Resource::Sessions);
 
-        $schedule = $this->schedules->find($id);
+        $schedule = $this->schedules->get($id);
         $this->archive->ensureOpen($schedule->roster()->serviceId, $schedule->roster()->stageId);
 
         return WrittenSchedule::of($this->writes->activate(

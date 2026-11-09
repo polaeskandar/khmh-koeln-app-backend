@@ -36,7 +36,7 @@ final readonly class ListChildrenWorkflow
         $viewer = Uuid::fromString($viewerId);
         $family = $this->families->of($viewer);
 
-        $visible = $this->accounts->account($viewer)?->status()->isActive() === true
+        $visible = $this->accounts->find($viewer)?->status()->isActive() === true
             ? VisibleHomework::forFamily($family, $this->homework->of(VisibleHomework::pupilsOf($family)))
             : VisibleHomework::none($family);
 

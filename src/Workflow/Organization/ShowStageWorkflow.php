@@ -24,7 +24,7 @@ final readonly class ShowStageWorkflow
     {
         $this->access->require(Action::Read, Resource::Services);
 
-        $stage = $this->stages->find($stageId);
+        $stage = $this->stages->get($stageId);
 
         return StageDetails::of($stage, $this->rosters->stageMembersToday([$stage->id()]));
     }

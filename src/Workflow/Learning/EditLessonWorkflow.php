@@ -36,8 +36,8 @@ final readonly class EditLessonWorkflow
     {
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.changeStageOnly');
 
-        $lesson = $this->lessons->editable($id, $version);
-        $stage = LessonStages::opened($this->structure->stage($lesson->stageId()->toRfc4122()));
+        $lesson = $this->lessons->getEditable($id, $version);
+        $stage = LessonStages::opened($this->structure->getStage($lesson->stageId()->toRfc4122()));
         $draft = $choice->draft();
 
         return WrittenLesson::of($this->meetings->whileScheduleKept(

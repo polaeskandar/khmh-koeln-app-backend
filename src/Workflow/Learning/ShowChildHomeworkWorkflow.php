@@ -53,7 +53,7 @@ final readonly class ShowChildHomeworkWorkflow
     {
         $family = $this->families->of($viewer);
 
-        return $this->accounts->account($viewer)?->status()->isActive() === true
+        return $this->accounts->find($viewer)?->status()->isActive() === true
             ? VisibleHomework::forFamily($family, $this->homework->of(VisibleHomework::pupilsOf($family)))
             : VisibleHomework::none($family);
     }

@@ -41,7 +41,7 @@ final readonly class CreateLessonWorkflow
 
     private function created(string $stageId, LessonChoice $choice): WrittenLesson
     {
-        $stage = LessonStages::opened($this->structure->stage($stageId));
+        $stage = LessonStages::opened($this->structure->getStage($stageId));
         $draft = $choice->draft();
 
         return WrittenLesson::of($this->meetings->whileScheduleKept(

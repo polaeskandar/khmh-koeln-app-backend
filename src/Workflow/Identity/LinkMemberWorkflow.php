@@ -19,7 +19,7 @@ final readonly class LinkMemberWorkflow
 
     public function __invoke(string $email, string $personId, string $ageCheck, ?string $note): void
     {
-        $account = $this->accounts->linkable($email);
+        $account = $this->accounts->getLinkable($email);
 
         $this->records->whileLinkable($personId, function (Person $person) use ($account, $ageCheck, $note): void {
             $record = new MemberRecord($person->id(), $person->name()->fullName());

@@ -41,7 +41,7 @@ final readonly class ShowAttendanceBoardWorkflow
     {
         $this->access->require(Action::Read, Resource::Attendance);
 
-        $session = $this->sessions->find($sessionId);
+        $session = $this->sessions->get($sessionId);
         $current = $this->marks->currentOf($session->id());
         $tally = $this->tallyOf($session, $current);
         $counts = AttendanceCounts::of($tally->counts);

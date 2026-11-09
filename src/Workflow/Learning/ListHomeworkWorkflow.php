@@ -42,7 +42,7 @@ final readonly class ListHomeworkWorkflow
     {
         $this->access->require(Action::Read, Resource::Homework);
 
-        $stage = $this->structure->stage($stageId);
+        $stage = $this->structure->getStage($stageId);
         $homework = $this->homework->ofStage($stage->id());
         $reports = $homework->reports;
         $key = AudienceKeys::keyOf($stage, $reports->today);

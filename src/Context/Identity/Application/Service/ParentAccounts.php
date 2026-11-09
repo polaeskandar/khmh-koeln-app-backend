@@ -24,19 +24,19 @@ final readonly class ParentAccounts
     ) {
     }
 
-    public function byEmail(string $email): Account
+    public function getByEmail(string $email): Account
     {
         return $this->accounts->findByEmail($email) ?? throw NotFound::of('account');
     }
 
-    public function activeByEmail(string $email): Account
+    public function getActiveByEmail(string $email): Account
     {
-        $account = $this->byEmail($email);
+        $account = $this->getByEmail($email);
 
         return $account->status()->isActive() ? $account : throw new RuleViolation('guardians.accountInactive');
     }
 
-    public function active(string $id): Account
+    public function getActive(string $id): Account
     {
         $account = (Uuid::isValid($id) ? $this->accounts->find(Uuid::fromString($id)) : null) ?? throw NotFound::of(
             'user',

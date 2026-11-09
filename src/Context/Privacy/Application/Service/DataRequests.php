@@ -54,7 +54,7 @@ final readonly class DataRequests
         return $this->requests->all();
     }
 
-    public function find(string $id): DataRequest
+    public function get(string $id): DataRequest
     {
         $request = Uuid::isValid($id) ? $this->requests->find(Uuid::fromString($id)) : null;
 

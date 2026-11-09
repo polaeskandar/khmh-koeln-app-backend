@@ -20,7 +20,7 @@ final readonly class RevokeGuardianLinkByEmailWorkflow
 
     public function __invoke(string $email, string $personId): void
     {
-        $account = $this->accounts->byEmail($email);
+        $account = $this->accounts->getByEmail($email);
         $child = $this->children->find($personId) ?? throw NotFound::of('person');
 
         $this->guardianship->revoke($account->id(), $child);

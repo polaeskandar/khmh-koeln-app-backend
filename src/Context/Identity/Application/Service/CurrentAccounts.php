@@ -22,7 +22,7 @@ final readonly class CurrentAccounts
     ) {
     }
 
-    public function find(string $accountId): Account
+    public function get(string $accountId): Account
     {
         return $this->accounts->find(Uuid::fromString($accountId)) ?? throw NotFound::of('account');
     }

@@ -36,7 +36,7 @@ final readonly class ShowDataRequestWorkflow
     {
         $this->access->require(Action::Update, Resource::Users, refusal: 'privacy.adminOnly');
 
-        $request = $this->requests->find($requestId);
+        $request = $this->requests->get($requestId);
         $subject = $request->subject();
         $requests = [$request];
 
@@ -46,8 +46,8 @@ final readonly class ShowDataRequestWorkflow
             $this->accounts->accounts(DataRequestRows::accountIdsOf($requests)),
         );
 
-        $person = $subject->personId === null ? null : $this->people->person($subject->personId->toRfc4122());
-        $account = $subject->accountId === null ? null : $this->accounts->account($subject->accountId);
+        $person = $subject->personId === null ? null : $this->people->findPerson($subject->personId->toRfc4122());
+        $account = $subject->accountId === null ? null : $this->accounts->find($subject->accountId);
 
         return new DataRequestDetail(
             $this->requests->today(),

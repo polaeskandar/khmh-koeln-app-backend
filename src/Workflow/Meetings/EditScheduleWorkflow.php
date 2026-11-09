@@ -30,7 +30,7 @@ final readonly class EditScheduleWorkflow
     {
         $this->access->require(Action::Update, Resource::Sessions);
 
-        $schedule = $this->schedules->find($id);
+        $schedule = $this->schedules->get($id);
         $roster = $schedule->roster();
         $this->archive->ensureOpen($roster->serviceId, $roster->stageId);
 

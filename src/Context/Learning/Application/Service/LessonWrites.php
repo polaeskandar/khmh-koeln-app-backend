@@ -31,7 +31,7 @@ final readonly class LessonWrites
     ) {
     }
 
-    public function editable(string $id, ?int $version): Lesson
+    public function getEditable(string $id, ?int $version): Lesson
     {
         $lesson = (Uuid::isValid($id) ? $this->lessons->find(Uuid::fromString($id)) : null) ?? throw NotFound::of(
             'lesson',

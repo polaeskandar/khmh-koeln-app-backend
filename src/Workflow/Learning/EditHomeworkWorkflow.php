@@ -34,7 +34,7 @@ final readonly class EditHomeworkWorkflow
 
     private function edited(HomeworkTask $task, HomeworkChoice $choice): HomeworkTask
     {
-        LessonStages::opened($this->structure->stage($task->stageId()->toRfc4122()));
+        LessonStages::opened($this->structure->getStage($task->stageId()->toRfc4122()));
 
         return $this->homework->edit($task, $choice->draft());
     }

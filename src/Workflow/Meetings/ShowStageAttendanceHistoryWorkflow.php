@@ -40,7 +40,7 @@ final readonly class ShowStageAttendanceHistoryWorkflow
     {
         $this->access->require(Action::Read, Resource::Members);
 
-        $stage = $this->structure->stage($stageId);
+        $stage = $this->structure->getStage($stageId);
         $today = $this->calendar->today();
         $tallied = $this->talliedOf($this->history->latestCompleted($stage->id(), self::SESSIONS));
 

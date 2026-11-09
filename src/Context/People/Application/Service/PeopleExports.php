@@ -21,7 +21,7 @@ final readonly class PeopleExports
     ) {
     }
 
-    public function person(string $id): ?Person
+    public function findPerson(string $id): ?Person
     {
         return $this->people->find(Uuid::fromString($id));
     }

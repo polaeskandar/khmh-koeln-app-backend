@@ -36,7 +36,7 @@ final readonly class ScheduleOutlooks
 
     public function found(string $id, ArchivedStructure $archived, LocalDate $today): ScheduleOutlook
     {
-        $schedules = new ArrayCollection([$this->schedules->find($id)]);
+        $schedules = new ArrayCollection([$this->schedules->get($id)]);
         $outlook = new ArrayCollection($this->outlooksOf($schedules, $archived, $today))->first();
 
         return $outlook instanceof ScheduleOutlook ? $outlook : throw new LogicException('A schedule has an outlook.');

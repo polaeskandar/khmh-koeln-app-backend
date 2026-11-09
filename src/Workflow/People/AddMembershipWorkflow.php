@@ -27,7 +27,7 @@ final readonly class AddMembershipWorkflow
     {
         $this->access->require(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
 
-        $person = $this->memberships->personOf($personId);
+        $person = $this->memberships->getPerson($personId);
 
         return $this->placements->whileKept([$choice->serviceId], fn (): AddedMembership => $this->added(
             $person,

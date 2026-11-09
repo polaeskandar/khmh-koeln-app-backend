@@ -47,11 +47,9 @@ final readonly class RecordDataRequestWorkflow
 
     private function subjectOf(DataRequestDetails $details): RequestSubject
     {
-        $person = $details->personId === null ? null : $this->people->person($details->personId);
+        $person = $details->personId === null ? null : $this->people->findPerson($details->personId);
 
-        $account = $details->accountId === null
-            ? null
-            : $this->accounts->account(Uuid::fromString($details->accountId));
+        $account = $details->accountId === null ? null : $this->accounts->find(Uuid::fromString($details->accountId));
 
         return RequestSubjects::of($person, $account);
     }

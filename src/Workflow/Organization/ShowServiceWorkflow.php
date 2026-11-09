@@ -27,7 +27,7 @@ final readonly class ShowServiceWorkflow
     {
         $this->access->require(Action::Read, Resource::Services);
 
-        $service = $this->services->find($id);
+        $service = $this->services->get($id);
 
         return ServiceOverview::of(
             $service,

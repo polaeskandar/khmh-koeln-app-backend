@@ -30,7 +30,7 @@ final readonly class ListStagesWorkflow
     {
         $this->access->require(Action::Read, Resource::Services);
 
-        $service = $this->services->find($serviceId);
+        $service = $this->services->get($serviceId);
 
         $stages = $this->stages->ofService($service);
         $ids = $stages->map(static fn (Stage $stage): Uuid => $stage->id())->getValues();
