@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Infrastructure\Persistence\Repository;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Repository\RoleHolderRepositoryInterface;
 use App\Library\Types\Model\ListOf;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -15,7 +15,7 @@ use Override;
 final readonly class DoctrineRoleHolderRepository implements RoleHolderRepositoryInterface
 {
     private const string HOLDERS = <<<'DQL'
-        SELECT u FROM App\Context\Identity\Domain\Entity\User u
+        SELECT u FROM App\Context\Identity\Domain\Entity\Account u
         JOIN u.roles r
         WHERE r.name.key = :key
           AND u.status.approvedAt IS NOT NULL
@@ -33,6 +33,6 @@ final readonly class DoctrineRoleHolderRepository implements RoleHolderRepositor
     {
         $query = $this->entityManager->createQuery(self::HOLDERS)->setParameter('key', $roleNameKey);
 
-        return new ArrayCollection(ListOf::instances($query->getResult(), User::class));
+        return new ArrayCollection(ListOf::instances($query->getResult(), Account::class));
     }
 }

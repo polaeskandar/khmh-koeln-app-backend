@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Context\Identity\Infrastructure\Security;
 
 use App\Context\Identity\Application\Service\RolePermissions;
-use App\Context\Identity\Domain\Entity\User;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\Entity\Account;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\Access;
 use App\Library\Strings\Model\Text;
 use Override;
@@ -21,7 +21,7 @@ use Symfony\Component\Uid\Uuid;
 final class AccessVoter extends Voter
 {
     public function __construct(
-        private readonly UserRepositoryInterface $users,
+        private readonly AccountRepositoryInterface $accounts,
     ) {
     }
 
@@ -39,9 +39,10 @@ final class AccessVoter extends Voter
         TokenInterface $token,
         ?Vote $vote = null,
     ): bool {
-        $user = $this->accountOf($token);
+        $account = $this->accountOf($token);
 
-        $granted = $user !== null && RolePermissions::activeAccountHas($user, $subject->action, $subject->resource);
+        $granted =
+            $account !== null && RolePermissions::activeAccountHas($account, $subject->action, $subject->resource);
 
         if (!$granted) {
             $vote?->addReason(Text::format('No active role of the account grants this %s.', $attribute)->toString());
@@ -50,12 +51,12 @@ final class AccessVoter extends Voter
         return $granted;
     }
 
-    private function accountOf(#[\SensitiveParameter] TokenInterface $token): ?User
+    private function accountOf(#[\SensitiveParameter] TokenInterface $token): ?Account
     {
-        $account = $token->getUser();
+        $user = $token->getUser();
 
-        return $account instanceof SecurityUser
-            ? $this->users->find(Uuid::fromString($account->getUserIdentifier()))
+        return $user instanceof SecurityUser
+            ? $this->accounts->find(Uuid::fromString($user->getUserIdentifier()))
             : null;
     }
 }

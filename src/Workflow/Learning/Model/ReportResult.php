@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Learning\Domain\ValueObject\CompletionOutcome;
 use DateTimeImmutable;
 use Symfony\Component\Uid\Uuid;
@@ -19,7 +19,7 @@ final readonly class ReportResult
     ) {
     }
 
-    public static function of(CompletionOutcome $outcome, ?User $reporter, Uuid $viewerId): self
+    public static function of(CompletionOutcome $outcome, ?Account $reporter, Uuid $viewerId): self
     {
         $by = $outcome->completedBy;
 

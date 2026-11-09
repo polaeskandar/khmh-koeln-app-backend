@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Meetings\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Workflow\Identity\Model\AccountReference;
 use DateTimeImmutable;
@@ -20,7 +20,7 @@ final readonly class SessionState
     ) {
     }
 
-    public static function of(Session $session, ?User $closer): self
+    public static function of(Session $session, ?Account $closer): self
     {
         return self::referencing($session, $closer === null ? null : AccountReference::of($closer));
     }

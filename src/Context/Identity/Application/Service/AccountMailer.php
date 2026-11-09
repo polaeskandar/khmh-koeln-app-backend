@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Enum\Language;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Strings\Model\Text;
 use App\Platform\Mail\Contract\MailQueue;
@@ -22,7 +22,7 @@ final readonly class AccountMailer
     private const string TEST_TEMPLATE = 'test';
 
     public function __construct(
-        private UserRepositoryInterface $users,
+        private AccountRepositoryInterface $accounts,
         private MailQueue $queue,
         private TranslatorInterface $translator,
         #[Autowire(env: 'MAILER_FROM')]
@@ -32,15 +32,15 @@ final readonly class AccountMailer
 
     public function sendTest(string $email): void
     {
-        $this->send($this->users->findByEmail($email) ?? throw NotFound::of('account'), self::TEST_TEMPLATE);
+        $this->send($this->accounts->findByEmail($email) ?? throw NotFound::of('account'), self::TEST_TEMPLATE);
     }
 
     /**
      * @param array<string, string> $params
      */
-    public function send(User $user, string $template, array $params = []): void
+    public function send(Account $account, string $template, array $params = []): void
     {
-        $profile = $user->profile();
+        $profile = $account->profile();
         $language = $profile->language->value;
         $subject = $this->translator->trans($template . '.subject', $params, self::DOMAIN, $language);
 
@@ -58,6 +58,6 @@ final readonly class AccountMailer
                 'name' => $profile->displayName->value,
             ]);
 
-        $this->queue->queue($email, Text::format('%s:%s', $user->id()->toRfc4122(), $template)->toString());
+        $this->queue->queue($email, Text::format('%s:%s', $account->id()->toRfc4122(), $template)->toString());
     }
 }

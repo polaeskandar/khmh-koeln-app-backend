@@ -6,7 +6,7 @@ namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountRequests;
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\RegistrationServices;
@@ -33,12 +33,12 @@ final readonly class ListAccountRequestsWorkflow
         $pending = $this->requests->pending();
 
         $chosen = $this->registrations->chosenBy(
-            $pending->map(static fn (User $user): Uuid => $user->id())->getValues(),
+            $pending->map(static fn (Account $account): Uuid => $account->id())->getValues(),
         );
 
         return new AccountRequestList(
             items: $pending->map(
-                static fn (User $user): AccountRequest => AccountRequest::of($user, $chosen),
+                static fn (Account $account): AccountRequest => AccountRequest::of($account, $chosen),
             )->getValues(),
             roles: $this->requests
                 ->roleChoices()

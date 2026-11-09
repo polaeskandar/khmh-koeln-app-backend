@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Entity\Permission;
 use App\Context\Identity\Domain\Entity\Role;
-use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 
@@ -21,23 +21,25 @@ final readonly class RolePermissions
         return !$granting->isEmpty();
     }
 
-    public static function accountHas(User $user, Action $action, Resource $resource): bool
+    public static function accountHas(Account $account, Action $action, Resource $resource): bool
     {
-        $granting = $user->roles()->filter(static fn (Role $role): bool => self::roleAllows($role, $action, $resource));
+        $granting = $account
+            ->roles()
+            ->filter(static fn (Role $role): bool => self::roleAllows($role, $action, $resource));
 
         return !$granting->isEmpty();
     }
 
-    public static function activeAccountHas(User $user, Action $action, Resource $resource): bool
+    public static function activeAccountHas(Account $account, Action $action, Resource $resource): bool
     {
-        return $user->status()->isActive() && self::accountHas($user, $action, $resource);
+        return $account->status()->isActive() && self::accountHas($account, $action, $resource);
     }
 
-    public static function accountHasWithout(User $user, Role $left, Action $action, Resource $resource): bool
+    public static function accountHasWithout(Account $account, Role $left, Action $action, Resource $resource): bool
     {
-        $granting = $user->roles()->filter(
-            static fn (Role $role): bool => $role !== $left && self::roleAllows($role, $action, $resource),
-        );
+        $granting = $account
+            ->roles()
+            ->filter(static fn (Role $role): bool => $role !== $left && self::roleAllows($role, $action, $resource));
 
         return !$granting->isEmpty();
     }

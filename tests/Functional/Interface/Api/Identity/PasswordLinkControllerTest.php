@@ -53,15 +53,15 @@ final class PasswordLinkControllerTest extends ApiTestCase
     public function testOnlyOneLinkOfAnAccountWorks(): void
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
-        $userId = new SignInAccounts(self::getContainer())->add(self::EMAIL);
+        $accountId = new SignInAccounts(self::getContainer())->add(self::EMAIL);
         $older = $this->emailedToken();
         $newer = $this->emailedToken();
 
         $this->use(['token' => $older, 'password' => SignInAccounts::MISTYPED]);
         self::assertSame(self::INVALID, $this->browser()->getResponse()->getContent());
 
-        $first = $this->storedToken($userId);
-        $second = $this->storedToken($userId);
+        $first = $this->storedToken($accountId);
+        $second = $this->storedToken($accountId);
 
         $this->use(['token' => $first, 'password' => SignInAccounts::MISTYPED]);
         self::assertResponseStatusCodeSame(204);
@@ -176,7 +176,7 @@ final class PasswordLinkControllerTest extends ApiTestCase
     /**
      * @param array<string, string|null> $columns
      */
-    private function storedToken(string $userId, array $columns = []): string
+    private function storedToken(string $accountId, array $columns = []): string
     {
         $token = Uuid::v7()->toRfc4122();
 
@@ -184,7 +184,7 @@ final class PasswordLinkControllerTest extends ApiTestCase
             ->connection()
             ->insert('identity.password_token', [
                 'id' => Uuid::v7()->toRfc4122(),
-                'user_id' => $userId,
+                'user_id' => $accountId,
                 'token_hash' => Checksum::sha256($token),
                 'created_at' => '2026-11-08 09:00:00+01',
                 'expires_at' => '2026-11-09 09:00:00+01',

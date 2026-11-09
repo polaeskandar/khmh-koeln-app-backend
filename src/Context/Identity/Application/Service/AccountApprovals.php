@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Entity\Role;
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
@@ -21,7 +21,7 @@ final readonly class AccountApprovals
 {
     public function __construct(
         private AccountRequests $requests,
-        private UserRepositoryInterface $users,
+        private AccountRepositoryInterface $accounts,
         private RoleRepositoryInterface $roles,
         private Calendar $calendar,
         private ApprovalNotices $notices,
@@ -74,37 +74,37 @@ final readonly class AccountApprovals
 
     /**
      * @param ReadableCollection<int, Role> $roles
-     * @param callable(User): void $alongside
+     * @param callable(Account): void $alongside
      */
-    public function approve(string $id, string $actorId, ReadableCollection $roles, callable $alongside): User
+    public function approve(string $id, string $actorId, ReadableCollection $roles, callable $alongside): Account
     {
         $actor = $this->account($actorId);
 
-        $this->requests->decide($id, function (User $user) use ($actor, $roles, $alongside): void {
-            $user->changeApproval(
+        $this->requests->decide($id, function (Account $account) use ($actor, $roles, $alongside): void {
+            $account->changeApproval(
                 $actor,
-                $user->status()->approvedOn($this->calendar->now()),
-                $user->registration()->decided(),
+                $account->status()->approvedOn($this->calendar->now()),
+                $account->registration()->decided(),
             );
 
             foreach ($roles as $role) {
-                $user->assign($role);
+                $account->assign($role);
             }
 
-            $alongside($user);
+            $alongside($account);
         });
 
         return $this->account($id);
     }
 
-    public function announce(User $approved): void
+    public function announce(Account $approved): void
     {
         $this->notices->send($approved);
     }
 
-    public function account(string $id): User
+    public function account(string $id): Account
     {
-        return $this->users->find(Uuid::fromString($id)) ?? throw NotFound::of('user');
+        return $this->accounts->find(Uuid::fromString($id)) ?? throw NotFound::of('user');
     }
 
     private static function uuidOf(string $id): ?Uuid

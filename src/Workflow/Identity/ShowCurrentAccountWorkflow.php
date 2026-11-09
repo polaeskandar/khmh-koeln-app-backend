@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\CurrentAccounts;
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\ValueObject\Access;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\MemberRecords;
@@ -31,22 +31,22 @@ final readonly class ShowCurrentAccountWorkflow
     ) {
     }
 
-    public function __invoke(string $userId): CurrentAccount
+    public function __invoke(string $accountId): CurrentAccount
     {
-        $user = $this->accounts->find($userId);
+        $account = $this->accounts->find($accountId);
 
         return new CurrentAccount(
-            account: AccountSummary::of($user),
-            roles: self::rolesOf($user),
-            permissions: new ArrayCollection($this->accounts->grantsOf($user))->map(self::grantOf(...))->getValues(),
+            account: AccountSummary::of($account),
+            roles: self::rolesOf($account),
+            permissions: new ArrayCollection($this->accounts->grantsOf($account))->map(self::grantOf(...))->getValues(),
             today: $this->calendar->today()->toString(),
-            member: $this->memberOf($user),
+            member: $this->memberOf($account),
         );
     }
 
-    private function memberOf(User $user): ?MemberSummary
+    private function memberOf(Account $account): ?MemberSummary
     {
-        $personId = $user->member()->personId;
+        $personId = $account->member()->personId;
 
         if ($personId === null) {
             return null;
@@ -69,9 +69,9 @@ final readonly class ShowCurrentAccountWorkflow
     /**
      * @return list<RoleSummary>
      */
-    private static function rolesOf(User $user): array
+    private static function rolesOf(Account $account): array
     {
-        return Collections::of($user->roles()->map(RoleSummary::of(...)))->matching(Criteria::create()->orderBy([
+        return Collections::of($account->roles()->map(RoleSummary::of(...)))->matching(Criteria::create()->orderBy([
             'name' => Order::Ascending,
         ]))->getValues();
     }

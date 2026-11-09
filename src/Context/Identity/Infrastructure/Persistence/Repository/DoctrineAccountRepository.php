@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Infrastructure\Persistence\Repository;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\Email;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Types\Model\ListOf;
@@ -20,7 +20,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class DoctrineUserRepository implements UserRepositoryInterface
+final readonly class DoctrineAccountRepository implements AccountRepositoryInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -28,22 +28,22 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
     }
 
     #[Override]
-    public function save(User $user): void
+    public function save(Account $account): void
     {
-        $this->entityManager->persist($user);
+        $this->entityManager->persist($account);
         $this->entityManager->flush();
     }
 
     #[Override]
-    public function find(Uuid $id): ?User
+    public function find(Uuid $id): ?Account
     {
-        return $this->entityManager->find(User::class, $id);
+        return $this->entityManager->find(Account::class, $id);
     }
 
     #[Override]
-    public function remove(User $user): void
+    public function remove(Account $account): void
     {
-        $this->entityManager->remove($user);
+        $this->entityManager->remove($account);
         $this->entityManager->flush();
     }
 
@@ -56,21 +56,25 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
             ->orderBy(['createdAt' => Order::Ascending, 'id' => Order::Ascending])
             ->setMaxResults($limit);
 
-        return new ArrayCollection($this->entityManager->getRepository(User::class)->matching($confirmed)->getValues());
+        return new ArrayCollection(
+            $this->entityManager->getRepository(Account::class)->matching($confirmed)->getValues(),
+        );
     }
 
     #[Override]
     public function withWriteLock(Uuid $id, callable $work): void
     {
         $this->entityManager->wrapInTransaction(function () use ($id, $work): void {
-            $loaded = $this->entityManager->getUnitOfWork()->tryGetById(['id' => $id], User::class);
+            $loaded = $this->entityManager->getUnitOfWork()->tryGetById(['id' => $id], Account::class);
 
             if ($loaded !== false) {
                 $this->entityManager->detach($loaded);
             }
 
             $work(
-                $this->entityManager->find(User::class, $id, LockMode::PESSIMISTIC_WRITE) ?? throw NotFound::of('user'),
+                $this->entityManager->find(Account::class, $id, LockMode::PESSIMISTIC_WRITE) ?? throw NotFound::of(
+                    'user',
+                ),
             );
         });
     }
@@ -82,7 +86,7 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
     public function findByIds(array $ids): ReadableCollection
     {
         return new ArrayCollection(
-            $ids === [] ? [] : $this->entityManager->getRepository(User::class)->findBy(['id' => $ids]),
+            $ids === [] ? [] : $this->entityManager->getRepository(Account::class)->findBy(['id' => $ids]),
         );
     }
 
@@ -90,7 +94,7 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
     public function activeThatCan(Action $action, Resource $resource): ReadableCollection
     {
         $query = $this->entityManager->createQuery(<<<'DQL'
-            SELECT DISTINCT u FROM App\Context\Identity\Domain\Entity\User u
+            SELECT DISTINCT u FROM App\Context\Identity\Domain\Entity\Account u
             JOIN u.roles r
             JOIN r.permissions p
             WHERE u.status.approvedAt IS NOT NULL
@@ -99,19 +103,19 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
               AND p.resource = :resource
             DQL)->setParameters(['action' => $action, 'resource' => $resource]);
 
-        return new ArrayCollection(ListOf::instances($query->getResult(), User::class));
+        return new ArrayCollection(ListOf::instances($query->getResult(), Account::class));
     }
 
     #[Override]
-    public function findByEmail(string $email): ?User
+    public function findByEmail(string $email): ?Account
     {
         return $this->entityManager
-            ->getRepository(User::class)
+            ->getRepository(Account::class)
             ->findOneBy(['profile.email.value' => Email::normalized($email)]);
     }
 
     #[Override]
-    public function hasOtherActiveAccountThatCan(User $except, Action $action, Resource $resource): bool
+    public function hasOtherActiveAccountThatCan(Account $except, Action $action, Resource $resource): bool
     {
         return $this->entityManager
             ->getConnection()

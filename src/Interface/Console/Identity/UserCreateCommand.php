@@ -11,7 +11,7 @@ use App\Library\Console\Exception\HiddenInputUnavailable;
 use App\Library\Console\Exception\TerminalRequired;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Strings\Model\Text;
-use App\Workflow\Identity\CreateUserWorkflow;
+use App\Workflow\Identity\CreateAccountWorkflow;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Attribute\MapInput;
@@ -23,7 +23,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final readonly class UserCreateCommand
 {
     public function __construct(
-        private CreateUserWorkflow $createUser,
+        private CreateAccountWorkflow $createAccount,
         private SecretReader $secrets,
     ) {
     }
@@ -39,7 +39,7 @@ final readonly class UserCreateCommand
         UserCreateRequest $options,
     ): int {
         try {
-            $account = ($this->createUser)(
+            $account = ($this->createAccount)(
                 email: $email,
                 displayName: $name,
                 language: $options->language,

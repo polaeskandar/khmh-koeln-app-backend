@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Infrastructure\Persistence\Repository;
 
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Entity\EmailConfirmationToken;
-use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Repository\EmailConfirmationTokenRepositoryInterface;
 use App\Library\Types\Model\Type;
 use DateTimeImmutable;
@@ -34,7 +34,7 @@ final readonly class DoctrineEmailConfirmationTokenRepository implements EmailCo
     {
         $this->entityManager->wrapInTransaction(function () use ($issued): void {
             $this->entityManager->getConnection()->delete('identity.email_confirmation_token', [
-                'user_id' => $issued->user()->id()->toRfc4122(),
+                'user_id' => $issued->account()->id()->toRfc4122(),
                 'used_at' => null,
             ]);
 
@@ -47,14 +47,16 @@ final readonly class DoctrineEmailConfirmationTokenRepository implements EmailCo
     public function spend(#[SensitiveParameter] string $tokenHash, DateTimeImmutable $at, callable $use): bool
     {
         return $this->entityManager->wrapInTransaction(function () use ($tokenHash, $at, $use): bool {
-            $userId = $this->spentBy($tokenHash, $at);
+            $accountId = $this->spentBy($tokenHash, $at);
 
-            if ($userId === null) {
+            if ($accountId === null) {
                 return false;
             }
 
             $use(
-                $this->entityManager->find(User::class, $userId) ?? throw new LogicException('The token has no user.'),
+                $this->entityManager->find(Account::class, $accountId) ?? throw new LogicException(
+                    'The token has no user.',
+                ),
             );
             $this->entityManager->flush();
 
@@ -64,13 +66,13 @@ final readonly class DoctrineEmailConfirmationTokenRepository implements EmailCo
 
     private function spentBy(#[SensitiveParameter] string $tokenHash, DateTimeImmutable $at): ?Uuid
     {
-        $userId = Type::of(
+        $accountId = Type::of(
             $this->entityManager
                 ->getConnection()
                 ->executeQuery(self::SPEND, ['hash' => $tokenHash, 'at' => $at], ['at' => Types::DATETIMETZ_IMMUTABLE])
                 ->fetchOne(),
         )->toStringOrNull();
 
-        return $userId === null ? null : Uuid::fromString($userId);
+        return $accountId === null ? null : Uuid::fromString($accountId);
     }
 }

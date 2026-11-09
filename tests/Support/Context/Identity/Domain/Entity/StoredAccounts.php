@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Context\Identity\Domain\Entity;
 
-use App\Context\Identity\Domain\Entity\User;
-use App\Context\Identity\Infrastructure\Persistence\Repository\DoctrineUserRepository;
+use App\Context\Identity\Domain\Entity\Account;
+use App\Context\Identity\Infrastructure\Persistence\Repository\DoctrineAccountRepository;
 use App\Context\Identity\Infrastructure\Security\SecurityUser;
 use App\Tests\Support\Database;
 use PHPUnit\Framework\Assert;
@@ -20,12 +20,12 @@ final readonly class StoredAccounts
     ) {
     }
 
-    public function withEmail(string $email): User
+    public function withEmail(string $email): Account
     {
-        $user = new DoctrineUserRepository(new Database($this->container)->entityManager())->findByEmail($email);
-        Assert::assertInstanceOf(User::class, $user);
+        $account = new DoctrineAccountRepository(new Database($this->container)->entityManager())->findByEmail($email);
+        Assert::assertInstanceOf(Account::class, $account);
 
-        return $user;
+        return $account;
     }
 
     public function count(): int
@@ -39,11 +39,11 @@ final readonly class StoredAccounts
         return $count;
     }
 
-    public function acceptsSecret(User $user, #[SensitiveParameter] string $secret): bool
+    public function acceptsSecret(Account $account, #[SensitiveParameter] string $secret): bool
     {
         $factory = $this->container->get(PasswordHasherFactoryInterface::class);
         Assert::assertInstanceOf(PasswordHasherFactoryInterface::class, $factory);
 
-        return $factory->getPasswordHasher(SecurityUser::class)->verify($user->passwordHash(), $secret);
+        return $factory->getPasswordHasher(SecurityUser::class)->verify($account->passwordHash(), $secret);
     }
 }

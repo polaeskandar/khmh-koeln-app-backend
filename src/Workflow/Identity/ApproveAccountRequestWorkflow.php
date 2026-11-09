@@ -6,7 +6,7 @@ namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountApprovals;
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\RegistrationServices;
@@ -47,8 +47,8 @@ final readonly class ApproveAccountRequestWorkflow
         $roles = $chooseRoles();
         $children = $chooseChildren();
 
-        $approved = $this->approvals->approve($id, $actorId, $roles, fn (User $user) => $this->settle(
-            $user,
+        $approved = $this->approvals->approve($id, $actorId, $roles, fn (Account $account) => $this->settle(
+            $account,
             $children,
             $actorId,
         ));
@@ -61,12 +61,12 @@ final readonly class ApproveAccountRequestWorkflow
     /**
      * @param ReadableCollection<int, Person> $children
      */
-    private function settle(User $user, ReadableCollection $children, string $actorId): void
+    private function settle(Account $account, ReadableCollection $children, string $actorId): void
     {
         foreach ($children as $child) {
-            $this->guardianship->linkParent($user->id(), $child, approvedBy: $actorId);
+            $this->guardianship->linkParent($account->id(), $child, approvedBy: $actorId);
         }
 
-        $this->registrations->forget($user->id());
+        $this->registrations->forget($account->id());
     }
 }

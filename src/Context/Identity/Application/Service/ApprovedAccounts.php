@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Entity\Role;
-use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\Interface\PasswordHasherInterface;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\AccountStatus;
 use App\Context\Identity\Domain\ValueObject\DisplayName;
 use App\Context\Identity\Domain\ValueObject\Email;
@@ -24,7 +24,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class ApprovedAccounts
 {
     public function __construct(
-        private UserRepositoryInterface $users,
+        private AccountRepositoryInterface $accounts,
         private RoleRepositoryInterface $roles,
         private PasswordHasherInterface $hasher,
         private Calendar $calendar,
@@ -41,11 +41,11 @@ final readonly class ApprovedAccounts
     ): Uuid {
         $profile = new Profile(Email::of($email), DisplayName::of($displayName), self::language($language));
 
-        if ($this->users->findByEmail($profile->email->value) !== null) {
+        if ($this->accounts->findByEmail($profile->email->value) !== null) {
             throw InvalidInput::field('email', 'accounts.emailTaken');
         }
 
-        $user = new User(
+        $account = new Account(
             $profile,
             passwordHash: $this->passwordHash($password),
             status: AccountStatus::pending()->approvedOn($this->calendar->now()),
@@ -53,9 +53,9 @@ final readonly class ApprovedAccounts
             roles: $this->rolesNamed($role),
         );
 
-        $this->users->save($user);
+        $this->accounts->save($account);
 
-        return $user->id();
+        return $account->id();
     }
 
     private static function language(string $code): Language

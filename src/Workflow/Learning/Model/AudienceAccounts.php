@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\ValueObject\RosterBook;
 use App\Library\Collections\Model\Collections;
@@ -16,23 +16,23 @@ use Symfony\Component\Uid\Uuid;
 final readonly class AudienceAccounts
 {
     /**
-     * @param ReadableCollection<string, User> $users the parents' and the reporters' accounts, by id
+     * @param ReadableCollection<string, Account> $accounts the parents' and the reporters' accounts, by id
      * @param ReadableCollection<string, string> $own the active account linked to each person's own record
      */
     private function __construct(
         private RosterBook $rosters,
-        public ReadableCollection $users,
+        public ReadableCollection $accounts,
         private ReadableCollection $own,
     ) {
     }
 
     /**
-     * @param ReadableCollection<int, User> $users the parents' and the reporters' accounts
+     * @param ReadableCollection<int, Account> $accounts the parents' and the reporters' accounts
      * @param ReadableCollection<string, string> $own the active account linked to each person's own record
      */
-    public static function of(RosterBook $rosters, ReadableCollection $users, ReadableCollection $own): self
+    public static function of(RosterBook $rosters, ReadableCollection $accounts, ReadableCollection $own): self
     {
-        return new self($rosters, Collections::firstPerKey($users, keyOf: self::userKey(...)), $own);
+        return new self($rosters, Collections::firstPerKey($accounts, keyOf: self::accountKey(...)), $own);
     }
 
     /**
@@ -40,10 +40,10 @@ final readonly class AudienceAccounts
      */
     public function parentsOf(Person $child): array
     {
-        $accountOf = fn (Uuid $id): ?User => $this->users->get($id->toRfc4122());
+        $accountOf = fn (Uuid $id): ?Account => $this->accounts->get($id->toRfc4122());
 
         return Collections::mapPresent(new ArrayCollection($this->rosters->guardianAccountIdsOf($child)), $accountOf)
-            ->filter(static fn (User $user): bool => $user->status()->isActive())
+            ->filter(static fn (Account $account): bool => $account->status()->isActive())
             ->map(AccountReference::of(...))
             ->getValues();
     }
@@ -63,8 +63,8 @@ final readonly class AudienceAccounts
         return $this->hasOwnAccount($person) || $this->parentsOf($person) !== [];
     }
 
-    private static function userKey(User $user): string
+    private static function accountKey(Account $account): string
     {
-        return $user->id()->toRfc4122();
+        return $account->id()->toRfc4122();
     }
 }

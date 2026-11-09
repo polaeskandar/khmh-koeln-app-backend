@@ -6,7 +6,7 @@ namespace App\Tests\Functional\Context\Identity\Infrastructure\Security;
 
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\Access;
 use App\Context\Identity\Infrastructure\Security\SecurityUser;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
@@ -59,7 +59,7 @@ final class AccessVoterTest extends KernelTestCase
     #[DataProvider('seededRoles')]
     public function testEachSeededRoleGetsExactlyItsPermissions(string $role): void
     {
-        $userId = $this->account(['email' => $role . '@example.org'], $role);
+        $accountId = $this->account(['email' => $role . '@example.org'], $role);
 
         foreach (Resource::cases() as $resource) {
             foreach (Action::cases() as $action) {
@@ -67,7 +67,7 @@ final class AccessVoterTest extends KernelTestCase
 
                 self::assertSame(
                     $expected,
-                    $this->allows($userId, $action, $resource),
+                    $this->allows($accountId, $action, $resource),
                     $action->value . ' ' . $resource->value,
                 );
             }
@@ -86,40 +86,40 @@ final class AccessVoterTest extends KernelTestCase
 
     public function testRolesAddUp(): void
     {
-        $userId = $this->account([], 'servant', 'parent');
+        $accountId = $this->account([], 'servant', 'parent');
 
-        self::assertTrue($this->allows($userId, Action::Create, Resource::Attendance));
-        self::assertTrue($this->allows($userId, Action::Read, Resource::ParentPortal));
-        self::assertFalse($this->allows($userId, Action::Create, Resource::Stages));
+        self::assertTrue($this->allows($accountId, Action::Create, Resource::Attendance));
+        self::assertTrue($this->allows($accountId, Action::Read, Resource::ParentPortal));
+        self::assertFalse($this->allows($accountId, Action::Create, Resource::Stages));
     }
 
     public function testAnAccountWithoutRolesGetsNothing(): void
     {
-        $userId = $this->account([]);
+        $accountId = $this->account([]);
 
-        self::assertFalse($this->allows($userId, Action::Read, Resource::Services));
+        self::assertFalse($this->allows($accountId, Action::Read, Resource::Services));
     }
 
     public function testADisabledAdministratorGetsNothing(): void
     {
-        $userId = $this->account(['disabled_at' => '2026-11-09 12:00:00+01'], 'administrator');
+        $accountId = $this->account(['disabled_at' => '2026-11-09 12:00:00+01'], 'administrator');
 
-        self::assertFalse($this->allows($userId, Action::Read, Resource::Services));
+        self::assertFalse($this->allows($accountId, Action::Read, Resource::Services));
     }
 
     public function testARemovedRoleIsDeniedForTheReloadedAccount(): void
     {
-        $userId = $this->account([], 'servant');
-        self::assertTrue($this->allows($userId, Action::Create, Resource::Attendance));
+        $accountId = $this->account([], 'servant');
+        self::assertTrue($this->allows($accountId, Action::Create, Resource::Attendance));
 
         $this
             ->database()
             ->connection()
-            ->executeStatement('DELETE FROM identity.user_role WHERE user_id = ?', [$userId]);
+            ->executeStatement('DELETE FROM identity.user_role WHERE user_id = ?', [$accountId]);
 
         $this->database()->entityManager()->clear();
 
-        self::assertFalse($this->allows($userId, Action::Create, Resource::Attendance));
+        self::assertFalse($this->allows($accountId, Action::Create, Resource::Attendance));
     }
 
     public function testAnAnonymousTokenGetsNothing(): void
@@ -151,18 +151,18 @@ final class AccessVoterTest extends KernelTestCase
         return $id;
     }
 
-    private function allows(string $userId, Action $action, Resource $resource): bool
+    private function allows(string $accountId, Action $action, Resource $resource): bool
     {
-        $users = self::getContainer()->get(UserRepositoryInterface::class);
-        self::assertInstanceOf(UserRepositoryInterface::class, $users);
-        $user = $users->find(Uuid::fromString($userId));
-        self::assertNotNull($user);
+        $accounts = self::getContainer()->get(AccountRepositoryInterface::class);
+        self::assertInstanceOf(AccountRepositoryInterface::class, $accounts);
+        $account = $accounts->find(Uuid::fromString($accountId));
+        self::assertNotNull($account);
 
         $decisions = self::getContainer()->get('security.access.decision_manager');
         self::assertInstanceOf(AccessDecisionManagerInterface::class, $decisions);
 
         return $decisions->decide(
-            new UsernamePasswordToken(SecurityUser::of($user), 'api', ['ROLE_USER']),
+            new UsernamePasswordToken(SecurityUser::of($account), 'api', ['ROLE_USER']),
             [Access::ATTRIBUTE],
             new Access($action, $resource),
         );

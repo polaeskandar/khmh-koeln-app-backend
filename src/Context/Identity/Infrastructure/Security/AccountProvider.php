@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Infrastructure\Security;
 
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use Override;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
@@ -24,7 +24,7 @@ final readonly class AccountProvider implements UserProviderInterface
     private const int DUMMY_SECRET_LENGTH = 32;
 
     public function __construct(
-        private UserRepositoryInterface $users,
+        private AccountRepositoryInterface $accounts,
         private PasswordHasherFactoryInterface $hashers,
         private CacheInterface $cache,
     ) {
@@ -33,21 +33,21 @@ final readonly class AccountProvider implements UserProviderInterface
     #[Override]
     public function loadUserByIdentifier(string $identifier): SecurityUser
     {
-        $user = $this->users->findByEmail($identifier);
+        $account = $this->accounts->findByEmail($identifier);
 
-        if ($user === null) {
+        if ($account === null) {
             $this->spendAPasswordCheck();
 
             throw new UserNotFoundException();
         }
 
-        return SecurityUser::of($user);
+        return SecurityUser::of($account);
     }
 
     #[Override]
     public function refreshUser(UserInterface $user): SecurityUser
     {
-        $account = $this->users->find(Uuid::fromString($user->getUserIdentifier()));
+        $account = $this->accounts->find(Uuid::fromString($user->getUserIdentifier()));
 
         return $account === null ? throw new UserNotFoundException() : SecurityUser::of($account);
     }

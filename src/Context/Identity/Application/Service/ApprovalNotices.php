@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 
 final readonly class ApprovalNotices
 {
@@ -14,8 +14,8 @@ final readonly class ApprovalNotices
     ) {
     }
 
-    public function send(User $user): void
+    public function send(Account $account): void
     {
-        $this->mailer->send($user, 'account_approved', ['url' => $this->links->to($user, 'sign-in')]);
+        $this->mailer->send($account, 'account_approved', ['url' => $this->links->to($account, 'sign-in')]);
     }
 }

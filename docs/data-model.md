@@ -215,12 +215,12 @@ church calendar, because a CHECK can't read the date. `approved_by` references `
 NULL`. Operators create approved accounts with `bin/console app:user:create <email> <name>`, typing the
 password twice, piping it with `--password-stdin` or leaving it for a password link with `--no-password`.
 
-Roles are dynamic (RBAC), in the `identity` schema: a user has roles (`user_role`), a role has permissions
+Roles are dynamic (RBAC), in the `identity` schema: an account has roles (`user_role`), a role has permissions
 (`role_permission`), and a permission is an action on a resource, `{"action": "update", "resource": "sessions"}`.
 `permission` holds the catalog, one row per action and resource (UNIQUE), with CHECKs against the enums in code
-(`Action`, `Resource`). `role` has a name (≤80, cleaned, unique by `name_key`). Deleting a user or a role removes
-its links (`ON DELETE CASCADE`); deleting a role keeps the permissions. `User::can($action, $resource)` is true when
-any of the user's roles has that permission. The catalog and the defaults Administrator (everything but the
+(`Action`, `Resource`). `role` has a name (≤80, cleaned, unique by `name_key`). Deleting an account or a role removes
+its links (`ON DELETE CASCADE`); deleting a role keeps the permissions. `RolePermissions::accountHas($account, $action,
+$resource)` is true when any of the account's roles has that permission. The catalog and the defaults Administrator (everything but the
 parent portal), Service leader, Servant and Parent (`parentPortal:read`) are seeded by a migration; the roles
 are ordinary roles. `app:user:create --role=<name>` writes the account with that role in one transaction.
 `app:user:role:add <email> <role>` and `app:user:role:remove <email> <role>` give and take a role by its name

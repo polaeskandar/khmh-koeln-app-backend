@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Context\Identity\Domain\Entity;
 
-use App\Context\Identity\Infrastructure\Persistence\Repository\DoctrineUserRepository;
+use App\Context\Identity\Infrastructure\Persistence\Repository\DoctrineAccountRepository;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Database;
 use Doctrine\DBAL\Connection;
@@ -12,7 +12,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Uid\Uuid;
 
-final class UserTest extends KernelTestCase
+final class AccountTest extends KernelTestCase
 {
     public function testAnEmailBelongsToOneAccount(): void
     {
@@ -126,7 +126,7 @@ final class UserTest extends KernelTestCase
     {
         $this->database()->connection()->insert('identity.app_user', Accounts::row($columns));
 
-        $user = new DoctrineUserRepository($this->database()->entityManager())->findByEmail('sara@example.org');
+        $user = new DoctrineAccountRepository($this->database()->entityManager())->findByEmail('sara@example.org');
 
         self::assertSame($active, $user?->status()->isActive());
     }

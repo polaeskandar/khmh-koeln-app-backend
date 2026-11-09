@@ -37,14 +37,14 @@ final readonly class DoctrineApiTokenRepository implements ApiTokenRepositoryInt
     #[Override]
     public function holderOf(#[SensitiveParameter] string $tokenHash, DateTimeImmutable $now): ?Uuid
     {
-        $userId = Type::of(
+        $accountId = Type::of(
             $this->entityManager
                 ->getConnection()
                 ->executeQuery(self::USE, ['hash' => $tokenHash, 'now' => $now], ['now' => Types::DATETIMETZ_IMMUTABLE])
                 ->fetchOne(),
         )->toStringOrNull();
 
-        return $userId === null ? null : Uuid::fromString($userId);
+        return $accountId === null ? null : Uuid::fromString($accountId);
     }
 
     #[Override]
@@ -58,11 +58,11 @@ final readonly class DoctrineApiTokenRepository implements ApiTokenRepositoryInt
     }
 
     #[Override]
-    public function revokeAllOf(Uuid $userId, DateTimeImmutable $at): void
+    public function revokeAllOf(Uuid $accountId, DateTimeImmutable $at): void
     {
         $this->entityManager->getConnection()->executeStatement(
             'UPDATE identity.api_token SET revoked_at = :at WHERE user_id = :user AND revoked_at IS NULL',
-            ['at' => $at, 'user' => $userId->toRfc4122()],
+            ['at' => $at, 'user' => $accountId->toRfc4122()],
             ['at' => Types::DATETIMETZ_IMMUTABLE],
         );
     }

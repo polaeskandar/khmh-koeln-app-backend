@@ -144,14 +144,14 @@ Errors (the contract is in [API contract](api.md#problems)):
 
 Naming and Doctrine rules:
 
-- `Service` (Organization) is the table `service` and `serviceId` in JSON; `Schedule` and `Session` (Meetings) are the tables `meeting_schedule` and `meeting_session`; `User` is the
+- `Service` (Organization) is the table `service` and `serviceId` in JSON; `Schedule` and `Session` (Meetings) are the tables `meeting_schedule` and `meeting_session`; `Account` (Identity) is the
   table `app_user`. Classes in a `Service` folder are services in the Symfony sense; the entity is the only class named
   `Service`.
 - Entities create their UUIDv7 id in the constructor. The `$id` property is not `readonly`: when Doctrine loads a
   lazy reference it sets the id again with a new `Uuid` instance, which a readonly property refuses. For the
   same reason Doctrine can't refresh a managed entity whose readonly embeddables hold objects, so a lock
   (`SessionRepositoryInterface::withWriteLock()`, `HomeworkRepositoryInterface::withLock()`,
-  `UserRepositoryInterface::withWriteLock()`) detaches a managed
+  `AccountRepositoryInterface::withWriteLock()`) detaches a managed
   copy and loads the row again `FOR UPDATE`. Instants (`*_at`) are `datetimetz_immutable`.
 - `created_at` and `updated_at` come only from the mapped superclasses in `App\Library\Persistence\Mapping`: an
   entity with `created_at` extends `CreatedAtEntity`, one with both extends `TimestampedEntity`. Their

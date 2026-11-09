@@ -24,7 +24,7 @@ final class EmailConfirmationToken extends CreatedAtEntity
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'user_id', nullable: false, onDelete: 'CASCADE')]
-    private readonly User $user;
+    private readonly Account $account;
 
     #[ORM\Column(name: 'token_hash', length: 64, options: ['fixed' => true])]
     private readonly string $tokenHash;
@@ -35,10 +35,10 @@ final class EmailConfirmationToken extends CreatedAtEntity
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $usedAt = null;
 
-    public function __construct(User $user, #[SensitiveParameter] string $tokenHash, DateTimeImmutable $expiresAt)
+    public function __construct(Account $account, #[SensitiveParameter] string $tokenHash, DateTimeImmutable $expiresAt)
     {
         $this->id = Uuid::v7();
-        $this->user = $user;
+        $this->account = $account;
         $this->tokenHash = $tokenHash;
         $this->expiresAt = $expiresAt;
     }
@@ -48,9 +48,9 @@ final class EmailConfirmationToken extends CreatedAtEntity
         return $this->id;
     }
 
-    public function user(): User
+    public function account(): Account
     {
-        return $this->user;
+        return $this->account;
     }
 
     public function tokenHash(): string

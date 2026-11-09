@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Meetings\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Meetings\Domain\Entity\SessionEvent;
 use App\Library\Collections\Model\Collections;
 use App\Workflow\Identity\Model\AccountReference;
@@ -14,7 +14,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class ActorReferences
 {
     /**
-     * @param ReadableCollection<non-empty-string, User> $accounts
+     * @param ReadableCollection<non-empty-string, Account> $accounts
      */
     private function __construct(
         private ReadableCollection $accounts,
@@ -22,7 +22,7 @@ final readonly class ActorReferences
     }
 
     /**
-     * @param ReadableCollection<int, User> $accounts
+     * @param ReadableCollection<int, Account> $accounts
      */
     public static function of(ReadableCollection $accounts): self
     {
@@ -53,8 +53,8 @@ final readonly class ActorReferences
     /**
      * @return non-empty-string
      */
-    private static function key(User $user): string
+    private static function key(Account $account): string
     {
-        return $user->id()->toRfc4122();
+        return $account->id()->toRfc4122();
     }
 }

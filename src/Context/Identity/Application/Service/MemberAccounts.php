@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Enum\AgeCheck;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\MemberAccountRepositoryInterface;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\MemberLink;
 use App\Context\Identity\Domain\ValueObject\MemberRecord;
 use App\Library\Problem\Exception\InvalidInput;
@@ -19,19 +19,19 @@ use Symfony\Component\Uid\Uuid;
 final readonly class MemberAccounts
 {
     public function __construct(
-        private UserRepositoryInterface $users,
+        private AccountRepositoryInterface $accounts,
         private MemberAccountRepositoryInterface $members,
     ) {
     }
 
-    public function linkable(string $email): User
+    public function linkable(string $email): Account
     {
         $account = $this->byEmail($email);
 
         return $account->status()->isActive() ? $account : throw new RuleViolation('accounts.accountInactive');
     }
 
-    public function link(User $account, MemberRecord $record, string $ageCheck, ?string $note): void
+    public function link(Account $account, MemberRecord $record, string $ageCheck, ?string $note): void
     {
         if ($account->member()->isLinkedTo($record->personId)) {
             return;
@@ -42,7 +42,7 @@ final readonly class MemberAccounts
         $account->changeMember(MemberLink::of($record->personId, $age, $note));
 
         try {
-            $this->users->save($account);
+            $this->accounts->save($account);
         } catch (UniqueConstraintViolationException) {
             throw $record->taken();
         }
@@ -85,8 +85,8 @@ final readonly class MemberAccounts
         }
     }
 
-    private function byEmail(string $email): User
+    private function byEmail(string $email): Account
     {
-        return $this->users->findByEmail($email) ?? throw NotFound::of('user');
+        return $this->accounts->findByEmail($email) ?? throw NotFound::of('user');
     }
 }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Infrastructure\Persistence\Repository;
 
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Entity\PasswordToken;
-use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Repository\PasswordTokenRepositoryInterface;
 use App\Library\Types\Model\Integers;
 use App\Library\Types\Model\Type;
@@ -24,7 +24,7 @@ final readonly class DoctrinePasswordTokenRepository implements PasswordTokenRep
     }
 
     #[Override]
-    public function countFor(Uuid $userId): int
+    public function countFor(Uuid $accountId): int
     {
         return Integers::of(
             $this->entityManager
@@ -33,7 +33,7 @@ final readonly class DoctrinePasswordTokenRepository implements PasswordTokenRep
                 ->select('count(*)')
                 ->from('identity.password_token')
                 ->where('user_id = :user')
-                ->setParameter('user', $userId->toRfc4122())
+                ->setParameter('user', $accountId->toRfc4122())
                 ->fetchOne(),
         );
     }
@@ -42,17 +42,17 @@ final readonly class DoctrinePasswordTokenRepository implements PasswordTokenRep
     public function replaceUnused(#[\SensitiveParameter] PasswordToken $token): void
     {
         $this->entityManager->wrapInTransaction(function () use ($token): void {
-            $this->forgetUnusedOf($token->user()->id());
+            $this->forgetUnusedOf($token->account()->id());
             $this->entityManager->persist($token);
             $this->entityManager->flush();
         });
     }
 
     #[Override]
-    public function forgetUnusedOf(Uuid $userId): void
+    public function forgetUnusedOf(Uuid $accountId): void
     {
         $this->entityManager->getConnection()->delete('identity.password_token', [
-            'user_id' => $userId->toRfc4122(),
+            'user_id' => $accountId->toRfc4122(),
             'used_at' => null,
         ]);
     }
@@ -61,15 +61,17 @@ final readonly class DoctrinePasswordTokenRepository implements PasswordTokenRep
     public function spend(#[\SensitiveParameter] string $tokenHash, DateTimeImmutable $at, callable $use): bool
     {
         return $this->entityManager->wrapInTransaction(function () use ($tokenHash, $at, $use): bool {
-            $userId = $this->spentBy($tokenHash, $at);
+            $accountId = $this->spentBy($tokenHash, $at);
 
-            if ($userId === null) {
+            if ($accountId === null) {
                 return false;
             }
 
-            $this->forgetUnusedOf($userId);
+            $this->forgetUnusedOf($accountId);
             $use(
-                $this->entityManager->find(User::class, $userId) ?? throw new LogicException('The token has no user.'),
+                $this->entityManager->find(Account::class, $accountId) ?? throw new LogicException(
+                    'The token has no user.',
+                ),
             );
             $this->entityManager->flush();
 
@@ -79,7 +81,7 @@ final readonly class DoctrinePasswordTokenRepository implements PasswordTokenRep
 
     private function spentBy(#[\SensitiveParameter] string $tokenHash, DateTimeImmutable $at): ?Uuid
     {
-        $userId = Type::of(
+        $accountId = Type::of(
             $this->entityManager
                 ->getConnection()
                 ->executeQuery(<<<'SQL'
@@ -92,6 +94,6 @@ final readonly class DoctrinePasswordTokenRepository implements PasswordTokenRep
                 ->fetchOne(),
         )->toStringOrNull();
 
-        return $userId === null ? null : Uuid::fromString($userId);
+        return $accountId === null ? null : Uuid::fromString($accountId);
     }
 }

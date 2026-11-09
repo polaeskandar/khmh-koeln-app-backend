@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Context\Identity\Application\Service;
 
 use App\Context\Identity\Application\Service\AccountLookup;
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
@@ -29,7 +29,7 @@ final class AccountLookupTest extends KernelTestCase
         self::assertSame(
             ['Bishoy Fahmy', 'Christine Adel', 'Daniel Michael', 'Ölga Bishara'],
             array_map(
-                static fn (User $account): string => $account->profile()->displayName->value,
+                static fn (Account $account): string => $account->profile()->displayName->value,
                 $this->lookup()->activeAllowedTo(Action::Update, Resource::Lessons),
             ),
         );

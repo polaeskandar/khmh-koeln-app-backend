@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\Privacy\Domain\ValueObject\RequestSubject;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -13,7 +13,7 @@ final readonly class RequestSubjectName
 {
     /**
      * @param ReadableCollection<non-empty-string, Person> $people
-     * @param ReadableCollection<non-empty-string, User> $accounts
+     * @param ReadableCollection<non-empty-string, Account> $accounts
      */
     public static function of(
         RequestSubject $subject,

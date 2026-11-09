@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\LessonWindow;
 use App\Context\Meetings\Domain\ValueObject\PlannedDate;
@@ -29,7 +29,7 @@ final readonly class LessonOptions
     /**
      * @param list<PlannedDate> $dates
      * @param ReadableCollection<int, Lesson> $taken
-     * @param list<User> $preparers
+     * @param list<Account> $preparers
      */
     public static function of(LessonWindow $window, array $dates, ReadableCollection $taken, array $preparers): self
     {

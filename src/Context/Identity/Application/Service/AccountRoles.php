@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Entity\Role;
-use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Interface\AdministrationLockInterface;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\RoleChange;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
@@ -18,7 +18,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class AccountRoles
 {
     public function __construct(
-        private UserRepositoryInterface $users,
+        private AccountRepositoryInterface $accounts,
         private RoleRepositoryInterface $roles,
         private LastAdministrator $lastAdministrator,
         private AdministrationLockInterface $administration,
@@ -27,12 +27,12 @@ final readonly class AccountRoles
 
     public function give(string $accountId, string $roleId): Role
     {
-        $user = $this->account($accountId);
+        $account = $this->account($accountId);
         $role = $this->role($roleId) ?? throw InvalidInput::field('roleId', 'roles.unknown');
 
-        RoleChange::ensureGivable($user, $role);
-        $user->assign($role);
-        $this->users->save($user);
+        RoleChange::ensureGivable($account, $role);
+        $account->assign($role);
+        $this->accounts->save($account);
 
         return $role;
     }
@@ -40,25 +40,25 @@ final readonly class AccountRoles
     public function take(string $accountId, string $roleId, string $actorId): void
     {
         $this->administration->whileLocked(function () use ($accountId, $roleId, $actorId): void {
-            $user = $this->account($accountId);
+            $account = $this->account($accountId);
             $role = $this->role($roleId) ?? throw NotFound::of('role');
-            OwnAdministration::ensureKept($user, $role, Uuid::fromString($actorId));
+            OwnAdministration::ensureKept($account, $role, Uuid::fromString($actorId));
 
-            if ($this->lastAdministrator->wouldLoseIt($user, $role)) {
+            if ($this->lastAdministrator->wouldLoseIt($account, $role)) {
                 throw new RuleViolation('roles.lastAdministrator');
             }
 
-            RoleChange::ensureHeld($user, $role);
-            $user->unassign($role);
-            $this->users->save($user);
+            RoleChange::ensureHeld($account, $role);
+            $account->unassign($role);
+            $this->accounts->save($account);
         });
     }
 
-    private function account(string $id): User
+    private function account(string $id): Account
     {
-        $user = Uuid::isValid($id) ? $this->users->find(Uuid::fromString($id)) : null;
+        $account = Uuid::isValid($id) ? $this->accounts->find(Uuid::fromString($id)) : null;
 
-        return $user ?? throw NotFound::of('user');
+        return $account ?? throw NotFound::of('user');
     }
 
     private function role(string $id): ?Role

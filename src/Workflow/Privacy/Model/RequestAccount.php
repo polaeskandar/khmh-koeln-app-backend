@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Entity\Role;
-use App\Context\Identity\Domain\Entity\User;
 
 final readonly class RequestAccount
 {
@@ -20,19 +20,19 @@ final readonly class RequestAccount
     ) {
     }
 
-    public static function of(?User $user): ?self
+    public static function of(?Account $account): ?self
     {
-        if ($user === null) {
+        if ($account === null) {
             return null;
         }
 
-        $profile = $user->profile();
+        $profile = $account->profile();
 
         return new self(
-            $user->id()->toRfc4122(),
+            $account->id()->toRfc4122(),
             $profile->displayName->value,
             $profile->email->value,
-            $user
+            $account
                 ->roles()
                 ->map(static fn (Role $role): string => $role->name()->value)
                 ->getValues(),

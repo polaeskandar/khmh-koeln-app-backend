@@ -25,7 +25,7 @@ final readonly class ReportView
             return null;
         }
 
-        $completer = $accounts->users->get($report->completedBy?->toRfc4122() ?? '');
+        $completer = $accounts->accounts->get($report->completedBy?->toRfc4122() ?? '');
 
         return new self(
             $report->completedAt,

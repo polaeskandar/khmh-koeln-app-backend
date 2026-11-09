@@ -31,13 +31,13 @@ final readonly class RoleGrants
         $database->persisted(Roles::named($name, $permission));
     }
 
-    public function grant(string $userId, string ...$roleKeys): void
+    public function grant(string $accountId, string ...$roleKeys): void
     {
         $connection = new Database($this->container)->connection();
 
         foreach ($roleKeys as $roleKey) {
             $connection->executeStatement('INSERT INTO identity.user_role (user_id, role_id) SELECT ?, id FROM identity.role WHERE name_key = ?', [
-                $userId,
+                $accountId,
                 $roleKey,
             ]);
         }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Identity\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Organization\Domain\Entity\RegistrationService;
 use App\Workflow\Organization\Model\ServiceReference;
 use DateTimeImmutable;
@@ -27,17 +27,19 @@ final readonly class AccountRequest
     /**
      * @param ReadableCollection<int, RegistrationService> $chosen
      */
-    public static function of(User $user, ReadableCollection $chosen): self
+    public static function of(Account $account, ReadableCollection $chosen): self
     {
-        $registration = $user->registration();
+        $registration = $account->registration();
 
         return new self(
-            account: AccountSummary::of($user),
-            registeredAt: $user->createdAt(),
+            account: AccountSummary::of($account),
+            registeredAt: $account->createdAt(),
             registeredAs: $registration->registeredAs?->value,
             note: $registration->note,
             services: $chosen
-                ->filter(static fn (RegistrationService $service): bool => $service->accountId()->equals($user->id()))
+                ->filter(static fn (RegistrationService $service): bool => $service
+                    ->accountId()
+                    ->equals($account->id()))
                 ->map(static fn (RegistrationService $service): ServiceReference => ServiceReference::of(
                     $service->service(),
                 ))

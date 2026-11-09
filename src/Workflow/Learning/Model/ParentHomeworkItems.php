@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Library\Collections\Model\Collections;
@@ -16,7 +16,7 @@ final readonly class ParentHomeworkItems
 {
     /**
      * @param ReadableCollection<string, Stage> $stages
-     * @param ReadableCollection<string, User> $reporters
+     * @param ReadableCollection<string, Account> $reporters
      */
     private function __construct(
         private ReadableCollection $stages,
@@ -27,13 +27,13 @@ final readonly class ParentHomeworkItems
 
     /**
      * @param ReadableCollection<int, Stage> $stages
-     * @param ReadableCollection<int, User> $reporters
+     * @param ReadableCollection<int, Account> $reporters
      */
     public static function of(ReadableCollection $stages, ReadableCollection $reporters, Uuid $viewerId): self
     {
         return new self(
             Collections::firstPerKey($stages, keyOf: self::stageKey(...)),
-            Collections::firstPerKey($reporters, keyOf: self::userKey(...)),
+            Collections::firstPerKey($reporters, keyOf: self::accountKey(...)),
             $viewerId,
         );
     }
@@ -96,8 +96,8 @@ final readonly class ParentHomeworkItems
         return $stage->id()->toRfc4122();
     }
 
-    private static function userKey(User $user): string
+    private static function accountKey(Account $account): string
     {
-        return $user->id()->toRfc4122();
+        return $account->id()->toRfc4122();
     }
 }

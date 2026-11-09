@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Identity\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 
 final readonly class AccountSummary
 {
@@ -16,12 +16,12 @@ final readonly class AccountSummary
     ) {
     }
 
-    public static function of(User $user): self
+    public static function of(Account $account): self
     {
-        $profile = $user->profile();
+        $profile = $account->profile();
 
         return new self(
-            $user->id()->toRfc4122(),
+            $account->id()->toRfc4122(),
             $profile->email->value,
             $profile->displayName->value,
             $profile->language->value,

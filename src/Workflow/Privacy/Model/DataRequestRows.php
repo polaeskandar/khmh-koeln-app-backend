@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\Privacy\Domain\Entity\DataRequest;
 use App\Library\Collections\Model\Collections;
@@ -17,7 +17,7 @@ final readonly class DataRequestRows
 {
     /**
      * @param ReadableCollection<non-empty-string, Person> $people
-     * @param ReadableCollection<non-empty-string, User> $accounts
+     * @param ReadableCollection<non-empty-string, Account> $accounts
      */
     private function __construct(
         private ReadableCollection $people,
@@ -29,7 +29,7 @@ final readonly class DataRequestRows
     /**
      * @param list<DataRequest> $requests
      * @param ReadableCollection<int, Person> $people
-     * @param ReadableCollection<int, User> $accounts
+     * @param ReadableCollection<int, Account> $accounts
      *
      * @return list<DataRequestRow>
      */
@@ -37,7 +37,7 @@ final readonly class DataRequestRows
     {
         $rows = new self(
             Collections::firstPerKey($people, keyOf: static fn (Person $person): string => $person->id()->toRfc4122()),
-            Collections::firstPerKey($accounts, keyOf: static fn (User $user): string => $user->id()->toRfc4122()),
+            Collections::firstPerKey($accounts, keyOf: self::accountKey(...)),
             AccountReferences::of($accounts),
         );
 
@@ -85,5 +85,13 @@ final readonly class DataRequestRows
             RequestSubjectName::of($request->subject(), $this->people, $this->accounts),
             $this->references->referenceOf($request->closing()->by),
         );
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private static function accountKey(Account $account): string
+    {
+        return $account->id()->toRfc4122();
     }
 }

@@ -7,7 +7,7 @@ namespace App\Workflow\Identity;
 use App\Context\Identity\Application\Service\ApprovedAccounts;
 use SensitiveParameter;
 
-final readonly class CreateUserWorkflow
+final readonly class CreateAccountWorkflow
 {
     public function __construct(
         private ApprovedAccounts $accounts,

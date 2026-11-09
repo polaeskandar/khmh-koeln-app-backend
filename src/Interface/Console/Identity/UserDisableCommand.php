@@ -7,7 +7,7 @@ namespace App\Interface\Console\Identity;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\Text;
-use App\Workflow\Identity\DisableUserWorkflow;
+use App\Workflow\Identity\DisableAccountWorkflow;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -17,7 +17,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final readonly class UserDisableCommand
 {
     public function __construct(
-        private DisableUserWorkflow $disableUser,
+        private DisableAccountWorkflow $disableAccount,
     ) {
     }
 
@@ -27,7 +27,7 @@ final readonly class UserDisableCommand
         string $email,
     ): int {
         try {
-            ($this->disableUser)($email);
+            ($this->disableAccount)($email);
         } catch (NotFound|RuleViolation $refused) {
             $io->error($refused->getMessage());
 

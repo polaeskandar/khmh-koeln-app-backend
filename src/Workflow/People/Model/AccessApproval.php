@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\People\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\People\Domain\Entity\GuardianRelationship;
 use App\Workflow\Identity\Model\AccountReference;
 use DateTimeImmutable;
@@ -19,7 +19,7 @@ final readonly class AccessApproval
     }
 
     /**
-     * @param ReadableCollection<non-empty-string, User> $accounts
+     * @param ReadableCollection<non-empty-string, Account> $accounts
      */
     public static function of(GuardianRelationship $link, ReadableCollection $accounts): self
     {

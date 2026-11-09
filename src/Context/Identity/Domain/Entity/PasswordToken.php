@@ -23,7 +23,7 @@ final class PasswordToken extends CreatedAtEntity
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'user_id', nullable: false, onDelete: 'CASCADE')]
-    private readonly User $user;
+    private readonly Account $account;
 
     #[ORM\Column(name: 'token_hash', length: 64, options: ['fixed' => true])]
     private readonly string $tokenHash;
@@ -36,12 +36,12 @@ final class PasswordToken extends CreatedAtEntity
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'created_by', nullable: true, onDelete: 'SET NULL')]
-    private readonly ?User $createdBy;
+    private readonly ?Account $createdBy;
 
-    public function __construct(User $user, string $tokenHash, DateTimeImmutable $expiresAt, ?User $createdBy)
+    public function __construct(Account $account, string $tokenHash, DateTimeImmutable $expiresAt, ?Account $createdBy)
     {
         $this->id = Uuid::v7();
-        $this->user = $user;
+        $this->account = $account;
         $this->tokenHash = $tokenHash;
         $this->expiresAt = $expiresAt;
         $this->createdBy = $createdBy;
@@ -52,9 +52,9 @@ final class PasswordToken extends CreatedAtEntity
         return $this->id;
     }
 
-    public function user(): User
+    public function account(): Account
     {
-        return $this->user;
+        return $this->account;
     }
 
     public function tokenHash(): string
@@ -72,7 +72,7 @@ final class PasswordToken extends CreatedAtEntity
         return $this->usedAt;
     }
 
-    public function createdBy(): ?User
+    public function createdBy(): ?Account
     {
         return $this->createdBy;
     }

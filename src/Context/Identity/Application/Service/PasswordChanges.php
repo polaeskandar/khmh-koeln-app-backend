@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Interface\PasswordHasherInterface;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\PasswordTokenRepositoryInterface;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\PlainPassword;
 use App\Library\Checksum\Model\Checksum;
 use App\Library\Time\Client\Calendar;
@@ -18,7 +18,7 @@ final readonly class PasswordChanges
 {
     public function __construct(
         private PasswordTokenRepositoryInterface $tokens,
-        private UserRepositoryInterface $users,
+        private AccountRepositoryInterface $accounts,
         private PasswordHasherInterface $hasher,
         private Calendar $calendar,
         private ApiTokens $apiTokens,
@@ -29,11 +29,11 @@ final readonly class PasswordChanges
     {
         $plain = PlainPassword::of($password);
 
-        return $this->tokens->spend(Checksum::sha256($token), $this->calendar->now(), function (User $user) use (
+        return $this->tokens->spend(Checksum::sha256($token), $this->calendar->now(), function (Account $account) use (
             $plain,
         ): void {
-            $user->changePassword($this->hasher->hash($plain));
-            $this->apiTokens->revokeAllOf($user->id());
+            $account->changePassword($this->hasher->hash($plain));
+            $this->apiTokens->revokeAllOf($account->id());
         });
     }
 
@@ -47,13 +47,17 @@ final readonly class PasswordChanges
         $password = PlainPassword::of($new, field: 'newPassword');
         $changed = false;
 
-        $this->users->withWriteLock($accountId, function (User $user) use ($current, $password, &$changed): void {
-            if (!$this->hasher->matches($user->passwordHash(), $current)) {
+        $this->accounts->withWriteLock($accountId, function (Account $account) use (
+            $current,
+            $password,
+            &$changed,
+        ): void {
+            if (!$this->hasher->matches($account->passwordHash(), $current)) {
                 return;
             }
 
-            $user->changePassword($this->hasher->hash($password));
-            $this->apiTokens->revokeAllOf($user->id());
+            $account->changePassword($this->hasher->hash($password));
+            $this->apiTokens->revokeAllOf($account->id());
             $changed = true;
         });
 

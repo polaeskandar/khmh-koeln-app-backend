@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use DateTimeImmutable;
 
 final readonly class PrivacyAcceptance
@@ -15,9 +15,9 @@ final readonly class PrivacyAcceptance
     ) {
     }
 
-    public static function of(User $user): self
+    public static function of(Account $account): self
     {
-        $registration = $user->registration();
+        $registration = $account->registration();
 
         return new self($registration->privacyAcceptedAt, $registration->privacyVersion);
     }

@@ -33,14 +33,14 @@ final readonly class GiveParentAccessWorkflow
     }
 
     public function __invoke(
-        string $userId,
+        string $accountId,
         string $personId,
         string $relationship,
         string $approvedBy,
     ): ParentAccessItem {
         $this->access->require(Action::Update, Resource::Users, refusal: 'guardians.adminOnlyGrant');
 
-        $parent = $this->accounts->active($userId);
+        $parent = $this->accounts->active($accountId);
         $child = $this->grants->child($personId);
         $grant = new AccessGrant($parent->id(), $parent->profile()->displayName->value, $relationship, $approvedBy);
 

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Entity\PasswordToken;
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\PasswordTokenRepositoryInterface;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Checksum\Model\Checksum;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
@@ -29,7 +29,7 @@ final readonly class PasswordLinks
     private const string VALID_UNTIL = 'd.m.Y H:i';
 
     public function __construct(
-        private UserRepositoryInterface $users,
+        private AccountRepositoryInterface $accounts,
         private PasswordTokenRepositoryInterface $tokens,
         private AccountMailer $mailer,
         private Calendar $calendar,
@@ -39,48 +39,48 @@ final readonly class PasswordLinks
 
     public function sendTo(string $email): DateTimeImmutable
     {
-        $user = $this->users->findByEmail($email) ?? throw NotFound::of('account');
+        $account = $this->accounts->findByEmail($email) ?? throw NotFound::of('account');
 
-        return $this->issue($this->active($user), self::LIFETIME_HOURS, createdBy: null);
+        return $this->issue($this->active($account), self::LIFETIME_HOURS, createdBy: null);
     }
 
     public function sendToAccount(string $accountId, string $actorId): DateTimeImmutable
     {
-        $user = $this->account($accountId);
+        $account = $this->account($accountId);
 
-        return $this->issue($this->active($user), self::LIFETIME_HOURS, createdBy: $this->account($actorId));
+        return $this->issue($this->active($account), self::LIFETIME_HOURS, createdBy: $this->account($actorId));
     }
 
     public function resetFor(string $email): void
     {
-        $user = $this->users->findByEmail($email);
+        $account = $this->accounts->findByEmail($email);
 
-        if ($user?->status()->isActive() === true) {
-            $this->issue($user, self::RESET_LIFETIME_HOURS, createdBy: null);
+        if ($account?->status()->isActive() === true) {
+            $this->issue($account, self::RESET_LIFETIME_HOURS, createdBy: null);
         }
     }
 
-    private function active(User $user): User
+    private function active(Account $account): Account
     {
-        return $user->status()->isActive() ? $user : throw new RuleViolation('accounts.passwordLinkUnavailable');
+        return $account->status()->isActive() ? $account : throw new RuleViolation('accounts.passwordLinkUnavailable');
     }
 
-    private function account(string $id): User
+    private function account(string $id): Account
     {
-        $user = Uuid::isValid($id) ? $this->users->find(Uuid::fromString($id)) : null;
+        $account = Uuid::isValid($id) ? $this->accounts->find(Uuid::fromString($id)) : null;
 
-        return $user ?? throw NotFound::of('user');
+        return $account ?? throw NotFound::of('user');
     }
 
-    private function issue(User $user, int $hours, ?User $createdBy): DateTimeImmutable
+    private function issue(Account $account, int $hours, ?Account $createdBy): DateTimeImmutable
     {
         $token = ByteString::fromRandom(self::TOKEN_LENGTH, self::TOKEN_ALPHABET)->toString();
         $expiresAt = $this->calendar->now()->addHours($hours);
 
-        $this->tokens->replaceUnused(new PasswordToken($user, Checksum::sha256($token), $expiresAt, $createdBy));
+        $this->tokens->replaceUnused(new PasswordToken($account, Checksum::sha256($token), $expiresAt, $createdBy));
 
-        $this->mailer->send($user, template: 'password_link', params: [
-            'url' => $this->links->to($user, 'set-password/#token=' . $token),
+        $this->mailer->send($account, template: 'password_link', params: [
+            'url' => $this->links->to($account, 'set-password/#token=' . $token),
             'validUntil' => $expiresAt->format(self::VALID_UNTIL),
         ]);
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 
 final readonly class RegistrationView
 {
@@ -14,13 +14,13 @@ final readonly class RegistrationView
     ) {
     }
 
-    public static function pendingOf(User $user): ?self
+    public static function pendingOf(Account $account): ?self
     {
-        if (!$user->status()->isPending()) {
+        if (!$account->status()->isPending()) {
             return null;
         }
 
-        $registration = $user->registration();
+        $registration = $account->registration();
 
         return new self($registration->registeredAs?->value, $registration->note);
     }

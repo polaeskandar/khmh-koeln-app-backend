@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Identity;
 
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\People\Application\Service\Guardianship;
 use App\Context\People\Domain\Entity\GuardianRelationship;
 use App\Tests\Support\ApiTestCase;
@@ -73,7 +73,7 @@ final class AccountRequestsControllerApprovalTest extends ApiTestCase
                 $adminId,
             ]));
 
-        $parent = $this->users()->findByEmail(self::PARENT);
+        $parent = $this->accounts()->findByEmail(self::PARENT);
         self::assertNotNull($parent);
 
         $children = $this
@@ -241,12 +241,12 @@ final class AccountRequestsControllerApprovalTest extends ApiTestCase
         $this->jsonRequest('POST', '/api/account-requests/' . $id . '/approve', $body);
     }
 
-    private function users(): UserRepositoryInterface
+    private function accounts(): AccountRepositoryInterface
     {
-        $users = self::getContainer()->get(UserRepositoryInterface::class);
-        self::assertInstanceOf(UserRepositoryInterface::class, $users);
+        $accounts = self::getContainer()->get(AccountRepositoryInterface::class);
+        self::assertInstanceOf(AccountRepositoryInterface::class, $accounts);
 
-        return $users;
+        return $accounts;
     }
 
     private function guardianship(): Guardianship

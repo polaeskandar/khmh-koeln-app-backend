@@ -6,8 +6,8 @@ namespace App\Tests\Support\Context\Identity\Application\Service;
 
 use App\Context\Identity\Application\Service\LastAdministrator;
 use App\Context\Identity\Application\Service\RoleAssignments;
-use App\Context\Identity\Domain\Entity\User;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\Entity\Account;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Database;
@@ -25,7 +25,7 @@ final readonly class RoleAssignmentFixtures
     /**
      * @param array<string, string|null> $columns
      */
-    public function account(string $email, array $columns = [], string ...$roles): User
+    public function account(string $email, array $columns = [], string ...$roles): Account
     {
         $id = Uuid::v7()->toRfc4122();
 
@@ -40,10 +40,10 @@ final readonly class RoleAssignmentFixtures
 
         new RoleGrants($this->container)->grant($id, ...$roles);
 
-        $user = $this->service(UserRepositoryInterface::class)->findByEmail($email);
-        Assert::assertInstanceOf(User::class, $user);
+        $account = $this->service(AccountRepositoryInterface::class)->findByEmail($email);
+        Assert::assertInstanceOf(Account::class, $account);
 
-        return $user;
+        return $account;
     }
 
     /**

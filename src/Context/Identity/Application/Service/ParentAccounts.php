@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\ActiveAccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -18,27 +18,27 @@ final readonly class ParentAccounts
     public const string PARENT_ROLE = 'Parent';
 
     public function __construct(
-        private UserRepositoryInterface $users,
+        private AccountRepositoryInterface $accounts,
         private RoleRepositoryInterface $roles,
         private ActiveAccountRepositoryInterface $activeAccounts,
     ) {
     }
 
-    public function byEmail(string $email): User
+    public function byEmail(string $email): Account
     {
-        return $this->users->findByEmail($email) ?? throw NotFound::of('account');
+        return $this->accounts->findByEmail($email) ?? throw NotFound::of('account');
     }
 
-    public function activeByEmail(string $email): User
+    public function activeByEmail(string $email): Account
     {
         $account = $this->byEmail($email);
 
         return $account->status()->isActive() ? $account : throw new RuleViolation('guardians.accountInactive');
     }
 
-    public function active(string $id): User
+    public function active(string $id): Account
     {
-        $account = (Uuid::isValid($id) ? $this->users->find(Uuid::fromString($id)) : null) ?? throw NotFound::of(
+        $account = (Uuid::isValid($id) ? $this->accounts->find(Uuid::fromString($id)) : null) ?? throw NotFound::of(
             'user',
         );
 
@@ -48,11 +48,11 @@ final readonly class ParentAccounts
     /**
      * @param list<Uuid> $ids
      *
-     * @return ReadableCollection<int, User>
+     * @return ReadableCollection<int, Account>
      */
     public function accounts(array $ids): ReadableCollection
     {
-        return $this->users->findByIds($ids);
+        return $this->accounts->findByIds($ids);
     }
 
     /**
@@ -65,7 +65,7 @@ final readonly class ParentAccounts
         return $this->activeAccounts->listed($limit);
     }
 
-    public function giveParentRole(User $account): void
+    public function giveParentRole(Account $account): void
     {
         $parent = $this->roles->findByName(self::PARENT_ROLE) ?? throw NotFound::of('role');
 
@@ -74,6 +74,6 @@ final readonly class ParentAccounts
         }
 
         $account->assign($parent);
-        $this->users->save($account);
+        $this->accounts->save($account);
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Identity\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 
 final readonly class GroupServant
 {
@@ -15,7 +15,7 @@ final readonly class GroupServant
     ) {
     }
 
-    public static function of(User $account, string $role): self
+    public static function of(Account $account, string $role): self
     {
         return new self($account->id()->toRfc4122(), $account->profile()->displayName->value, $role);
     }

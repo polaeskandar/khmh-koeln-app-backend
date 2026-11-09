@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Context\Identity\Infrastructure\Security;
 
 use App\Context\Identity\Domain\Entity\ApiToken;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\ApiTokenRepositoryInterface;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Checksum\Model\Checksum;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Strings\Model\InputText;
@@ -36,7 +36,7 @@ final readonly class ApiTokenIssuer implements AuthenticationSuccessHandlerInter
 
     public function __construct(
         private ApiTokenRepositoryInterface $tokens,
-        private UserRepositoryInterface $users,
+        private AccountRepositoryInterface $accounts,
         private Calendar $calendar,
         private SerializerInterface $serializer,
         #[Autowire(env: 'API_TOKEN_LIFETIME')]
@@ -47,13 +47,16 @@ final readonly class ApiTokenIssuer implements AuthenticationSuccessHandlerInter
     #[Override]
     public function onAuthenticationSuccess(Request $request, #[SensitiveParameter] TokenInterface $token): Response
     {
-        $user = $this->users->find(Uuid::fromString($token->getUserIdentifier())) ?? throw new LogicException(
+        $account = $this->accounts->find(Uuid::fromString($token->getUserIdentifier())) ?? throw new LogicException(
             'A signed-in account exists.',
         );
 
         $secret = ByteString::fromRandom(self::TOKEN_LENGTH, self::TOKEN_ALPHABET)->toString();
         $expiresAt = $this->calendar->now()->add(new DateInterval($this->lifetime))->toDateTimeImmutable();
-        $this->tokens->save(new ApiToken($user, Checksum::sha256($secret), self::deviceNameOf($request), $expiresAt));
+
+        $this->tokens->save(
+            new ApiToken($account, Checksum::sha256($secret), self::deviceNameOf($request), $expiresAt),
+        );
 
         $body = $this->serializer->serialize(['token' => $secret, 'expiresAt' => $expiresAt], 'json');
 

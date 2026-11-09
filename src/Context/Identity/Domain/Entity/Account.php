@@ -26,7 +26,7 @@ use Symfony\Component\Uid\Uuid;
     columns: ['person_id'],
     options: ['where' => '(person_id IS NOT NULL)'],
 )]
-final class User extends CreatedAtEntity
+final class Account extends CreatedAtEntity
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]

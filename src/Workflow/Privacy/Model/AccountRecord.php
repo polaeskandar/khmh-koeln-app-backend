@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Entity\Role;
-use App\Context\Identity\Domain\Entity\User;
 
 final readonly class AccountRecord
 {
@@ -21,17 +21,17 @@ final readonly class AccountRecord
     ) {
     }
 
-    public static function of(User $user): self
+    public static function of(Account $account): self
     {
         return new self(
-            identity: AccountIdentity::of($user),
-            moments: AccountMoments::of($user),
-            privacy: PrivacyAcceptance::of($user),
-            roles: $user
+            identity: AccountIdentity::of($account),
+            moments: AccountMoments::of($account),
+            privacy: PrivacyAcceptance::of($account),
+            roles: $account
                 ->roles()
                 ->map(static fn (Role $role): string => $role->name()->value)
                 ->getValues(),
-            registration: RegistrationView::pendingOf($user),
+            registration: RegistrationView::pendingOf($account),
         );
     }
 }

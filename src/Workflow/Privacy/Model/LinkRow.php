@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\People\Domain\Entity\GuardianRelationship;
 use App\Library\Collections\Model\Collections;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -24,7 +24,7 @@ final readonly class LinkRow
 
     /**
      * @param ReadableCollection<int, GuardianRelationship> $links
-     * @param ReadableCollection<int, User> $accounts
+     * @param ReadableCollection<int, Account> $accounts
      *
      * @return list<self>
      */
@@ -69,8 +69,8 @@ final readonly class LinkRow
         return $link->isApproved() ? self::APPROVED : self::REVOKED;
     }
 
-    private static function accountKey(User $user): string
+    private static function accountKey(Account $account): string
     {
-        return $user->id()->toRfc4122();
+        return $account->id()->toRfc4122();
     }
 }

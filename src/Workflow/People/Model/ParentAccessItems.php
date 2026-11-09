@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\People\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\People\Domain\Entity\GuardianRelationship;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
@@ -20,7 +20,7 @@ final readonly class ParentAccessItems
     private const string COLLATION = 'de';
 
     /**
-     * @param ReadableCollection<non-empty-string, User> $accounts
+     * @param ReadableCollection<non-empty-string, Account> $accounts
      * @param ReadableCollection<int, Membership> $memberships
      */
     private function __construct(
@@ -32,7 +32,7 @@ final readonly class ParentAccessItems
 
     /**
      * @param ReadableCollection<int, GuardianRelationship> $links
-     * @param ReadableCollection<int, User> $accounts the parents and approvers
+     * @param ReadableCollection<int, Account> $accounts the parents and approvers
      * @param ReadableCollection<int, Membership> $memberships the children's current memberships
      *
      * @return list<ParentAccessItem>
@@ -43,7 +43,7 @@ final readonly class ParentAccessItems
         ReadableCollection $memberships,
         Placements $placements,
     ): array {
-        $keyed = Collections::firstPerKey($accounts, keyOf: static fn (User $user): string => $user->id()->toRfc4122());
+        $keyed = Collections::firstPerKey($accounts, keyOf: self::accountKey(...));
         $items = new self($keyed, $memberships, $placements);
         $collator = new Collator(self::COLLATION);
 
@@ -115,5 +115,13 @@ final readonly class ParentAccessItems
             $item->child->firstName,
             $item->id,
         )->toString();
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private static function accountKey(Account $account): string
+    {
+        return $account->id()->toRfc4122();
     }
 }

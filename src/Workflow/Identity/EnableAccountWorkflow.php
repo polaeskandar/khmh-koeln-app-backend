@@ -6,7 +6,7 @@ namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\DisabledAccounts;
 
-final readonly class DisableUserWorkflow
+final readonly class EnableAccountWorkflow
 {
     public function __construct(
         private DisabledAccounts $accounts,
@@ -15,6 +15,6 @@ final readonly class DisableUserWorkflow
 
     public function __invoke(string $email): void
     {
-        $this->accounts->disable($email);
+        $this->accounts->enable($email);
     }
 }

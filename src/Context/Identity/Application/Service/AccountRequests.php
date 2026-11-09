@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Entity\Role;
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -19,7 +19,7 @@ final readonly class AccountRequests
     private const int LISTED = 200;
 
     public function __construct(
-        private UserRepositoryInterface $users,
+        private AccountRepositoryInterface $accounts,
         private RoleRepositoryInterface $roles,
         private LoggerInterface $logger,
     ) {
@@ -34,33 +34,33 @@ final readonly class AccountRequests
     }
 
     /**
-     * @return ReadableCollection<int, User>
+     * @return ReadableCollection<int, Account>
      */
     public function pending(): ReadableCollection
     {
-        return $this->users->pending(self::LISTED);
+        return $this->accounts->pending(self::LISTED);
     }
 
     public function ensurePending(string $id): void
     {
-        self::ensureUndecided($this->users->find(self::idOf($id)) ?? throw NotFound::of('user'));
+        self::ensureUndecided($this->accounts->find(self::idOf($id)) ?? throw NotFound::of('user'));
     }
 
     /**
-     * @param callable(User): void $decision
+     * @param callable(Account): void $decision
      */
     public function decide(string $id, callable $decision): void
     {
-        $this->users->withWriteLock(self::idOf($id), static function (User $user) use ($decision): void {
-            self::ensureUndecided($user);
-            $decision($user);
+        $this->accounts->withWriteLock(self::idOf($id), static function (Account $account) use ($decision): void {
+            self::ensureUndecided($account);
+            $decision($account);
         });
     }
 
-    public function decline(User $user): void
+    public function decline(Account $account): void
     {
-        $this->users->remove($user);
-        $this->logger->info('Declined an account request.', ['account' => $user->id()->toRfc4122()]);
+        $this->accounts->remove($account);
+        $this->logger->info('Declined an account request.', ['account' => $account->id()->toRfc4122()]);
     }
 
     private static function idOf(string $id): Uuid
@@ -68,9 +68,9 @@ final readonly class AccountRequests
         return Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('user');
     }
 
-    private static function ensureUndecided(User $user): void
+    private static function ensureUndecided(Account $account): void
     {
-        if (!$user->status()->isPending()) {
+        if (!$account->status()->isPending()) {
             throw new RuleViolation('accounts.alreadyApproved');
         }
     }

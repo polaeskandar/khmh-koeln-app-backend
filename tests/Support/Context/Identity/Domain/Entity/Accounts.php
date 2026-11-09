@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Context\Identity\Domain\Entity;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\ValueObject\AccountStatus;
 use App\Context\Identity\Domain\ValueObject\DisplayName;
@@ -16,9 +16,9 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class Accounts
 {
-    public static function approved(string $email, string $passwordHash = 'not-a-real-hash'): User
+    public static function approved(string $email, string $passwordHash = 'not-a-real-hash'): Account
     {
-        return new User(
+        return new Account(
             new Profile(Email::of($email), DisplayName::of('Sara Hanna'), Language::German),
             passwordHash: $passwordHash,
             status: AccountStatus::pending()->approvedOn(new DateTimeImmutable('2026-11-08T12:00:00+01:00')),

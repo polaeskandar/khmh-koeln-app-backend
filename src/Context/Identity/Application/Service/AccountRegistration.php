@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\Enum\RegisteredAs;
 use App\Context\Identity\Domain\Interface\PasswordHasherInterface;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\AccountStatus;
 use App\Context\Identity\Domain\ValueObject\DisplayName;
 use App\Context\Identity\Domain\ValueObject\Email;
@@ -27,7 +27,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class AccountRegistration
 {
     public function __construct(
-        private UserRepositoryInterface $users,
+        private AccountRepositoryInterface $accounts,
         private PasswordHasherInterface $hasher,
         private Calendar $calendar,
         private EmailConfirmations $confirmations,
@@ -61,7 +61,7 @@ final readonly class AccountRegistration
 
         $passwordHash = $this->hasher->hash(PlainPassword::of($password));
 
-        $existing = $this->users->findByEmail($profile->email->value);
+        $existing = $this->accounts->findByEmail($profile->email->value);
 
         if ($existing !== null) {
             $this->confirmations->remind($existing);
@@ -76,10 +76,10 @@ final readonly class AccountRegistration
             privacyVersion: $this->privacyNoticeVersion,
         );
 
-        $user = new User($profile, $passwordHash, AccountStatus::pending(), $registration, roles: []);
-        $this->users->save($user);
+        $account = new Account($profile, $passwordHash, AccountStatus::pending(), $registration, roles: []);
+        $this->accounts->save($account);
 
-        return $user->id();
+        return $account->id();
     }
 
     public function sendConfirmation(?Uuid $registered): void
@@ -93,13 +93,13 @@ final readonly class AccountRegistration
 
     public function markEmailConfirmed(Uuid $accountId): void
     {
-        $user = $this->account($accountId);
-        $user->changeStatus($user->status()->emailConfirmedOn($user->createdAt()));
-        $this->users->save($user);
+        $account = $this->account($accountId);
+        $account->changeStatus($account->status()->emailConfirmedOn($account->createdAt()));
+        $this->accounts->save($account);
     }
 
-    private function account(Uuid $accountId): User
+    private function account(Uuid $accountId): Account
     {
-        return $this->users->find($accountId) ?? throw NotFound::of('user');
+        return $this->accounts->find($accountId) ?? throw NotFound::of('user');
     }
 }

@@ -7,7 +7,7 @@ namespace App\Workflow\Identity;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountApprovals;
 use App\Context\Identity\Application\Service\MemberAccounts;
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\ValueObject\MemberRecord;
@@ -37,12 +37,10 @@ final readonly class ApproveMemberRequestWorkflow
         $this->access->require(Action::Update, Resource::Users, refusal: 'accounts.adminOnly');
 
         try {
-            $approved = $this->records->whileLinkable($member->personId, fn (Person $person): User => $this->approved(
-                $id,
-                $actorId,
-                $person,
-                $member,
-            ));
+            $approved = $this->records->whileLinkable(
+                $member->personId,
+                fn (Person $person): Account => $this->approved($id, $actorId, $person, $member),
+            );
         } catch (InvalidInput $invalid) {
             throw $invalid->nestedIn(self::FIELDS);
         }
@@ -52,16 +50,16 @@ final readonly class ApproveMemberRequestWorkflow
         return AccountSummary::of($approved);
     }
 
-    private function approved(string $id, string $actorId, Person $person, MemberApproval $member): User
+    private function approved(string $id, string $actorId, Person $person, MemberApproval $member): Account
     {
         $record = new MemberRecord($person->id(), $person->name()->fullName());
 
-        return $this->approvals->approve($id, $actorId, new ArrayCollection(), function (User $user) use (
+        return $this->approvals->approve($id, $actorId, new ArrayCollection(), function (Account $account) use (
             $record,
             $member,
         ): void {
-            $this->members->link($user, $record, $member->ageCheck, $member->guardianConsentNote);
-            $this->registrations->forget($user->id());
+            $this->members->link($account, $record, $member->ageCheck, $member->guardianConsentNote);
+            $this->registrations->forget($account->id());
         });
     }
 }

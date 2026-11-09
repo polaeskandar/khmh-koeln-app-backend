@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Infrastructure\Security;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\ValueObject\AccountStatus;
 use App\Library\Checksum\Model\Checksum;
 use App\Library\Strings\Model\Text;
@@ -57,14 +57,14 @@ final readonly class SecurityUser implements UserInterface, PasswordAuthenticate
         );
     }
 
-    public static function of(User $user): self
+    public static function of(Account $account): self
     {
         return new self(
-            $user->id()->toRfc4122(),
-            $user->passwordHash(),
-            Checksum::fingerprint($user->passwordHash()),
-            self::fingerprintOf($user->status()),
-            $user->status(),
+            $account->id()->toRfc4122(),
+            $account->passwordHash(),
+            Checksum::fingerprint($account->passwordHash()),
+            self::fingerprintOf($account->status()),
+            $account->status(),
         );
     }
 

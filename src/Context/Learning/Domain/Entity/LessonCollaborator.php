@@ -20,7 +20,7 @@ final class LessonCollaborator
         private readonly Lesson $lesson,
         #[ORM\Id]
         #[ORM\Column(name: 'user_id', type: UuidType::NAME)]
-        private readonly Uuid $userId,
+        private readonly Uuid $accountId,
     ) {
     }
 
@@ -29,8 +29,8 @@ final class LessonCollaborator
         return $this->lesson;
     }
 
-    public function userId(): Uuid
+    public function accountId(): Uuid
     {
-        return $this->userId;
+        return $this->accountId;
     }
 }

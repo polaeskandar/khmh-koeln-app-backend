@@ -24,7 +24,7 @@ final class ApiToken extends CreatedAtEntity
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'user_id', nullable: false, onDelete: 'CASCADE')]
-    private readonly User $user;
+    private readonly Account $account;
 
     #[ORM\Column(name: 'token_hash', length: 64, options: ['fixed' => true])]
     private readonly string $tokenHash;
@@ -42,14 +42,14 @@ final class ApiToken extends CreatedAtEntity
     private ?DateTimeImmutable $revokedAt = null;
 
     public function __construct(
-        User $user,
+        Account $account,
         #[SensitiveParameter]
         string $tokenHash,
         ?string $deviceName,
         DateTimeImmutable $expiresAt,
     ) {
         $this->id = Uuid::v7();
-        $this->user = $user;
+        $this->account = $account;
         $this->tokenHash = $tokenHash;
         $this->deviceName = $deviceName;
         $this->expiresAt = $expiresAt;
@@ -60,9 +60,9 @@ final class ApiToken extends CreatedAtEntity
         return $this->id;
     }
 
-    public function user(): User
+    public function account(): Account
     {
-        return $this->user;
+        return $this->account;
     }
 
     public function tokenHash(): string

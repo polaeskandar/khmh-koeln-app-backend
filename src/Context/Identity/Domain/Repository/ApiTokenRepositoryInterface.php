@@ -17,5 +17,5 @@ interface ApiTokenRepositoryInterface
 
     public function revoke(#[SensitiveParameter] string $tokenHash, DateTimeImmutable $at): void;
 
-    public function revokeAllOf(Uuid $userId, DateTimeImmutable $at): void;
+    public function revokeAllOf(Uuid $accountId, DateTimeImmutable $at): void;
 }

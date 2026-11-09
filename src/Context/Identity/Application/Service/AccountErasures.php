@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\PersonTraceRepositoryInterface;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\AccountErased;
 use App\Library\Problem\Exception\NotFound;
 use Symfony\Component\Uid\Uuid;
@@ -13,7 +13,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class AccountErasures
 {
     public function __construct(
-        private UserRepositoryInterface $users,
+        private AccountRepositoryInterface $accounts,
         private PersonTraceRepositoryInterface $people,
         private AccountRemovals $removals,
         private AccountSweeps $sweeps,
@@ -27,12 +27,12 @@ final readonly class AccountErasures
 
     public function recordOfAccount(?Uuid $accountId): ?Uuid
     {
-        return $accountId === null ? null : $this->users->find($accountId)?->member()->personId;
+        return $accountId === null ? null : $this->accounts->find($accountId)?->member()->personId;
     }
 
     public function erase(Uuid $accountId): AccountErased
     {
-        if ($this->users->find($accountId) === null) {
+        if ($this->accounts->find($accountId) === null) {
             $this->sweeps->sweep($accountId);
 
             throw NotFound::of('account');

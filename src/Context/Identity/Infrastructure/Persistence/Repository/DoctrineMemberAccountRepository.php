@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Infrastructure\Persistence\Repository;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Repository\MemberAccountRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use App\Library\Types\Model\Type;
@@ -44,9 +44,9 @@ final readonly class DoctrineMemberAccountRepository implements MemberAccountRep
     }
 
     #[Override]
-    public function holderOf(Uuid $personId): ?User
+    public function holderOf(Uuid $personId): ?Account
     {
-        return $this->entityManager->getRepository(User::class)->findOneBy(['member.personId' => $personId]);
+        return $this->entityManager->getRepository(Account::class)->findOneBy(['member.personId' => $personId]);
     }
 
     /**

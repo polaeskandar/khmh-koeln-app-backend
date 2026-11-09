@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Context\People\Infrastructure\Security;
 
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Infrastructure\Security\SecurityUser;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Infrastructure\Security\GuardianVoter;
@@ -76,16 +76,16 @@ final class GuardianVoterTest extends KernelTestCase
 
     private function actsFor(string $accountId, Person $child): bool
     {
-        $users = self::getContainer()->get(UserRepositoryInterface::class);
-        self::assertInstanceOf(UserRepositoryInterface::class, $users);
-        $user = $users->find(Uuid::fromString($accountId));
-        self::assertNotNull($user);
+        $accounts = self::getContainer()->get(AccountRepositoryInterface::class);
+        self::assertInstanceOf(AccountRepositoryInterface::class, $accounts);
+        $account = $accounts->find(Uuid::fromString($accountId));
+        self::assertNotNull($account);
 
         $decisions = self::getContainer()->get('security.access.decision_manager');
         self::assertInstanceOf(AccessDecisionManagerInterface::class, $decisions);
 
         return $decisions->decide(
-            new UsernamePasswordToken(SecurityUser::of($user), 'api', ['ROLE_USER']),
+            new UsernamePasswordToken(SecurityUser::of($account), 'api', ['ROLE_USER']),
             [GuardianVoter::ACT_FOR_CHILD],
             $child,
         );

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Entity\EmailConfirmationToken;
-use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Repository\EmailConfirmationTokenRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\Email;
 use App\Library\Checksum\Model\Checksum;
@@ -36,9 +36,9 @@ final readonly class EmailConfirmations
     ) {
     }
 
-    public function send(User $user): void
+    public function send(Account $account): void
     {
-        if (!$this->mayMail($user)) {
+        if (!$this->mayMail($account)) {
             return;
         }
 
@@ -46,16 +46,16 @@ final readonly class EmailConfirmations
         $expiresAt = $this->calendar->now()->add(new DateInterval(self::LIFETIME));
 
         $this->tokens->replaceUnused(
-            new EmailConfirmationToken($user, Checksum::sha256($token), $expiresAt->toDateTimeImmutable()),
+            new EmailConfirmationToken($account, Checksum::sha256($token), $expiresAt->toDateTimeImmutable()),
         );
 
-        $this->mailer->send($user, 'email_confirmation', [
-            'url' => $this->links->to($user, 'confirm-email/#token=' . $token),
+        $this->mailer->send($account, 'email_confirmation', [
+            'url' => $this->links->to($account, 'confirm-email/#token=' . $token),
             'validUntil' => $expiresAt->format(self::VALID_UNTIL),
         ]);
     }
 
-    public function remind(User $existing): void
+    public function remind(Account $existing): void
     {
         if (!$existing->status()->isEmailConfirmed()) {
             $this->send($existing);
@@ -75,12 +75,12 @@ final readonly class EmailConfirmations
         return $this->tokens->spend(
             Checksum::sha256($token),
             $now,
-            static fn (User $user) => $user->changeStatus($user->status()->emailConfirmedOn($now)),
+            static fn (Account $account) => $account->changeStatus($account->status()->emailConfirmedOn($now)),
         );
     }
 
-    private function mayMail(User $user): bool
+    private function mayMail(Account $account): bool
     {
-        return $this->mails->create(Email::normalized($user->profile()->email->value))->consume()->isAccepted();
+        return $this->mails->create(Email::normalized($account->profile()->email->value))->consume()->isAccepted();
     }
 }

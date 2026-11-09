@@ -15,9 +15,9 @@ final readonly class Credentials
     ) {
     }
 
-    public function endAllOf(Uuid $userId): void
+    public function endAllOf(Uuid $accountId): void
     {
-        $this->passwordTokens->forgetUnusedOf($userId);
-        $this->apiTokens->revokeAllOf($userId);
+        $this->passwordTokens->forgetUnusedOf($accountId);
+        $this->apiTokens->revokeAllOf($accountId);
     }
 }

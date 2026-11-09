@@ -23,8 +23,8 @@ final readonly class ApiTokens
         $this->tokens->revoke(Checksum::sha256($token), $this->calendar->now()->toDateTimeImmutable());
     }
 
-    public function revokeAllOf(Uuid $userId): void
+    public function revokeAllOf(Uuid $accountId): void
     {
-        $this->tokens->revokeAllOf($userId, $this->calendar->now()->toDateTimeImmutable());
+        $this->tokens->revokeAllOf($accountId, $this->calendar->now()->toDateTimeImmutable());
     }
 }

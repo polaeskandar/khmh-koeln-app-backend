@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use DateTimeImmutable;
 
 final readonly class AccountMoments
@@ -16,10 +16,10 @@ final readonly class AccountMoments
     ) {
     }
 
-    public static function of(User $user): self
+    public static function of(Account $account): self
     {
-        $status = $user->status();
+        $status = $account->status();
 
-        return new self($user->createdAt(), $status->approvedAt, $status->disabledAt);
+        return new self($account->createdAt(), $status->approvedAt, $status->disabledAt);
     }
 }

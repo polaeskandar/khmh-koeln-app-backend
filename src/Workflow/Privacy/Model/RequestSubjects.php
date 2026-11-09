@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\Privacy\Domain\ValueObject\RequestSubject;
 use App\Library\Problem\Exception\InvalidInput;
 
 final readonly class RequestSubjects
 {
-    public static function of(?Person $person, ?User $account): RequestSubject
+    public static function of(?Person $person, ?Account $account): RequestSubject
     {
         if (($person === null) === ($account === null)) {
             throw InvalidInput::field('subject', 'privacy.chooseSubject');

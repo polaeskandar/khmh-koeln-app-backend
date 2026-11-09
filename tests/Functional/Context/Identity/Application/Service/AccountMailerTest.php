@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Context\Identity\Application\Service;
 
 use App\Context\Identity\Application\Service\AccountMailer;
-use App\Context\Identity\Domain\Entity\User;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\Entity\Account;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Database;
 use App\Tests\Support\Logs;
@@ -91,7 +91,7 @@ final class AccountMailerTest extends KernelTestCase
         self::assertStringNotContainsString('sara@example.org', json_encode($error->context, JSON_THROW_ON_ERROR));
     }
 
-    private function account(string $language): User
+    private function account(string $language): Account
     {
         $id = Uuid::v7()->toRfc4122();
 
@@ -102,12 +102,12 @@ final class AccountMailerTest extends KernelTestCase
                 'language' => $language,
             ]));
 
-        $users = self::getContainer()->get(UserRepositoryInterface::class);
-        self::assertInstanceOf(UserRepositoryInterface::class, $users);
-        $user = $users->find(Uuid::fromString($id));
-        self::assertInstanceOf(User::class, $user);
+        $accounts = self::getContainer()->get(AccountRepositoryInterface::class);
+        self::assertInstanceOf(AccountRepositoryInterface::class, $accounts);
+        $account = $accounts->find(Uuid::fromString($id));
+        self::assertInstanceOf(Account::class, $account);
 
-        return $user;
+        return $account;
     }
 
     private function terminate(): void

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Domain\Repository;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use Symfony\Component\Uid\Uuid;
 
 interface MemberAccountRepositoryInterface
 {
-    public function holderOf(Uuid $personId): ?User;
+    public function holderOf(Uuid $personId): ?Account;
 
     /**
      * @param list<Uuid> $personIds

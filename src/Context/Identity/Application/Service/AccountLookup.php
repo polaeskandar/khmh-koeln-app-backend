@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\MemberAccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\RoleHolderRepositoryInterface;
-use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use Collator;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -21,7 +21,7 @@ final readonly class AccountLookup
     private const string COLLATION = 'de';
 
     public function __construct(
-        private UserRepositoryInterface $users,
+        private AccountRepositoryInterface $accounts,
         private RoleHolderRepositoryInterface $roleHolders,
         private MemberAccountRepositoryInterface $members,
     ) {
@@ -38,7 +38,7 @@ final readonly class AccountLookup
     }
 
     /**
-     * @return ReadableCollection<int, User>
+     * @return ReadableCollection<int, Account>
      */
     public function activeHoldersOf(string $roleNameKey): ReadableCollection
     {
@@ -48,35 +48,41 @@ final readonly class AccountLookup
     /**
      * @param list<Uuid> $ids
      *
-     * @return ReadableCollection<int, User>
+     * @return ReadableCollection<int, Account>
      */
     public function accounts(array $ids): ReadableCollection
     {
-        return $this->users->findByIds($ids);
+        return $this->accounts->findByIds($ids);
     }
 
-    public function account(?Uuid $id): ?User
+    public function account(?Uuid $id): ?Account
     {
-        return $id === null ? null : $this->users->find($id);
+        return $id === null ? null : $this->accounts->find($id);
     }
 
     /**
-     * @return list<User>
+     * @return list<Account>
      */
     public function activeAllowedTo(Action $action, Resource $resource): array
     {
         $collator = new Collator(self::COLLATION);
 
-        $nameKeyOf =
-            static fn (User $user): string => (string) $collator->getSortKey($user->profile()->displayName->value);
+        $nameKeyOf = static fn (Account $account): string => (string) $collator->getSortKey(self::displayNameOf(
+            $account,
+        ));
 
-        return Collections::sortedBy($this->users->activeThatCan($action, $resource), keyOf: $nameKeyOf);
+        return Collections::sortedBy($this->accounts->activeThatCan($action, $resource), keyOf: $nameKeyOf);
     }
 
     public function isActiveAndAllowedTo(Uuid $accountId, Action $action, Resource $resource): bool
     {
-        $user = $this->users->find($accountId);
+        $account = $this->accounts->find($accountId);
 
-        return $user !== null && RolePermissions::activeAccountHas($user, $action, $resource);
+        return $account !== null && RolePermissions::activeAccountHas($account, $action, $resource);
+    }
+
+    private static function displayNameOf(Account $account): string
+    {
+        return $account->profile()->displayName->value;
     }
 }
