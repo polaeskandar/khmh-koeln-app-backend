@@ -108,7 +108,7 @@ Not used: `update`, `process`, `handle` and `execute` (except where a framework 
 - `count…()` returns an `int`: `Memberships::countInStage()`, `PersonErasures::countGuardianLinksOf()`.
 - `chosen()` turns the ids a person chose into records, or fails with a field error:
   `StageChoices::chosen($stageId, $service, 'stageId')`.
-- Accessors have no prefix: `Stage::name()`, `Session::status()`. `get` is kept for lookups.
+- Accessors have no prefix: `Stage::name()`, `Session::occurrenceDate()`. `get` is kept for lookups.
 
 ### Predicates
 
