@@ -25,8 +25,8 @@ final class MemberGroupsController extends AbstractController
         content: new OA\JsonContent(ref: new Model(type: MemberGroupListResponse::class)),
     )]
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
-    public function groups(#[CurrentUser] UserInterface $viewer, ListMemberGroupsWorkflow $listGroups): JsonResponse
+    public function list(#[CurrentUser] UserInterface $user, ListMemberGroupsWorkflow $listGroups): JsonResponse
     {
-        return $this->json(MemberGroupListResponse::of($listGroups($viewer->getUserIdentifier())));
+        return $this->json(MemberGroupListResponse::of($listGroups($user->getUserIdentifier())));
     }
 }

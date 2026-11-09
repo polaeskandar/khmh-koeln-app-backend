@@ -42,12 +42,12 @@ final class OwnDataController extends AbstractController
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function export(
         #[CurrentUser]
-        UserInterface $viewer,
+        UserInterface $user,
         ExportAccountDataWorkflow $exportAccountData,
         ExportMemberDataWorkflow $exportMemberData,
         ExportMemberActivityWorkflow $exportMemberActivity,
     ): JsonResponse {
-        $account = $exportAccountData($viewer->getUserIdentifier());
+        $account = $exportAccountData($user->getUserIdentifier());
         $recordId = $account?->memberRecordId();
         $memberRecord = MemberDataResponse::of($exportMemberData($recordId), $exportMemberActivity($recordId));
         $response = $this->json(AccountDataResponse::of($account, $memberRecord));
@@ -70,10 +70,10 @@ final class OwnDataController extends AbstractController
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function erasureRequest(
         #[CurrentUser]
-        UserInterface $viewer,
+        UserInterface $user,
         ShowOwnErasureRequestWorkflow $showOwnErasureRequest,
     ): JsonResponse {
-        return $this->json(OwnErasureStatusResponse::of($showOwnErasureRequest($viewer->getUserIdentifier())));
+        return $this->json(OwnErasureStatusResponse::of($showOwnErasureRequest($user->getUserIdentifier())));
     }
 
     #[Route('/erasure-request', name: 'api_me_request_erasure', methods: ['POST'])]
@@ -86,13 +86,13 @@ final class OwnDataController extends AbstractController
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function requestErasure(
         #[CurrentUser]
-        UserInterface $viewer,
+        UserInterface $user,
         #[MapRequestPayload]
         OwnErasureRequestRequest $request,
         RequestOwnErasureWorkflow $requestOwnErasure,
     ): JsonResponse {
         return $this->json(
-            OwnErasureRequestResponse::of($requestOwnErasure($viewer->getUserIdentifier(), $request->note)),
+            OwnErasureRequestResponse::of($requestOwnErasure($user->getUserIdentifier(), $request->note)),
             status: Response::HTTP_CREATED,
         );
     }

@@ -67,13 +67,13 @@ final class AccountRequestsController extends AbstractController
     public function approve(
         string $id,
         #[CurrentUser]
-        UserInterface $actor,
+        UserInterface $user,
         #[MapRequestPayload]
         ApprovalRequest $approval,
         ApproveAccountRequestWorkflow $approveAccountRequest,
         ApproveMemberRequestWorkflow $approveMemberRequest,
     ): JsonResponse {
-        $actorId = $actor->getUserIdentifier();
+        $actorId = $user->getUserIdentifier();
 
         if ($approval->isMember()) {
             return $this->json($approveMemberRequest($id, $actorId, $approval->memberApprovalChoice()));

@@ -35,13 +35,13 @@ final class DataRequestErasureController extends AbstractController
     public function review(
         string $id,
         #[CurrentUser]
-        UserInterface $viewer,
+        UserInterface $user,
         EraseRequestSubjectWorkflow $eraseRequestSubject,
         TransactionsInterface $transactions,
     ): JsonResponse {
         $review = $transactions->rehearse(static fn (): ErasureReview => $eraseRequestSubject(
             $id,
-            $viewer->getUserIdentifier(),
+            $user->getUserIdentifier(),
             new ErasureChoice(clearNotes: false),
         ));
 
@@ -59,13 +59,13 @@ final class DataRequestErasureController extends AbstractController
     public function erase(
         string $id,
         #[CurrentUser]
-        UserInterface $viewer,
+        UserInterface $user,
         #[MapRequestPayload]
         EraseRequestRequest $request,
         EraseRequestSubjectWorkflow $eraseRequestSubject,
         ShowDataRequestWorkflow $showDataRequest,
     ): JsonResponse {
-        $eraseRequestSubject($id, $viewer->getUserIdentifier(), $request->choice());
+        $eraseRequestSubject($id, $user->getUserIdentifier(), $request->choice());
 
         return $this->json(new DataRequestRowResponse($showDataRequest($id)->request));
     }

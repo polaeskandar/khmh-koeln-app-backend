@@ -34,13 +34,13 @@ final class PasswordController extends AbstractController
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function change(
         #[CurrentUser]
-        UserInterface $viewer,
+        UserInterface $user,
         #[MapRequestPayload]
         ChangePasswordRequest $request,
         #[\SensitiveParameter]
         ChangeOwnPasswordWorkflow $changeOwnPassword,
     ): Response {
-        $accountId = $viewer->getUserIdentifier();
+        $accountId = $user->getUserIdentifier();
         $attempts = $this->passwordChanges->create($accountId);
         $left = $attempts->consume(0);
 

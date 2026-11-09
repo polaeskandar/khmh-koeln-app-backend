@@ -70,10 +70,10 @@ final class StaffAccountsController extends AbstractController
         string $id,
         string $roleId,
         #[CurrentUser]
-        UserInterface $actor,
+        UserInterface $user,
         TakeRoleWorkflow $takeRole,
     ): Response {
-        $takeRole($id, $roleId, $actor->getUserIdentifier());
+        $takeRole($id, $roleId, $user->getUserIdentifier());
 
         return new Response(status: Response::HTTP_NO_CONTENT);
     }
@@ -90,11 +90,11 @@ final class StaffAccountsController extends AbstractController
     public function passwordLink(
         string $id,
         #[CurrentUser]
-        UserInterface $actor,
+        UserInterface $user,
         SendPasswordLinkWorkflow $sendPasswordLink,
     ): JsonResponse {
         return $this->json(
-            PasswordLinkResponse::of($sendPasswordLink($id, $actor->getUserIdentifier())),
+            PasswordLinkResponse::of($sendPasswordLink($id, $user->getUserIdentifier())),
             status: Response::HTTP_CREATED,
         );
     }

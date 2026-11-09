@@ -31,11 +31,8 @@ final class MemberServantsController extends AbstractController
         ]),
     )]
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
-    public function servants(
-        #[CurrentUser]
-        UserInterface $viewer,
-        ListMemberServantsWorkflow $listServants,
-    ): JsonResponse {
-        return $this->json(['items' => $listServants($viewer->getUserIdentifier())]);
+    public function list(#[CurrentUser] UserInterface $user, ListMemberServantsWorkflow $listServants): JsonResponse
+    {
+        return $this->json(['items' => $listServants($user->getUserIdentifier())]);
     }
 }

@@ -35,12 +35,12 @@ final class MemberHomeworkController extends AbstractController
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function list(
         #[CurrentUser]
-        UserInterface $viewer,
+        UserInterface $user,
         ListMemberHomeworkWorkflow $listMemberHomework,
         #[MapQueryString(validationFailedStatusCode: Response::HTTP_UNPROCESSABLE_ENTITY)]
         ChildHomeworkQueryRequest $query = new ChildHomeworkQueryRequest(),
     ): JsonResponse {
-        $list = $listMemberHomework($viewer->getUserIdentifier(), $query->state);
+        $list = $listMemberHomework($user->getUserIdentifier(), $query->state);
 
         return $this->json(ChildHomeworkListResponse::of($list));
     }
@@ -56,10 +56,10 @@ final class MemberHomeworkController extends AbstractController
     public function show(
         string $homeworkId,
         #[CurrentUser]
-        UserInterface $viewer,
+        UserInterface $user,
         ShowMemberHomeworkWorkflow $showMemberHomework,
     ): JsonResponse {
-        $detail = $showMemberHomework($viewer->getUserIdentifier(), $homeworkId);
+        $detail = $showMemberHomework($user->getUserIdentifier(), $homeworkId);
 
         return $this->json(new MemberHomeworkDetailResponse($detail));
     }
@@ -81,10 +81,10 @@ final class MemberHomeworkController extends AbstractController
     public function report(
         string $homeworkId,
         #[CurrentUser]
-        UserInterface $viewer,
+        UserInterface $user,
         ReportOwnHomeworkWorkflow $reportOwnHomework,
     ): JsonResponse {
-        $result = $reportOwnHomework($viewer->getUserIdentifier(), $homeworkId);
+        $result = $reportOwnHomework($user->getUserIdentifier(), $homeworkId);
 
         return $this->json(
             new ReportResultResponse($result),
@@ -99,10 +99,10 @@ final class MemberHomeworkController extends AbstractController
     public function undo(
         string $homeworkId,
         #[CurrentUser]
-        UserInterface $viewer,
+        UserInterface $user,
         UndoOwnReportWorkflow $undoOwnReport,
     ): Response {
-        $undoOwnReport($viewer->getUserIdentifier(), $homeworkId);
+        $undoOwnReport($user->getUserIdentifier(), $homeworkId);
 
         return new Response(status: Response::HTTP_NO_CONTENT);
     }

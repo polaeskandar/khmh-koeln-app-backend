@@ -8,7 +8,7 @@ use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use Symfony\Component\HttpFoundation\Cookie;
 
-final class SessionControllerTest extends ApiTestCase
+final class SignInControllerTest extends ApiTestCase
 {
     public function testTheRightPasswordOpensASessionInAProtectedCookie(): void
     {

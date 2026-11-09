@@ -12,7 +12,7 @@ final readonly class RegisterAccountRequest
 {
     public function __construct(
         #[Assert\Valid]
-        public AccountRequest $account = new AccountRequest(),
+        public NewAccountRequest $account = new NewAccountRequest(),
         #[Assert\Valid]
         public RegistrationRequest $registration = new RegistrationRequest(),
         #[Assert\Valid]

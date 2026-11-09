@@ -25,11 +25,8 @@ final class MemberMeetingsController extends AbstractController
         content: new OA\JsonContent(ref: new Model(type: MemberMeetingListResponse::class)),
     )]
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
-    public function meetings(
-        #[CurrentUser]
-        UserInterface $viewer,
-        ListMemberMeetingsWorkflow $listMeetings,
-    ): JsonResponse {
-        return $this->json(MemberMeetingListResponse::of($listMeetings($viewer->getUserIdentifier())));
+    public function list(#[CurrentUser] UserInterface $user, ListMemberMeetingsWorkflow $listMeetings): JsonResponse
+    {
+        return $this->json(MemberMeetingListResponse::of($listMeetings($user->getUserIdentifier())));
     }
 }

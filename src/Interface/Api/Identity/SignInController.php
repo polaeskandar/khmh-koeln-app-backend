@@ -16,7 +16,7 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 #[AsController]
 #[Route('/api/auth', methods: ['POST'])]
-final readonly class SessionController
+final readonly class SignInController
 {
     #[Route('/sign-in', name: 'api_auth_sign_in')]
     #[OA\Post(security: [], summary: 'Auth sign in.')]

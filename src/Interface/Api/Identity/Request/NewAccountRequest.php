@@ -8,7 +8,7 @@ use App\Workflow\Identity\Model\AccountChoice;
 use SensitiveParameter;
 use Symfony\Component\Validator\Constraints as Assert;
 
-final readonly class AccountRequest
+final readonly class NewAccountRequest
 {
     public function __construct(
         #[Assert\NotBlank(message: 'accounts.firstNameRequired', normalizer: 'trim')]
