@@ -9,7 +9,7 @@ use App\Context\Learning\Domain\ValueObject\PupilTasks;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
-use App\Context\People\Domain\ValueObject\Family;
+use App\Context\People\Domain\ValueObject\PeopleWithGroups;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Strings\Model\InputText;
 use App\Library\Time\Model\LocalDate;
@@ -27,7 +27,7 @@ final readonly class VisibleHomework
     ) {
     }
 
-    public static function none(Family $family): self
+    public static function none(PeopleWithGroups $family): self
     {
         return new self($family->today, []);
     }
@@ -35,17 +35,17 @@ final readonly class VisibleHomework
     /**
      * @return list<Pupil>
      */
-    public static function pupilsOf(Family $family): array
+    public static function pupilsOf(PeopleWithGroups $family): array
     {
         $pupilOf = static fn (Person $child): Pupil => new Pupil($child->id(), $family->stageIdsOf($child));
 
-        return new ArrayCollection($family->children)->map($pupilOf)->getValues();
+        return new ArrayCollection($family->people)->map($pupilOf)->getValues();
     }
 
     /**
      * @param list<PupilTasks> $tasks
      */
-    public static function forFamily(Family $family, array $tasks): self
+    public static function forFamily(PeopleWithGroups $family, array $tasks): self
     {
         return new self($family->today, ChildHomeworks::of($family, $tasks));
     }

@@ -7,7 +7,7 @@ namespace App\Workflow\Learning\Model;
 use App\Context\Learning\Domain\ValueObject\Pupil;
 use App\Context\Learning\Domain\ValueObject\PupilTasks;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
-use App\Context\People\Domain\ValueObject\Family;
+use App\Context\People\Domain\ValueObject\PeopleWithGroups;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Model\LocalDate;
 use Symfony\Component\Uid\Uuid;
@@ -23,7 +23,7 @@ final readonly class OwnHomework
     /**
      * @return list<Pupil>
      */
-    public static function pupilsOf(Family $record): array
+    public static function pupilsOf(PeopleWithGroups $record): array
     {
         return VisibleHomework::pupilsOf($record);
     }
@@ -31,7 +31,7 @@ final readonly class OwnHomework
     /**
      * @param list<PupilTasks> $tasks
      */
-    public static function of(Family $record, array $tasks): self
+    public static function of(PeopleWithGroups $record, array $tasks): self
     {
         return new self($record->today, ChildHomeworks::of($record, $tasks)[0] ?? null);
     }

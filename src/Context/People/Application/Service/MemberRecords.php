@@ -8,7 +8,7 @@ use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
-use App\Context\People\Domain\ValueObject\Family;
+use App\Context\People\Domain\ValueObject\PeopleWithGroups;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -22,7 +22,7 @@ final readonly class MemberRecords
     ) {
     }
 
-    public function ownRecord(Uuid $personId): Family
+    public function ownRecord(Uuid $personId): PeopleWithGroups
     {
         $today = $this->calendar->today();
         $person = $this->people->find($personId);
@@ -32,7 +32,7 @@ final readonly class MemberRecords
             ->membershipsOf($own)
             ->filter(static fn (Membership $membership): bool => $membership->tenure()->includes($today));
 
-        return new Family($today, $own->getValues(), $current);
+        return new PeopleWithGroups($today, $own->getValues(), $current);
     }
 
     /**

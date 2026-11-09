@@ -9,7 +9,7 @@ use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Repository\GuardianLinkRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
-use App\Context\People\Domain\ValueObject\Family;
+use App\Context\People\Domain\ValueObject\PeopleWithGroups;
 use App\Library\Time\Client\Calendar;
 use Symfony\Component\Uid\Uuid;
 
@@ -22,7 +22,7 @@ final readonly class ParentChildren
     ) {
     }
 
-    public function ofParent(Uuid $accountId): Family
+    public function ofParent(Uuid $accountId): PeopleWithGroups
     {
         $today = $this->calendar->today();
 
@@ -32,7 +32,7 @@ final readonly class ParentChildren
             ->membershipsOf($children)
             ->filter(static fn (Membership $membership): bool => $membership->tenure()->includes($today));
 
-        return new Family($today, $children->getValues(), $current);
+        return new PeopleWithGroups($today, $children->getValues(), $current);
     }
 
     /**

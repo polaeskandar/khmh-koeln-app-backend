@@ -8,7 +8,7 @@ use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Domain\Entity\Membership;
-use App\Context\People\Domain\ValueObject\Family;
+use App\Context\People\Domain\ValueObject\PeopleWithGroups;
 use App\Library\Collections\Model\Collections;
 use App\Library\Strings\Model\InputText;
 use App\Library\Strings\Model\Text;
@@ -32,7 +32,7 @@ final readonly class MemberRoster
      * @param ReadableCollection<int, Service> $services the record's services
      * @param ReadableCollection<int, Stage> $stages the record's stages
      */
-    public static function of(Family $record, ReadableCollection $services, ReadableCollection $stages): self
+    public static function of(PeopleWithGroups $record, ReadableCollection $services, ReadableCollection $stages): self
     {
         $current = $record->currentMemberships();
         $groups = OpenGroups::of($services, $stages);
@@ -43,7 +43,7 @@ final readonly class MemberRoster
     /**
      * @return list<Uuid>
      */
-    public static function serviceIdsOf(Family $record): array
+    public static function serviceIdsOf(PeopleWithGroups $record): array
     {
         return $record
             ->currentMemberships()
@@ -54,7 +54,7 @@ final readonly class MemberRoster
     /**
      * @return list<Uuid>
      */
-    public static function stageIdsOf(Family $record): array
+    public static function stageIdsOf(PeopleWithGroups $record): array
     {
         $stageOf = static fn (Membership $held): ?Uuid => $held->stageId();
 

@@ -12,15 +12,15 @@ use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class Family
+final readonly class PeopleWithGroups
 {
     /**
-     * @param list<Person> $children
+     * @param list<Person> $people
      * @param ReadableCollection<int, Membership> $currentMemberships
      */
     public function __construct(
         public LocalDate $today,
-        public array $children,
+        public array $people,
         private ReadableCollection $currentMemberships,
     ) {
     }
@@ -36,24 +36,24 @@ final readonly class Family
     /**
      * @return ReadableCollection<int, Membership>
      */
-    public function membershipsOf(Person $child): ReadableCollection
+    public function membershipsOf(Person $person): ReadableCollection
     {
         return $this->currentMemberships->filter(
-            static fn (Membership $membership): bool => $membership->person() === $child,
+            static fn (Membership $membership): bool => $membership->person() === $person,
         );
     }
 
     /**
      * @return list<Uuid>
      */
-    public function stageIdsOf(Person $child): array
+    public function stageIdsOf(Person $person): array
     {
-        if ($child->status() !== PersonStatus::Active) {
+        if ($person->status() !== PersonStatus::Active) {
             return [];
         }
 
         return Collections::mapPresent(
-            $this->membershipsOf($child),
+            $this->membershipsOf($person),
             static fn (Membership $membership): ?Uuid => $membership->stageId(),
         )->getValues();
     }

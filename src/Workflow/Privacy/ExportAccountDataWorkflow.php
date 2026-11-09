@@ -27,20 +27,20 @@ final readonly class ExportAccountDataWorkflow
 
     public function __invoke(string $accountId): ?AccountData
     {
-        $user = $this->accounts->find(Uuid::fromString($accountId));
+        $account = $this->accounts->find(Uuid::fromString($accountId));
 
-        if ($user === null) {
+        if ($account === null) {
             return null;
         }
 
-        $reports = $this->homework->madeBy($user->id());
+        $reports = $this->homework->madeBy($account->id());
 
         return new AccountData(
             exportedAt: $this->calendar->now(),
-            account: AccountRecord::of($user),
-            children: LinkRow::childrenOf($this->people->linksOfAccount($user->id())),
+            account: AccountRecord::of($account),
+            children: LinkRow::childrenOf($this->people->linksOfAccount($account->id())),
             homeworkReports: ReportByRow::listOf($reports, $this->people->people(ReportByRow::childIdsOf($reports))),
-            member: MemberLinkView::of($user->member()),
+            member: MemberLinkView::of($account->member()),
         );
     }
 }
