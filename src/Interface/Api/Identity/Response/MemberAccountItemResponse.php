@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Identity\Response;
 
+use App\Context\Identity\Domain\Enum\AgeCheck;
 use App\Workflow\Identity\Model\AccountReference;
 use App\Workflow\Identity\Model\MemberAccountItem;
 use DateTimeImmutable;
@@ -30,7 +31,7 @@ final readonly class MemberAccountItemResponse implements JsonSerializable
      *     isParent: bool,
      *     disabled: bool,
      *     member: array{id: string, name: string|null, inactive: bool, groups: list<string>},
-     *     ageCheck: string|null,
+     *     ageCheck: AgeCheck|null,
      *     guardianConsentNote: string|null,
      *     approvedAt: DateTimeImmutable|null,
      *     approvedBy: AccountReference|null,

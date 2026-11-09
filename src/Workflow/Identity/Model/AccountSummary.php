@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Identity\Model;
 
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Enum\Language;
 
 final readonly class AccountSummary
 {
@@ -12,7 +13,7 @@ final readonly class AccountSummary
         public string $id,
         public string $email,
         public string $displayName,
-        public string $language,
+        public Language $language,
     ) {
     }
 
@@ -24,7 +25,7 @@ final readonly class AccountSummary
             $user->id()->toRfc4122(),
             $profile->email->value,
             $profile->displayName->value,
-            $profile->language->value,
+            $profile->language,
         );
     }
 }

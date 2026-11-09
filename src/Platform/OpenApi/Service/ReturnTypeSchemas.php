@@ -22,6 +22,7 @@ final readonly class ReturnTypeSchemas
         private ChainDescriber $types,
         #[Autowire(service: 'type_info.resolver')]
         private TypeResolverInterface $resolver,
+        private LiteralStrings $literals,
     ) {
     }
 
@@ -43,7 +44,9 @@ final readonly class ReturnTypeSchemas
             throw new LogicException('Only classes describe themselves through a return type.');
         }
 
+        $reflection = new ReflectionMethod($type->getClassName(), $method);
         $this->types->setModelRegistry($registry ?? throw new LogicException('nelmio sets the model registry.'));
-        $this->types->describe($this->resolver->resolve(new ReflectionMethod($type->getClassName(), $method)), $schema);
+        $this->types->describe($this->resolver->resolve($reflection), $schema);
+        $this->literals->describe($reflection, $schema);
     }
 }

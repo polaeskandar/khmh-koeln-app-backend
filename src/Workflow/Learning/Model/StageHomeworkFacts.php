@@ -7,7 +7,7 @@ namespace App\Workflow\Learning\Model;
 final readonly class StageHomeworkFacts
 {
     /**
-     * @param array<string, int> $tabs
+     * @param array{published: int, draft: int, archived: int} $tabs
      */
     public function __construct(
         public string $today,

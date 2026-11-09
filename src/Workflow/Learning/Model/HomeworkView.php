@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
+use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\ValueObject\HomeworkReading;
 use DateTimeImmutable;
 
@@ -11,7 +12,7 @@ final readonly class HomeworkView
 {
     public function __construct(
         public string $id,
-        public string $status,
+        public HomeworkStatus $status,
         public ?DateTimeImmutable $publishedAt,
         public HomeworkTextView $text,
         public int $version,
@@ -24,7 +25,7 @@ final readonly class HomeworkView
 
         return new self(
             id: $task->id()->toRfc4122(),
-            status: $task->state()->status->value,
+            status: $task->state()->status,
             publishedAt: $task->state()->publishedAt,
             text: HomeworkTextView::of($task),
             version: $task->version(),

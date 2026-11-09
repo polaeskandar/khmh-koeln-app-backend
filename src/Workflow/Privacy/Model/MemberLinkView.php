@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
+use App\Context\Identity\Domain\Enum\AgeCheck;
 use App\Context\Identity\Domain\ValueObject\MemberLink;
 
 final readonly class MemberLinkView
 {
     public function __construct(
         public string $personId,
-        public string $result,
+        public AgeCheck $result,
         public ?string $parentAgreed,
     ) {
     }
@@ -24,6 +25,6 @@ final readonly class MemberLinkView
             return null;
         }
 
-        return new self($personId->toRfc4122(), $ageCheck->value, $link->guardianConsentNote);
+        return new self($personId->toRfc4122(), $ageCheck, $link->guardianConsentNote);
     }
 }

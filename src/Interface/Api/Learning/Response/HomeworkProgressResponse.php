@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Learning\Response;
 
+use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Workflow\Learning\Model\AudienceRow;
 use App\Workflow\Learning\Model\HomeworkProgress;
 use App\Workflow\Learning\Model\LessonOnDate;
@@ -29,7 +30,7 @@ final readonly class HomeworkProgressResponse implements JsonSerializable
      *     homework: array{
      *         id: string,
      *         title: string,
-     *         status: string,
+     *         status: HomeworkStatus,
      *         dueDate: string|null,
      *         publishedAt: DateTimeImmutable|null,
      *         lesson: LessonOnDate,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\People\Response;
 
+use App\Context\People\Domain\Enum\GuardianKind;
 use App\Workflow\Identity\Model\AccountReference;
 use App\Workflow\People\Model\DirectoryEntry;
 use App\Workflow\People\Model\ParentAccessItem;
@@ -35,7 +36,7 @@ final readonly class ParentAccessItemResponse implements JsonSerializable
     /**
      * @return array{
      *     id: string,
-     *     relationship: string,
+     *     relationship: GuardianKind,
      *     parent: ParentAccountView,
      *     child: DirectoryEntry,
      *     approvedAt: DateTimeImmutable,

@@ -63,7 +63,7 @@ final readonly class ShowCurrentAccountWorkflow
 
     private static function grantOf(Access $access): PermissionGrant
     {
-        return new PermissionGrant($access->action->value, $access->resource->value);
+        return new PermissionGrant($access->action, $access->resource);
     }
 
     /**

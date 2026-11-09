@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Meetings\Response;
 
+use App\Context\Meetings\Domain\Enum\RosterMode;
+use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Workflow\Meetings\Model\SessionView;
 use App\Workflow\Organization\Model\ServiceReference;
 use App\Workflow\Organization\Model\StageReference;
@@ -32,8 +34,8 @@ final readonly class SessionResponse implements JsonSerializable
      *     startsAt: DateTimeImmutable,
      *     endsAt: DateTimeImmutable|null,
      *     location: string|null,
-     *     status: string,
-     *     rosterMode: string,
+     *     status: SessionStatus,
+     *     rosterMode: RosterMode,
      *     cancelReason: string|null,
      * }
      */
@@ -62,8 +64,8 @@ final readonly class SessionResponse implements JsonSerializable
      *     startsAt: DateTimeImmutable,
      *     endsAt: DateTimeImmutable|null,
      *     location: string|null,
-     *     status: string,
-     *     rosterMode: string,
+     *     status: SessionStatus,
+     *     rosterMode: RosterMode,
      *     cancelReason: string|null,
      * }
      */

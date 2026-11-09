@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Privacy\Response;
 
+use App\Context\Identity\Domain\Enum\AgeCheck;
+use App\Context\Identity\Domain\Enum\Language;
 use App\Workflow\Privacy\Model\AccountData;
 use App\Workflow\Privacy\Model\AccountRecord;
 use App\Workflow\Privacy\Model\LinkRow;
@@ -30,20 +32,20 @@ final readonly class AccountDataResponse implements JsonSerializable
 
     /**
      * @return array{
-     *     kind: string,
+     *     kind: 'account',
      *     exportedAt: DateTimeImmutable,
      *     account: array{
      *         id: string,
      *         email: string,
      *         name: string,
-     *         language: string,
+     *         language: Language,
      *         createdAt: DateTimeImmutable,
      *         approvedAt: DateTimeImmutable|null,
      *         disabledAt: DateTimeImmutable|null,
      *         privacyNoticeAccepted: PrivacyAcceptance,
      *         roles: list<string>,
      *         registration: RegistrationView|null,
-     *         memberAgeCheck: array{result: string, parentAgreed: string|null}|null,
+     *         memberAgeCheck: array{result: AgeCheck, parentAgreed: string|null}|null,
      *     },
      *     children: list<LinkRow>,
      *     homeworkReports: list<ReportByRow>,
@@ -71,7 +73,7 @@ final readonly class AccountDataResponse implements JsonSerializable
      *     id: string,
      *     email: string,
      *     name: string,
-     *     language: string,
+     *     language: Language,
      *     createdAt: DateTimeImmutable,
      *     approvedAt: DateTimeImmutable|null,
      *     disabledAt: DateTimeImmutable|null,
@@ -97,7 +99,7 @@ final readonly class AccountDataResponse implements JsonSerializable
     }
 
     /**
-     * @return array{result: string, parentAgreed: string|null}|null
+     * @return array{result: AgeCheck, parentAgreed: string|null}|null
      */
     private static function ageCheckOf(?MemberLinkView $member): ?array
     {

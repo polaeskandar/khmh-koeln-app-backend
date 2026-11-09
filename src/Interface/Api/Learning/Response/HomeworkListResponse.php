@@ -24,7 +24,7 @@ final readonly class HomeworkListResponse implements JsonSerializable
      *     today: string,
      *     stage: StageSummary,
      *     archived: bool,
-     *     tabs: array<string, int>,
+     *     tabs: array{published: int, draft: int, archived: int},
      *     lessons: list<LessonOnDate>,
      *     defaultLessonId: string|null,
      *     audienceSize: int,

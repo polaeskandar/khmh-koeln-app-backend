@@ -98,7 +98,7 @@ final readonly class MemberAccountList
         return new MemberAccountItem(
             new MemberAccountView($row['id'], $row['name'], $row['email'], $row['isParent'], $row['disabled']),
             $records->viewOf(Uuid::fromString($row['personId'])),
-            new MemberAgeView($row['ageCheck'], $row['guardianConsentNote']),
+            MemberAgeView::of($row['ageCheck'], $row['guardianConsentNote']),
             ApprovalView::of($row['approvedAt'], $row['approverId'], $row['approverName']),
         );
     }

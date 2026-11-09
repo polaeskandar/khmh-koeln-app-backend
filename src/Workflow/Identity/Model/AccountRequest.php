@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Identity\Model;
 
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Enum\RegisteredAs;
 use App\Context\Organization\Domain\Entity\RegistrationService;
 use App\Workflow\Organization\Model\ServiceReference;
 use DateTimeImmutable;
@@ -18,7 +19,7 @@ final readonly class AccountRequest
     public function __construct(
         public AccountSummary $account,
         public DateTimeImmutable $registeredAt,
-        public ?string $registeredAs,
+        public ?RegisteredAs $registeredAs,
         public ?string $note,
         public array $services,
     ) {
@@ -34,7 +35,7 @@ final readonly class AccountRequest
         return new self(
             account: AccountSummary::of($user),
             registeredAt: $user->createdAt(),
-            registeredAs: $registration->registeredAs?->value,
+            registeredAs: $registration->registeredAs,
             note: $registration->note,
             services: $chosen
                 ->filter(static fn (RegistrationService $service): bool => $service->accountId()->equals($user->id()))

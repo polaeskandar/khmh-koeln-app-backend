@@ -18,7 +18,13 @@ classes into [`openapi.json`](openapi.json) (`composer api:doc`). The dev server
 - the public properties of a response class (`Interface/Api/*/Response/`) or a workflow model
   (`Workflow/*/Model/`): every field is always sent, `null` included;
 - the `@return` array shape of `jsonSerialize()`; mago checks the shape against the code, and a union of
-  classes (`list<AgendaSessionResponse|PlannedSessionResponse>`) becomes a `oneOf`;
+  classes (`list<AgendaSessionResponse|PlannedSessionResponse>`) becomes a `oneOf`. Symfony's TypeInfo reads a
+  string literal as `string`, so `OpenApi`'s `LiteralStrings` reads the shape again and gives a literal field on
+  its top level (`kind: 'session'`, or `'a'|'b'`) its `enum`: that is how the members of such a union tell each
+  other apart. A literal in a nested shape stays a plain `string`;
+- a context's backed enum (`status: SessionStatus`, or a property typed with it): it becomes a named schema with
+  the enum's values, which every field carrying them references. Responses and workflow models hold the enum case,
+  never its value; JSON encoding sends the value;
 - a class-level `#[OA\Schema]` where the shape can't be written as phpdoc (`ChildSummaryResponse`, since mago
   reads its `toDo` key as a TODO tag);
 - an `#[OA\Response]` on the action for bodies built there, such as the `people.duplicate` problem with its

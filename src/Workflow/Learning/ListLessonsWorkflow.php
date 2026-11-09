@@ -18,8 +18,11 @@ use App\Workflow\Identity\Model\AccountReferences;
 use App\Workflow\Learning\Model\LessonList;
 use App\Workflow\Learning\Model\LessonRows;
 use App\Workflow\Learning\Model\LessonStageView;
-use App\Workflow\Learning\Model\MeetingView;
 use App\Workflow\Learning\Model\MeetingViews;
+use App\Workflow\Learning\Model\NoMeeting;
+use App\Workflow\Learning\Model\OffScheduleMeeting;
+use App\Workflow\Learning\Model\PlannedMeeting;
+use App\Workflow\Learning\Model\SessionMeeting;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 
@@ -59,7 +62,7 @@ final readonly class ListLessonsWorkflow
     /**
      * @param ReadableCollection<int, Lesson> $lessons
      *
-     * @return list<MeetingView>
+     * @return list<NoMeeting|OffScheduleMeeting|PlannedMeeting|SessionMeeting>
      */
     private function meetingsOf(ReadableCollection $lessons): array
     {

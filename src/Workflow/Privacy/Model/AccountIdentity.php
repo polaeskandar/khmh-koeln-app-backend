@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Privacy\Model;
 
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Enum\Language;
 
 final readonly class AccountIdentity
 {
@@ -12,7 +13,7 @@ final readonly class AccountIdentity
         public string $id,
         public string $email,
         public string $name,
-        public string $language,
+        public Language $language,
     ) {
     }
 
@@ -24,7 +25,7 @@ final readonly class AccountIdentity
             $user->id()->toRfc4122(),
             $profile->email->value,
             $profile->displayName->value,
-            $profile->language->value,
+            $profile->language,
         );
     }
 }

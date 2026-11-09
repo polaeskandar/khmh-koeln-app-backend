@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Learning\Response;
 
+use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Workflow\Identity\Model\AccountReference;
 use App\Workflow\Learning\Model\LessonHomework;
 use App\Workflow\Learning\Model\LessonRow;
+use App\Workflow\Learning\Model\NoMeeting;
+use App\Workflow\Learning\Model\OffScheduleMeeting;
+use App\Workflow\Learning\Model\PlannedMeeting;
+use App\Workflow\Learning\Model\SessionMeeting;
 use JsonSerializable;
 use Override;
 
@@ -23,10 +28,10 @@ final readonly class LessonRowResponse implements JsonSerializable
      *     title: string,
      *     passage: string|null,
      *     teachingDate: string,
-     *     status: string,
+     *     status: LessonStatus,
      *     responsible: AccountReference|null,
      *     collaborators: list<AccountReference>,
-     *     meeting: MeetingViewResponse,
+     *     meeting: NoMeetingResponse|OffScheduleMeetingResponse|PlannedMeetingResponse|SessionMeetingResponse,
      *     homework: LessonHomework,
      * }
      */
@@ -42,15 +47,16 @@ final readonly class LessonRowResponse implements JsonSerializable
      *     title: string,
      *     passage: string|null,
      *     teachingDate: string,
-     *     status: string,
+     *     status: LessonStatus,
      *     responsible: AccountReference|null,
      *     collaborators: list<AccountReference>,
-     *     meeting: MeetingViewResponse,
+     *     meeting: NoMeetingResponse|OffScheduleMeetingResponse|PlannedMeetingResponse|SessionMeetingResponse,
      * }
      */
     public function fields(): array
     {
         $lesson = $this->row->lesson;
+        $meeting = $this->row->meeting;
 
         return [
             'id' => $lesson->id,
@@ -60,7 +66,12 @@ final readonly class LessonRowResponse implements JsonSerializable
             'status' => $lesson->status,
             'responsible' => $this->row->responsible,
             'collaborators' => $this->row->collaborators,
-            'meeting' => new MeetingViewResponse($this->row->meeting),
+            'meeting' => match (true) {
+                $meeting instanceof NoMeeting => new NoMeetingResponse($meeting),
+                $meeting instanceof OffScheduleMeeting => new OffScheduleMeetingResponse($meeting),
+                $meeting instanceof PlannedMeeting => new PlannedMeetingResponse($meeting),
+                $meeting instanceof SessionMeeting => new SessionMeetingResponse($meeting),
+            },
         ];
     }
 }

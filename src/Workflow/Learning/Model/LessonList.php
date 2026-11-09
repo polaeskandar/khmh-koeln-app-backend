@@ -9,7 +9,7 @@ use App\Workflow\Identity\Model\AccountReference;
 final readonly class LessonList
 {
     /**
-     * @param array<string, int> $tabs
+     * @param array{upcoming: int, previous: int, archived: int} $tabs
      * @param list<AccountReference> $servants
      * @param list<LessonRow> $items
      */

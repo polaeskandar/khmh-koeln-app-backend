@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Meetings\Model;
 
 use App\Context\Meetings\Domain\Entity\SessionEvent;
+use App\Context\Meetings\Domain\Enum\SessionEventType;
 use App\Workflow\Identity\Model\AccountReference;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -12,7 +13,7 @@ use Doctrine\Common\Collections\ReadableCollection;
 final readonly class HistoryEntry
 {
     public function __construct(
-        public string $type,
+        public SessionEventType $type,
         public DateTimeImmutable $at,
         public ?AccountReference $actor,
         public bool $byGenerator,
@@ -29,7 +30,7 @@ final readonly class HistoryEntry
     {
         return $events->map(
             static fn (SessionEvent $event): self => new self(
-                type: $event->type()->value,
+                type: $event->type(),
                 at: $event->occurredAt(),
                 actor: $actors->actorOf($event),
                 byGenerator: $event->actor()->isGenerator,

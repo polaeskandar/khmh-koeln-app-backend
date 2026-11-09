@@ -17,7 +17,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class LessonRows
 {
     /**
-     * @param list<MeetingView> $meetings
+     * @param list<NoMeeting|OffScheduleMeeting|PlannedMeeting|SessionMeeting> $meetings
      *
      * @return list<LessonRow>
      */

@@ -15,7 +15,7 @@ final readonly class LessonRow
         public LessonSummary $lesson,
         public ?AccountReference $responsible,
         public array $collaborators,
-        public MeetingView $meeting,
+        public NoMeeting|OffScheduleMeeting|PlannedMeeting|SessionMeeting $meeting,
         public LessonHomework $homework,
     ) {
     }
