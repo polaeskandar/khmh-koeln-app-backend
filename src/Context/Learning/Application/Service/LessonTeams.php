@@ -10,7 +10,7 @@ use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\LessonTeam;
 use App\Context\Learning\Domain\ValueObject\TeamChoice;
 use App\Library\Collections\Model\Collections;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -19,7 +19,7 @@ final readonly class LessonTeams
     public function __construct(
         private LessonCollaboratorRepositoryInterface $collaborators,
         private LessonRepositoryInterface $lessons,
-        private Transactions $transactions,
+        private TransactionsInterface $transactions,
     ) {
     }
 

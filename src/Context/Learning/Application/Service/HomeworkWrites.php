@@ -12,7 +12,7 @@ use App\Context\Learning\Domain\ValueObject\HomeworkDraft;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Time\Client\Calendar;
-use App\Platform\Doctrine\Contract\VersionChecks;
+use App\Platform\Doctrine\Contract\VersionChecksInterface;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class HomeworkWrites
@@ -20,7 +20,7 @@ final readonly class HomeworkWrites
     public function __construct(
         private HomeworkRepositoryInterface $homework,
         private LessonRepositoryInterface $lessons,
-        private VersionChecks $versions,
+        private VersionChecksInterface $versions,
         private Calendar $calendar,
     ) {
     }

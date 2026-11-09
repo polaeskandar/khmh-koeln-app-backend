@@ -6,7 +6,7 @@ namespace App\Platform\Http\Contract;
 
 use Symfony\Component\HttpFoundation\Request;
 
-interface BearerTokens
+interface BearerTokensInterface
 {
     public function tokenOf(Request $request): ?string;
 }

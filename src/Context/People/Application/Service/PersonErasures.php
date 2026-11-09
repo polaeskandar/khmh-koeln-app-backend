@@ -16,8 +16,8 @@ use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Strings\Model\WholeWord;
-use App\Platform\Privacy\Contract\PersonNotes;
-use App\Platform\Privacy\Contract\PersonReferences;
+use App\Platform\Privacy\Contract\PersonNotesInterface;
+use App\Platform\Privacy\Contract\PersonReferencesInterface;
 use App\Platform\Privacy\Model\ErasedPerson;
 use App\Platform\Privacy\Model\ErasedPlace;
 use App\Platform\Privacy\Model\FoundNote;
@@ -30,16 +30,16 @@ use Symfony\Component\Uid\Uuid;
 final readonly class PersonErasures
 {
     /**
-     * @param iterable<int, PersonReferences> $references
-     * @param iterable<int, PersonNotes> $notes
+     * @param iterable<int, PersonReferencesInterface> $references
+     * @param iterable<int, PersonNotesInterface> $notes
      */
     public function __construct(
         private PersonRepositoryInterface $people,
         private RosterRepositoryInterface $rosters,
         private PersonTraceRepositoryInterface $traces,
-        #[AutowireIterator(PersonReferences::TAG)]
+        #[AutowireIterator(PersonReferencesInterface::TAG)]
         private iterable $references,
-        #[AutowireIterator(PersonNotes::NOTES_TAG)]
+        #[AutowireIterator(PersonNotesInterface::NOTES_TAG)]
         private iterable $notes,
     ) {
     }
@@ -54,7 +54,7 @@ final readonly class PersonErasures
         $person = $this->erasedOf($erasable, $groupOf($erasable));
 
         $elsewhere = Collections::of($this->references)->map(
-            static fn (PersonReferences $context): array => $context->forgetPerson($person),
+            static fn (PersonReferencesInterface $context): array => $context->forgetPerson($person),
         );
 
         return new PersonErased($this->traces->forget($id), ErasedElsewhere::of($elsewhere->getValues()));
@@ -73,7 +73,7 @@ final readonly class PersonErasures
              *
              * @return list<FoundNote>
              */
-            static fn (array $all, PersonNotes $context): array => [...$all, ...$context->notesAbout($person)],
+            static fn (array $all, PersonNotesInterface $context): array => [...$all, ...$context->notesAbout($person)],
             initial: [],
         );
 

@@ -12,7 +12,7 @@ use App\Context\Learning\Domain\ValueObject\ArchivedLesson;
 use App\Context\Learning\Domain\ValueObject\MeetingHolder;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -21,7 +21,7 @@ final readonly class LessonArchives
     public function __construct(
         private LessonRepositoryInterface $lessons,
         private LessonHomeworkRepositoryInterface $homework,
-        private Transactions $transactions,
+        private TransactionsInterface $transactions,
         private Calendar $calendar,
     ) {
     }

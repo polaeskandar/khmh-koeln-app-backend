@@ -16,7 +16,7 @@ use App\Context\People\Domain\Repository\RosterRepositoryInterface;
 use App\Context\People\Domain\ValueObject\ForgottenPerson;
 use App\Context\People\Infrastructure\Persistence\Repository\DoctrinePersonRepository;
 use App\Context\Privacy\Application\Service\PersonTraces as PrivacyTraces;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
@@ -119,7 +119,7 @@ final class ErasePersonWorkflowTest extends ApiTestCase
                 [],
             ),
             self::service(StructureLookup::class),
-            self::service(Transactions::class),
+            self::service(TransactionsInterface::class),
         );
 
         try {

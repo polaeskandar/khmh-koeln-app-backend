@@ -7,7 +7,7 @@ namespace App\Workflow\Privacy;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\PersonErasures;
 use App\Context\People\Domain\ValueObject\ErasablePerson;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\Placements;
 use App\Workflow\Privacy\Model\ErasedGroup;
@@ -18,7 +18,7 @@ final readonly class ErasePersonWorkflow
     public function __construct(
         private PersonErasures $people,
         private StructureLookup $structure,
-        private Transactions $transactions,
+        private TransactionsInterface $transactions,
     ) {
     }
 

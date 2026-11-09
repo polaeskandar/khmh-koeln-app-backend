@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Platform\Health\Controller;
 
-use App\Platform\Health\Contract\DatabaseProbe;
+use App\Platform\Health\Contract\DatabaseProbeInterface;
 use App\Platform\Health\Model\Readiness;
 use App\Platform\Health\Response\LivenessResponse;
 use App\Platform\Health\Response\ReadinessResponse;
@@ -46,7 +46,7 @@ final class HealthController extends AbstractController
         content: new OA\JsonContent(ref: new Model(type: ReadinessResponse::class)),
     )]
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
-    public function ready(DatabaseProbe $database): JsonResponse
+    public function ready(DatabaseProbeInterface $database): JsonResponse
     {
         $available = $database->isAvailable(self::TIMEOUT_SECONDS) ? Readiness::OK : Readiness::UNAVAILABLE;
         $readiness = new Readiness(status: $available, checks: ['database' => $available]);

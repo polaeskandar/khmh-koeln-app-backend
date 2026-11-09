@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Application\Service;
 
-use App\Platform\Privacy\Contract\AccountReferences;
+use App\Platform\Privacy\Contract\AccountReferencesInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class AccountSweeps
 {
     /**
-     * @param iterable<AccountReferences> $references
+     * @param iterable<AccountReferencesInterface> $references
      */
     public function __construct(
-        #[AutowireIterator(AccountReferences::TAG)]
+        #[AutowireIterator(AccountReferencesInterface::TAG)]
         private iterable $references,
     ) {
     }

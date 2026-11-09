@@ -6,7 +6,7 @@ namespace App\Platform\Errors\Contract;
 
 use Throwable;
 
-interface ErrorTracker
+interface ErrorTrackerInterface
 {
     public function capture(Throwable $error): void;
 }

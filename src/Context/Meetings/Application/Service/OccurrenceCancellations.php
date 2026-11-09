@@ -14,7 +14,7 @@ use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
 use App\Library\Time\Exception\InvalidLocalDate;
 use App\Library\Time\Model\LocalDate;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class OccurrenceCancellations
@@ -23,7 +23,7 @@ final readonly class OccurrenceCancellations
         private MeetingSchedules $schedules,
         private SessionRepositoryInterface $sessions,
         private SessionTransitions $transitions,
-        private Transactions $transactions,
+        private TransactionsInterface $transactions,
         private Calendar $calendar,
     ) {
     }

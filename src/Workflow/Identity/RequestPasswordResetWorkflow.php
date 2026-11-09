@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\PasswordLinks;
-use App\Platform\Http\Contract\AfterResponse;
+use App\Platform\Http\Contract\AfterResponseInterface;
 
 final readonly class RequestPasswordResetWorkflow
 {
     public function __construct(
         private PasswordLinks $links,
-        private AfterResponse $afterResponse,
+        private AfterResponseInterface $afterResponse,
     ) {
     }
 

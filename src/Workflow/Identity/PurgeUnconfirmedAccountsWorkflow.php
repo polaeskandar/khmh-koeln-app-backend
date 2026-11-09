@@ -6,7 +6,7 @@ namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\UnconfirmedAccounts;
 use App\Context\Organization\Application\Service\RegistrationServices;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 
 final readonly class PurgeUnconfirmedAccountsWorkflow
@@ -14,7 +14,7 @@ final readonly class PurgeUnconfirmedAccountsWorkflow
     public function __construct(
         private UnconfirmedAccounts $accounts,
         private RegistrationServices $services,
-        private Transactions $transactions,
+        private TransactionsInterface $transactions,
     ) {
     }
 

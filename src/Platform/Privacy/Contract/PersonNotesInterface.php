@@ -10,7 +10,7 @@ use App\Platform\Privacy\Model\NoteRef;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
 #[AutoconfigureTag(self::NOTES_TAG)]
-interface PersonNotes
+interface PersonNotesInterface
 {
     public const string NOTES_TAG = 'app.person_notes';
 

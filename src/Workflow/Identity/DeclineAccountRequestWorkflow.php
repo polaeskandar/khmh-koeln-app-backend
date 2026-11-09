@@ -10,7 +10,7 @@ use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\RegistrationServices;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 
 final readonly class DeclineAccountRequestWorkflow
 {
@@ -18,7 +18,7 @@ final readonly class DeclineAccountRequestWorkflow
         private AccessCheck $access,
         private AccountRequests $requests,
         private RegistrationServices $registrations,
-        private Transactions $transactions,
+        private TransactionsInterface $transactions,
     ) {
     }
 

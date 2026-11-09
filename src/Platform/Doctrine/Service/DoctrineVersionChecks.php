@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Platform\Doctrine\Service;
 
 use App\Library\Problem\Exception\RuleViolation;
-use App\Platform\Doctrine\Contract\VersionChecks;
+use App\Platform\Doctrine\Contract\VersionChecksInterface;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\OptimisticLockException;
 use Override;
 
-final readonly class DoctrineVersionChecks implements VersionChecks
+final readonly class DoctrineVersionChecks implements VersionChecksInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,

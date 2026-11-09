@@ -9,7 +9,7 @@ use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Strings\Model\Text;
-use App\Platform\Mail\Contract\MailQueue;
+use App\Platform\Mail\Contract\MailQueueInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Mime\Address;
@@ -23,7 +23,7 @@ final readonly class AccountMailer
 
     public function __construct(
         private AccountRepositoryInterface $accounts,
-        private MailQueue $queue,
+        private MailQueueInterface $queue,
         private TranslatorInterface $translator,
         #[Autowire(env: 'MAILER_FROM')]
         private string $from,

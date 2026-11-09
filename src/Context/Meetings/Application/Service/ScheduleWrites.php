@@ -16,7 +16,7 @@ use App\Context\Meetings\Domain\ValueObject\ScheduleWritten;
 use App\Context\Meetings\Domain\ValueObject\TimeSlot;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Time\Client\Calendar;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class ScheduleWrites
@@ -25,7 +25,7 @@ final readonly class ScheduleWrites
         private ScheduleRepositoryInterface $schedules,
         private SessionGenerator $generator,
         private RecurrenceRules $rules,
-        private Transactions $transactions,
+        private TransactionsInterface $transactions,
         private Calendar $calendar,
     ) {
     }

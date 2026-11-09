@@ -7,8 +7,8 @@ namespace App\Context\Learning\Application\Service;
 use App\Context\Learning\Domain\Repository\LessonNoteRepositoryInterface;
 use App\Context\Learning\Domain\Repository\PersonTraceRepositoryInterface;
 use App\Library\Collections\Model\Collections;
-use App\Platform\Privacy\Contract\PersonNotes;
-use App\Platform\Privacy\Contract\PersonReferences;
+use App\Platform\Privacy\Contract\PersonNotesInterface;
+use App\Platform\Privacy\Contract\PersonReferencesInterface;
 use App\Platform\Privacy\Model\ErasedPerson;
 use App\Platform\Privacy\Model\ErasedPlace;
 use App\Platform\Privacy\Model\FoundNote;
@@ -17,7 +17,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class PersonTraces implements PersonReferences, PersonNotes
+final readonly class PersonTraces implements PersonReferencesInterface, PersonNotesInterface
 {
     private const string LESSON_NOTE = 'lessonNote';
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Platform\Problem\Service;
 
-use App\Platform\Problem\Contract\ProblemResponder;
+use App\Platform\Problem\Contract\ProblemResponderInterface;
 use App\Platform\Problem\Model\Problem;
 use Doctrine\Common\Collections\ArrayCollection;
 use Override;
@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
-final readonly class JsonProblemResponder implements ProblemResponder
+final readonly class JsonProblemResponder implements ProblemResponderInterface
 {
     private const int JSON_OPTIONS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR;
 

@@ -380,7 +380,7 @@ removes the account's link.
 `app:privacy:erase-person` runs `ErasePersonWorkflow` in one transaction; its `:dry-run` runs the same
 workflow inside a transaction that always rolls back:
 
-1. People's `PersonErasures` locks the person row and hands every `PersonReferences`
+1. People's `PersonErasures` locks the person row and hands every `PersonReferencesInterface`
    (`Platform\Privacy\Contract`) an `ErasedPerson`: their names, memberships, last group and a way to ask
    which roster slots they were on.
 2. Meetings' `PersonTraces` finds the counted sessions they were on the roster of or marked present at.
@@ -396,7 +396,7 @@ An erasure request does the same from the app (`EraseRequestSubjectWorkflow`), a
 inside a transaction that is rolled back. It resolves the counterpart first: Identity's `AccountErasures` names
 the account linked to the requested record (`accountOfRecord`) or the record of the requested account
 (`recordOfAccount`), so a member's account and its record belong to the same request. The notes that name the
-member (`PersonErasures::mentionsOf`, from every `PersonNotes`) are found by the member's first and display name
+member (`PersonErasures::mentionsOf`, from every `PersonNotesInterface`) are found by the member's first and display name
 as a whole word, oldest first:
 
 - cancel reasons and session notes in the meetings of the member's stages, and in their services' meetings
@@ -431,7 +431,7 @@ point to the account become null (`recorded_by`, `removed_by`, `closed_by`, `act
 `EraseAccountWorkflow`. Identity's `AccountErasures` locks role administration and the account row, refuses
 the last administrator, counts the roles and password links, lets every context forget the account, and
 deletes it in one transaction. Each context forgets through its `AccountTraces` service, which implements the
-`AccountReferences` platform contract and nulls its actor columns or deletes the rows the account owned;
+`AccountReferencesInterface` platform contract and nulls its actor columns or deletes the rows the account owned;
 Identity's `AccountSweeps` collects them by the contract's tag, so a new context only adds its own service. A
 request that was already running can still write the account's id after that transaction, so `AccountErasures`
 sweeps the contexts once more after the commit (an erasure request once more after its own transaction), and a

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Platform\Http\Service;
 
-use App\Platform\Http\Contract\AfterResponse;
+use App\Platform\Http\Contract\AfterResponseInterface;
 use ArrayObject;
 use Override;
 use Psr\Log\LoggerInterface;
@@ -15,7 +15,7 @@ use Throwable;
 
 #[AsEventListener(event: KernelEvents::TERMINATE, method: 'runAll', priority: self::BEFORE_MAIL)]
 #[AsEventListener(event: ConsoleEvents::TERMINATE, method: 'runAll', priority: self::BEFORE_MAIL)]
-final readonly class TerminateQueue implements AfterResponse
+final readonly class TerminateQueue implements AfterResponseInterface
 {
     private const int BEFORE_MAIL = 10;
 

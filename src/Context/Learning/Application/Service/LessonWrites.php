@@ -17,7 +17,7 @@ use App\Context\Learning\Domain\ValueObject\TeamChoice;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
-use App\Platform\Doctrine\Contract\VersionChecks;
+use App\Platform\Doctrine\Contract\VersionChecksInterface;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class LessonWrites
@@ -26,7 +26,7 @@ final readonly class LessonWrites
         private LessonRepositoryInterface $lessons,
         private LessonMeetings $meetings,
         private LessonTeams $teams,
-        private VersionChecks $versions,
+        private VersionChecksInterface $versions,
         private Calendar $calendar,
     ) {
     }

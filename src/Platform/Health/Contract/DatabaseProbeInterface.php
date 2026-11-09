@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Platform\Health\Contract;
 
-interface DatabaseProbe
+interface DatabaseProbeInterface
 {
     /**
      * @param positive-int $timeoutSeconds

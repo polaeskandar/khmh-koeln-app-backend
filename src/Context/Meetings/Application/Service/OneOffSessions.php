@@ -17,7 +17,7 @@ use App\Context\Meetings\Domain\ValueObject\Recurrence;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Time\Client\Calendar;
 use App\Library\Time\Model\Instant;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use LogicException;
 use Symfony\Component\Uid\Uuid;
 
@@ -26,7 +26,7 @@ final readonly class OneOffSessions
     public function __construct(
         private ScheduleRepositoryInterface $schedules,
         private SessionRepositoryInterface $sessions,
-        private Transactions $transactions,
+        private TransactionsInterface $transactions,
         private Calendar $calendar,
     ) {
     }

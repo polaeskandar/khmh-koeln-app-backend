@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Platform\Doctrine\Service;
 
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Override;
 
-final readonly class DoctrineTransactions implements Transactions
+final readonly class DoctrineTransactions implements TransactionsInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,

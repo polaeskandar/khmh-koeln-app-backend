@@ -13,7 +13,7 @@ use App\Context\People\Domain\ValueObject\AccessGrant;
 use App\Context\People\Domain\ValueObject\ActiveChild;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Time\Client\Calendar;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\Uid\Uuid;
 
@@ -22,7 +22,7 @@ final readonly class ParentGrants
     public function __construct(
         private GuardianLinkRepositoryInterface $links,
         private PersonRepositoryInterface $people,
-        private Transactions $transactions,
+        private TransactionsInterface $transactions,
         private Calendar $calendar,
     ) {
     }

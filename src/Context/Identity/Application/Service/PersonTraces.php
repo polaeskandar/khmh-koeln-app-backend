@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Repository\PersonTraceRepositoryInterface;
-use App\Platform\Privacy\Contract\PersonReferences;
+use App\Platform\Privacy\Contract\PersonReferencesInterface;
 use App\Platform\Privacy\Model\ErasedPerson;
 use Override;
 
-final readonly class PersonTraces implements PersonReferences
+final readonly class PersonTraces implements PersonReferencesInterface
 {
     public function __construct(
         private PersonTraceRepositoryInterface $traces,

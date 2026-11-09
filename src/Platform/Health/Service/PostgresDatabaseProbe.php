@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Platform\Health\Service;
 
 use App\Library\Strings\Model\Text;
-use App\Platform\Health\Contract\DatabaseProbe;
+use App\Platform\Health\Contract\DatabaseProbeInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Override;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
-#[AsAlias(DatabaseProbe::class)]
-final readonly class PostgresDatabaseProbe implements DatabaseProbe
+#[AsAlias(DatabaseProbeInterface::class)]
+final readonly class PostgresDatabaseProbe implements DatabaseProbeInterface
 {
     public function __construct(
         private Connection $connection,

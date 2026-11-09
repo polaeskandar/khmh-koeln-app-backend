@@ -8,7 +8,7 @@ use App\Platform\Privacy\Model\ErasedPerson;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
 #[AutoconfigureTag(self::TAG)]
-interface PersonReferences
+interface PersonReferencesInterface
 {
     public const string TAG = 'app.person_references';
 

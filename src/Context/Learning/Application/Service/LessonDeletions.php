@@ -10,7 +10,7 @@ use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Context\Learning\Domain\Repository\LessonHomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Library\Problem\Exception\RuleViolation;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 
 final readonly class LessonDeletions
@@ -18,7 +18,7 @@ final readonly class LessonDeletions
     public function __construct(
         private LessonRepositoryInterface $lessons,
         private LessonHomeworkRepositoryInterface $homework,
-        private Transactions $transactions,
+        private TransactionsInterface $transactions,
     ) {
     }
 

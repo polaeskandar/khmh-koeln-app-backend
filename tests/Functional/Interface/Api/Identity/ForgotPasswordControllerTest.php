@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Identity;
 
-use App\Platform\Http\Contract\AfterResponse;
+use App\Platform\Http\Contract\AfterResponseInterface;
 use App\Platform\Http\Service\TerminateQueue;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
@@ -92,7 +92,7 @@ final class ForgotPasswordControllerTest extends ApiTestCase
         self::mockTime('2026-11-08T10:00:00+01:00');
         new SignInAccounts(self::getContainer())->add(self::EMAIL, ['language' => 'en']);
         $requestPasswordReset = self::getContainer()->get(RequestPasswordResetWorkflow::class);
-        $afterResponse = self::getContainer()->get(AfterResponse::class);
+        $afterResponse = self::getContainer()->get(AfterResponseInterface::class);
         self::assertInstanceOf(RequestPasswordResetWorkflow::class, $requestPasswordReset);
         self::assertInstanceOf(TerminateQueue::class, $afterResponse);
 

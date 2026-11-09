@@ -6,7 +6,7 @@ namespace App\Interface\Console\Privacy;
 
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use App\Workflow\Privacy\EraseAccountWorkflow;
 use App\Workflow\Privacy\Model\ErasureCounts;
 use Symfony\Component\Console\Attribute\Argument;
@@ -22,7 +22,7 @@ final readonly class PrivacyEraseAccountDryRunCommand
 {
     public function __construct(
         private EraseAccountWorkflow $eraseAccount,
-        private Transactions $transactions,
+        private TransactionsInterface $transactions,
     ) {
     }
 

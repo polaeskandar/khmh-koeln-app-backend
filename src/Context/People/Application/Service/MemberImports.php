@@ -16,7 +16,7 @@ use App\Context\People\Domain\ValueObject\Tenure;
 use App\Library\Collections\Model\Collections;
 use App\Library\Strings\Model\Text;
 use App\Library\Time\Client\Calendar;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 
@@ -26,7 +26,7 @@ final readonly class MemberImports
         private PersonRepositoryInterface $people,
         private MembershipRepositoryInterface $memberships,
         private Calendar $calendar,
-        private Transactions $transactions,
+        private TransactionsInterface $transactions,
     ) {
     }
 

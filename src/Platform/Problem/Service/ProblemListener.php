@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Platform\Problem\Service;
 
-use App\Platform\Errors\Contract\ErrorTracker;
+use App\Platform\Errors\Contract\ErrorTrackerInterface;
 use App\Platform\Http\Service\ApiRequest;
-use App\Platform\Problem\Contract\ProblemResponder;
+use App\Platform\Problem\Contract\ProblemResponderInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 
@@ -14,8 +14,8 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 final readonly class ProblemListener
 {
     public function __construct(
-        private ProblemResponder $responder,
-        private ErrorTracker $errors,
+        private ProblemResponderInterface $responder,
+        private ErrorTrackerInterface $errors,
     ) {
     }
 

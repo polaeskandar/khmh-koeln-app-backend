@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Platform\Health\Controller;
 
-use App\Platform\Health\Contract\DatabaseProbe;
+use App\Platform\Health\Contract\DatabaseProbeInterface;
 use App\Tests\Support\ApiTestCase;
 use DAMA\DoctrineTestBundle\PHPUnit\SkipDatabaseRollback;
 use Doctrine\DBAL\Connection;
@@ -39,7 +39,7 @@ final class HealthControllerTest extends ApiTestCase
     {
         $this->browser();
 
-        self::getContainer()->set(DatabaseProbe::class, new class implements DatabaseProbe {
+        self::getContainer()->set(DatabaseProbeInterface::class, new class implements DatabaseProbeInterface {
             #[Override]
             public function isAvailable(int $timeoutSeconds): bool
             {

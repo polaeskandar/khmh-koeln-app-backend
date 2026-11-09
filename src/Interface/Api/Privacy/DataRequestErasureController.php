@@ -7,7 +7,7 @@ namespace App\Interface\Api\Privacy;
 use App\Interface\Api\Privacy\Request\EraseRequestRequest;
 use App\Interface\Api\Privacy\Response\DataRequestRowResponse;
 use App\Interface\Api\Privacy\Response\ErasureReviewResponse;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use App\Workflow\Privacy\EraseRequestSubjectWorkflow;
 use App\Workflow\Privacy\Model\ErasureChoice;
 use App\Workflow\Privacy\Model\ErasureReview;
@@ -37,7 +37,7 @@ final class DataRequestErasureController extends AbstractController
         #[CurrentUser]
         UserInterface $viewer,
         EraseRequestSubjectWorkflow $eraseRequestSubject,
-        Transactions $transactions,
+        TransactionsInterface $transactions,
     ): JsonResponse {
         $review = $transactions->rehearse(static fn (): ErasureReview => $eraseRequestSubject(
             $id,

@@ -6,7 +6,7 @@ namespace App\Platform\Mail\Contract;
 
 use Symfony\Component\Mime\Email;
 
-interface MailQueue
+interface MailQueueInterface
 {
     public function queue(Email $email, string $label): void;
 }

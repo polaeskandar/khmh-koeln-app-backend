@@ -221,7 +221,7 @@ exactly once. Disabling an account drops its unused links, so enabling it again 
 Public. Body `{email}` → 202 `{"status":"received"}`, the same bytes for every address. Only an active account
 (approved, not disabled) gets a `password_link` email in its language, with a link valid for 1 hour that replaces
 any older unused link; unknown, pending and disabled addresses get nothing. Looking the address up, creating the
-link and sending the email all happen after the response (`AfterResponse`), so the answer's timing reveals nothing.
+link and sending the email all happen after the response (`AfterResponseInterface`), so the answer's timing reveals nothing.
 The link is used with `POST /api/auth/password-links`; links from `app:user:password-link` still last 24 hours.
 
 | Case | Response |

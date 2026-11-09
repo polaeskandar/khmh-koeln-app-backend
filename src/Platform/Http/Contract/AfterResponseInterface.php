@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Platform\Http\Contract;
 
-interface AfterResponse
+interface AfterResponseInterface
 {
     /**
      * @param callable(): void $work

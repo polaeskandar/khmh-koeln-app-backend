@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Platform\Mail\Service;
 
-use App\Platform\Mail\Contract\MailQueue;
+use App\Platform\Mail\Contract\MailQueueInterface;
 use ArrayObject;
 use Override;
 use Psr\Log\LoggerInterface;
@@ -17,7 +17,7 @@ use Symfony\Component\Mime\Email;
 
 #[AsEventListener(event: KernelEvents::TERMINATE, method: 'sendAll')]
 #[AsEventListener(event: ConsoleEvents::TERMINATE, method: 'sendAll')]
-final readonly class DeferredMailQueue implements MailQueue
+final readonly class DeferredMailQueue implements MailQueueInterface
 {
     /**
      * @var ArrayObject<string, Email>

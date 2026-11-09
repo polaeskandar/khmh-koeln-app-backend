@@ -9,7 +9,7 @@ use App\Context\Identity\Domain\Enum\RegisteredAs;
 use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Organization\Application\Service\RegistrationServices;
 use App\Context\Organization\Domain\Entity\Service;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 use App\Workflow\Identity\Model\AccountChoice;
 use App\Workflow\Identity\Model\RegistrationChoice;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -23,7 +23,7 @@ final readonly class RegisterAccountWorkflow
     public function __construct(
         private AccountRegistration $accounts,
         private RegistrationServices $services,
-        private Transactions $transactions,
+        private TransactionsInterface $transactions,
     ) {
     }
 

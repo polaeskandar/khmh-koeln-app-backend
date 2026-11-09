@@ -7,7 +7,7 @@ namespace App\Workflow\People;
 use App\Context\Identity\Application\Service\ParentAccounts;
 use App\Context\People\Application\Service\Children;
 use App\Context\People\Application\Service\Guardianship;
-use App\Platform\Doctrine\Contract\Transactions;
+use App\Platform\Doctrine\Contract\TransactionsInterface;
 
 final readonly class LinkGuardianByEmailWorkflow
 {
@@ -15,7 +15,7 @@ final readonly class LinkGuardianByEmailWorkflow
         private ParentAccounts $accounts,
         private Children $children,
         private Guardianship $guardianship,
-        private Transactions $transactions,
+        private TransactionsInterface $transactions,
     ) {
     }
 

@@ -8,7 +8,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Component\Uid\Uuid;
 
 #[AutoconfigureTag(self::TAG)]
-interface AccountReferences
+interface AccountReferencesInterface
 {
     public const string TAG = 'app.account_references';
 

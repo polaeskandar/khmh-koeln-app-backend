@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Identity;
 
-use App\Platform\Http\Contract\BearerTokens;
+use App\Platform\Http\Contract\BearerTokensInterface;
 use App\Workflow\Identity\RevokeApiTokenWorkflow;
 use LogicException;
 use OpenApi\Attributes as OA;
@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final readonly class TokenController
 {
     public function __construct(
-        private BearerTokens $bearerTokens,
+        private BearerTokensInterface $bearerTokens,
     ) {
     }
 

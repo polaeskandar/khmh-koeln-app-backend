@@ -15,8 +15,8 @@ use App\Context\Meetings\Domain\ValueObject\ErasedShares;
 use App\Context\Meetings\Domain\ValueObject\RosterPlace;
 use App\Library\Collections\Model\Collections;
 use App\Library\Time\Client\Calendar;
-use App\Platform\Privacy\Contract\PersonNotes;
-use App\Platform\Privacy\Contract\PersonReferences;
+use App\Platform\Privacy\Contract\PersonNotesInterface;
+use App\Platform\Privacy\Contract\PersonReferencesInterface;
 use App\Platform\Privacy\Model\ErasedPerson;
 use App\Platform\Privacy\Model\ErasedPlace;
 use App\Platform\Privacy\Model\FoundNote;
@@ -27,7 +27,7 @@ use Doctrine\Common\Collections\ReadableCollection;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class PersonTraces implements PersonReferences, PersonNotes
+final readonly class PersonTraces implements PersonReferencesInterface, PersonNotesInterface
 {
     public function __construct(
         private ScheduleRepositoryInterface $schedules,
