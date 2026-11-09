@@ -10,7 +10,9 @@ use App\Context\Identity\Domain\Repository\EmailConfirmationTokenRepositoryInter
 use App\Context\Identity\Domain\ValueObject\Email;
 use App\Library\Checksum\Model\Checksum;
 use App\Library\Time\Client\Calendar;
+use Closure;
 use DateInterval;
+use DateTimeImmutable;
 use SensitiveParameter;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
@@ -57,7 +59,7 @@ final readonly class EmailConfirmations
 
     public function remind(User $existing): void
     {
-        if (!$existing->status()->isEmailConfirmed()) {
+        if ($existing->status()->emailConfirmedAt === null) {
             $this->send($existing);
 
             return;
@@ -72,11 +74,27 @@ final readonly class EmailConfirmations
     {
         $now = $this->calendar->now()->toDateTimeImmutable();
 
-        return $this->tokens->spend(
-            Checksum::sha256($token),
-            $now,
-            static fn (User $user) => $user->changeStatus($user->status()->emailConfirmedOn($now)),
-        );
+        return $this->tokens->spend(Checksum::sha256($token), $now, self::confirmationOn($now));
+    }
+
+    public function confirmByHand(User $user): bool
+    {
+        if (!$user->status()->isAwaitingEmailConfirmation()) {
+            return false;
+        }
+
+        $now = $this->calendar->now()->toDateTimeImmutable();
+        $this->tokens->spendUnusedOf($user, $now, self::confirmationOn($now));
+
+        return true;
+    }
+
+    /**
+     * @return Closure(User): void
+     */
+    private static function confirmationOn(DateTimeImmutable $at): Closure
+    {
+        return static fn (User $user) => $user->changeStatus($user->status()->emailConfirmedOn($at));
     }
 
     private function mayMail(User $user): bool

@@ -42,6 +42,7 @@ There is no account screen at launch; operators run these commands on the server
 | `app:user:role:add <email> <role>` / `app:user:role:remove <email> <role>` | Gives or takes a role by name. The last active account that can manage roles keeps that permission. |
 | `app:user:disable <email>` / `app:user:enable <email>` | Disables an account (it can't sign in, and its open sessions end for good) or enables it again. Repeating changes nothing. The last active administrator can't be disabled. |
 | `app:user:password-link <email>` | Emails the account a one-time link to set the password, valid for 24 hours, in the account's language. A new link replaces the unused ones. |
+| `app:user:confirm-email <email>` | Confirms a registration's email address by hand, as if its link was used: the confirmation time is now, its unused links stop working, and the registration appears under Account requests. Sends no email. An address that is already confirmed (or an approved account) changes nothing and exits 0; an unknown address exits 1. |
 
 The link goes only to the account's own address, never to the console or the logs, and is stored only as a
 SHA-256 hash.

@@ -152,10 +152,13 @@ Public. Body `{email, password}`, both strings. The email is trimmed and compare
 | Body not an object with string `email` and `password` | 400 `invalidRequest` |
 | Unknown email or wrong password (identical answers) | 401 `auth.invalidCredentials` |
 | Right password, account disabled (checked first) | 403 `auth.disabled` |
-| Right password, account waiting for approval | 403 `auth.pending` |
+| Right password, not approved and the email address not confirmed yet (checked before `auth.pending`) | 403 `auth.unconfirmed` |
+| Right password, email address confirmed, account waiting for approval | 403 `auth.pending` |
 | 5 failures for this email and IP within 15 minutes, or the per-IP limit | 429 `auth.tooManyAttempts` + `Retry-After`, even with the right password |
 
-A wrong password never reveals that an account is pending or disabled. Failures set no cookie.
+A wrong password never reveals that an account is unconfirmed, pending or disabled. Failures set no cookie. An
+approved account is never refused for an unconfirmed address, so accounts from `app:user:create` sign in without a
+confirmation time.
 
 ```http
 POST /api/auth/sign-in HTTP/1.1
@@ -181,7 +184,7 @@ Cache-Control: no-store
 }
 ```
 
-403 pending (`auth.disabled` has the same shape):
+403 pending (`auth.unconfirmed` and `auth.disabled` have the same shape):
 
 ```json
 {
@@ -281,14 +284,16 @@ The password is hashed in every 202 case and emails leave after the response, so
 way. An address gets at most 3 of these emails per hour; further registrations still answer 202 and send
 nothing. The registration reaches the office (`GET /api/account-requests`) only after the link is used, and
 `app:user:purge-unconfirmed` (daily) deletes registrations left unconfirmed for 7 days whose newest link has
-expired too, so a link resent on day 6 still works until day 13. Signing in before approval answers 403
-`auth.pending`.
+expired too, so a link resent on day 6 still works until day 13. Signing in before the link is used answers 403
+`auth.unconfirmed`, and after it until the approval 403 `auth.pending`. When the email doesn't arrive, an operator
+confirms the address with `app:user:confirm-email <email>`, which does what the link does.
 
 #### `POST /api/auth/email-confirmations`
 
 Public. Body `{token}` from the `#token=` fragment of the confirmation link → 204; the registration now waits
-for the office. A missing, unknown, used or expired token → 422 `auth.confirmationLinkInvalid`, the same body
-for each. An 11th request from one IP within an hour → 429 `auth.tooManyAttempts` with `Retry-After`.
+for the office, and signing in answers 403 `auth.pending` instead of `auth.unconfirmed`. A missing, unknown, used
+or expired token → 422 `auth.confirmationLinkInvalid`, the same body for each. An 11th request from one IP within
+an hour → 429 `auth.tooManyAttempts` with `Retry-After`.
 
 #### `GET /api/auth/register/services`
 
@@ -409,9 +414,9 @@ of a pending or disabled account, gets 401 `auth.unauthenticated`, even with a v
 
 Public. Body `{email, password, deviceName?}` (`deviceName` at most 100 characters, else 422
 `validation.tooLong`) → 201 `{token, expiresAt}`. The same codes and throttling as `POST /api/auth/sign-in`
-(400, 401 `auth.invalidCredentials`, 403 `auth.pending`/`auth.disabled`, 429 `auth.tooManyAttempts` with
-`Retry-After`; the attempts count together with cookie sign-ins). No session or cookie, and no `Location`: a
-token is only addressable as `current`.
+(400, 401 `auth.invalidCredentials`, 403 `auth.unconfirmed`/`auth.pending`/`auth.disabled`, 429
+`auth.tooManyAttempts` with `Retry-After`; the attempts count together with cookie sign-ins). No session or
+cookie, and no `Location`: a token is only addressable as `current`.
 
 ```json
 {"token": "kXh2…", "expiresAt": "2027-02-06T12:00:00+01:00"}
@@ -591,7 +596,7 @@ the endpoint, and a well-formed one gets the endpoint's 403.
 | 401 | `auth.unauthenticated` | No valid session or token |
 | 401 | `auth.invalidCredentials` | Sign-in with a wrong email or password |
 | 403 | `forbidden` | The role does not allow it, or a foreign `Origin` |
-| 403 | `auth.pending`, `auth.disabled` | Sign-in with the right password |
+| 403 | `auth.unconfirmed`, `auth.pending`, `auth.disabled` | Sign-in and token issuing with the right password |
 | 403 | specific codes | Where a section names why, e.g. `services.adminOnlyCreate` |
 | 404 | `notFound.<thing>` | Unknown, deleted, or non-UUID id |
 | 404 | `notFound.route` | No such route under `/api` |
@@ -691,6 +696,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | --- | --- | --- |
 | `auth.unauthenticated` | – | **New.** 401: no valid session or bearer token (never signed in, signed out, expired, or the account was disabled or its password changed). |
 | `auth.invalidCredentials` | – | **New.** 401 on sign-in: wrong email or password, without saying which. |
+| `auth.unconfirmed` | – | **New.** 403 on sign-in with the right password: the account is not approved and its email address is not confirmed. Confirm your email address first: open the link we sent you when you registered. |
 | `auth.pending` | – | **New.** 403 on sign-in with the right password: an administrator has not approved the account yet. |
 | `auth.disabled` | – | **New.** 403 on sign-in with the right password: the account is disabled. |
 | `auth.tooManyAttempts` | – | **New.** 429 on sign-in, registration and password links. `Retry-After` says when to retry. |

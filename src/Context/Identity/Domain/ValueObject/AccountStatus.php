@@ -82,8 +82,8 @@ final readonly class AccountStatus
         return $this->approvedAt === null;
     }
 
-    public function isEmailConfirmed(): bool
+    public function isAwaitingEmailConfirmation(): bool
     {
-        return $this->emailConfirmedAt !== null;
+        return $this->isPending() && $this->emailConfirmedAt === null;
     }
 }

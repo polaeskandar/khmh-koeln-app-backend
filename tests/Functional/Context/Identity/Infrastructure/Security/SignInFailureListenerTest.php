@@ -79,10 +79,16 @@ final class SignInFailureListenerTest extends ApiTestCase
      */
     public static function statuses(): iterable
     {
+        yield 'unconfirmed' => [['approved_at' => null, 'email_confirmed_at' => null], 'auth.unconfirmed'];
         yield 'pending' => [['approved_at' => null], 'auth.pending'];
         yield 'disabled' => [['disabled_at' => '2026-11-09 08:00:00+01'], 'auth.disabled'];
         yield 'disabled while pending' => [
             ['approved_at' => null, 'disabled_at' => '2026-11-09 08:00:00+01'],
+            'auth.disabled',
+        ];
+
+        yield 'disabled while unconfirmed' => [
+            ['approved_at' => null, 'email_confirmed_at' => null, 'disabled_at' => '2026-11-09 08:00:00+01'],
             'auth.disabled',
         ];
     }

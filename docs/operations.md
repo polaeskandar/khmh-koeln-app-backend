@@ -137,6 +137,22 @@ php bin/console app:members:import members.csv           # imports in one transa
   SSH (`scp`/`sftp`) only, never by email or a shared folder, into a directory readable only by the operator;
   a successful import deletes it, and after a failed one delete it yourself once the import is done.
 
+## Confirming an email address by hand
+
+A registration reaches Settings › Account requests only after its email address is confirmed; until then signing
+in answers `auth.unconfirmed`. When the confirmation email doesn't arrive (a spam filter, a full mailbox), an
+operator who has checked that the address belongs to the person confirms it:
+
+```sh
+php bin/console app:user:confirm-email person@example.org
+```
+
+- It does what the link does: the confirmation time is now and the account's unused confirmation links stop
+  working. It sends no email. The registration then waits for approval like any other.
+- An address that is already confirmed, or an approved account (approved accounts are never asked to confirm),
+  prints that nothing changed and exits 0. An unknown address prints an error and exits 1.
+- `app:user:purge-unconfirmed` no longer deletes the registration once it is confirmed.
+
 ## Backups
 
 The database provider's backups are the first copy. The second is our own encrypted daily dump in EU object

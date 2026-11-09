@@ -17,4 +17,9 @@ interface EmailConfirmationTokenRepositoryInterface
      * @param callable(User): void $use
      */
     public function spend(#[SensitiveParameter] string $tokenHash, DateTimeImmutable $at, callable $use): bool;
+
+    /**
+     * @param callable(User): void $use
+     */
+    public function spendUnusedOf(User $user, DateTimeImmutable $at, callable $use): void;
 }
