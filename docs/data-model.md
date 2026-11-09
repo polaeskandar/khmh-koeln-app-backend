@@ -192,7 +192,7 @@ command that runs the workflow, with its lock, is #53.
 
 | Table | Purpose | Key rules |
 | --- | --- | --- |
-| `app_user` | A sign-in account: email, display name, password hash, language (`en`, `de`, `ar`), optional link to the person's own member record (`person_id`), optional `birth_date` and postal address (`street`, `postal_code`, `city`, all three or none; visible to the person and administrators). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. `approved_at`/`approved_by` stay null until an administrator approves the account; until then it can't sign in. While waiting it keeps what the person wrote when registering (`registered_as` parent, servant or member, `registration_note`, and for servants the services they serve in, `organization.registration_service`); these are cleared once an administrator decides. Declining deletes the row. Disabled accounts (`disabled_at`) can't sign in and keep their history. |
+| `app_user` | A sign-in account: email, display name, password hash, language (`en`, `de`, `ar`), optional link to the person's own member record (`person_id`), optional `birth_date` and postal address (`street`, `postal_code`, `city`, all three or none; visible to the person and administrators). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. `approved_at`/`approved_by` stay null until an administrator approves the account; until then it can't sign in. While waiting it keeps what the person wrote when registering (`registered_as` parent, servant or member, `registration_note`, and for servants the services they serve in, `organization.registration_service`); these are cleared once an administrator decides. Declining deletes the row. Disabled accounts (`disabled_at`) can't sign in and keep their history. `erases_on` is set while an erasure the account asked for in the app waits: it can't sign in (`auth.erasureScheduled`), its sessions ended when it was set, and it doesn't count as another administrator for `roles.lastAdministrator`. |
 | `role` | A named set of permissions. Administrators create, rename and delete roles and choose their permissions from the catalog; the defaults are Administrator, Service leader, Servant and Parent. | Name unique, ignoring case and extra spaces. |
 | `permission` | One action (`create`, `read`, `update`, `delete`) on one resource (`users`, `roles`, `services`, `stages`, `sessions`, `attendance`, `members`, `lessons`, `homework`, `parentPortal`). | One row per action and resource; seeded. |
 
@@ -242,7 +242,8 @@ after enabling.
 Sign-in sessions live in `public.sessions` (Symfony's `PdoSessionHandler` table, created by an Identity
 migration from `app:migrations:generate identity` and outside every context's schema, so no context's diff touches it). A session holds
 only the account id and two crc32c fingerprints: one of the password hash, one of the approval and disabled
-times and `auth_version`. It ends when either changes. Because the session stores fingerprints and no objects,
+times, `auth_version` and, while one is scheduled, `erases_on`. It ends when either changes, so scheduling an
+erasure ends every session at once. Because the session stores fingerprints and no objects,
 a session saved before a change to the account's shape restores with empty fingerprints and ends cleanly.
 
 The backend checks every request against these roles. The frontend only uses them to hide actions a person
@@ -344,7 +345,7 @@ In numbers (`TaskAudiences`), for church-today in Europe/Berlin:
 
 | Table | Purpose | Key rules |
 | --- | --- | --- |
-| `data_request` | A request to see (`copy`) or erase (`erasure`) personal data: who it is about (`person_id`, `app_user_id`), who asked and how (`requested_by`, `channel`: app, email, letter, in person), `received_at`, `due_on` (one month later), a note, and the outcome. | `status` open → done or declined; declining needs a reason. A member's account and an account's member record belong to the same request. The subject's name is never stored: it is read from `person`/`app_user` while they exist. Once the data is erased, `person_id`/`app_user_id` become null and `erased_subject_kind`/`_group` say what it was ("member of 3rd Class"), also on earlier requests about the same person. `outcome` counts what was deleted per kind. |
+| `data_request` | A request to see (`copy`) or erase (`erasure`) personal data: who it is about (`person_id`, `app_user_id`), who asked and how (`requested_by`, `channel`: app, email, letter, in person), `received_at`, `due_on` (one month later), for an erasure made in the app `erases_on` (14 days later), a note, and the outcome. | `status` open → done, declined or withdrawn (an erasure from the app cancelled before `erases_on`); declining needs a reason; only an erasure from the app has `erases_on` (CHECK). `closed_by` stays null when the request closes without the office: a scheduled erasure or a withdrawal. A member's account and an account's member record belong to the same request. The subject's name is never stored: it is read from `person`/`app_user` while they exist. Once the data is erased, `person_id`/`app_user_id` become null and `erased_subject_kind`/`_group` say what it was ("member of 3rd Class"), also on earlier requests about the same person. `outcome` counts what was deleted per kind. |
 
 ### What a copy request exports
 

@@ -13,6 +13,7 @@ use App\Context\People\Domain\Entity\Person;
 use App\Context\Privacy\Domain\Entity\DataRequest;
 use App\Context\Privacy\Domain\Enum\RequestChannel;
 use App\Context\Privacy\Domain\Enum\RequestKind;
+use App\Context\Privacy\Domain\ValueObject\Deadlines;
 use App\Context\Privacy\Domain\ValueObject\Receipt;
 use App\Context\Privacy\Domain\ValueObject\RequestSubject;
 use App\Library\Time\Model\LocalDate;
@@ -73,7 +74,7 @@ final readonly class ErasureFixture
             $kind,
             new RequestSubject($person?->id(), $accountId === null ? null : Uuid::fromString($accountId)),
             new Receipt('Hoda Farag', RequestChannel::Letter, new DateTimeImmutable('2026-11-02T12:00:00+01:00')),
-            LocalDate::of('2026-12-02'),
+            new Deadlines(LocalDate::of('2026-12-02')),
             'Asked by letter.',
         );
 

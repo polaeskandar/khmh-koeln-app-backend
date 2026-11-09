@@ -124,6 +124,7 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
             ->where('u.id <> :except')
             ->andWhere('u.approved_at IS NOT NULL')
             ->andWhere('u.disabled_at IS NULL')
+            ->andWhere('u.erases_on IS NULL')
             ->andWhere('p.action = :action')
             ->andWhere('p.resource = :resource')
             ->setParameter('except', $except->id()->toRfc4122())

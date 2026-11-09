@@ -9,4 +9,5 @@ enum RequestStatus: string
     case Open = 'open';
     case Done = 'done';
     case Declined = 'declined';
+    case Withdrawn = 'withdrawn';
 }

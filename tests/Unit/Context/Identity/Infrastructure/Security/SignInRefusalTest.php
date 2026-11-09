@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Context\Identity\Infrastructure\Security;
 
 use App\Context\Identity\Infrastructure\Security\SignInRefusal;
+use App\Library\Problem\Exception\Forbidden;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
@@ -28,8 +28,20 @@ final class SignInRefusalTest extends TestCase
     {
         $refusal = SignInRefusal::of(new CustomUserMessageAccountStatusException('auth.pending'));
 
-        self::assertInstanceOf(AccessDeniedHttpException::class, $refusal);
+        self::assertInstanceOf(Forbidden::class, $refusal);
         self::assertSame('auth.pending', $refusal->getMessage());
+        self::assertSame([], $refusal->params);
+    }
+
+    public function testAnAccountStatusKeepsItsParams(): void
+    {
+        $refusal = SignInRefusal::of(new CustomUserMessageAccountStatusException('auth.erasureScheduled', [
+            'erasesOn' => '2026-11-22',
+        ]));
+
+        self::assertInstanceOf(Forbidden::class, $refusal);
+        self::assertSame('auth.erasureScheduled', $refusal->getMessage());
+        self::assertSame(['erasesOn' => '2026-11-22'], $refusal->params);
     }
 
     public function testAnythingElseIsInvalidCredentials(): void

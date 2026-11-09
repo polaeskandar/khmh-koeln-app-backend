@@ -7,22 +7,26 @@ namespace App\Interface\Api\Privacy;
 use App\Interface\Api\Privacy\Request\OwnErasureRequestRequest;
 use App\Interface\Api\Privacy\Response\AccountDataResponse;
 use App\Interface\Api\Privacy\Response\MemberDataResponse;
-use App\Interface\Api\Privacy\Response\OwnErasureRequestResponse;
 use App\Interface\Api\Privacy\Response\OwnErasureStatusResponse;
+use App\Interface\Api\Privacy\Response\ScheduledErasureResponse;
+use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Time\Client\Calendar;
 use App\Workflow\Privacy\ExportAccountDataWorkflow;
 use App\Workflow\Privacy\ExportMemberActivityWorkflow;
 use App\Workflow\Privacy\ExportMemberDataWorkflow;
-use App\Workflow\Privacy\Model\OwnErasureRequest;
 use App\Workflow\Privacy\Model\OwnErasureStatus;
 use App\Workflow\Privacy\RequestOwnErasureWorkflow;
 use App\Workflow\Privacy\ShowOwnErasureRequestWorkflow;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
@@ -31,6 +35,13 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 final class OwnDataController extends AbstractController
 {
     private const string FILE = 'khmk-my-data.json';
+
+    public function __construct(
+        #[Autowire(service: 'limiter.password_change')]
+        private readonly RateLimiterFactoryInterface $passwordChecks,
+        private readonly Calendar $calendar,
+    ) {
+    }
 
     #[Route('/personal-data', name: 'api_me_personal_data', methods: ['GET'])]
     #[OA\Get(summary: 'Me personal data.')]
@@ -81,7 +92,7 @@ final class OwnDataController extends AbstractController
     #[OA\Response(
         response: 201,
         description: 'Created.',
-        content: new OA\JsonContent(ref: new Model(type: OwnErasureRequest::class)),
+        content: new OA\JsonContent(ref: new Model(type: ScheduledErasureResponse::class)),
     )]
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function requestErasure(
@@ -91,9 +102,24 @@ final class OwnDataController extends AbstractController
         OwnErasureRequestRequest $request,
         RequestOwnErasureWorkflow $requestOwnErasure,
     ): JsonResponse {
-        return $this->json(
-            OwnErasureRequestResponse::of($requestOwnErasure($viewer->getUserIdentifier(), $request->note)),
-            status: Response::HTTP_CREATED,
-        );
+        $accountId = $viewer->getUserIdentifier();
+        $attempts = $this->passwordChecks->create($accountId);
+        $left = $attempts->consume(0);
+
+        if ($left->getRemainingTokens() === 0) {
+            $seconds = $left->getRetryAfter()->getTimestamp() - $this->calendar->now()->getTimestamp();
+
+            throw new TooManyRequestsHttpException($seconds, 'auth.tooManyAttempts');
+        }
+
+        $scheduled = $requestOwnErasure($accountId, $request->password ?? '', $request->note);
+
+        if ($scheduled === null) {
+            $attempts->consume();
+
+            throw InvalidInput::field('password', 'accounts.currentPasswordWrong');
+        }
+
+        return $this->json(ScheduledErasureResponse::of($scheduled), status: Response::HTTP_CREATED);
     }
 }

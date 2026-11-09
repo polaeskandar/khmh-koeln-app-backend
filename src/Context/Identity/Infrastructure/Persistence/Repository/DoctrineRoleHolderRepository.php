@@ -50,6 +50,7 @@ final readonly class DoctrineRoleHolderRepository implements RoleHolderRepositor
         WHERE ur.role_id <> :role
           AND u.approved_at IS NOT NULL
           AND u.disabled_at IS NULL
+          AND u.erases_on IS NULL
           AND p.action = :action
           AND p.resource = :resource
         LIMIT 1
