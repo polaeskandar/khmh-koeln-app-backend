@@ -6,6 +6,7 @@ namespace App\Context\People\Domain\Repository;
 
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\ValueObject\Placement;
 use App\Library\Time\Model\LocalDate;
 use Symfony\Component\Uid\Uuid;
 
@@ -20,6 +21,8 @@ interface MembershipRepositoryInterface
     public function countInStage(Uuid $stageId): int;
 
     public function hasCurrent(Person $person, Uuid $serviceId, ?Uuid $stageId, LocalDate $on): bool;
+
+    public function findAtOtherLevel(Person $person, Placement $placement, LocalDate $from): ?Membership;
 
     public function personOf(Uuid $membershipId): ?Uuid;
 

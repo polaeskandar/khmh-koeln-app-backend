@@ -7,10 +7,13 @@ namespace App\Context\People\Infrastructure\Persistence\Repository;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Repository\MembershipRepositoryInterface;
+use App\Context\People\Domain\ValueObject\Placement;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Model\LocalDate;
 use App\Library\Types\Model\Integers;
 use App\Library\Types\Model\Type;
+use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
@@ -70,6 +73,32 @@ final readonly class DoctrineMembershipRepository implements MembershipRepositor
             ->setMaxResults(1)
             ->executeQuery()
             ->fetchOne() !== false;
+    }
+
+    #[Override]
+    public function findAtOtherLevel(Person $person, Placement $placement, LocalDate $from): ?Membership
+    {
+        $level = $placement->stageId === null
+            ? Criteria::expr()->neq('stageId', null)
+            : Criteria::expr()->isNull('stageId');
+
+        $first = $this->entityManager
+            ->getRepository(Membership::class)
+            ->matching(
+                Criteria::create()
+                    ->where(Criteria::expr()->eq('person', $person->id()))
+                    ->andWhere(Criteria::expr()->eq('serviceId', $placement->serviceId))
+                    ->andWhere($level)
+                    ->andWhere(Criteria::expr()->orX(
+                        Criteria::expr()->isNull('tenure.endsOn'),
+                        Criteria::expr()->gte('tenure.endsOn', $from),
+                    ))
+                    ->orderBy(['tenure.startsOn' => Order::Ascending, 'id' => Order::Ascending])
+                    ->setMaxResults(1),
+            )
+            ->first();
+
+        return $first === false ? null : $first;
     }
 
     #[Override]

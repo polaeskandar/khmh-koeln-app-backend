@@ -11,6 +11,7 @@ use App\Context\People\Domain\Repository\MembershipRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\ValueObject\AlreadyIn;
 use App\Context\People\Domain\ValueObject\Placement;
+use App\Context\People\Domain\ValueObject\RosterNames;
 use App\Context\People\Domain\ValueObject\Tenure;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
@@ -24,6 +25,7 @@ final readonly class Memberships
         private PersonRepositoryInterface $people,
         private MembershipRepositoryInterface $memberships,
         private Calendar $calendar,
+        private PlacementChecks $checks,
     ) {
     }
 
@@ -44,33 +46,29 @@ final readonly class Memberships
         return $found ?? throw NotFound::of('person');
     }
 
-    public function add(Person $person, Placement $placement, string $placeName): Membership
+    public function add(Person $person, Placement $placement, RosterNames $names): Membership
     {
         return $this->people->withWriteLock($person->id(), fn (Person $locked): Membership => $this->added(
             $locked,
             $placement,
-            $placeName,
+            $names,
         ));
     }
 
-    private function added(Person $person, Placement $placement, string $placeName): Membership
+    private function added(Person $person, Placement $placement, RosterNames $names): Membership
     {
         if ($person->status() !== PersonStatus::Active) {
             throw new RuleViolation('people.personInactive', ['name' => self::nameOf($person)]);
         }
 
         $today = $this->calendar->today();
-
-        if ($this->memberships->hasCurrent($person, $placement->serviceId, $placement->stageId, $today)) {
-            throw AlreadyIn::of($person, $placeName);
-        }
-
+        $this->checks->ensureFree($person, $placement, $names, $today);
         $membership = new Membership($person, $placement->serviceId, $placement->stageId, Tenure::from($today));
 
         try {
             $this->memberships->save($membership);
         } catch (UniqueConstraintViolationException) {
-            throw AlreadyIn::of($person, $placeName);
+            throw AlreadyIn::of($person, $names->of($placement->stageId));
         }
 
         return $membership;
