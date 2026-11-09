@@ -93,7 +93,8 @@ Names are camelCase verbs or verb phrases for commands, nouns or questions for q
 | `purge` | deletes what expired | `UnconfirmedAccounts::purge()` |
 
 Not used: `update`, `process`, `handle` and `execute` (except where a framework interface names them), `do`,
-`manage`, `set…` (entities change through domain verbs). `save` and `remove` are the repositories' Doctrine verbs;
+`manage`, and no method starts with `set` (PHP Insights' forbidden-setter rule: values are built complete, and
+entities change through domain verbs). `save` and `remove` are the repositories' Doctrine verbs;
 `run` runs a callable (`TransactionsInterface::run()`).
 
 ### Queries
@@ -236,7 +237,8 @@ One term per concept. Use the term in code, docs and commits; the right column l
 ## 8. Enforcement
 
 - `mago guard`: the folders and suffixes of §2 (`mago.toml`), platform contracts included.
-- `mago lint`: camelCase names (`variable-name`, `method-name`, `property-name`); PHP Insights: PSR-1.
+- `mago lint`: camelCase names (`variable-name`, `method-name`, `property-name`); PHP Insights: PSR-1 and no
+  `set…` methods.
 - `tests/Architecture/NamingConventionsTest`: every interface ends in `Interface`; no instance method is called `of()`;
   an application service's or repository's `get…()` never returns `null` and its `find…()` may find nothing; a
   workflow's input models end in `Choice` or `Filter`.
