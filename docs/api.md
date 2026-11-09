@@ -152,11 +152,13 @@ Public. Body `{email, password}`, both strings. The email is trimmed and compare
 | Body not an object with string `email` and `password` | 400 `invalidRequest` |
 | Unknown email or wrong password (identical answers) | 401 `auth.invalidCredentials` |
 | Right password, account disabled (checked first) | 403 `auth.disabled` |
+| Right password, the account asked for its erasure in the app and it is still scheduled (checked after `auth.disabled`) | 403 `auth.erasureScheduled {erasesOn}`; `POST /api/auth/erasure-cancellation` withdraws it |
 | Right password, not approved and the email address not confirmed yet (checked before `auth.pending`) | 403 `auth.unconfirmed` |
 | Right password, email address confirmed, account waiting for approval | 403 `auth.pending` |
 | 5 failures for this email and IP within 15 minutes, or the per-IP limit | 429 `auth.tooManyAttempts` + `Retry-After`, even with the right password |
 
-A wrong password never reveals that an account is unconfirmed, pending or disabled. Failures set no cookie. An
+A wrong password never reveals that an account is unconfirmed, pending, disabled or scheduled for erasure. Failures
+set no cookie. An
 approved account is never refused for an unconfirmed address, so accounts from `app:user:create` sign in without a
 confirmation time.
 
@@ -191,6 +193,16 @@ Cache-Control: no-store
   "status": 403,
   "code": "auth.pending",
   "params": {}
+}
+```
+
+403 erasure scheduled:
+
+```json
+{
+  "status": 403,
+  "code": "auth.erasureScheduled",
+  "params": {"erasesOn": "2026-11-22"}
 }
 ```
 
@@ -294,6 +306,23 @@ Public. Body `{token}` from the `#token=` fragment of the confirmation link → 
 for the office, and signing in answers 403 `auth.pending` instead of `auth.unconfirmed`. A missing, unknown, used
 or expired token → 422 `auth.confirmationLinkInvalid`, the same body for each. An 11th request from one IP within
 an hour → 429 `auth.tooManyAttempts` with `Retry-After`.
+
+#### `POST /api/auth/erasure-cancellation`
+
+Public. Body `{email, password}` → 204: withdraws the erasure the account asked for in the app
+(`POST /api/me/erasure-request`) while its grace period runs. The request closes as `withdrawn` (`closedBy` null), and
+the account signs in again.
+
+| Case | Answer |
+| --- | --- |
+| Unknown email or wrong password (identical answers) | 401 `auth.invalidCredentials`; nothing changes |
+| Right password, no erasure scheduled | 409 `privacy.nothingScheduled` |
+| Right password, account disabled | 204; the erasure is withdrawn and the account stays disabled |
+| 5 attempts for this email and IP within 15 minutes, or the per-IP limit (counted together with sign-ins) | 429 `auth.tooManyAttempts` + `Retry-After` |
+
+The email is trimmed and compared in lower case. An unknown email spends the same password check as a known one.
+A person who forgot the password resets it first (`POST /api/auth/forgot-password` still reaches an account whose
+erasure is scheduled) and then cancels with the new one.
 
 #### `GET /api/auth/register/services`
 
@@ -414,7 +443,7 @@ of a pending or disabled account, gets 401 `auth.unauthenticated`, even with a v
 
 Public. Body `{email, password, deviceName?}` (`deviceName` at most 100 characters, else 422
 `validation.tooLong`) → 201 `{token, expiresAt}`. The same codes and throttling as `POST /api/auth/sign-in`
-(400, 401 `auth.invalidCredentials`, 403 `auth.unconfirmed`/`auth.pending`/`auth.disabled`, 429
+(400, 401 `auth.invalidCredentials`, 403 `auth.unconfirmed`/`auth.pending`/`auth.disabled`/`auth.erasureScheduled`, 429
 `auth.tooManyAttempts` with `Retry-After`; the attempts count together with cookie sign-ins). No session or
 cookie, and no `Location`: a token is only addressable as `current`.
 
@@ -596,7 +625,7 @@ the endpoint, and a well-formed one gets the endpoint's 403.
 | 401 | `auth.unauthenticated` | No valid session or token |
 | 401 | `auth.invalidCredentials` | Sign-in with a wrong email or password |
 | 403 | `forbidden` | The role does not allow it, or a foreign `Origin` |
-| 403 | `auth.unconfirmed`, `auth.pending`, `auth.disabled` | Sign-in and token issuing with the right password |
+| 403 | `auth.unconfirmed`, `auth.pending`, `auth.disabled`, `auth.erasureScheduled` | Sign-in and token issuing with the right password |
 | 403 | specific codes | Where a section names why, e.g. `services.adminOnlyCreate` |
 | 404 | `notFound.<thing>` | Unknown, deleted, or non-UUID id |
 | 404 | `notFound.route` | No such route under `/api` |
@@ -607,7 +636,7 @@ the endpoint, and a well-formed one gets the endpoint's 403.
 | 415 | `invalidRequest` | Unsafe method without a JSON body |
 | 422 | `checkFields` | Field errors in `fieldErrors` (`validation.invalidType`, `validation.unexpectedField` and the field codes) |
 | 422 | specific codes | Without fields, e.g. `auth.resetLinkInvalid` |
-| 429 | `auth.tooManyAttempts` | Sign-in, registration, password links; with `Retry-After` in seconds |
+| 429 | `auth.tooManyAttempts` | Sign-in, registration, password links, erasure cancellation; with `Retry-After` in seconds |
 | 429 | `tooManyRequests` | Any other limit; with `Retry-After` in seconds |
 | 500 | `internal` | Unexpected error; no message, class or trace |
 | 503 | `unavailable` | The API or its database is down for a moment |
@@ -702,6 +731,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `auth.tooManyAttempts` | – | **New.** 429 on sign-in, registration and password links. `Retry-After` says when to retry. |
 | `auth.resetLinkInvalid` | – | **New.** 422: the one-time password link is missing, unknown, used, expired or superseded. |
 | `auth.confirmationLinkInvalid` | – | **New.** This confirmation link is invalid or has expired. Register again to get a new one. |
+| `auth.erasureScheduled` | `erasesOn` | **New.** 403 on sign-in with the right password: the account asked for its erasure, which happens on {erasesOn}. Cancel it to sign in again. |
 
 ### `notFound`
 
@@ -910,6 +940,7 @@ label is its own label, and the 120-character limit applies only to a label that
 | `privacy.subjectGone` | – | **New.** 409: neither the member nor the account still exists. |
 | `privacy.ownAccount` | – | **New.** 409: an administrator can't erase their own account. |
 | `privacy.alreadyRequested` | – | **New.** 409: the account already has an open erasure request from the app. |
+| `privacy.nothingScheduled` | – | **New.** 409: the account has no erasure waiting for its grace period to end. |
 
 ### `homework`
 
@@ -989,10 +1020,11 @@ label is its own label, and the 120-character limit applies only to a label that
 | `privacy.chooseSubject` | – | Choose the member or account the request is about. |
 | `privacy.requestedByRequired` | – | Enter who made the request. |
 | `privacy.receivedInFuture` | – | The date can’t be in the future. |
-| `privacy.alreadyRequested` | – | You have already asked for your account and data to be deleted. The church office will answer within one month of your request. |
+| `privacy.alreadyRequested` | – | You have already asked for your account and data to be deleted. |
 | `privacy.notOpen` | – | This request has already been closed. |
 | `privacy.notErasure` | – | Only erasure requests delete data. |
 | `privacy.notCopy` | – | This is not a request for a copy. |
+| `privacy.nothingScheduled` | – | Nothing is waiting to be deleted for this account. |
 | `privacy.subjectGone` | – | The data this request is about no longer exists. |
 | `privacy.ownAccount` | – | You can’t erase your own account. Ask another administrator. |
 | `privacy.declineReasonRequired` | – | Give the reason. The person must be told why, and that they can complain to the data protection authority. |
@@ -2199,14 +2231,35 @@ office.
 
 #### `GET /api/me/erasure-request`
 
-`{erasureRequested: {receivedAt, dueOn} | null}`: the account's open erasure request made in the app.
+`{erasureRequested: {receivedAt, dueOn} | null}`: the account's open erasure request made in the app. Once a request
+is scheduled the account can't sign in, so this only shows a request that is open without a schedule.
 
 #### `POST /api/me/erasure-request`
 
-Body `{note?}` → 201 `{receivedAt, dueOn}`. It records an erasure request about the account in the office's log
-(`channel: app`, `requestedBy` the account's display name); `dueOn` is one month later. 409
-`privacy.alreadyRequested` while one is open (a partial unique index also guards against two at once); `note` ≤
-2000 → else 422 `validation.tooLong`. Erasing still needs the office's review (`POST /api/data-requests/{id}/erase`).
+Body `{password, note?}` → 201 `{receivedAt, erasesOn}`. It records an erasure request about the account in the
+office's log (`channel: app`, `requestedBy` the account's display name, `dueOn` one month later) with `erasesOn` =
+church-today + 14 days, and ends every session and bearer token of the account at once (this one included: its next
+request gets 401). Until `erasesOn`, signing in answers 403 `auth.erasureScheduled {erasesOn}` and
+`POST /api/auth/erasure-cancellation` withdraws the request; on `erasesOn` the daily `app:privacy:erase-due` erases the
+account and, when it is linked to its own member record, that record too (see
+[data-protection.md](data-protection.md#procedures)). The office can still erase earlier with
+`POST /api/data-requests/{id}/erase`.
+
+```json
+{"password": "correct horse battery", "note": "Please delete everything."}
+```
+
+```json
+{"receivedAt": "2026-11-08T10:00:00+01:00", "erasesOn": "2026-11-22"}
+```
+
+| Case | Answer |
+| --- | --- |
+| `password` missing, blank or wrong | 422 `accounts.currentPasswordWrong` on `password`; nothing is recorded |
+| `note` longer than 2000 characters | 422 `validation.tooLong {max: 2000}` on `note` |
+| An erasure request from the app is open (a partial unique index also guards against two at once) | 409 `privacy.alreadyRequested` |
+| The account is the last active one that can change roles (accounts with a scheduled erasure don't count) | 409 `roles.lastAdministrator` |
+| 5 wrong passwords for the account within 15 minutes, counted together with `POST /api/me/password` | 429 `auth.tooManyAttempts` + `Retry-After`, even with the right password |
 
 ### Data protection requests
 
@@ -2225,9 +2278,12 @@ receivedOn}, note?}` → 201 `{id}`. Exactly one existing member or account (`su
 #### `GET /api/data-requests`
 
 `{today, open, closed}`: open requests by `dueOn`, closed ones newest first. A row is `{id, kind, status,
-subjectName, erasedSubject: {kind, group} | null, requestedBy, channel (`app` when made in the app), receivedAt, dueOn, note, closedAt, closedBy:
-AccountRef | null, declineReason, outcome}`; `subjectName` is read from the member or account while it exists, else
-`null`.
+subjectName, erasedSubject: {kind, group} | null, requestedBy, channel (`app` when made in the app), receivedAt, dueOn,
+erasesOn, note, closedAt, closedBy: AccountRef | null, declineReason, outcome}`; `subjectName` is read from the member
+or account while it exists, else `null`. `status` is `open`, `done`, `declined` or `withdrawn` (an erasure the account
+cancelled in its grace period). `erasesOn` is the date an erasure request made in the app is erased automatically,
+else `null`; it stays on the row after the request closes. `closedBy` is `null` when nobody from the office closed
+the request: a scheduled erasure or a withdrawal.
 
 #### `GET /api/data-requests/{id}`
 

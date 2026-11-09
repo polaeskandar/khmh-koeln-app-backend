@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Context\Identity\Infrastructure\Security;
 
 use App\Context\Identity\Domain\Entity\User;
-use App\Context\Identity\Domain\ValueObject\AccountStatus;
 use App\Library\Checksum\Model\Checksum;
 use App\Library\Strings\Model\Text;
 use LogicException;
@@ -22,12 +21,14 @@ final readonly class SecurityUser implements UserInterface, PasswordAuthenticate
 
     private const string STATUS_FINGERPRINT = 'statusFingerprint';
 
+    private const string ERASURE_MARK = '|Y-m-d';
+
     private function __construct(
         private string $id,
         private string $passwordHash,
         private string $passwordFingerprint,
         private string $statusFingerprint,
-        private ?AccountStatus $status,
+        private ?User $account,
     ) {
     }
 
@@ -53,7 +54,7 @@ final readonly class SecurityUser implements UserInterface, PasswordAuthenticate
             passwordHash: '',
             passwordFingerprint: self::stringIn($data, self::PASSWORD_FINGERPRINT),
             statusFingerprint: self::stringIn($data, self::STATUS_FINGERPRINT),
-            status: null,
+            account: null,
         );
     }
 
@@ -63,8 +64,8 @@ final readonly class SecurityUser implements UserInterface, PasswordAuthenticate
             $user->id()->toRfc4122(),
             $user->passwordHash(),
             Checksum::fingerprint($user->passwordHash()),
-            self::fingerprintOf($user->status()),
-            $user->status(),
+            self::fingerprintOf($user),
+            $user,
         );
     }
 
@@ -92,9 +93,9 @@ final readonly class SecurityUser implements UserInterface, PasswordAuthenticate
         return $this->passwordHash;
     }
 
-    public function status(): ?AccountStatus
+    public function account(): ?User
     {
-        return $this->status;
+        return $this->account;
     }
 
     #[Override]
@@ -109,13 +110,16 @@ final readonly class SecurityUser implements UserInterface, PasswordAuthenticate
         return $sameCredentials && $user->statusFingerprint === $this->statusFingerprint;
     }
 
-    private static function fingerprintOf(AccountStatus $status): string
+    private static function fingerprintOf(User $user): string
     {
+        $status = $user->status();
+
         return Text::format(
-            '%d|%d|%d',
+            '%d|%d|%d%s',
             $status->approvedAt?->getTimestamp() ?? 0,
             $status->disabledAt?->getTimestamp() ?? 0,
             $status->authVersion,
+            $user->erasesOn()?->format(self::ERASURE_MARK) ?? '',
         )->toString()
             |> Checksum::fingerprint(...);
     }

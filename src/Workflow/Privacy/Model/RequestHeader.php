@@ -13,7 +13,7 @@ final readonly class RequestHeader
         public string $id,
         public RequestKind $kind,
         public RequestStatus $status,
-        public string $dueOn,
+        public RequestDeadlines $deadlines,
         public ?string $note,
     ) {
     }

@@ -6,12 +6,12 @@ namespace App\Context\Privacy\Domain\Entity;
 
 use App\Context\Privacy\Domain\Enum\RequestKind;
 use App\Context\Privacy\Domain\Enum\RequestStatus;
+use App\Context\Privacy\Domain\ValueObject\Deadlines;
 use App\Context\Privacy\Domain\ValueObject\ErasedSubject;
 use App\Context\Privacy\Domain\ValueObject\Receipt;
 use App\Context\Privacy\Domain\ValueObject\RequestClosing;
 use App\Context\Privacy\Domain\ValueObject\RequestSubject;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
-use App\Library\Time\Model\LocalDate;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -49,13 +49,13 @@ final class DataRequest extends CreatedAtEntity
     #[ORM\Embedded(Receipt::class, columnPrefix: false)]
     private Receipt $receipt;
 
-    #[ORM\Column(name: 'due_on', type: 'local_date')]
-    private LocalDate $dueOn;
+    #[ORM\Embedded(Deadlines::class, columnPrefix: false)]
+    private Deadlines $deadlines;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $note;
 
-    #[ORM\Column(length: 8, enumType: RequestStatus::class)]
+    #[ORM\Column(length: 9, enumType: RequestStatus::class)]
     private RequestStatus $status;
 
     #[ORM\Embedded(RequestClosing::class, columnPrefix: false)]
@@ -74,14 +74,14 @@ final class DataRequest extends CreatedAtEntity
         RequestKind $kind,
         RequestSubject $subject,
         Receipt $receipt,
-        LocalDate $dueOn,
+        Deadlines $deadlines,
         ?string $note,
     ) {
         $this->id = Uuid::v7();
         $this->kind = $kind;
         $this->subject = $subject;
         $this->receipt = $receipt;
-        $this->dueOn = $dueOn;
+        $this->deadlines = $deadlines;
         $this->note = $note;
         $this->status = RequestStatus::Open;
         $this->closing = new RequestClosing();
@@ -108,9 +108,9 @@ final class DataRequest extends CreatedAtEntity
         return $this->receipt;
     }
 
-    public function dueOn(): LocalDate
+    public function deadlines(): Deadlines
     {
-        return $this->dueOn;
+        return $this->deadlines;
     }
 
     public function note(): ?string
@@ -121,6 +121,11 @@ final class DataRequest extends CreatedAtEntity
     public function status(): RequestStatus
     {
         return $this->status;
+    }
+
+    public function isOpen(): bool
+    {
+        return $this->status === RequestStatus::Open;
     }
 
     public function closing(): RequestClosing
@@ -142,12 +147,18 @@ final class DataRequest extends CreatedAtEntity
     }
 
     /**
-     * @param array<string, int> $outcome
+     * @param array<string, int>|null $outcome
      */
-    public function complete(DateTimeImmutable $at, Uuid $by, array $outcome): void
+    public function complete(DateTimeImmutable $at, ?Uuid $by, ?array $outcome): void
     {
         $this->status = RequestStatus::Done;
         $this->closing = new RequestClosing($at, $by);
         $this->outcome = $outcome;
+    }
+
+    public function withdraw(DateTimeImmutable $at): void
+    {
+        $this->status = RequestStatus::Withdrawn;
+        $this->closing = new RequestClosing($at);
     }
 }

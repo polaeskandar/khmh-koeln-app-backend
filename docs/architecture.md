@@ -287,9 +287,10 @@ People's rights are handled in the app:
 - **Copy (Art. 15, 20):** everyone can download what is stored about them as JSON from their account page.
   The office records requests that come by email, letter or in person and downloads the copy for the person.
   Other people's contact details are left out (Art. 15(4)).
-- **Erasure (Art. 17):** people ask from their account page, or the office records the request. An
-  administrator reviews what the app stores, including free-text notes that may name the person, and
-  erases it in one step (see the [data model](data-model.md#data-protection)). Past attendance totals stay
+- **Erasure (Art. 17):** people ask from their account page, with their password: the account is locked at once
+  and erased with its own member record after 14 days unless they cancel. Otherwise the office records the
+  request, and an administrator reviews what the app stores, including free-text notes that may name the person,
+  and erases it in one step (see the [data model](data-model.md#data-protection)). Past attendance totals stay
   right as anonymous numbers. An administrator can't erase their own account.
 - **Deadline:** each request must be answered within one month of arrival (Art. 12(3)); the request log
   shows the due date and warns a week before.

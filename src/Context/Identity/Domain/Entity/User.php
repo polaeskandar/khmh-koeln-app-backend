@@ -11,6 +11,7 @@ use App\Context\Identity\Domain\ValueObject\PersonalDetails;
 use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Identity\Domain\ValueObject\Registration;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
+use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -53,6 +54,9 @@ final class User extends CreatedAtEntity
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[ORM\JoinColumn(name: 'approved_by', nullable: true, onDelete: 'SET NULL')]
     private ?self $approvedBy = null;
+
+    #[ORM\Column(name: 'erases_on', type: 'local_date', nullable: true)]
+    private ?LocalDate $erasesOn = null;
 
     /**
      * @var Collection<int, Role>
@@ -148,6 +152,16 @@ final class User extends CreatedAtEntity
     public function approvedBy(): ?self
     {
         return $this->approvedBy;
+    }
+
+    public function erasesOn(): ?LocalDate
+    {
+        return $this->erasesOn;
+    }
+
+    public function changeErasure(?LocalDate $erasesOn): void
+    {
+        $this->erasesOn = $erasesOn;
     }
 
     /**

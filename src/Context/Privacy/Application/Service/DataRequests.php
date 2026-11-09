@@ -8,6 +8,7 @@ use App\Context\Privacy\Domain\Entity\DataRequest;
 use App\Context\Privacy\Domain\Enum\RequestChannel;
 use App\Context\Privacy\Domain\Enum\RequestKind;
 use App\Context\Privacy\Domain\Repository\DataRequestRepositoryInterface;
+use App\Context\Privacy\Domain\ValueObject\Deadlines;
 use App\Context\Privacy\Domain\ValueObject\Receipt;
 use App\Context\Privacy\Domain\ValueObject\ReceiptDraft;
 use App\Context\Privacy\Domain\ValueObject\RequestDraft;
@@ -37,7 +38,7 @@ final readonly class DataRequests
             RequestKind::from($draft->kind),
             $draft->subject,
             $this->receiptOf($draft->receipt, $day),
-            $this->calendar->monthAfter($day),
+            new Deadlines($this->calendar->monthAfter($day)),
             InputText::of($draft->note)->trimmed()->toStringOrNull(),
         );
 

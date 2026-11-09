@@ -85,6 +85,7 @@ The exact rules are in frontend#20; the proxy on the server applies them.
 | The session generator every hour at minute 5 from the host's scheduler (cron, a systemd timer or a Kubernetes CronJob), with an alert on a non-zero exit | Must | `app:sessions:generate` (#53) |
 | A daily backup at 02:15 Europe/Berlin, with an alert on failure | Must | #42 |
 | The unconfirmed-registration purge daily (e.g. `30 3 * * *`: `php bin/console app:user:purge-unconfirmed --no-interaction`); it prints only a count | Must | #84 |
+| The scheduled erasures daily (e.g. `45 3 * * *`: `php bin/console app:privacy:erase-due --no-interaction`), with an alert on a non-zero exit; see [Scheduled erasures](#scheduled-erasures) | Must | #315 |
 | Secrets in the host's secret store, passed to the containers as environment variables, never in the image (the image never reads a `.env.local`) | Must | `APP_SECRET`, `DATABASE_URL`, `MAILER_DSN` (#41) |
 | Logs kept 14 days (to be confirmed by the data protection adviser by Tue 3 Nov) | Must | D6, #112 |
 | Uptime check on `GET /api/health/ready` from outside the server, with alerts | Must | Launch watch (#117) |
@@ -109,6 +110,26 @@ Europe/Berlin) and exits. The host runs it every hour at minute 5 and once after
   `created`, `existing`, `failed`, `durationMs`, no personal data.
 - A missed day is backfilled with `--date=YYYY-MM-DD` (never after church-today); it creates that day's and the next
   day's sessions.
+
+### Scheduled erasures
+
+An erasure request made in the app waits 14 days (`erasesOn`), so the person can withdraw it. `bin/console
+app:privacy:erase-due` erases every request whose `erasesOn` is church-today or earlier and that is still open: the
+account and, when it is linked to its own member record, that record too, as `POST /api/data-requests/{id}/erase`
+with `clearNotes: true` does, and closes the request with the counts. The host runs it once a day next to
+`app:user:purge-unconfirmed`:
+
+```cron
+45 3 * * * php bin/console app:privacy:erase-due --no-interaction
+```
+
+- Running it again erases nothing new: a closed, withdrawn or not yet due request is left alone, so a missed day is
+  caught up by the next run.
+- Each request is erased in its own transaction. A failure (for example `roles.lastAdministrator`) leaves that
+  request open, is logged as `A scheduled erasure failed.` with the request id only, and the others still run.
+- It prints only counts (`Erased 2 scheduled requests, 0 failed.`). Exit codes: 0 done, 1 a request failed. Alert on
+  anything but 0.
+- `--dry-run` runs the same steps inside a transaction that is rolled back and prints what it would have erased.
 
 ## Importing members
 

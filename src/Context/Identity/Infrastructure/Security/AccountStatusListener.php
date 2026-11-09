@@ -6,7 +6,6 @@ namespace App\Context\Identity\Infrastructure\Security;
 
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\Security\Core\Event\AuthenticationSuccessEvent;
-use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
 
 #[AsEventListener]
 final readonly class AccountStatusListener
@@ -14,18 +13,10 @@ final readonly class AccountStatusListener
     public function __invoke(AuthenticationSuccessEvent $event): void
     {
         $user = $event->getAuthenticationToken()->getUser();
-        $status = $user instanceof SecurityUser ? $user->status() : null;
+        $refusal = $user instanceof SecurityUser ? AccountRefusal::of($user) : null;
 
-        if ($status?->disabledAt !== null) {
-            throw new CustomUserMessageAccountStatusException('auth.disabled');
-        }
-
-        if ($status?->isAwaitingEmailConfirmation() === true) {
-            throw new CustomUserMessageAccountStatusException('auth.unconfirmed');
-        }
-
-        if ($status?->isPending() === true) {
-            throw new CustomUserMessageAccountStatusException('auth.pending');
+        if ($refusal !== null) {
+            throw $refusal;
         }
     }
 }

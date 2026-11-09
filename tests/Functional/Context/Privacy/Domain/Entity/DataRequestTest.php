@@ -48,6 +48,9 @@ final class DataRequestTest extends KernelTestCase
             'outcome' => '{"person": 1}',
         ]];
 
+        yield 'erasure date on a copy' => [['erases_on' => '2026-11-16']];
+        yield 'erasure date from the office' => [['kind' => 'erasure', 'erases_on' => '2026-11-16']];
+        yield 'withdrawn but not closed' => [['status' => 'withdrawn']];
         yield 'no subject' => [['person_id' => null]];
         yield 'long note' => [['note' => str_repeat('a', times: 2001)]];
     }

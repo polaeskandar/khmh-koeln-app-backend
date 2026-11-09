@@ -27,7 +27,7 @@ final readonly class DataRequestRow
                 $request->id()->toRfc4122(),
                 $request->kind(),
                 $request->status(),
-                $request->dueOn()->toString(),
+                RequestDeadlines::of($request->deadlines()),
                 $request->note(),
             ),
             $subjectName,

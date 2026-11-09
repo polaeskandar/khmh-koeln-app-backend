@@ -66,50 +66,6 @@ final class OwnDataControllerTest extends ApiTestCase
         self::assertSame($this->exportOf($parent), $this->responseJson());
     }
 
-    public function testAnAccountAsksOnceForErasure(): void
-    {
-        self::mockTime('2026-11-08T10:00:00+01:00');
-        $this->signInWithRoles('hoda@example.org', 'parent');
-
-        $this->jsonRequest('GET', '/api/me/erasure-request');
-        $this->assertJsonPath('erasureRequested', null);
-
-        $this->jsonRequest('POST', '/api/me/erasure-request', ['note' => 'Please delete everything.']);
-        self::assertResponseStatusCodeSame(201);
-        $this->assertJsonPath('receivedAt', '2026-11-08T10:00:00+01:00');
-        $this->assertJsonPath('dueOn', '2026-12-08');
-
-        $this->jsonRequest('POST', '/api/me/erasure-request', []);
-        $this->assertProblem(409, 'privacy.alreadyRequested');
-
-        $this->jsonRequest('GET', '/api/me/erasure-request');
-
-        $this->assertJsonPath('erasureRequested', [
-            'receivedAt' => '2026-11-08T10:00:00+01:00',
-            'dueOn' => '2026-12-08',
-        ]);
-
-        $this->signInWithRoles('admin@example.org', 'administrator');
-        $this->jsonRequest('GET', '/api/data-requests');
-        $this->assertJsonPath('open.0.channel', 'app');
-        $this->assertJsonPath('open.0.kind', 'erasure');
-        $this->assertJsonPath('open.0.note', 'Please delete everything.');
-    }
-
-    public function testALongNoteOrAForeignOriginIsRefused(): void
-    {
-        $this->signInWithRoles('hoda@example.org', 'parent');
-
-        $this->jsonRequest('POST', '/api/me/erasure-request', ['note' => str_repeat('a', times: 2001)]);
-        $this->assertFieldError('note', 'validation.tooLong', ['max' => 2000, 'limit' => 2000]);
-
-        $this->jsonRequest('POST', '/api/me/erasure-request', [], ['Origin' => 'https://evil.example']);
-        $this->assertProblem(403, 'forbidden');
-
-        $this->jsonRequest('GET', '/api/me/erasure-request');
-        $this->assertJsonPath('erasureRequested', null);
-    }
-
     /**
      * @return array<array-key, mixed>
      */
