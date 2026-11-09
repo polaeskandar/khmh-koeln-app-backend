@@ -36,7 +36,7 @@ final class RegistrationControllerTest extends ApiTestCase
         self::assertSame(0, $this->rowsIn('identity.user_role'));
 
         $this->signInWith('mariam.hanna@example.org', SignInAccounts::TYPED);
-        $this->assertProblem(403, 'auth.pending');
+        $this->assertProblem(403, 'auth.unconfirmed');
     }
 
     public function testEveryBrokenFieldIsReportedAtOnce(): void

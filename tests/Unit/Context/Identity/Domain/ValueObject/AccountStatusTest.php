@@ -26,4 +26,13 @@ final class AccountStatusTest extends TestCase
 
         AccountStatus::pending()->disabledAt($at)->approvedOn($at);
     }
+
+    public function testOnlyAnUnapprovedAccountWithoutAConfirmedAddressAwaitsTheConfirmation(): void
+    {
+        $at = new DateTimeImmutable('2026-11-08T12:00:00+01:00');
+
+        self::assertTrue(AccountStatus::pending()->isAwaitingEmailConfirmation());
+        self::assertFalse(AccountStatus::pending()->emailConfirmedOn($at)->isAwaitingEmailConfirmation());
+        self::assertFalse(AccountStatus::pending()->approvedOn($at)->isAwaitingEmailConfirmation());
+    }
 }

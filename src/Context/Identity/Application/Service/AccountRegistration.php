@@ -91,6 +91,11 @@ final readonly class AccountRegistration
         $this->confirmations->send($this->account($registered));
     }
 
+    public function confirmEmailByHand(string $email): bool
+    {
+        return $this->confirmations->confirmByHand($this->users->findByEmail($email) ?? throw NotFound::of('account'));
+    }
+
     public function markEmailConfirmed(Uuid $accountId): void
     {
         $user = $this->account($accountId);

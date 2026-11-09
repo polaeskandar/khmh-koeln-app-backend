@@ -20,6 +20,10 @@ final readonly class AccountStatusListener
             throw new CustomUserMessageAccountStatusException('auth.disabled');
         }
 
+        if ($status?->isAwaitingEmailConfirmation() === true) {
+            throw new CustomUserMessageAccountStatusException('auth.unconfirmed');
+        }
+
         if ($status?->isPending() === true) {
             throw new CustomUserMessageAccountStatusException('auth.pending');
         }

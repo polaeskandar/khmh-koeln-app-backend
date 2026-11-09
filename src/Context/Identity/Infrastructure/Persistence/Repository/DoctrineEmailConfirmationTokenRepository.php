@@ -24,6 +24,11 @@ final readonly class DoctrineEmailConfirmationTokenRepository implements EmailCo
         RETURNING user_id::text
         SQL;
 
+    private const string SPEND_UNUSED = <<<'SQL'
+        UPDATE identity.email_confirmation_token SET used_at = :at
+        WHERE user_id = :user AND used_at IS NULL
+        SQL;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -59,6 +64,21 @@ final readonly class DoctrineEmailConfirmationTokenRepository implements EmailCo
             $this->entityManager->flush();
 
             return true;
+        });
+    }
+
+    #[Override]
+    public function spendUnusedOf(User $user, DateTimeImmutable $at, callable $use): void
+    {
+        $this->entityManager->wrapInTransaction(function () use ($user, $at, $use): void {
+            $this->entityManager->getConnection()->executeStatement(
+                self::SPEND_UNUSED,
+                ['at' => $at, 'user' => $user->id()->toRfc4122()],
+                ['at' => Types::DATETIMETZ_IMMUTABLE],
+            );
+
+            $use($user);
+            $this->entityManager->flush();
         });
     }
 
