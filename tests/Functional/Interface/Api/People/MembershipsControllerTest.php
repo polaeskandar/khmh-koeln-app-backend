@@ -41,12 +41,13 @@ final class MembershipsControllerTest extends ApiTestCase
         $this->add($mina->id()->toRfc4122(), $school, $third);
         self::assertResponseStatusCodeSame(201);
 
-        $this->add($mina->id()->toRfc4122(), $school, null);
+        $marina = new Rosters(self::getContainer())->person('Marina', 'Hanna');
+        $this->add($marina->id()->toRfc4122(), $school, null);
         self::assertResponseStatusCodeSame(201);
         $this->assertJsonPath('stage', null);
         $this->assertJsonPath('endsOn', null);
-        $this->add($mina->id()->toRfc4122(), $school, null);
-        $this->assertProblem(409, 'people.alreadyIn', ['name' => 'Mina Hanna', 'where' => 'Sunday School']);
+        $this->add($marina->id()->toRfc4122(), $school, null);
+        $this->assertProblem(409, 'people.alreadyIn', ['name' => 'Marina Hanna', 'where' => 'Sunday School']);
     }
 
     public function testAnOpenMembershipThatStartsLaterIsAConflictNotAnError(): void

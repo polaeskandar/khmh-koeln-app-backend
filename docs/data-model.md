@@ -112,7 +112,9 @@ the application keeps the birth date out of the future. `membership.person_id` r
 DELETE RESTRICT`; `service_id` and `stage_id` are plain ids of Organization records, and the workflow that
 writes a membership checks that the stage belongs to the service. CHECK `ends_on >= starts_on`; partial
 UNIQUE indexes allow one open membership (`ends_on IS NULL`) per person and stage, and per person and
-service-level roster; `(service_id, stage_id)` is indexed for rosters. Ending a membership from today sets
+service-level roster; `(service_id, stage_id)` is indexed for rosters. Adding a membership also keeps a person
+either on a service's own roster or on its stages, never both (`people.alreadyInService`); that rule lives in the
+application, not in an index, and moving a membership doesn't check it. Ending a membership from today sets
 `ends_on` to yesterday; one that started today is deleted instead, the only delete besides erasure.
 
 ### Rosters

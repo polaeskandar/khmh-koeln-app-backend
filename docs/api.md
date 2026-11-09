@@ -870,6 +870,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `people.chooseJoinService` | – | Choose the service this person joins. |
 | `people.duplicate` | `count` | {count, plural, one {Someone called {name} already exists.} other {# people called {name} already exist.}} Check that this is a different person. |
 | `people.alreadyIn` | `name`, `where` | {name} is already in {where}. |
+| `people.alreadyInService` | `name`, `where` | **New.** 409: {name} is already in {where}. Within one service, a person is on the service itself or on its stages, not both. |
 | `people.personInactive` | `name` | **New.** 409: {name} is inactive. Reactivate them first. |
 | `people.membershipOutsideServices` | – | You can only change memberships in the services and stages you serve in. |
 | `people.membershipEnded` | – | This membership has already ended. |
@@ -1557,8 +1558,13 @@ from church-today. `serviceId` `meetings.chooseService` or `meetings.serviceArch
 also for an id that is not a UUID, and 409 `people.personInactive {name}` for an inactive person (the person row is locked, so this can't race a
 deactivation). A current or
 not-yet-started open membership on the same roster → 409 `people.alreadyIn {name, where}` (also when two requests
-race into the unique index); rosters of several stages at once are fine. 201 `{id, personId, service: ServiceRef,
-stage: StageRef | null, startsOn, endsOn: null}`, without `Location`: memberships have no `GET` route.
+race into the unique index); rosters of several stages at once are fine. Within one service a person is on the
+service itself or on its stages, never both: a service-level membership while the person has a current or
+not-yet-started one on a stage of that service, or a stage membership while they have one on the service itself, →
+409 `people.alreadyInService {name, where}`, `where` being the existing roster's name (the stage's, or the
+service's). Both checks run under the person row lock, so two requests can't both pass; rows that broke the rule
+before stay until one of them is ended or moved. 201 `{id, personId, service: ServiceRef, stage: StageRef | null,
+startsOn, endsOn: null}`, without `Location`: memberships have no `GET` route.
 
 #### `POST /api/memberships/{id}/move`
 
@@ -1571,6 +1577,9 @@ take too, so they wait for each other instead of deadlocking; one transaction:
   attendance stay with the old stage;
 - one that started today changes its stage in place (no second row);
 - the same stage changes nothing.
+
+A move replaces the placement, so it is not refused with `people.alreadyInService`: the person may move to the
+service itself while on another of its stages.
 
 200 with the current membership `{id, personId, service: ServiceRef, stage: StageRef | null, startsOn, endsOn:
 null}` (the new one, or the changed one). 404 `notFound.membership`; 409 `people.membershipEnded`,
