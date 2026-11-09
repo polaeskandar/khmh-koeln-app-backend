@@ -79,6 +79,7 @@ docker run --rm --env-file prod.env khmk-api php bin/console app:migrations:migr
 - [Data model](docs/data-model.md)
 - [API contract](docs/api.md)
 - [Code style](docs/code-style.md)
+- [Naming conventions](docs/NAMING_CONVENTIONS.md), with the domain glossary
 - [Testing](docs/testing.md)
 - [Operations](docs/operations.md), with the [release and rollback procedure](docs/operations.md#release)
 - [Data protection](docs/data-protection.md): inventory, measures and request procedures

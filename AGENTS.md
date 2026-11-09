@@ -114,6 +114,14 @@ decisions. Mago formats, lints, analyses and guards the boundaries
 (`mago.toml`), PHP Insights checks quality and complexity (`phpinsights.php`). Run `composer format`, then
 `composer check`; the `pre-commit` hook runs `composer check` too. Fix findings instead of suppressing them.
 
+## Naming
+
+Follow `docs/NAMING_CONVENTIONS.md`. Use the glossary's word for each concept (an `Account`, a `HomeworkTask` and its
+`HomeworkReport`, a `GuardianLink`, an `AttendanceMark`), in every layer. A lookup that must find its record is
+`get…()` and throws `NotFound`; one that may not is `find…()` and returns `null`. `of()` is only ever a static named
+constructor. Workflow inputs end in `Choice` (or `Filter` for a listing). Never rename a route, a JSON field, a
+column, an OpenAPI schema name or another contract listed in its §6 along with the PHP name.
+
 ## Discover, don't guess
 
 Framework APIs change between versions and your training data may be stale. Look

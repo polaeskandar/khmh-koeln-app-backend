@@ -80,28 +80,28 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
 - Every application route lives under `/api` (class-level `#[Route]`).
 - Code follows [Code style](code-style.md).
 
-Naming:
+Shapes (the names are in [Naming conventions](NAMING_CONVENTIONS.md#2-classes)):
 
-| What | Where | Named | Shape |
-| --- | --- | --- | --- |
-| Controller | `Interface/Api/<Area>/` | `<Name>Controller` | final |
-| Request | `Interface/Api/<Area>/Request/` | `<Name>Request` | final readonly |
-| Response | `Interface/Api/<Area>/Response/` | `<Name>Response` | final readonly |
-| Console command | `Interface/Console/<Area>/` | `<Name>Command` | final, invokable |
-| Console request | `Interface/Console/<Area>/Request/` | `<Name>Request` | final, public properties Symfony fills through `#[MapInput]` |
-| Workflow | `Workflow/<Area>/` | `<Verb><Subject>Workflow`: an imperative verb for a write (`RegisterAccount`, `GiveRole`), `Show` for one thing, `List` for many | final readonly, only `__invoke()` public |
-| Workflow model | `Workflow/<Area>/Model/` | a noun (`CurrentAccount`, `AccountDetails`) | final readonly |
-| Application service | `Context/<C>/Application/Service/` | what it manages (`RoleAssignments`, `AccountRegistration`), never `*Service`, `*Manager` or `*Helper` | final readonly |
-| Port | `Context/<C>/Domain/Interface/` | `*Interface` | interface |
-| Repository | `Context/<C>/Domain/Repository/` | `*RepositoryInterface` | interface |
-| Doctrine repository | `Context/<C>/Infrastructure/Persistence/Repository/` | `Doctrine<Entity>Repository`, or `Doctrine<Query>Repository` for a read query across entities (`DoctrineRosterRepository`); nothing else in the folder | final readonly |
-| Repository filter | `Context/<C>/Infrastructure/Persistence/Repository/Filter/` | `<Entity>Filters` | final readonly, static methods that build the Doctrine `Criteria` of a listing |
-| Repository writer | `Context/<C>/Infrastructure/Persistence/Repository/Writer/` | what it writes (`MissingSessions`) | final readonly, a write a Doctrine repository hands off |
-| Exception | `Context/<C>/Domain/Exception/` | `*Exception` | class |
-| Enum | `Context/<C>/Domain/Enum/` | a noun | backed enum |
-| Entity | `Context/<C>/Domain/Entity/` | a noun | final, state only: no factories, rules or checks (`EntitiesHoldOnlyStateTest`) |
-| Value object | `Context/<C>/Domain/ValueObject/` | a noun | final readonly |
-| Attribute | `Context/<C>/Domain/Attribute/` | what it declares | final readonly |
+| What | Where | Shape |
+| --- | --- | --- |
+| Controller | `Interface/Api/<Area>/` | final |
+| Request | `Interface/Api/<Area>/Request/` | final readonly |
+| Response | `Interface/Api/<Area>/Response/` | final readonly |
+| Console command | `Interface/Console/<Area>/` | final, invokable |
+| Console request | `Interface/Console/<Area>/Request/` | final, public properties Symfony fills through `#[MapInput]` |
+| Workflow | `Workflow/<Area>/` | final readonly, only `__invoke()` public |
+| Workflow model | `Workflow/<Area>/Model/` | final readonly |
+| Application service | `Context/<C>/Application/Service/` | final readonly |
+| Port | `Context/<C>/Domain/Interface/` | interface |
+| Repository | `Context/<C>/Domain/Repository/` | interface |
+| Doctrine repository | `Context/<C>/Infrastructure/Persistence/Repository/` | final readonly; nothing else in the folder |
+| Repository filter | `Context/<C>/Infrastructure/Persistence/Repository/Filter/` | final readonly, static methods that build the Doctrine `Criteria` of a listing |
+| Repository writer | `Context/<C>/Infrastructure/Persistence/Repository/Writer/` | final readonly, a write a Doctrine repository hands off |
+| Exception | `Context/<C>/Domain/Exception/` | class |
+| Enum | `Context/<C>/Domain/Enum/` | backed enum |
+| Entity | `Context/<C>/Domain/Entity/` | final, state only: no factories, rules or checks (`EntitiesHoldOnlyStateTest`) |
+| Value object | `Context/<C>/Domain/ValueObject/` | final readonly |
+| Attribute | `Context/<C>/Domain/Attribute/` | final readonly |
 
 Persistence (ADR 0004 of `bisort-console`):
 

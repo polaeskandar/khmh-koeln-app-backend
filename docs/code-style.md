@@ -122,8 +122,8 @@ logs. `tests/Architecture/EnumsAreBackedTest` fails on a pure enum in `src`.
 No comments: rename or extract until the code says it, and write down decisions and the reasons behind them in
 `docs/`. What stays are docblocks that only hold tags for what PHP cannot type (`@param list<Role>`,
 `@var Collection<int, Permission>`, `@template`) and markers tools read (`@mago-expect`, `yaml-language-server`).
-A docblock never starts with a sentence. Classes are nouns, methods say what they return or do (`of()`,
-`translate()`, `isCode()`), booleans read as questions (`is`, `has`). Names are camelCase. phpcs
+A docblock never starts with a sentence. How to name classes, methods and variables, and which word to use for
+each of the church's concepts, is in [Naming conventions](NAMING_CONVENTIONS.md). phpcs
 `CodingStandard.Commenting.NoComments`, Mago: `variable-name`, `method-name`, `property-name`.
 
 ## 8. Native functions only through Library
