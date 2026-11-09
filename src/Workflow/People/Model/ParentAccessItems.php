@@ -94,7 +94,7 @@ final readonly class ParentAccessItems
 
         return new ParentAccessItem(
             $link->id()->toRfc4122(),
-            $link->relationship()->value,
+            $link->relationship(),
             ParentAccountView::of($parent),
             DirectoryEntry::of(
                 $child,

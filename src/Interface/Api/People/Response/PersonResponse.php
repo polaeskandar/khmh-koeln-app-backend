@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\People\Response;
 
+use App\Context\People\Domain\Enum\PersonStatus;
 use App\Workflow\People\Model\PersonView;
 
 final readonly class PersonResponse
@@ -13,7 +14,7 @@ final readonly class PersonResponse
         public string $firstName,
         public string $lastName,
         public ?string $displayName,
-        public string $status,
+        public PersonStatus $status,
     ) {
     }
 

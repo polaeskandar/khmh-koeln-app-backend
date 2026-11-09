@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Learning\Response;
 
+use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Workflow\Learning\Model\HomeworkItem;
 use App\Workflow\Learning\Model\LessonOnDate;
 use DateTimeImmutable;
@@ -21,7 +22,7 @@ final readonly class HomeworkItemResponse implements JsonSerializable
      * @return array{
      *     id: string,
      *     title: string,
-     *     status: string,
+     *     status: HomeworkStatus,
      *     dueDate: string|null,
      *     publishedAt: DateTimeImmutable|null,
      *     lesson: LessonOnDate,

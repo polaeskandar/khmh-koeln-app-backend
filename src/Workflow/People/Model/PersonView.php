@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\People\Model;
 
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\Enum\PersonStatus;
 
 final readonly class PersonView
 {
@@ -13,7 +14,7 @@ final readonly class PersonView
         public string $firstName,
         public string $lastName,
         public ?string $displayName,
-        public string $status,
+        public PersonStatus $status,
     ) {
     }
 
@@ -26,7 +27,7 @@ final readonly class PersonView
             $name->firstName,
             $name->lastName,
             $name->displayName,
-            $person->status()->value,
+            $person->status(),
         );
     }
 }

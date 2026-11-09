@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Privacy\Response;
 
+use App\Context\People\Domain\Enum\PersonStatus;
 use App\Workflow\Privacy\Model\AttendanceRow;
 use App\Workflow\Privacy\Model\LinkRow;
 use App\Workflow\Privacy\Model\MemberActivity;
@@ -29,14 +30,14 @@ final readonly class MemberDataResponse implements JsonSerializable
 
     /**
      * @return array{
-     *     kind: string,
+     *     kind: 'member',
      *     exportedAt: DateTimeImmutable,
      *     member: array{
      *         id: string,
      *         firstName: string,
      *         lastName: string,
      *         displayName: string|null,
-     *         status: string,
+     *         status: PersonStatus,
      *         recordedSince: string,
      *     },
      *     memberships: list<MembershipRow>,

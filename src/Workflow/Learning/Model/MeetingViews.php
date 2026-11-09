@@ -31,7 +31,7 @@ final readonly class MeetingViews
      * @param ReadableCollection<int, Session> $sessions
      * @param ReadableCollection<int, Lesson> $lessons
      *
-     * @return list<MeetingView>
+     * @return list<NoMeeting|OffScheduleMeeting|PlannedMeeting|SessionMeeting>
      */
     public static function of(
         ReadableCollection $schedules,
@@ -71,23 +71,23 @@ final readonly class MeetingViews
         return $lessons->map(static fn (Lesson $lesson): LocalDate => $lesson->link()->teachingDate)->getValues();
     }
 
-    private function viewOf(Lesson $lesson): MeetingView
+    private function viewOf(Lesson $lesson): NoMeeting|OffScheduleMeeting|PlannedMeeting|SessionMeeting
     {
         $link = $lesson->link();
 
         if ($link->scheduleId === null) {
-            return MeetingView::none($link->teachingDate);
+            return NoMeeting::on($link->teachingDate);
         }
 
         $session = $this->sessions->get(self::key($link->scheduleId, $link->teachingDate));
 
         return $session === null
-            ? MeetingView::forSchedule(
-                $this->schedules->get($link->scheduleId->toRfc4122()),
+            ? ScheduledMeetings::on(
                 $link->teachingDate,
+                $this->schedules->get($link->scheduleId->toRfc4122()),
                 $this->archived,
             )
-            : MeetingView::session($session);
+            : SessionMeeting::of($session);
     }
 
     /**

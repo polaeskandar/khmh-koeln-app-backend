@@ -25,14 +25,14 @@ final readonly class DataRequestRow
         return new self(
             new RequestHeader(
                 $request->id()->toRfc4122(),
-                $request->kind()->value,
-                $request->status()->value,
+                $request->kind(),
+                $request->status(),
                 $request->dueOn()->toString(),
                 $request->note(),
             ),
             $subjectName,
             ErasedSubjectView::of($request->erasedSubject()),
-            new ReceiptView($receipt->requestedBy, $receipt->channel->value, $receipt->receivedAt),
+            new ReceiptView($receipt->requestedBy, $receipt->channel, $receipt->receivedAt),
             new ClosingView(
                 $request->closing()->at,
                 $closedBy,

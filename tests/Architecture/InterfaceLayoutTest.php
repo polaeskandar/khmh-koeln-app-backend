@@ -15,6 +15,8 @@ final class InterfaceLayoutTest extends TestCase
 
     private const array CONSOLE_FOLDERS = ['Request' => 'Request.php'];
 
+    private const string BEYOND_ENUMS = '/App\\\\Context\\\\(?!\w+\\\\Domain\\\\Enum\\\\)/';
+
     public function testAnApiAreaHoldsControllersRequestsAndResponses(): void
     {
         $misplaced = array_filter(
@@ -47,14 +49,18 @@ final class InterfaceLayoutTest extends TestCase
         );
     }
 
-    public function testTheInterfaceReachesTheContextsOnlyThroughWorkflows(): void
+    public function testTheInterfaceReachesTheContextsThroughWorkflowsAndNamesOnlyTheirEnums(): void
     {
         $reaching = array_filter(
             iterator_to_array(self::filesBelow(self::root() . '/src/Interface'), preserve_keys: false),
-            static fn (string $path): bool => str_contains((string) file_get_contents($path), 'App\\Context\\'),
+            static fn (string $path): bool => preg_match(self::BEYOND_ENUMS, (string) file_get_contents($path)) === 1,
         );
 
-        self::assertSame([], array_values($reaching), 'Interface calls workflows; only workflows use the contexts.');
+        self::assertSame(
+            [],
+            array_values($reaching),
+            'Interface calls workflows; of a context it names only the enums in Domain\Enum.',
+        );
     }
 
     private static function holdsOnly(string $folder, ?string $suffix): bool

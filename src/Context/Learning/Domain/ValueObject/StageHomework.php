@@ -22,7 +22,7 @@ final readonly class StageHomework
     }
 
     /**
-     * @return array<string, int>
+     * @return array{published: int, draft: int, archived: int}
      */
     public function tabs(): array
     {

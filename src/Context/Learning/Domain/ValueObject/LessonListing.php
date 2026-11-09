@@ -11,7 +11,7 @@ use Doctrine\Common\Collections\ReadableCollection;
 final readonly class LessonListing
 {
     /**
-     * @param array<string, int> $tabs
+     * @param array{upcoming: int, previous: int, archived: int} $tabs
      * @param list<Lesson> $shown
      * @param ReadableCollection<string, HomeworkCounts> $homework
      */

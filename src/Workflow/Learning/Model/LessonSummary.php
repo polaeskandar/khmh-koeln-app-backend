@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Learning\Model;
 
 use App\Context\Learning\Domain\Entity\Lesson;
+use App\Context\Learning\Domain\Enum\LessonStatus;
 
 final readonly class LessonSummary
 {
@@ -13,7 +14,7 @@ final readonly class LessonSummary
         public string $title,
         public ?string $passage,
         public string $teachingDate,
-        public string $status,
+        public LessonStatus $status,
     ) {
     }
 
@@ -24,7 +25,7 @@ final readonly class LessonSummary
             title: $lesson->text()->title,
             passage: $lesson->text()->passage,
             teachingDate: $lesson->link()->teachingDate->toString(),
-            status: $lesson->state()->status->value,
+            status: $lesson->state()->status,
         );
     }
 }

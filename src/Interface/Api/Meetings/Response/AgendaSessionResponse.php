@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Meetings\Response;
 
+use App\Context\Meetings\Domain\Enum\RosterMode;
+use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Workflow\Meetings\Model\AttendanceCounts;
 use App\Workflow\Meetings\Model\SessionView;
 use App\Workflow\Organization\Model\ServiceReference;
@@ -22,7 +24,7 @@ final readonly class AgendaSessionResponse implements JsonSerializable
 
     /**
      * @return array{
-     *     kind: string,
+     *     kind: 'session',
      *     id: string,
      *     scheduleId: string|null,
      *     occurrenceDate: string,
@@ -35,8 +37,8 @@ final readonly class AgendaSessionResponse implements JsonSerializable
      *     startsAt: DateTimeImmutable,
      *     endsAt: DateTimeImmutable|null,
      *     location: string|null,
-     *     status: string,
-     *     rosterMode: string,
+     *     status: SessionStatus,
+     *     rosterMode: RosterMode,
      *     cancelReason: string|null,
      *     counts: AttendanceCounts|null,
      * }

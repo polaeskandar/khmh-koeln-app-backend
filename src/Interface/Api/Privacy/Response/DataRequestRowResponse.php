@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Privacy\Response;
 
+use App\Context\Privacy\Domain\Enum\RequestChannel;
+use App\Context\Privacy\Domain\Enum\RequestKind;
+use App\Context\Privacy\Domain\Enum\RequestStatus;
 use App\Workflow\Identity\Model\AccountReference;
 use App\Workflow\Privacy\Model\DataRequestRow;
 use App\Workflow\Privacy\Model\ErasedSubjectView;
@@ -22,12 +25,12 @@ final readonly class DataRequestRowResponse implements JsonSerializable
     /**
      * @return array{
      *     id: string,
-     *     kind: string,
-     *     status: string,
+     *     kind: RequestKind,
+     *     status: RequestStatus,
      *     subjectName: string|null,
      *     erasedSubject: ErasedSubjectView|null,
      *     requestedBy: string,
-     *     channel: string,
+     *     channel: RequestChannel,
      *     receivedAt: DateTimeImmutable,
      *     dueOn: string,
      *     note: string|null,

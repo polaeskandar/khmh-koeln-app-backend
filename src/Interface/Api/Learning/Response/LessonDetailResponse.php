@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Learning\Response;
 
+use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Workflow\Identity\Model\AccountReference;
 use App\Workflow\Learning\Model\LessonDetail;
 use App\Workflow\Learning\Model\LessonDetailView;
@@ -32,10 +33,10 @@ final readonly class LessonDetailResponse implements JsonSerializable
      *         title: string,
      *         passage: string|null,
      *         teachingDate: string,
-     *         status: string,
+     *         status: LessonStatus,
      *         responsible: AccountReference|null,
      *         collaborators: list<AccountReference>,
-     *         meeting: MeetingViewResponse,
+     *         meeting: NoMeetingResponse|OffScheduleMeetingResponse|PlannedMeetingResponse|SessionMeetingResponse,
      *         scheduleId: string|null,
      *         summary: string|null,
      *         memoryVerse: string|null,
@@ -72,10 +73,10 @@ final readonly class LessonDetailResponse implements JsonSerializable
      *     title: string,
      *     passage: string|null,
      *     teachingDate: string,
-     *     status: string,
+     *     status: LessonStatus,
      *     responsible: AccountReference|null,
      *     collaborators: list<AccountReference>,
-     *     meeting: MeetingViewResponse,
+     *     meeting: NoMeetingResponse|OffScheduleMeetingResponse|PlannedMeetingResponse|SessionMeetingResponse,
      *     scheduleId: string|null,
      *     summary: string|null,
      *     memoryVerse: string|null,

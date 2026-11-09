@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Identity\Response;
 
+use App\Context\Identity\Domain\Enum\Language;
 use App\Workflow\Identity\Model\AccountSummary;
 
 final readonly class AccountResponse
@@ -12,7 +13,7 @@ final readonly class AccountResponse
         public string $id,
         public string $email,
         public string $displayName,
-        public string $language,
+        public Language $language,
     ) {
     }
 

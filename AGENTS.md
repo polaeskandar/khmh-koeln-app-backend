@@ -29,7 +29,8 @@ because it isn't installed yet; installing it is one command.
 Follow `docs/architecture.md` § Code layout. Calls go one way, Interface → Workflow → Context:
 
 - `src/Interface/{Api,Console}/<Area>/` holds entry points (`*Controller`, invokable `*Command`), their
-  `Request/*Request` and, for the API, `Response/*Response`. Nothing else, and no context class.
+  `Request/*Request` and, for the API, `Response/*Response`. Nothing else, and no context class except the
+  contexts' enums (`Domain/Enum`), which responses name for the fields that carry their values.
 - `src/Workflow/<Area>/<Verb><Subject>Workflow.php` holds one process each, run by `__invoke()`, with its models
   in `src/Workflow/<Area>/Model/`. Workflows are the only code that uses the contexts, and the only code that
   manages access: a workflow calls `AccessCheck::require()` itself. Read models carry no permission flags;

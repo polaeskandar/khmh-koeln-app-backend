@@ -48,8 +48,8 @@ minimum-fail-level = "note"
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Identity\\**"
-allow-from = ["App\\Context\\Identity\\**", "App\\Workflow\\**", "App\\Tests\\**"]
-reason = "A context never uses another context; only Workflow uses the contexts."
+allow-from = ["App\\Context\\Identity\\**", "App\\Workflow\\**", "App\\Interface\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; only Workflow uses the contexts, and Interface names their enums."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Identity\\Domain\\Repository\\**"
@@ -63,8 +63,8 @@ reason = "Only the context's own Infrastructure uses its Infrastructure; the res
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Organization\\**"
-allow-from = ["App\\Context\\Organization\\**", "App\\Workflow\\**", "App\\Tests\\**"]
-reason = "A context never uses another context; only Workflow uses the contexts."
+allow-from = ["App\\Context\\Organization\\**", "App\\Workflow\\**", "App\\Interface\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; only Workflow uses the contexts, and Interface names their enums."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Organization\\Domain\\Repository\\**"
@@ -78,8 +78,8 @@ reason = "Only the context's own Infrastructure uses its Infrastructure; the res
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\People\\**"
-allow-from = ["App\\Context\\People\\**", "App\\Workflow\\**", "App\\Tests\\**"]
-reason = "A context never uses another context; only Workflow uses the contexts."
+allow-from = ["App\\Context\\People\\**", "App\\Workflow\\**", "App\\Interface\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; only Workflow uses the contexts, and Interface names their enums."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\People\\Domain\\Repository\\**"
@@ -93,8 +93,8 @@ reason = "Only the context's own Infrastructure uses its Infrastructure; the res
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Meetings\\**"
-allow-from = ["App\\Context\\Meetings\\**", "App\\Workflow\\**", "App\\Tests\\**"]
-reason = "A context never uses another context; only Workflow uses the contexts."
+allow-from = ["App\\Context\\Meetings\\**", "App\\Workflow\\**", "App\\Interface\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; only Workflow uses the contexts, and Interface names their enums."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Meetings\\Domain\\Repository\\**"
@@ -108,8 +108,8 @@ reason = "Only the context's own Infrastructure uses its Infrastructure; the res
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Learning\\**"
-allow-from = ["App\\Context\\Learning\\**", "App\\Workflow\\**", "App\\Tests\\**"]
-reason = "A context never uses another context; only Workflow uses the contexts."
+allow-from = ["App\\Context\\Learning\\**", "App\\Workflow\\**", "App\\Interface\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; only Workflow uses the contexts, and Interface names their enums."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Learning\\Domain\\Repository\\**"
@@ -123,8 +123,8 @@ reason = "Only the context's own Infrastructure uses its Infrastructure; the res
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Privacy\\**"
-allow-from = ["App\\Context\\Privacy\\**", "App\\Workflow\\**", "App\\Tests\\**"]
-reason = "A context never uses another context; only Workflow uses the contexts."
+allow-from = ["App\\Context\\Privacy\\**", "App\\Workflow\\**", "App\\Interface\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; only Workflow uses the contexts, and Interface names their enums."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Privacy\\Domain\\Repository\\**"
@@ -135,6 +135,16 @@ reason = "Workflows go through the context's application services, never straigh
 dependency = "App\\Context\\Privacy\\Infrastructure\\**"
 allow-from = ["App\\Context\\Privacy\\Infrastructure\\**", "App\\Tests\\**"]
 reason = "Only the context's own Infrastructure uses its Infrastructure; the rest goes through Domain contracts."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\*\\{*,Application\\**,Infrastructure\\**,Domain\\*}"
+deny-from = ["App\\Interface\\**"]
+reason = "Interface reaches the contexts through workflows; of a context it names only the enums in Domain\\Enum."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\*\\Domain\\{Attribute,Entity,Exception,Interface,Repository,ValueObject}\\**"
+deny-from = ["App\\Interface\\**"]
+reason = "Interface reaches the contexts through workflows; of a context it names only the enums in Domain\\Enum."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Library\\Checksum\\**"

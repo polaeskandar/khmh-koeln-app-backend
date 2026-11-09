@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Learning\Response;
 
+use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Workflow\Learning\Model\LessonStatusView;
 use DateTimeImmutable;
 
@@ -11,7 +12,7 @@ final readonly class LessonStatusResponse
 {
     public function __construct(
         public string $id,
-        public string $status,
+        public LessonStatus $status,
         public ?DateTimeImmutable $completedAt,
         public int $version,
     ) {

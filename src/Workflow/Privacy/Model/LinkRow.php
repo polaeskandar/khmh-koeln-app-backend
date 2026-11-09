@@ -6,19 +6,16 @@ namespace App\Workflow\Privacy\Model;
 
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\People\Domain\Entity\GuardianRelationship;
+use App\Context\People\Domain\Enum\GuardianStatus;
 use App\Library\Collections\Model\Collections;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class LinkRow
 {
-    private const string APPROVED = 'approved';
-
-    private const string REVOKED = 'revoked';
-
     public function __construct(
         public ?string $name,
-        public string $linkStatus,
+        public GuardianStatus $linkStatus,
     ) {
     }
 
@@ -64,9 +61,9 @@ final readonly class LinkRow
         })->getValues();
     }
 
-    private static function statusOf(GuardianRelationship $link): string
+    private static function statusOf(GuardianRelationship $link): GuardianStatus
     {
-        return $link->isApproved() ? self::APPROVED : self::REVOKED;
+        return $link->isApproved() ? GuardianStatus::Approved : GuardianStatus::Revoked;
     }
 
     private static function accountKey(User $user): string

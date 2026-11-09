@@ -16,6 +16,6 @@ final readonly class OverviewCard
 
     public function isActive(): bool
     {
-        return $this->state->status === SessionStatus::Active->value;
+        return $this->state->status === SessionStatus::Active;
     }
 }

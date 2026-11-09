@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Learning\Response;
 
+use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Workflow\Learning\Model\HomeworkDetail;
 use App\Workflow\Organization\Model\ServiceReference;
 use App\Workflow\Organization\Model\StageSummary;
@@ -23,14 +24,21 @@ final readonly class HomeworkDetailResponse implements JsonSerializable
      *     today: string,
      *     id: string,
      *     title: string,
-     *     status: string,
+     *     status: HomeworkStatus,
      *     dueDate: string|null,
      *     publishedAt: DateTimeImmutable|null,
      *     instructions: string|null,
      *     resources: list<array{label: string, url: string|null}>,
      *     version: int,
      *     minDueDate: string,
-     *     lesson: array<string, string|bool|null>,
+     *     lesson: array{
+     *         id: string,
+     *         title: string,
+     *         teachingDate: string,
+     *         passage: string|null,
+     *         memoryVerse: string|null,
+     *         archived: bool,
+     *     },
      *     service: ServiceReference,
      *     stage: StageSummary,
      *     archived: bool,
@@ -85,7 +93,7 @@ final readonly class HomeworkDetailResponse implements JsonSerializable
      * @return array{
      *     id: string,
      *     title: string,
-     *     status: string,
+     *     status: HomeworkStatus,
      *     dueDate: string|null,
      *     publishedAt: DateTimeImmutable|null,
      *     instructions: string|null,

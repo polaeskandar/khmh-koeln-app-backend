@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Meetings\Response;
 
+use App\Context\Meetings\Domain\Enum\RosterMode;
 use App\Workflow\Meetings\Model\PlannedSession;
 use App\Workflow\Organization\Model\ServiceReference;
 use App\Workflow\Organization\Model\StageReference;
@@ -20,7 +21,7 @@ final readonly class PlannedSessionResponse implements JsonSerializable
 
     /**
      * @return array{
-     *     kind: string,
+     *     kind: 'planned',
      *     scheduleId: string,
      *     title: string,
      *     service: ServiceReference|null,
@@ -31,7 +32,7 @@ final readonly class PlannedSessionResponse implements JsonSerializable
      *     startsAt: DateTimeImmutable,
      *     endsAt: DateTimeImmutable|null,
      *     location: string|null,
-     *     rosterMode: string,
+     *     rosterMode: RosterMode,
      * }
      */
     #[Override]

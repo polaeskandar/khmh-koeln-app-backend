@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Workflow\Privacy\Model;
 
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Enum\RegisteredAs;
 
 final readonly class RegistrationView
 {
     public function __construct(
-        public ?string $registeredAs,
+        public ?RegisteredAs $registeredAs,
         public ?string $note,
     ) {
     }
@@ -22,6 +23,6 @@ final readonly class RegistrationView
 
         $registration = $user->registration();
 
-        return new self($registration->registeredAs?->value, $registration->note);
+        return new self($registration->registeredAs, $registration->note);
     }
 }

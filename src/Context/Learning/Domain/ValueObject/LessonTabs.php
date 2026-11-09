@@ -23,7 +23,7 @@ final readonly class LessonTabs
     }
 
     /**
-     * @return array<string, int>
+     * @return array{upcoming: int, previous: int, archived: int}
      */
     public function counts(): array
     {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Privacy\Response;
 
+use App\Context\People\Domain\Enum\PersonStatus;
 use App\Workflow\Privacy\Model\MembershipRow;
 use App\Workflow\Privacy\Model\RequestMember;
 use JsonSerializable;
@@ -27,7 +28,7 @@ final readonly class RequestMemberResponse implements JsonSerializable
      *     firstName: string,
      *     lastName: string,
      *     displayName: string|null,
-     *     status: string,
+     *     status: PersonStatus,
      *     memberships: list<MembershipRow>,
      * }
      */

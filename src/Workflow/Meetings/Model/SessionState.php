@@ -6,6 +6,7 @@ namespace App\Workflow\Meetings\Model;
 
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Workflow\Identity\Model\AccountReference;
 use DateTimeImmutable;
 
@@ -13,7 +14,7 @@ final readonly class SessionState
 {
     public function __construct(
         public string $id,
-        public string $status,
+        public SessionStatus $status,
         public ?DateTimeImmutable $openedAt,
         public ?DateTimeImmutable $closedAt,
         public ?AccountReference $closedBy,
@@ -31,7 +32,7 @@ final readonly class SessionState
 
         return new self(
             id: $session->id()->toRfc4122(),
-            status: $progress->status->value,
+            status: $progress->status,
             openedAt: $progress->opened->at,
             closedAt: $progress->closed->at,
             closedBy: $closedBy,

@@ -26,7 +26,7 @@ final readonly class LessonListResponse implements JsonSerializable
      *     stage: StageSummary,
      *     archived: bool,
      *     today: string,
-     *     tabs: array<string, int>,
+     *     tabs: array{upcoming: int, previous: int, archived: int},
      *     servants: list<AccountReference>,
      *     items: list<LessonRowResponse>,
      * }

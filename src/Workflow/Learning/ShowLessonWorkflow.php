@@ -23,8 +23,11 @@ use App\Workflow\Learning\Model\LessonRow;
 use App\Workflow\Learning\Model\LessonRows;
 use App\Workflow\Learning\Model\LessonStageView;
 use App\Workflow\Learning\Model\LessonSummary;
-use App\Workflow\Learning\Model\MeetingView;
 use App\Workflow\Learning\Model\MeetingViews;
+use App\Workflow\Learning\Model\NoMeeting;
+use App\Workflow\Learning\Model\OffScheduleMeeting;
+use App\Workflow\Learning\Model\PlannedMeeting;
+use App\Workflow\Learning\Model\SessionMeeting;
 use Doctrine\Common\Collections\ArrayCollection;
 use LogicException;
 
@@ -78,7 +81,7 @@ final readonly class ShowLessonWorkflow
         );
     }
 
-    private function meetingOf(Lesson $lesson): MeetingView
+    private function meetingOf(Lesson $lesson): NoMeeting|OffScheduleMeeting|PlannedMeeting|SessionMeeting
     {
         $lessons = new ArrayCollection([$lesson]);
         $schedules = $this->meetings->schedules(MeetingViews::scheduleIdsOf($lessons));

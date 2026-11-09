@@ -8,12 +8,11 @@ use App\Workflow\Meetings\Model\Agenda;
 use App\Workflow\Meetings\Model\AgendaItem;
 use App\Workflow\Meetings\Model\SessionView;
 use Doctrine\Common\Collections\ArrayCollection;
-use JsonSerializable;
 
 final readonly class AgendaResponse
 {
     /**
-     * @param list<JsonSerializable> $items
+     * @param list<AgendaSessionResponse|PlannedSessionResponse> $items
      */
     public function __construct(
         public string $today,
@@ -33,7 +32,7 @@ final readonly class AgendaResponse
         );
     }
 
-    private static function itemOf(AgendaItem $item): JsonSerializable
+    private static function itemOf(AgendaItem $item): AgendaSessionResponse|PlannedSessionResponse
     {
         $entry = $item->entry;
 

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Workflow\Meetings\Model;
 
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\Enum\SessionStatus;
 
 final readonly class SessionProgress
 {
     public function __construct(
-        public string $status,
+        public SessionStatus $status,
         public ?string $cancelReason,
     ) {
     }
@@ -18,7 +19,7 @@ final readonly class SessionProgress
     {
         $progress = $session->progress();
 
-        return new self(status: $progress->status->value, cancelReason: $progress->cancelReason);
+        return new self(status: $progress->status, cancelReason: $progress->cancelReason);
     }
 
     public function withoutCancelReason(): self

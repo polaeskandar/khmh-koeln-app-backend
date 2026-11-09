@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Meetings\Response;
 
+use App\Context\Meetings\Domain\Enum\RosterMode;
 use App\Workflow\Meetings\Model\RecurrenceSummary;
 use App\Workflow\Meetings\Model\ScheduleSummary;
 use App\Workflow\Meetings\Model\UpcomingDate;
@@ -31,7 +32,7 @@ final readonly class ScheduleResponse implements JsonSerializable
      *     startTime: string,
      *     endTime: string|null,
      *     location: string|null,
-     *     rosterMode: string,
+     *     rosterMode: RosterMode,
      *     active: bool,
      *     generating: bool,
      *     nextDates: list<UpcomingDate>,
