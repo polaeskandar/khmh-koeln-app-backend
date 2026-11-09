@@ -6,7 +6,7 @@ namespace App\Interface\Console\Identity;
 
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Strings\Model\Text;
-use App\Workflow\Identity\UnlinkMemberWorkflow;
+use App\Workflow\Identity\UnlinkMemberByEmailWorkflow;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -16,7 +16,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final readonly class MemberUnlinkCommand
 {
     public function __construct(
-        private UnlinkMemberWorkflow $unlinkMember,
+        private UnlinkMemberByEmailWorkflow $unlinkMemberByEmail,
     ) {
     }
 
@@ -26,7 +26,7 @@ final readonly class MemberUnlinkCommand
         string $email,
     ): int {
         try {
-            ($this->unlinkMember)($email);
+            ($this->unlinkMemberByEmail)($email);
         } catch (NotFound $refused) {
             $io->error($refused->getMessage());
 

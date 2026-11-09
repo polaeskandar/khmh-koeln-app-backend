@@ -7,7 +7,7 @@ namespace App\Interface\Console\Identity;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\Text;
-use App\Workflow\Identity\TakeRoleWorkflow;
+use App\Workflow\Identity\TakeRoleByEmailWorkflow;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -17,7 +17,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final readonly class UserRoleRemoveCommand
 {
     public function __construct(
-        private TakeRoleWorkflow $takeRole,
+        private TakeRoleByEmailWorkflow $takeRoleByEmail,
     ) {
     }
 
@@ -29,7 +29,7 @@ final readonly class UserRoleRemoveCommand
         string $role,
     ): int {
         try {
-            ($this->takeRole)($email, $role);
+            ($this->takeRoleByEmail)($email, $role);
         } catch (NotFound|RuleViolation $refused) {
             $io->error($refused->getMessage());
 

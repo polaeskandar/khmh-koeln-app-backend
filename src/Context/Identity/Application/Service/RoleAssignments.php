@@ -10,8 +10,10 @@ use App\Context\Identity\Domain\Interface\AdministrationLockInterface;
 use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\RoleChange;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class RoleAssignments
 {
@@ -23,21 +25,24 @@ final readonly class RoleAssignments
     ) {
     }
 
-    public function give(string $email, string $roleName): void
+    public function give(string $accountId, string $roleId): Role
     {
-        $account = $this->account($email);
-        $role = $this->role($roleName);
+        $account = $this->account($accountId);
+        $role = $this->role($roleId) ?? throw InvalidInput::field('roleId', 'roles.unknown');
 
         RoleChange::ensureGivable($account, $role);
         $account->assign($role);
         $this->accounts->save($account);
+
+        return $role;
     }
 
-    public function take(string $email, string $roleName): void
+    public function take(string $accountId, string $roleId, string $actorId): void
     {
-        $this->administration->whileLocked(function () use ($email, $roleName): void {
-            $account = $this->account($email);
-            $role = $this->role($roleName);
+        $this->administration->whileLocked(function () use ($accountId, $roleId, $actorId): void {
+            $account = $this->account($accountId);
+            $role = $this->role($roleId) ?? throw NotFound::of('role');
+            OwnAdministration::ensureKept($account, $role, Uuid::fromString($actorId));
 
             if ($this->lastAdministrator->wouldLoseIt($account, $role)) {
                 throw new RuleViolation('roles.lastAdministrator');
@@ -49,13 +54,17 @@ final readonly class RoleAssignments
         });
     }
 
-    private function account(string $email): Account
+    private function account(string $id): Account
     {
-        return $this->accounts->findByEmail($email) ?? throw NotFound::of('account');
+        $account = Uuid::isValid($id) ? $this->accounts->find(Uuid::fromString($id)) : null;
+
+        return $account ?? throw NotFound::of('user');
     }
 
-    private function role(string $name): Role
+    private function role(string $id): ?Role
     {
-        return $this->roles->findByName($name) ?? throw NotFound::of('role');
+        $roles = Uuid::isValid($id) ? $this->roles->findByIds([Uuid::fromString($id)])->getValues() : [];
+
+        return $roles[0] ?? null;
     }
 }

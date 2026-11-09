@@ -7,7 +7,7 @@ namespace App\Interface\Console\Identity;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\Text;
-use App\Workflow\Identity\SendPasswordLinkWorkflow;
+use App\Workflow\Identity\SendPasswordLinkByEmailWorkflow;
 use DateTimeInterface;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -21,7 +21,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final readonly class UserPasswordLinkCommand
 {
     public function __construct(
-        private SendPasswordLinkWorkflow $sendPasswordLink,
+        private SendPasswordLinkByEmailWorkflow $sendPasswordLinkByEmail,
     ) {
     }
 
@@ -31,7 +31,7 @@ final readonly class UserPasswordLinkCommand
         string $email,
     ): int {
         try {
-            $validUntil = ($this->sendPasswordLink)($email);
+            $validUntil = ($this->sendPasswordLinkByEmail)($email);
         } catch (NotFound|RuleViolation $refused) {
             $io->error($refused->getMessage());
 

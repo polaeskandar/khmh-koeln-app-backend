@@ -224,7 +224,8 @@ $resource)` is true when any of the account's roles has that permission. The cat
 parent portal), Service leader, Servant and Parent (`parentPortal:read`) are seeded by a migration; the roles
 are ordinary roles. `app:user:create --role=<name>` writes the account with that role in one transaction.
 `app:user:role:add <email> <role>` and `app:user:role:remove <email> <role>` give and take a role by its name
-(any case); both go through `RoleAssignments`, the one home of the rules: a role is held once
+(any case) through `RoleAssignmentsByEmail`, and the API by ids through `RoleAssignments`. Both apply the same rules
+(`RoleChange`, `OwnAdministration`, `LastAdministrator`): a role is held once
 (`roles.alreadyHasRole`), only a held role can be taken (`roles.notHeld`), a pending account gets roles when it
 is approved (`roles.accountPending`), and the last active account that can manage roles (`roles: update`)
 keeps that permission (`roles.lastAdministrator`, through `LastAdministrator`; pending and disabled accounts

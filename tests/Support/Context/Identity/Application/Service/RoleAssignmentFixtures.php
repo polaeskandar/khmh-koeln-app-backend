@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Support\Context\Identity\Application\Service;
 
 use App\Context\Identity\Application\Service\LastAdministrator;
-use App\Context\Identity\Application\Service\RoleAssignments;
+use App\Context\Identity\Application\Service\RoleAssignmentsByEmail;
 use App\Context\Identity\Domain\Entity\Account;
 use App\Context\Identity\Domain\Repository\AccountRepositoryInterface;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
@@ -60,9 +60,9 @@ final readonly class RoleAssignmentFixtures
         return array_map(strval(...), $keys);
     }
 
-    public function assignments(): RoleAssignments
+    public function assignmentsByEmail(): RoleAssignmentsByEmail
     {
-        return $this->service(RoleAssignments::class);
+        return $this->service(RoleAssignmentsByEmail::class);
     }
 
     public function lastAdministrator(): LastAdministrator

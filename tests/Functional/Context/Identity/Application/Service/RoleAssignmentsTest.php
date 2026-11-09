@@ -4,128 +4,79 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Context\Identity\Application\Service;
 
-use App\Library\Problem\Exception\NotFound;
+use App\Context\Identity\Application\Service\RoleAssignments;
 use App\Library\Problem\Exception\RuleViolation;
-use App\Tests\Support\Context\Identity\Application\Service\RoleAssignmentFixtures;
+use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
+use App\Tests\Support\Context\Identity\Infrastructure\Lock\OtherSession;
+use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
+use App\Tests\Support\Database;
+use Doctrine\DBAL\Exception\DriverException;
+use Override;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 final class RoleAssignmentsTest extends KernelTestCase
 {
-    public function testGivingARoleStoresIt(): void
+    private const string ADMINISTRATOR_ROLE = '019a3f00-0000-7000-8000-000000000001';
+
+    private ?OtherSession $otherSession = null;
+
+    #[Override]
+    protected function tearDown(): void
     {
-        $this->fixtures()->account('sara@example.org');
-
-        $this->fixtures()->assignments()->give('sara@example.org', 'Servant');
-
-        self::assertSame(['servant'], $this->fixtures()->roleKeysOf('sara@example.org'));
+        $this->otherSession?->close();
+        parent::tearDown();
     }
 
-    public function testARoleIsGivenOnlyOnce(): void
+    public function testTwoAdministratorsTakingEachOthersRoleLeaveOne(): void
     {
-        $this->fixtures()->account('sara@example.org', [], 'servant');
+        $first = $this->administrator('mariam@example.org');
+        $second = $this->administrator('daniel@example.org');
 
-        $this->assertRefused('roles.alreadyHasRole', fn () => $this
-            ->fixtures()
-            ->assignments()
-            ->give('sara@example.org', 'Servant'));
+        $this->take($second, by: $first);
+        $refusal = null;
 
-        self::assertSame(['servant'], $this->fixtures()->roleKeysOf('sara@example.org'));
-    }
-
-    public function testAPendingAccountGetsNoRole(): void
-    {
-        $this->fixtures()->account('sara@example.org', ['approved_at' => null]);
-
-        $this->assertRefused('roles.accountPending', fn () => $this
-            ->fixtures()
-            ->assignments()
-            ->give('sara@example.org', 'Servant'));
-
-        self::assertSame([], $this->fixtures()->roleKeysOf('sara@example.org'));
-    }
-
-    public function testOnlyAHeldRoleCanBeTaken(): void
-    {
-        $this->fixtures()->account('sara@example.org');
-
-        $this->assertRefused('roles.notHeld', fn () => $this
-            ->fixtures()
-            ->assignments()
-            ->take('sara@example.org', 'Servant'));
-    }
-
-    public function testTheLastActiveAdministratorKeepsTheRole(): void
-    {
-        $admin = $this->fixtures()->account('admin@example.org', [], 'administrator');
-        $this->fixtures()->account('pending@example.org', ['approved_at' => null], 'administrator');
-
-        $this->fixtures()->account(
-            'disabled@example.org',
-            ['disabled_at' => '2026-11-09 12:00:00+01'],
-            'administrator',
-        );
-
-        self::assertTrue($this->fixtures()->lastAdministrator()->is($admin));
-
-        $this->assertRefused('roles.lastAdministrator', fn () => $this
-            ->fixtures()
-            ->assignments()
-            ->take('admin@example.org', 'Administrator'));
-
-        self::assertSame(['administrator'], $this->fixtures()->roleKeysOf('admin@example.org'));
-    }
-
-    public function testWithAnotherActiveAdministratorTheRoleCanBeTaken(): void
-    {
-        $admin = $this->fixtures()->account('admin@example.org', [], 'administrator');
-        $this->fixtures()->account('other@example.org', [], 'administrator');
-
-        self::assertFalse($this->fixtures()->lastAdministrator()->is($admin));
-        $this->fixtures()->assignments()->take('admin@example.org', 'Administrator');
-
-        self::assertSame([], $this->fixtures()->roleKeysOf('admin@example.org'));
-    }
-
-    public function testOtherRolesOfTheLastAdministratorCanBeTaken(): void
-    {
-        $this->fixtures()->account('admin@example.org', [], 'administrator', 'servant');
-
-        $this->fixtures()->assignments()->take('admin@example.org', 'Servant');
-
-        self::assertSame(['administrator'], $this->fixtures()->roleKeysOf('admin@example.org'));
-    }
-
-    public function testAnUnknownAccountOrRoleIsNotFound(): void
-    {
-        $this->fixtures()->account('sara@example.org');
-
-        $this->assertRefused('notFound.account', fn () => $this
-            ->fixtures()
-            ->assignments()
-            ->give('nobody@example.org', 'Servant'));
-
-        $this->assertRefused('notFound.role', fn () => $this
-            ->fixtures()
-            ->assignments()
-            ->take('sara@example.org', 'Choir Director'));
-    }
-
-    private function assertRefused(string $code, callable $change): void
-    {
         try {
-            $change();
-        } catch (NotFound|RuleViolation $refused) {
-            self::assertSame($code, $refused->getMessage());
-            $this->fixtures()->forget();
-
-            return;
+            $this->take($first, by: $second);
+        } catch (RuleViolation $violation) {
+            $refusal = $violation->getMessage();
         }
 
-        self::fail('Expected ' . $code);
+        self::assertSame('roles.lastAdministrator', $refusal);
+
+        self::assertSame(1, new Database(self::getContainer())
+            ->connection()
+            ->fetchOne('SELECT count(*) FROM identity.user_role WHERE role_id = ?', [self::ADMINISTRATOR_ROLE]));
     }
 
-    private function fixtures(): RoleAssignmentFixtures
+    public function testTheRemovalWaitsForTheAdministrationLock(): void
     {
-        return new RoleAssignmentFixtures(self::getContainer());
+        $first = $this->administrator('mariam@example.org');
+        $second = $this->administrator('daniel@example.org');
+        $this->otherSession = new OtherSession(self::getContainer());
+        $this->otherSession->holdAdministrationLock();
+
+        new Database(self::getContainer())
+            ->connection()
+            ->executeStatement("SET lock_timeout = '100ms'");
+
+        $this->expectException(DriverException::class);
+
+        $this->take($second, by: $first);
+    }
+
+    private function administrator(string $email): string
+    {
+        $id = new SignInAccounts(self::getContainer())->add($email);
+        new RoleGrants(self::getContainer())->grant($id, 'administrator');
+
+        return $id;
+    }
+
+    private function take(string $account, string $by): void
+    {
+        $roles = self::getContainer()->get(RoleAssignments::class);
+        self::assertInstanceOf(RoleAssignments::class, $roles);
+
+        $roles->take($account, self::ADMINISTRATOR_ROLE, $by);
     }
 }

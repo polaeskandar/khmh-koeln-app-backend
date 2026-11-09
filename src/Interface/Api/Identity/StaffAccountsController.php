@@ -8,13 +8,13 @@ use App\Interface\Api\Identity\Request\GiveAccountRoleRequest;
 use App\Interface\Api\Identity\Response\PasswordLinkResponse;
 use App\Interface\Api\Identity\Response\RoleResponse;
 use App\Interface\Api\Identity\Response\StaffAccountListResponse;
-use App\Workflow\Identity\GiveAccountRoleWorkflow;
-use App\Workflow\Identity\IssuePasswordLinkWorkflow;
+use App\Workflow\Identity\GiveRoleWorkflow;
 use App\Workflow\Identity\ListStaffAccountsWorkflow;
 use App\Workflow\Identity\Model\IssuedPasswordLink;
 use App\Workflow\Identity\Model\RoleSummary;
 use App\Workflow\Identity\Model\StaffAccountList;
-use App\Workflow\Identity\TakeAccountRoleWorkflow;
+use App\Workflow\Identity\SendPasswordLinkWorkflow;
+use App\Workflow\Identity\TakeRoleWorkflow;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -55,9 +55,9 @@ final class StaffAccountsController extends AbstractController
         string $id,
         #[MapRequestPayload]
         GiveAccountRoleRequest $request,
-        GiveAccountRoleWorkflow $giveAccountRole,
+        GiveRoleWorkflow $giveRole,
     ): JsonResponse {
-        $role = RoleResponse::of($giveAccountRole($id, $request->roleId ?? ''));
+        $role = RoleResponse::of($giveRole($id, $request->roleId ?? ''));
 
         return $this->json(['role' => $role], status: Response::HTTP_CREATED);
     }
@@ -71,9 +71,9 @@ final class StaffAccountsController extends AbstractController
         string $roleId,
         #[CurrentUser]
         UserInterface $actor,
-        TakeAccountRoleWorkflow $takeAccountRole,
+        TakeRoleWorkflow $takeRole,
     ): Response {
-        $takeAccountRole($id, $roleId, $actor->getUserIdentifier());
+        $takeRole($id, $roleId, $actor->getUserIdentifier());
 
         return new Response(status: Response::HTTP_NO_CONTENT);
     }
@@ -91,10 +91,10 @@ final class StaffAccountsController extends AbstractController
         string $id,
         #[CurrentUser]
         UserInterface $actor,
-        IssuePasswordLinkWorkflow $issuePasswordLink,
+        SendPasswordLinkWorkflow $sendPasswordLink,
     ): JsonResponse {
         return $this->json(
-            PasswordLinkResponse::of($issuePasswordLink($id, $actor->getUserIdentifier())),
+            PasswordLinkResponse::of($sendPasswordLink($id, $actor->getUserIdentifier())),
             status: Response::HTTP_CREATED,
         );
     }

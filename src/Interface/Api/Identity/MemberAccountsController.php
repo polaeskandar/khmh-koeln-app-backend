@@ -6,7 +6,7 @@ namespace App\Interface\Api\Identity;
 
 use App\Interface\Api\Identity\Response\MemberAccountListResponse;
 use App\Workflow\Identity\ListMemberAccountsWorkflow;
-use App\Workflow\Identity\RemoveMemberLinkWorkflow;
+use App\Workflow\Identity\UnlinkMemberWorkflow;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -34,9 +34,9 @@ final class MemberAccountsController extends AbstractController
     #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
     #[OA\Response(response: 204, description: 'Done; no body.')]
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
-    public function unlink(string $id, RemoveMemberLinkWorkflow $removeMemberLink): Response
+    public function unlink(string $id, UnlinkMemberWorkflow $unlinkMember): Response
     {
-        $removeMemberLink($id);
+        $unlinkMember($id);
 
         return new Response(status: Response::HTTP_NO_CONTENT);
     }

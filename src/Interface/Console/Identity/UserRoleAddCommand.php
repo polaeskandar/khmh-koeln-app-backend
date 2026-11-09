@@ -7,7 +7,7 @@ namespace App\Interface\Console\Identity;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\Text;
-use App\Workflow\Identity\GiveRoleWorkflow;
+use App\Workflow\Identity\GiveRoleByEmailWorkflow;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -17,7 +17,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final readonly class UserRoleAddCommand
 {
     public function __construct(
-        private GiveRoleWorkflow $giveRole,
+        private GiveRoleByEmailWorkflow $giveRoleByEmail,
     ) {
     }
 
@@ -29,7 +29,7 @@ final readonly class UserRoleAddCommand
         string $role,
     ): int {
         try {
-            ($this->giveRole)($email, $role);
+            ($this->giveRoleByEmail)($email, $role);
         } catch (NotFound|RuleViolation $refused) {
             $io->error($refused->getMessage());
 
