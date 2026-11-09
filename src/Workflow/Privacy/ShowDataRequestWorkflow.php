@@ -15,6 +15,7 @@ use App\Context\Privacy\Application\Service\DataRequests;
 use App\Library\Problem\Exception\NotFound;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\Placements;
+use App\Workflow\Privacy\Model\CopyLinkStatus;
 use App\Workflow\Privacy\Model\DataRequestDetail;
 use App\Workflow\Privacy\Model\DataRequestRows;
 use App\Workflow\Privacy\Model\MembershipRow;
@@ -48,12 +49,14 @@ final readonly class ShowDataRequestWorkflow
 
         $person = $subject->personId === null ? null : $this->people->person($subject->personId->toRfc4122());
         $account = $subject->accountId === null ? null : $this->accounts->account($subject->accountId);
+        $copyLink = $this->requests->copyLinkOf($request);
 
         return new DataRequestDetail(
             $this->requests->today(),
             $rows[0] ?? throw NotFound::of('request'),
             RequestMember::of($person, $person === null ? [] : $this->membershipsOf($person)),
             RequestAccount::of($account),
+            CopyLinkStatus::of($copyLink, $this->accounts->account($copyLink?->recipientId())),
         );
     }
 

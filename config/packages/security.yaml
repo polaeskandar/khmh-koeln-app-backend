@@ -47,6 +47,7 @@ security:
         - { path: ^/api/openapi\.json$, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/tokens/current, roles: IS_AUTHENTICATED }
         - { path: ^/api/auth/, roles: PUBLIC_ACCESS }
+        - { path: ^/api/data-copies$, roles: PUBLIC_ACCESS }
         - { path: ^/api/test/, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED }
 

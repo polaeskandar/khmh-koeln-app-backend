@@ -285,7 +285,8 @@ ever see their own children.
 People's rights are handled in the app:
 
 - **Copy (Art. 15, 20):** everyone can download what is stored about them as JSON from their account page.
-  The office records requests that come by email, letter or in person and downloads the copy for the person.
+  The office records requests that come by email, letter or in person and gives the person a one-time download
+  link, emailed to their account when they have one.
   Other people's contact details are left out (Art. 15(4)).
 - **Erasure (Art. 17):** people ask from their account page, with their password: the account is locked at once
   and erased with its own member record after 14 days unless they cancel. Otherwise the office records the

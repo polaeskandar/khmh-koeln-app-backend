@@ -36,6 +36,10 @@ framework:
             policy: fixed_window
             limit: 10
             interval: '1 hour'
+        data_copy:
+            policy: fixed_window
+            limit: 10
+            interval: '1 hour'
 
 when@test:
     framework:
@@ -57,4 +61,6 @@ when@test:
             registration_email:
                 storage_service: app.test.rate_limits
             email_confirmation:
+                storage_service: app.test.rate_limits
+            data_copy:
                 storage_service: app.test.rate_limits
