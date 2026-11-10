@@ -7,7 +7,7 @@ namespace App\Workflow\People;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\People\Application\Service\MembershipEndings;
+use App\Context\People\Application\Service\MembershipWrites;
 use App\Context\People\Application\Service\PersonGroups;
 use App\Context\People\Domain\Entity\Membership;
 use App\Library\Problem\Model\Ids;
@@ -16,7 +16,7 @@ final readonly class EndMembershipWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private MembershipEndings $endings,
+        private MembershipWrites $memberships,
     ) {
     }
 
@@ -26,7 +26,7 @@ final readonly class EndMembershipWorkflow
 
         $id = Ids::toUuid($membershipId, notFound: 'membership');
 
-        $this->endings->endById($id, ensureAllowed: fn (Membership $membership) => $this->access->requireIn(
+        $this->memberships->endById($id, ensureAllowed: fn (Membership $membership) => $this->access->requireIn(
             Action::Delete,
             Resource::Members,
             PersonGroups::groupOf($membership),

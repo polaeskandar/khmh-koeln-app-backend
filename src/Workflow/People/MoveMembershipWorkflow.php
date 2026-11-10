@@ -8,7 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\PlacementChoices;
-use App\Context\People\Application\Service\MembershipMoves;
+use App\Context\People\Application\Service\MembershipWrites;
 use App\Context\People\Application\Service\PersonGroups;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\ValueObject\Placement;
@@ -21,7 +21,7 @@ final readonly class MoveMembershipWorkflow
     public function __construct(
         private AccessCheck $access,
         private PlacementChoices $placements,
-        private MembershipMoves $moves,
+        private MembershipWrites $memberships,
     ) {
     }
 
@@ -29,7 +29,7 @@ final readonly class MoveMembershipWorkflow
     {
         $this->access->require(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
 
-        return $this->moves->whileMovable(
+        return $this->memberships->whileMovable(
             Ids::toUuid($membershipId, notFound: 'membership'),
             fn (Membership $membership): AddedMembership => $this->moved($membership, $stageId),
         );
@@ -64,6 +64,6 @@ final readonly class MoveMembershipWorkflow
         $place = $chosen->stage?->name()->value ?? $chosen->service->name()->value;
         $target = new Placement($chosen->service->id(), $chosen->stage?->id());
 
-        return AddedMembership::of($this->moves->move($membership, $target, $place), $chosen);
+        return AddedMembership::of($this->memberships->move($membership, $target, $place), $chosen);
     }
 }

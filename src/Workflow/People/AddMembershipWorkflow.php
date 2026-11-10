@@ -11,12 +11,14 @@ use App\Context\Organization\Application\Service\PlacementChoices;
 use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
-use App\Context\People\Application\Service\Memberships;
+use App\Context\People\Application\Service\MembershipWrites;
 use App\Context\People\Application\Service\PersonGroups;
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\Query\PersonQueryInterface;
 use App\Context\People\Domain\ValueObject\Placement;
 use App\Context\People\Domain\ValueObject\RosterNames;
 use App\Library\Collections\Model\Collections;
+use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\StructureGroup;
 use App\Workflow\People\Model\AddedMembership;
@@ -28,7 +30,8 @@ final readonly class AddMembershipWorkflow
         private AccessCheck $access,
         private PlacementChoices $placements,
         private ServiceStages $stages,
-        private Memberships $memberships,
+        private MembershipWrites $memberships,
+        private PersonQueryInterface $people,
         private PersonGroups $groups,
     ) {
     }
@@ -37,7 +40,7 @@ final readonly class AddMembershipWorkflow
     {
         $scope = $this->access->scope(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
 
-        $person = $this->memberships->personOf(Ids::toUuid($personId, notFound: 'person'));
+        $person = $this->people->find(Ids::toUuid($personId, notFound: 'person')) ?? throw NotFound::of('person');
         $this->groups->requireVisible($person->id(), $scope);
 
         return $this->placements->whileServicesKept([$choice->serviceId], fn (): AddedMembership => $this->added(
