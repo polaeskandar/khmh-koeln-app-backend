@@ -9,7 +9,7 @@ use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\CoveredSchedules;
-use App\Context\Meetings\Application\Service\MeetingSessions;
+use App\Context\Meetings\Application\Service\SessionLookup;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Library\Problem\Model\Ids;
@@ -31,7 +31,7 @@ final readonly class ShowSessionWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private MeetingSessions $sessions,
+        private SessionLookup $sessions,
         private AccountLookup $accounts,
         private StructureLookup $structure,
         private Calendar $calendar,
@@ -67,7 +67,7 @@ final readonly class ShowSessionWorkflow
      */
     private function historyOf(Session $session): array
     {
-        $events = $this->sessions->historyOf($session);
+        $events = $this->sessions->listHistoryOf($session);
 
         return HistoryEntry::listOf(
             $events,

@@ -93,6 +93,6 @@ final readonly class MeetingSchedules
             ->map(static fn (Session $session): Uuid => $session->id())
             ->getValues();
 
-        return $dates->withPresent($this->attendance->presentBySession($opened));
+        return $dates->withPresent($this->attendance->listPresentBySession($opened));
     }
 }

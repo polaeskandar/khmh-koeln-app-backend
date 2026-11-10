@@ -50,15 +50,7 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
     }
 
     #[Override]
-    public function marksOf(Uuid $sessionId): ReadableCollection
-    {
-        return new ArrayCollection($this->entityManager->getRepository(Attendance::class)->findBy([
-            'session' => $sessionId,
-        ], ['recordedAt' => 'ASC', 'id' => 'ASC']));
-    }
-
-    #[Override]
-    public function removedMarksOf(Uuid $sessionId): ReadableCollection
+    public function listRemovedMarksOf(Uuid $sessionId): ReadableCollection
     {
         return $this->entityManager->getRepository(Attendance::class)->matching(Criteria::create()
             ->where(Criteria::expr()->eq('session', $sessionId))
@@ -67,7 +59,7 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
     }
 
     #[Override]
-    public function ofPerson(Uuid $personId): ReadableCollection
+    public function listMarksOfPerson(Uuid $personId): ReadableCollection
     {
         return new ArrayCollection($this->entityManager->getRepository(Attendance::class)->findBy([
             'personId' => $personId,
@@ -75,7 +67,7 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
     }
 
     #[Override]
-    public function currentMarksOf(Uuid $sessionId): ReadableCollection
+    public function listCurrentMarksOf(Uuid $sessionId): ReadableCollection
     {
         return $this->entityManager->getRepository(Attendance::class)->matching(Criteria::create()
             ->where(Criteria::expr()->eq('session', $sessionId))
@@ -87,7 +79,7 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
      * @param list<Uuid> $sessionIds
      */
     #[Override]
-    public function presentBySession(array $sessionIds): ReadableCollection
+    public function listPresentBySession(array $sessionIds): ReadableCollection
     {
         if ($sessionIds === []) {
             return new ArrayCollection();

@@ -45,7 +45,7 @@ final readonly class ServiceMeetings
 
         $ids = $completed->map(static fn (Session $session): Uuid => $session->id())->getValues();
 
-        return new MarkedSessions($completed, $schedules, $this->attendance->presentBySession($ids));
+        return new MarkedSessions($completed, $schedules, $this->attendance->listPresentBySession($ids));
     }
 
     /**

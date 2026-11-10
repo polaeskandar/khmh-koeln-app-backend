@@ -29,6 +29,6 @@ final readonly class StageHistory
         $sessions = $this->recent->latestCompleted($schedules, $limit);
         $ids = $sessions->map(static fn (Session $session): Uuid => $session->id())->getValues();
 
-        return new MarkedSessions($sessions, $schedules, $this->attendance->presentBySession($ids));
+        return new MarkedSessions($sessions, $schedules, $this->attendance->listPresentBySession($ids));
     }
 }

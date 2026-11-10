@@ -7,8 +7,8 @@ namespace App\Workflow\Meetings;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Meetings\Application\Service\AttendanceMarks;
-use App\Context\Meetings\Application\Service\MeetingSessions;
+use App\Context\Meetings\Application\Service\SessionLookup;
+use App\Context\Meetings\Domain\Query\AttendanceQueryInterface;
 use App\Context\People\Application\Service\Attendees;
 use App\Workflow\Meetings\Model\CountedSession;
 use App\Workflow\Meetings\Model\CountedSessions;
@@ -19,9 +19,9 @@ final readonly class ShowAttendanceCountsWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private MeetingSessions $sessions,
+        private SessionLookup $sessions,
         private Attendees $attendees,
-        private AttendanceMarks $marks,
+        private AttendanceQueryInterface $marks,
     ) {
     }
 
@@ -35,12 +35,12 @@ final readonly class ShowAttendanceCountsWorkflow
         $scope = $this->access->scope(Action::Read, Resource::Attendance);
 
         $ids = CountedSessions::idsOf($sessionIds);
-        $sessions = $this->sessions->byIds($ids, $scope);
+        $sessions = $this->sessions->listByIds($ids, $scope);
         $schedules = OverviewSessions::schedulesOf($sessions);
 
         $tallies = SessionTallies::of(
             $this->attendees->rostersOn(SessionTallies::rosterKeysOf($sessions, $schedules)),
-            $this->marks->presentBySession(SessionTallies::sessionIdsOf($sessions)),
+            $this->marks->listPresentBySession(SessionTallies::sessionIdsOf($sessions)),
             $sessions,
             $schedules,
         );

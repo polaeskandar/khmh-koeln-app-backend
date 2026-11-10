@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Workflow\Meetings\Model;
 
-use App\Context\Meetings\Application\Service\AttendanceMarks;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\Query\AttendanceQueryInterface;
 use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Context\People\Application\Service\Attendees;
 use App\Context\People\Domain\Entity\Person;
@@ -231,8 +231,8 @@ final class SessionTalliesTest extends KernelTestCase
         $rosters = self::getContainer()->get(Attendees::class);
         self::assertInstanceOf(Attendees::class, $rosters);
 
-        $marks = self::getContainer()->get(AttendanceMarks::class);
-        self::assertInstanceOf(AttendanceMarks::class, $marks);
+        $marks = self::getContainer()->get(AttendanceQueryInterface::class);
+        self::assertInstanceOf(AttendanceQueryInterface::class, $marks);
 
         $meetings = self::getContainer()->get(MeetingLookup::class);
         self::assertInstanceOf(MeetingLookup::class, $meetings);
@@ -241,7 +241,7 @@ final class SessionTalliesTest extends KernelTestCase
 
         return SessionTallies::of(
             $rosters->rostersOn(SessionTallies::rosterKeysOf($sessions, $schedules)),
-            $marks->presentBySession(SessionTallies::sessionIdsOf($sessions)),
+            $marks->listPresentBySession(SessionTallies::sessionIdsOf($sessions)),
             $sessions,
             $schedules,
         );

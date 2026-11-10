@@ -8,9 +8,9 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Meetings\Application\Service\AttendanceMarks;
+use App\Context\Meetings\Application\Service\AttendanceWrites;
 use App\Context\Meetings\Application\Service\CoveredSchedules;
-use App\Context\Meetings\Application\Service\MeetingSessions;
+use App\Context\Meetings\Application\Service\SessionLookup;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\ValueObject\RecordedMark;
 use App\Context\People\Application\Service\Attendees;
@@ -23,9 +23,9 @@ final readonly class MarkPresentWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private MeetingSessions $sessions,
+        private SessionLookup $sessions,
         private Attendees $attendees,
-        private AttendanceMarks $marks,
+        private AttendanceWrites $marks,
         private AccountLookup $accounts,
     ) {
     }
@@ -45,7 +45,7 @@ final readonly class MarkPresentWorkflow
             Uuid::fromString($accountId),
         );
 
-        $recorded = $this->attendees->whilePersonKept($person, fn (): RecordedMark => $this->sessions->whileMarkable(
+        $recorded = $this->attendees->whilePersonKept($person, fn (): RecordedMark => $this->marks->whileMarkable(
             $found->id(),
             $record,
         ));
