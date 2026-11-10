@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Context\Meetings\Infrastructure\Persistence\Repository;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
+use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\SessionPlan;
 use App\Library\Problem\Exception\NotFound;
@@ -25,7 +26,7 @@ final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInt
     private const string REPLAN_UPCOMING = <<<'SQL'
         UPDATE meetings.meeting_session
         SET title = ?, location = ?, start_time = ?, end_time = ?, roster_mode = ?
-        WHERE schedule_id = ? AND status = 'scheduled' AND occurrence_date >= ?
+        WHERE schedule_id = ? AND status = ? AND occurrence_date >= ?
         SQL;
 
     private const string LOCK_ROW = 'SELECT id FROM meetings.meeting_schedule WHERE id = ? FOR UPDATE';
@@ -83,6 +84,7 @@ final readonly class DoctrineScheduleRepository implements ScheduleRepositoryInt
             $plan->timeSlot->endTime?->toString(),
             $plan->rosterMode->value,
             $schedule->id()->toRfc4122(),
+            SessionStatus::Scheduled->value,
             $from->toString(),
         ]);
     }

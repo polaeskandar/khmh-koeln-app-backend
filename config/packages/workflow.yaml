@@ -25,3 +25,41 @@ framework:
                             done: privacy.nothingScheduled
                             withdrawn: privacy.nothingScheduled
                             declined: privacy.nothingScheduled
+        session_lifecycle:
+            type: state_machine
+            supports: App\Context\Meetings\Domain\Entity\Session
+            marking_store:
+                service: App\Context\Meetings\Infrastructure\Lifecycle\SessionMarkingStore
+            events_to_dispatch: []
+            initial_marking: scheduled
+            places: App\Context\Meetings\Domain\Enum\SessionStatus::*
+            transitions:
+                open:
+                    from: [scheduled, active]
+                    to: active
+                    metadata:
+                        refusals:
+                            completed: meetings.attendanceClosed
+                            canceled: meetings.sessionCanceled
+                close:
+                    from: [active, completed]
+                    to: completed
+                    metadata:
+                        refusals:
+                            scheduled: meetings.onlyActiveCanClose
+                            canceled: meetings.onlyActiveCanClose
+                reopen:
+                    from: [completed, active]
+                    to: active
+                    metadata:
+                        refusals:
+                            scheduled: meetings.onlyCompletedCanReopen
+                            canceled: meetings.onlyCompletedCanReopen
+                cancel:
+                    from: scheduled
+                    to: canceled
+                    metadata:
+                        refusals:
+                            active: meetings.onlyScheduledCanCancel
+                            completed: meetings.onlyScheduledCanCancel
+                            canceled: meetings.onlyScheduledCanCancel

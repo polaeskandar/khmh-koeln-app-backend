@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Context\Meetings\Application\Service;
 
 use App\Context\Meetings\Domain\Entity\Schedule;
+use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\StructureUsageRepositoryInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -36,7 +37,7 @@ final readonly class SchedulePauses
     {
         $ids = $schedules->map(static fn (Schedule $schedule): Uuid => $schedule->id())->getValues();
 
-        if (new ArrayCollection($this->usage->lockUnfinished($ids))->contains('active')) {
+        if (new ArrayCollection($this->usage->lockUnfinished($ids))->contains(SessionStatus::Active)) {
             return false;
         }
 
