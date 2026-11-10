@@ -33,7 +33,7 @@ final readonly class ListMemberServantsWorkflow
      */
     public function __invoke(string $viewerId): array
     {
-        $record = $this->records->ownRecord($this->member->require($viewerId));
+        $record = $this->records->ownRecord($this->member->require(Uuid::fromString($viewerId)));
         $serviceIds = MemberRoster::serviceIdsOf($record);
         $stageIds = MemberRoster::stageIdsOf($record);
         $covering = $this->assignments->covering($serviceIds, $stageIds);

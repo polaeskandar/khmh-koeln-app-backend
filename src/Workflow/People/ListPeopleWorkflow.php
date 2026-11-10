@@ -13,6 +13,7 @@ use App\Context\Organization\Domain\ValueObject\ChosenPlacement;
 use App\Context\People\Application\Service\PersonLists;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\StructureGroup;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\PageInfo;
@@ -35,7 +36,7 @@ final readonly class ListPeopleWorkflow
     {
         $scope = $this->access->scope(Action::Read, Resource::Members);
 
-        $roster = $this->scopes->of($query->serviceId, $query->stageId);
+        $roster = $this->scopes->of(Ids::toUuidOrNull($query->serviceId), Ids::toUuidOrNull($query->stageId));
         $this->requireShown($roster);
         $filter = $this->lists->filterOf($query->status, $roster?->service->id(), $roster?->stage?->id(), $query->text);
         $people = $this->lists->page($filter, $query->page, $scope);

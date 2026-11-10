@@ -14,6 +14,7 @@ use App\Context\Meetings\Domain\ValueObject\Roster;
 use App\Context\Organization\Application\Service\PlacementChoices;
 use App\Workflow\Meetings\Model\OneOffChoice;
 use App\Workflow\Organization\Model\StructureGroup;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class CreateOneOffSessionWorkflow
 {
@@ -56,6 +57,6 @@ final readonly class CreateOneOffSessionWorkflow
             endsAt: $oneOff->endsAt,
         );
 
-        return $this->oneOffs->create($draft, $accountId)->id()->toRfc4122();
+        return $this->oneOffs->create($draft, Uuid::fromString($accountId))->id()->toRfc4122();
     }
 }

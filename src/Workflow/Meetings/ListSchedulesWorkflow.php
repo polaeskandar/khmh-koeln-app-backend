@@ -12,6 +12,8 @@ use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\Attendees;
+use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Problem\Model\Ids;
 use App\Library\Time\Client\Calendar;
 use App\Library\Time\Model\LocalDate;
 use App\Workflow\Meetings\Model\RosterReferences;
@@ -19,6 +21,7 @@ use App\Workflow\Meetings\Model\RosterSizes;
 use App\Workflow\Meetings\Model\ScheduleList;
 use App\Workflow\Meetings\Model\ScheduleSummary;
 use Doctrine\Common\Collections\ReadableCollection;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class ListSchedulesWorkflow
 {
@@ -37,7 +40,15 @@ final readonly class ListSchedulesWorkflow
 
         $today = $this->calendar->today();
         $archived = ArchivedStructure::of($this->structure->archivedIds());
-        $outlooks = $this->outlooks->listed($serviceId, $stageId, $archived, $today, $scope);
+
+        $outlooks = $this->outlooks->listed(
+            self::idOf('serviceId', $serviceId),
+            self::idOf('stageId', $stageId),
+            $archived,
+            $today,
+            $scope,
+        );
+
         $schedules = RosterSizes::schedulesOf($outlooks);
 
         return new ScheduleList($today->toString(), ScheduleSummary::listOf(
@@ -45,6 +56,15 @@ final readonly class ListSchedulesWorkflow
             $this->rosterReferencesOf($schedules),
             $this->sizesOf($schedules, $today),
         ));
+    }
+
+    private static function idOf(string $field, ?string $value): ?Uuid
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return Ids::toUuidOrNull($value) ?? throw InvalidInput::field($field, 'validation.invalidType');
     }
 
     /**

@@ -28,7 +28,7 @@ final readonly class StageArchives
     /**
      * @param callable(Stage): bool $pause
      */
-    public function archive(string $id, callable $pause): Stage
+    public function archive(Uuid $id, callable $pause): Stage
     {
         return $this->whileStructureLocked($id, function (Stage $stage) use ($pause): Stage {
             ArchiveRule::ensureStageOpen($stage);
@@ -43,7 +43,7 @@ final readonly class StageArchives
         });
     }
 
-    public function restore(string $id): Stage
+    public function restore(Uuid $id): Stage
     {
         return $this->whileStructureLocked($id, function (Stage $stage): Stage {
             ArchiveRule::ensureStageArchived($stage);
@@ -56,9 +56,8 @@ final readonly class StageArchives
     /**
      * @param callable(Stage): Stage $work
      */
-    private function whileStructureLocked(string $id, callable $work): Stage
+    private function whileStructureLocked(Uuid $stageId, callable $work): Stage
     {
-        $stageId = Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('stage');
         $serviceId = $this->stages->serviceIdOf($stageId) ?? throw NotFound::of('stage');
 
         return $this->services->withStructureLock($serviceId, function (Service $service) use ($stageId, $work): Stage {

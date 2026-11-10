@@ -14,8 +14,6 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class ScheduledErasures
 {
-    private const string NO_VIEWER = '';
-
     public function __construct(
         private DataRequestRepositoryInterface $requests,
         private DataRequestLifecycle $lifecycle,
@@ -46,7 +44,7 @@ final readonly class ScheduledErasures
     public function whileDue(Uuid $requestId, callable $work): mixed
     {
         return $this->requests->withWriteLock($requestId, static fn (DataRequest $request): mixed => $request->isOpen()
-            ? $work(ErasableSubject::of($request, self::NO_VIEWER))
+            ? $work(ErasableSubject::of($request, viewerId: null))
             : null);
     }
 

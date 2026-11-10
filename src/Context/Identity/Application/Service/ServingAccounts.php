@@ -25,11 +25,9 @@ final readonly class ServingAccounts
     ) {
     }
 
-    public function found(string $id): User
+    public function found(Uuid $id): User
     {
-        $account = Uuid::isValid($id) ? $this->users->find(Uuid::fromString($id)) : null;
-
-        return $account ?? throw NotFound::of('user');
+        return $this->users->find($id) ?? throw NotFound::of('user');
     }
 
     /**

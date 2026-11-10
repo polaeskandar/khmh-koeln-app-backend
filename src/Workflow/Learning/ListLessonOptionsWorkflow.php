@@ -13,6 +13,7 @@ use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\PlannedDate;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\LessonOptions;
 use App\Workflow\Organization\Model\StructureGroup;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -33,10 +34,15 @@ final readonly class ListLessonOptionsWorkflow
     {
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.prepareStageOnly');
 
-        $stage = $this->structure->stage($stageId);
+        $stage = $this->structure->stage(Ids::toUuid($stageId, notFound: 'stage'));
         $group = StructureGroup::ofStage($stage);
         $this->access->requireIn(Action::Update, Resource::Lessons, $group, missing: 'stage');
-        $edited = $this->lessons->edited($stage->id(), $lessonId);
+
+        $edited = $this->lessons->edited(
+            $stage->id(),
+            $lessonId === null ? null : Ids::toUuid($lessonId, notFound: 'lesson'),
+        );
+
         $window = $this->lessons->windowFor($edited);
         $archived = ArchivedStructure::of($this->structure->archivedIds());
         $dates = $this->meetings->datesOfStage($stage->id(), $archived, $window->from, $window->to);

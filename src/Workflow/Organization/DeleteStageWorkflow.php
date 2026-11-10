@@ -13,6 +13,7 @@ use App\Context\Organization\Application\Service\StructureRemovals;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\ValueObject\StructureUse;
 use App\Context\People\Application\Service\Memberships;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class DeleteStageWorkflow
@@ -30,7 +31,7 @@ final readonly class DeleteStageWorkflow
     {
         $this->access->require(Action::Delete, Resource::Stages);
 
-        $this->removals->removeStage($id, release: $this->released(...));
+        $this->removals->removeStage(Ids::toUuid($id, notFound: 'stage'), release: $this->released(...));
     }
 
     private function released(Stage $stage): StructureUse

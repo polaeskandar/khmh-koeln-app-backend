@@ -9,10 +9,8 @@ use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\Actor;
 use App\Context\Meetings\Domain\ValueObject\ScheduleDate;
 use App\Context\Meetings\Domain\ValueObject\SessionReason;
-use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
-use App\Library\Time\Exception\InvalidLocalDate;
 use App\Library\Time\Model\LocalDate;
 use App\Platform\Doctrine\Contract\Transactions;
 use Symfony\Component\Uid\Uuid;
@@ -28,29 +26,27 @@ final readonly class OccurrenceCancellations
     ) {
     }
 
-    public function cancelable(string $scheduleId, string $date): ScheduleDate
+    public function cancelable(Uuid $scheduleId, LocalDate $date): ScheduleDate
     {
-        $day = self::dateOf($date);
-
-        return ScheduleDate::cancelable($this->schedules->find($scheduleId), $day, $this->calendar->today());
+        return ScheduleDate::cancelable($this->schedules->find($scheduleId), $date, $this->calendar->today());
     }
 
-    public function cancel(ScheduleDate $planned, string $accountId, ?string $reason): Session
+    public function cancel(ScheduleDate $planned, Uuid $accountId, ?string $reason): Session
     {
         $canceled = null;
         $note = SessionReason::of($reason)->value;
 
         $this->transactions->run(function () use ($planned, $accountId, $note, &$canceled): void {
             $session = $this->materialized($planned, $accountId);
-            $canceled = $this->lifecycle->cancel($session->id()->toRfc4122(), $accountId, $note);
+            $canceled = $this->lifecycle->cancel($session->id(), $accountId, $note);
         });
 
         return $canceled ?? throw NotFound::of('session');
     }
 
-    private function materialized(ScheduleDate $planned, string $accountId): Session
+    private function materialized(ScheduleDate $planned, Uuid $accountId): Session
     {
-        $actor = Actor::account(Uuid::fromString($accountId));
+        $actor = Actor::account($accountId);
         $date = $planned->date;
 
         $this->sessions->createMissing(
@@ -61,14 +57,5 @@ final readonly class OccurrenceCancellations
         );
 
         return $this->sessions->findOn($planned->schedule, $planned->date) ?? throw NotFound::of('session');
-    }
-
-    private static function dateOf(string $date): LocalDate
-    {
-        try {
-            return LocalDate::of($date);
-        } catch (InvalidLocalDate) {
-            throw InvalidInput::field('date', 'validation.invalidDate');
-        }
     }
 }

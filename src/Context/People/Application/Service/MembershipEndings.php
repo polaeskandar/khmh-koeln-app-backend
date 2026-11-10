@@ -7,7 +7,6 @@ namespace App\Context\People\Application\Service;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Enum\MembershipEnding;
 use App\Context\People\Domain\Repository\MembershipRepositoryInterface;
-use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
 use App\Library\Time\Model\LocalDate;
 use Symfony\Component\Uid\Uuid;
@@ -23,12 +22,14 @@ final readonly class MembershipEndings
     /**
      * @param callable(Membership): void $ensureAllowed
      */
-    public function endById(string $membershipId, callable $ensureAllowed): void
+    public function endById(Uuid $membershipId, callable $ensureAllowed): void
     {
         $today = $this->calendar->today();
-        $id = Uuid::isValid($membershipId) ? Uuid::fromString($membershipId) : throw NotFound::of('membership');
 
-        $this->memberships->withWriteLock($id, function (Membership $membership) use ($today, $ensureAllowed): void {
+        $this->memberships->withWriteLock($membershipId, function (Membership $membership) use (
+            $today,
+            $ensureAllowed,
+        ): void {
             $ensureAllowed($membership);
 
             if (self::end($membership, $today) === MembershipEnding::DeleteInstead) {

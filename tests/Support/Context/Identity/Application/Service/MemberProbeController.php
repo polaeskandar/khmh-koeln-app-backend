@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use Symfony\Component\Uid\Uuid;
 
 #[Route('/api/testing/member', methods: ['GET'])]
 final readonly class MemberProbeController
@@ -20,6 +21,8 @@ final readonly class MemberProbeController
 
     public function __invoke(#[CurrentUser] UserInterface $user): JsonResponse
     {
-        return new JsonResponse(['personId' => $this->member->require($user->getUserIdentifier())->toRfc4122()]);
+        return new JsonResponse([
+            'personId' => $this->member->require(Uuid::fromString($user->getUserIdentifier()))->toRfc4122(),
+        ]);
     }
 }

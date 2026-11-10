@@ -38,10 +38,9 @@ final readonly class HomeworkReports
         return new TaskReports($this->calendar->today(), $tasks, $reports->getValues());
     }
 
-    public function reading(string $id): HomeworkReading
+    public function reading(Uuid $id): HomeworkReading
     {
-        $task = Uuid::isValid($id) ? $this->homework->find(Uuid::fromString($id)) : null;
-        $found = $task ?? throw NotFound::of('homework');
+        $found = $this->homework->find($id) ?? throw NotFound::of('homework');
 
         return new HomeworkReading($found, $this->of([$found]));
     }

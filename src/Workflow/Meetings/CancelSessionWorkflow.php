@@ -11,7 +11,9 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Application\Service\SessionLifecycle;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Meetings\Model\SessionState;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class CancelSessionWorkflow
 {
@@ -26,10 +28,11 @@ final readonly class CancelSessionWorkflow
     public function __invoke(string $sessionId, string $accountId, ?string $reason): SessionState
     {
         $this->access->require(Action::Update, Resource::Sessions);
-        $group = CoveredSchedules::groupOfSession($this->sessions->find($sessionId));
+        $found = $this->sessions->find(Ids::toUuid($sessionId, notFound: 'session'));
+        $group = CoveredSchedules::groupOfSession($found);
         $this->access->requireIn(Action::Update, Resource::Sessions, $group, missing: 'session');
 
-        $session = $this->lifecycle->cancel($sessionId, $accountId, $reason);
+        $session = $this->lifecycle->cancel($found->id(), Uuid::fromString($accountId), $reason);
 
         return SessionState::of($session, $this->accounts->account($session->progress()->closed->by));
     }

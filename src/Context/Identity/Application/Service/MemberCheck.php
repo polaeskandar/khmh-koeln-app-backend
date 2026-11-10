@@ -15,9 +15,9 @@ final readonly class MemberCheck
     ) {
     }
 
-    public function require(string $accountId): Uuid
+    public function require(Uuid $accountId): Uuid
     {
-        $account = $this->users->find(Uuid::fromString($accountId));
+        $account = $this->users->find($accountId);
         $personId = $account?->status()->isActive() === true ? $account->member()->personId : null;
 
         return $personId ?? throw new AccessDeniedHttpException('forbidden');

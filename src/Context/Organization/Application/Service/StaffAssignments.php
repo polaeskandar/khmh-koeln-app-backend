@@ -46,10 +46,8 @@ final readonly class StaffAssignments
         return $this->assignments->covering($serviceIds, $stageIds);
     }
 
-    public function find(string $id): StaffAssignment
+    public function find(Uuid $id): StaffAssignment
     {
-        $assignment = Uuid::isValid($id) ? $this->assignments->find(Uuid::fromString($id)) : null;
-
-        return $assignment ?? throw NotFound::of('assignment');
+        return $this->assignments->find($id) ?? throw NotFound::of('assignment');
     }
 }

@@ -11,7 +11,6 @@ use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
 use App\Context\Organization\Domain\Validation\ArchiveRule;
 use App\Context\Organization\Domain\ValueObject\StageSequence;
 use App\Library\Collections\Model\Collections;
-use App\Library\Problem\Exception\NotFound;
 use App\Library\Strings\Model\Text;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
@@ -27,12 +26,11 @@ final readonly class StageOrder
     /**
      * @param list<string> $stageIds
      */
-    public function reorder(string $serviceId, array $stageIds): Service
+    public function reorder(Uuid $serviceId, array $stageIds): Service
     {
-        $id = Uuid::isValid($serviceId) ? Uuid::fromString($serviceId) : throw NotFound::of('service');
         $sequence = StageSequence::of($stageIds);
 
-        return $this->services->withStructureLock($id, fn (Service $service): Service => $this->reorderIn(
+        return $this->services->withStructureLock($serviceId, fn (Service $service): Service => $this->reorderIn(
             $service,
             $sequence,
         ));

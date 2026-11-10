@@ -11,6 +11,7 @@ use App\Context\Learning\Application\Service\PupilHomework;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\ValueObject\CompletionOutcome;
 use App\Context\People\Application\Service\MemberRecords;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\OwnHomework;
 use App\Workflow\Learning\Model\ReportResult;
 use Symfony\Component\Uid\Uuid;
@@ -28,16 +29,24 @@ final readonly class ReportOwnHomeworkWorkflow
 
     public function __invoke(string $viewerId, string $homeworkId): ReportResult
     {
-        $personId = $this->member->require($viewerId);
         $viewer = Uuid::fromString($viewerId);
+        $personId = $this->member->require($viewer);
 
-        $outcome = $this->records->whileKept($personId, fn (): CompletionOutcome => $this->completions->whileLocked(
-            $homeworkId,
-            fn (HomeworkAssignment $task): CompletionOutcome => $this->reported($personId, $viewer, $task),
-            OwnHomework::notAvailable(...),
+        $outcome = $this->records->whileKept($personId, fn (): CompletionOutcome => $this->reportedOnLockedTask(
+            $personId,
+            $viewer,
+            Ids::toUuidOrNull($homeworkId),
         ));
 
         return ReportResult::of($outcome, $this->accounts->account($outcome->completedBy), $viewer);
+    }
+
+    private function reportedOnLockedTask(Uuid $personId, Uuid $viewer, ?Uuid $homeworkId): CompletionOutcome
+    {
+        $report = fn (HomeworkAssignment $task): CompletionOutcome => $this->reported($personId, $viewer, $task);
+        $reported = $this->completions->whileLocked($homeworkId, $report);
+
+        return $reported ?? OwnHomework::notAvailable();
     }
 
     private function reported(Uuid $personId, Uuid $viewer, HomeworkAssignment $task): CompletionOutcome
@@ -45,6 +54,6 @@ final readonly class ReportOwnHomeworkWorkflow
         $record = $this->records->ownRecord($personId);
         $own = OwnHomework::of($record, $this->homework->of(OwnHomework::pupilsOf($record)));
 
-        return $this->completions->report($own->requireTask($task->id()->toRfc4122()), $personId, by: $viewer);
+        return $this->completions->report($own->requireTask($task->id()), $personId, by: $viewer);
     }
 }

@@ -12,7 +12,6 @@ use App\Context\Meetings\Domain\ValueObject\AgendaDates;
 use App\Context\Meetings\Domain\ValueObject\AgendaRange;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\RecurringSchedule;
-use App\Library\Problem\Exception\InvalidInput;
 use App\Platform\Access\Model\GroupScope;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -61,15 +60,15 @@ final readonly class MeetingSchedules
     /**
      * @return ReadableCollection<int, Schedule>
      */
-    public function listed(?string $serviceId, ?string $stageId): ReadableCollection
+    public function listed(?Uuid $serviceId, ?Uuid $stageId): ReadableCollection
     {
-        return $this->schedules->listed(self::idOf('serviceId', $serviceId), self::idOf('stageId', $stageId));
+        return $this->schedules->listed($serviceId, $stageId);
     }
 
     /**
      * @return ReadableCollection<int, Schedule>
      */
-    public function recurring(?string $serviceId, ?string $stageId): ReadableCollection
+    public function recurring(?Uuid $serviceId, ?Uuid $stageId): ReadableCollection
     {
         return $this->listed($serviceId, $stageId)->filter(RecurringSchedule::is(...));
     }
@@ -77,18 +76,14 @@ final readonly class MeetingSchedules
     /**
      * @return ReadableCollection<int, Schedule>
      */
-    public function chosen(?string $scheduleId, ?string $serviceId, ?string $stageId): ReadableCollection
+    public function chosen(?Uuid $scheduleId, ?Uuid $serviceId, ?Uuid $stageId): ReadableCollection
     {
-        $id = self::idOf('scheduleId', $scheduleId);
-
-        return $id === null ? $this->listed($serviceId, $stageId) : $this->schedules->findByIds([$id]);
+        return $scheduleId === null ? $this->listed($serviceId, $stageId) : $this->schedules->findByIds([$scheduleId]);
     }
 
-    public function find(string $id): Schedule
+    public function find(Uuid $id): Schedule
     {
-        $schedule = Uuid::isValid($id) ? $this->schedules->find(Uuid::fromString($id)) : null;
-
-        return RecurringSchedule::required($schedule);
+        return RecurringSchedule::required($this->schedules->find($id));
     }
 
     private function withPresent(AgendaDates $dates): AgendaDates
@@ -99,16 +94,5 @@ final readonly class MeetingSchedules
             ->getValues();
 
         return $dates->withPresent($this->attendance->presentBySession($opened));
-    }
-
-    private static function idOf(string $field, ?string $value): ?Uuid
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        return Uuid::isValid($value)
-            ? Uuid::fromString($value)
-            : throw InvalidInput::field($field, 'validation.invalidType');
     }
 }

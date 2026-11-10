@@ -14,6 +14,7 @@ use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\Attendees;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Meetings\Model\AttendanceBoard;
 use App\Workflow\Meetings\Model\AttendanceCounts;
 use App\Workflow\Meetings\Model\BoardLists;
@@ -42,7 +43,7 @@ final readonly class ShowAttendanceBoardWorkflow
     {
         $this->access->require(Action::Read, Resource::Attendance);
 
-        $session = $this->sessions->find($sessionId);
+        $session = $this->sessions->find(Ids::toUuid($sessionId, notFound: 'session'));
         $group = CoveredSchedules::groupOfSession($session);
         $this->access->requireIn(Action::Read, Resource::Attendance, $group, missing: 'session');
         $current = $this->marks->currentOf($session->id());

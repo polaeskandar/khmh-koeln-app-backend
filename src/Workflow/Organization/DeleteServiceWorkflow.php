@@ -13,6 +13,7 @@ use App\Context\Organization\Application\Service\StructureRemovals;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\ValueObject\StructureUse;
 use App\Context\People\Application\Service\Memberships;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\StructureGroup;
 use Symfony\Component\Uid\Uuid;
 
@@ -30,15 +31,16 @@ final readonly class DeleteServiceWorkflow
     public function __invoke(string $id): void
     {
         $this->access->require(Action::Delete, Resource::Services, refusal: 'services.adminOnlyDelete');
+        $serviceId = Ids::toUuid($id, notFound: 'service');
 
         $this->access->requireIn(
             Action::Delete,
             Resource::Services,
-            StructureGroup::ofServiceId($id),
+            StructureGroup::ofServiceId($serviceId),
             missing: 'service',
         );
 
-        $this->removals->removeService($id, release: $this->released(...));
+        $this->removals->removeService($serviceId, release: $this->released(...));
     }
 
     /**

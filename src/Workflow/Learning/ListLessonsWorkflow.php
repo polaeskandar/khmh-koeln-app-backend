@@ -13,6 +13,7 @@ use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Identity\Model\AccountReference;
 use App\Workflow\Identity\Model\AccountReferences;
 use App\Workflow\Learning\Model\LessonList;
@@ -42,7 +43,7 @@ final readonly class ListLessonsWorkflow
     {
         $this->access->require(Action::Read, Resource::Lessons);
 
-        $stage = $this->structure->stage($stageId);
+        $stage = $this->structure->stage(Ids::toUuid($stageId, notFound: 'stage'));
         $group = StructureGroup::ofStage($stage);
         $this->access->requireIn(Action::Read, Resource::Lessons, $group, missing: 'stage');
         $listing = $this->lessons->listed($stage->id(), $tab, $query);

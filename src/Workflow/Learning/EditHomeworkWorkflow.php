@@ -10,6 +10,7 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\HomeworkWrites;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\HomeworkChoice;
 use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Learning\Model\WrittenHomework;
@@ -30,12 +31,16 @@ final readonly class EditHomeworkWorkflow
 
         $edit = fn (HomeworkAssignment $task): HomeworkAssignment => $this->edited($task, $choice);
 
-        return WrittenHomework::of($this->homework->whileEditable($id, $version, $edit));
+        return WrittenHomework::of($this->homework->whileEditable(
+            Ids::toUuid($id, notFound: 'homework'),
+            $version,
+            $edit,
+        ));
     }
 
     private function edited(HomeworkAssignment $task, HomeworkChoice $choice): HomeworkAssignment
     {
-        $stage = $this->structure->stage($task->stageId()->toRfc4122());
+        $stage = $this->structure->stage($task->stageId());
 
         $this->access->requireIn(
             Action::Update,

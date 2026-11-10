@@ -9,10 +9,12 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\HomeworkWrites;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\HomeworkChoice;
 use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Learning\Model\WrittenHomework;
 use App\Workflow\Organization\Model\StructureGroup;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class CreateHomeworkWorkflow
 {
@@ -27,8 +29,8 @@ final readonly class CreateHomeworkWorkflow
     {
         $this->access->require(Action::Create, Resource::Homework, refusal: 'homework.assignStageOnly');
 
-        $lesson = $this->homework->lessonToAssign($lessonId);
-        $stage = $this->structure->stage($lesson->stageId()->toRfc4122());
+        $lesson = $this->homework->lessonToAssign(Ids::toUuid($lessonId, notFound: 'lesson'));
+        $stage = $this->structure->stage($lesson->stageId());
 
         $this->access->requireIn(
             Action::Create,
@@ -39,6 +41,6 @@ final readonly class CreateHomeworkWorkflow
 
         LessonStages::opened($stage);
 
-        return WrittenHomework::of($this->homework->create($lesson, $choice->draft(), $accountId));
+        return WrittenHomework::of($this->homework->create($lesson, $choice->draft(), Uuid::fromString($accountId)));
     }
 }

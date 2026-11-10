@@ -8,6 +8,8 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\People\Application\Service\ParentAccess;
+use App\Library\Problem\Model\Ids;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class RevokeParentAccessWorkflow
 {
@@ -21,6 +23,6 @@ final readonly class RevokeParentAccessWorkflow
     {
         $this->access->require(Action::Update, Resource::Users, refusal: 'guardians.adminOnlyRemove');
 
-        $this->parentAccess->revoke($id, $accountId);
+        $this->parentAccess->revoke(Ids::toUuid($id, notFound: 'guardian'), Uuid::fromString($accountId));
     }
 }

@@ -55,7 +55,7 @@ final readonly class AttendanceMarks
         return $this->attendance->ofPerson($personId);
     }
 
-    public function record(Session $session, Uuid $personId, string $accountId): RecordedMark
+    public function record(Session $session, Uuid $personId, Uuid $accountId): RecordedMark
     {
         $current = $this->attendance->currentMark($session->id(), $personId);
 
@@ -63,13 +63,13 @@ final readonly class AttendanceMarks
             return new RecordedMark($current, created: false);
         }
 
-        $mark = new Attendance($session, $personId, $this->calendar->now(), Uuid::fromString($accountId));
+        $mark = new Attendance($session, $personId, $this->calendar->now(), $accountId);
         $this->attendance->save($mark);
 
         return new RecordedMark($mark, created: true);
     }
 
-    public function remove(Uuid $sessionId, Uuid $personId, string $accountId, ?string $reason): void
+    public function remove(Uuid $sessionId, Uuid $personId, Uuid $accountId, ?string $reason): void
     {
         $current = $this->attendance->currentMark($sessionId, $personId);
 
@@ -77,7 +77,7 @@ final readonly class AttendanceMarks
             return;
         }
 
-        $current->remove(Removal::of($this->calendar->now(), Uuid::fromString($accountId), $reason));
+        $current->remove(Removal::of($this->calendar->now(), $accountId, $reason));
 
         $this->attendance->save($current);
     }

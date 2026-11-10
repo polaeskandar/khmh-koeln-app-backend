@@ -10,6 +10,7 @@ use App\Context\Learning\Application\Service\PupilHomework;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Context\People\Application\Service\MemberRecords;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\OwnHomework;
 use Symfony\Component\Uid\Uuid;
 
@@ -25,14 +26,17 @@ final readonly class UndoOwnReportWorkflow
 
     public function __invoke(string $viewerId, string $homeworkId): void
     {
-        $personId = $this->member->require($viewerId);
         $viewer = Uuid::fromString($viewerId);
+        $personId = $this->member->require($viewer);
 
-        $this->completions->whileLocked(
-            $homeworkId,
+        $undone = $this->completions->whileLocked(
+            Ids::toUuidOrNull($homeworkId),
             fn (HomeworkAssignment $task): VisibleTask => $this->undone($personId, $viewer, $task),
-            OwnHomework::notAvailable(...),
         );
+
+        if ($undone === null) {
+            OwnHomework::notAvailable();
+        }
     }
 
     private function undone(Uuid $personId, Uuid $viewer, HomeworkAssignment $task): VisibleTask
@@ -40,6 +44,6 @@ final readonly class UndoOwnReportWorkflow
         $record = $this->records->ownRecord($personId);
         $own = OwnHomework::of($record, $this->homework->of(OwnHomework::pupilsOf($record)));
 
-        return $this->completions->undo($own->requireTask($task->id()->toRfc4122()), $personId, by: $viewer);
+        return $this->completions->undo($own->requireTask($task->id()), $personId, by: $viewer);
     }
 }

@@ -8,6 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\RoleDefinitions;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Library\Problem\Model\Ids;
 
 final readonly class DeleteRoleWorkflow
 {
@@ -21,6 +22,6 @@ final readonly class DeleteRoleWorkflow
     {
         $this->access->require(Action::Delete, Resource::Roles, refusal: 'roles.adminOnly');
 
-        $this->definitions->remove($id);
+        $this->definitions->remove(Ids::toUuid($id, notFound: 'role'));
     }
 }

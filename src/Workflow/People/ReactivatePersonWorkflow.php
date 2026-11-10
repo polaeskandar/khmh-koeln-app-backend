@@ -10,6 +10,7 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\People\Application\Service\PersonGroups;
 use App\Context\People\Application\Service\PersonStatuses;
 use App\Context\People\Domain\Enum\PersonStatus;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\People\Model\PersonView;
 
 final readonly class ReactivatePersonWorkflow
@@ -24,8 +25,9 @@ final readonly class ReactivatePersonWorkflow
     public function __invoke(string $personId): PersonView
     {
         $scope = $this->access->scope(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
-        $this->groups->requireVisible($personId, $scope);
+        $id = Ids::toUuid($personId, notFound: 'person');
+        $this->groups->requireVisible($id, $scope);
 
-        return PersonView::of($this->statuses->change($personId, PersonStatus::Active));
+        return PersonView::of($this->statuses->change($id, PersonStatus::Active));
     }
 }

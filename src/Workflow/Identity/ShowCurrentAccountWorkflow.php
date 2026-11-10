@@ -22,6 +22,7 @@ use App\Workflow\People\Model\MemberRoster;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Order;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class ShowCurrentAccountWorkflow
 {
@@ -36,7 +37,7 @@ final readonly class ShowCurrentAccountWorkflow
 
     public function __invoke(string $userId): CurrentAccount
     {
-        $user = $this->accounts->find($userId);
+        $user = $this->accounts->find(Uuid::fromString($userId));
 
         return new CurrentAccount(
             account: AccountSummary::of($user),

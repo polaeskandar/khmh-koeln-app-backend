@@ -52,11 +52,9 @@ final readonly class StructureLookup
         return $this->stages->findByIds($ids);
     }
 
-    public function stage(string $id): Stage
+    public function stage(Uuid $id): Stage
     {
-        $stage = Uuid::isValid($id) ? $this->stages->find(Uuid::fromString($id)) : null;
-
-        return $stage ?? throw NotFound::of('stage');
+        return $this->stages->find($id) ?? throw NotFound::of('stage');
     }
 
     /**
@@ -66,10 +64,9 @@ final readonly class StructureLookup
      *
      * @return T
      */
-    public function whileStageKept(string $stageId, callable $work): mixed
+    public function whileStageKept(Uuid $stageId, callable $work): mixed
     {
-        $id = Uuid::isValid($stageId) ? Uuid::fromString($stageId) : throw NotFound::of('stage');
-        $serviceId = $this->stages->serviceIdOf($id) ?? throw NotFound::of('stage');
+        $serviceId = $this->stages->serviceIdOf($stageId) ?? throw NotFound::of('stage');
 
         return $this->services->withShareLock([$serviceId], $work);
     }

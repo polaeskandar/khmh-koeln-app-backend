@@ -8,6 +8,8 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountRoles;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Library\Problem\Model\Ids;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class TakeAccountRoleWorkflow
 {
@@ -21,6 +23,10 @@ final readonly class TakeAccountRoleWorkflow
     {
         $this->access->require(Action::Update, Resource::Roles, refusal: 'roles.adminOnly');
 
-        $this->roles->take($accountId, $roleId, $actorId);
+        $this->roles->take(
+            Ids::toUuid($accountId, notFound: 'user'),
+            Ids::toUuid($roleId, notFound: 'role'),
+            Uuid::fromString($actorId),
+        );
     }
 }

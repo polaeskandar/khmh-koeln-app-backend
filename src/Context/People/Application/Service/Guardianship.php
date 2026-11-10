@@ -37,7 +37,7 @@ final readonly class Guardianship
         );
     }
 
-    public function linkParent(Uuid $accountId, Person $child, string $approvedBy): void
+    public function linkParent(Uuid $accountId, Person $child, Uuid $approvedBy): void
     {
         $this->links->save(
             new GuardianRelationship(
@@ -45,7 +45,7 @@ final readonly class Guardianship
                 $child,
                 GuardianKind::Parent,
                 approvedAt: $this->calendar->now(),
-                approvedBy: Uuid::fromString($approvedBy),
+                approvedBy: $approvedBy,
             ),
         );
     }
@@ -70,8 +70,8 @@ final readonly class Guardianship
         return $this->links->approvedOf($accountId);
     }
 
-    public function isGuardianOf(string $accountId, Person $child): bool
+    public function isGuardianOf(Uuid $accountId, Person $child): bool
     {
-        return Uuid::isValid($accountId) && $this->links->approvedFor(Uuid::fromString($accountId), $child) !== null;
+        return $this->links->approvedFor($accountId, $child) !== null;
     }
 }

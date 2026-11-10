@@ -13,6 +13,7 @@ use App\Context\Meetings\Application\Service\ScheduleWrites;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\ArchiveGuard;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Meetings\Model\WrittenSchedule;
 
 final readonly class ActivateScheduleWorkflow
@@ -30,7 +31,7 @@ final readonly class ActivateScheduleWorkflow
     {
         $this->access->require(Action::Update, Resource::Sessions);
 
-        $schedule = $this->schedules->find($id);
+        $schedule = $this->schedules->find(Ids::toUuid($id, notFound: 'schedule'));
 
         $this->access->requireIn(
             Action::Update,

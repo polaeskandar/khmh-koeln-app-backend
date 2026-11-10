@@ -10,6 +10,7 @@ use App\Context\Identity\Application\Service\PermissionCatalog;
 use App\Context\Identity\Application\Service\RoleCatalog;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Identity\Model\RoleDetails;
 
 final readonly class ShowRoleWorkflow
@@ -25,7 +26,7 @@ final readonly class ShowRoleWorkflow
     {
         $this->access->require(Action::Read, Resource::Roles, refusal: 'roles.adminOnly');
 
-        $role = $this->catalog->find($id);
+        $role = $this->catalog->find(Ids::toUuid($id, notFound: 'role'));
 
         return RoleDetails::of(
             $role,

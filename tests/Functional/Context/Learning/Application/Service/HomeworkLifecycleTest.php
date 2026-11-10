@@ -24,6 +24,7 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\DriverException;
 use Override;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Uid\Uuid;
 
 #[SkipDatabaseRollback]
 final class HomeworkLifecycleTest extends KernelTestCase
@@ -90,11 +91,12 @@ final class HomeworkLifecycleTest extends KernelTestCase
         $sqlState = null;
 
         try {
-            $this->service(
-                HomeworkWrites::class,
-            )->locked($taskId, fn (HomeworkAssignment $task): HomeworkAssignment => $this->service(
-                HomeworkLifecycle::class,
-            )->unpublish($task));
+            $this->service(HomeworkWrites::class)->locked(
+                Uuid::fromString($taskId),
+                fn (HomeworkAssignment $task): HomeworkAssignment => $this->service(
+                    HomeworkLifecycle::class,
+                )->unpublish($task),
+            );
         } catch (DriverException $refused) {
             $sqlState = $refused->getSQLState();
         } finally {

@@ -13,6 +13,7 @@ use App\Tests\Support\Database;
 use Doctrine\DBAL\Exception\DriverException;
 use Override;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Uid\Uuid;
 
 final class AccountRolesTest extends KernelTestCase
 {
@@ -77,6 +78,6 @@ final class AccountRolesTest extends KernelTestCase
         $roles = self::getContainer()->get(AccountRoles::class);
         self::assertInstanceOf(AccountRoles::class, $roles);
 
-        $roles->take($account, self::ADMINISTRATOR_ROLE, $by);
+        $roles->take(Uuid::fromString($account), Uuid::fromString(self::ADMINISTRATOR_ROLE), Uuid::fromString($by));
     }
 }

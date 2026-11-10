@@ -14,6 +14,7 @@ use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\Attendees;
 use App\Context\People\Domain\ValueObject\RosterKey;
+use App\Library\Problem\Model\Ids;
 use App\Library\Time\Client\Calendar;
 use App\Library\Time\Model\LocalDate;
 use App\Workflow\Meetings\Model\AttendanceHistory;
@@ -41,7 +42,7 @@ final readonly class ShowStageAttendanceHistoryWorkflow
     {
         $this->access->require(Action::Read, Resource::Members);
 
-        $stage = $this->structure->stage($stageId);
+        $stage = $this->structure->stage(Ids::toUuid($stageId, notFound: 'stage'));
         $this->access->requireIn(Action::Read, Resource::Members, StructureGroup::ofStage($stage), missing: 'stage');
         $today = $this->calendar->today();
         $tallied = $this->talliedOf($this->history->latestCompleted($stage->id(), self::SESSIONS));

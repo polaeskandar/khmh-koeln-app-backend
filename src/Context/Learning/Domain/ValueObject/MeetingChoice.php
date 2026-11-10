@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Context\Learning\Domain\ValueObject;
 
 use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Problem\Model\Ids;
 use App\Library\Time\Exception\InvalidLocalDate;
 use App\Library\Time\Model\LocalDate;
 use Symfony\Component\Uid\Uuid;
@@ -54,6 +55,6 @@ final readonly class MeetingChoice
 
     private static function idOf(string $value): Uuid
     {
-        return Uuid::isValid($value) ? Uuid::fromString($value) : throw self::refusal('lessons.chooseMeeting');
+        return Ids::toUuidOrNull($value) ?? throw self::refusal('lessons.chooseMeeting');
     }
 }

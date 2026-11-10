@@ -154,7 +154,11 @@ function, so its global-helper check skips `Domain/Enum` (`phpinsights.php`).
 
 A parameter says what it carries. Interface requests hold the JSON's strings; the workflow turns them into ids
 (`Uuid`) and enums once, and the contexts take those: never a raw string for an id, status, language, kind, mode,
-recurrence or action. Free text stays `string`. A value object exists when a value has rules or a meaning its type
+recurrence or action. A route id goes through `Ids::toUuid($id, notFound: 'stage')`, so a malformed id is answered
+like an unknown one, with the same `notFound.stage`; where a malformed id gets the request's own field error or
+answer instead, the workflow takes `Ids::toUuidOrNull()` and the context decides. The workflow parses an id where
+the id was first used, after the permission check, so the order of the answers stays the same. Only `<Subject>Choices`
+take the request's strings, because resolving them is their job. Free text stays `string`. A value object exists when a value has rules or a meaning its type
 can't carry (`Email`, `LocalDate`, `Period`), not for every scalar. No boolean flags (Mago
 `no-boolean-flag-parameter`), no callback that stands in for one, and no sentinel values (`''` for "none"): a
 choice between behaviours is two methods or an enum.

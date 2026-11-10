@@ -8,6 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\MemberLinkRemovals;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Library\Problem\Model\Ids;
 
 final readonly class RemoveMemberLinkWorkflow
 {
@@ -21,6 +22,6 @@ final readonly class RemoveMemberLinkWorkflow
     {
         $this->access->require(Action::Update, Resource::Users, refusal: 'accounts.adminOnly');
 
-        $this->removals->removeFrom($accountId);
+        $this->removals->removeFrom(Ids::toUuid($accountId, notFound: 'user'));
     }
 }

@@ -11,6 +11,7 @@ use App\Context\Identity\Application\Service\RoleCatalog;
 use App\Context\Identity\Application\Service\RoleDefinitions;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Identity\Model\RoleDetails;
 
 final readonly class EditRoleWorkflow
@@ -30,8 +31,9 @@ final readonly class EditRoleWorkflow
     {
         $this->access->require(Action::Update, Resource::Roles, refusal: 'roles.adminOnly');
 
-        $this->definitions->change($id, $name, $scope, $permissions);
-        $role = $this->catalog->find($id);
+        $roleId = Ids::toUuid($id, notFound: 'role');
+        $this->definitions->change($roleId, $name, $scope, $permissions);
+        $role = $this->catalog->find($roleId);
 
         return RoleDetails::of(
             $role,

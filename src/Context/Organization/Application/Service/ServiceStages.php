@@ -51,29 +51,25 @@ final readonly class ServiceStages
         return $this->stages->ofService($service);
     }
 
-    public function find(string $id): Stage
+    public function find(Uuid $id): Stage
     {
-        $stage = Uuid::isValid($id) ? $this->stages->find(Uuid::fromString($id)) : null;
-
-        return $stage ?? throw NotFound::of('stage');
+        return $this->stages->find($id) ?? throw NotFound::of('stage');
     }
 
-    public function add(string $serviceId, string $name, ?string $description): Stage
+    public function add(Uuid $serviceId, string $name, ?string $description): Stage
     {
-        $id = Uuid::isValid($serviceId) ? Uuid::fromString($serviceId) : throw NotFound::of('service');
         StageChecks::check($name, $description);
 
-        return $this->services->withStructureLock($id, fn (Service $service): Stage => $this->addTo(
+        return $this->services->withStructureLock($serviceId, fn (Service $service): Stage => $this->addTo(
             $service,
             StageName::of($name),
             StageChecks::description($description),
         ));
     }
 
-    public function edit(string $stageId, string $name, ?string $description): Stage
+    public function edit(Uuid $stageId, string $name, ?string $description): Stage
     {
-        $serviceId = Uuid::isValid($stageId) ? $this->stages->serviceIdOf(Uuid::fromString($stageId)) : null;
-        $lockedId = $serviceId ?? throw NotFound::of('stage');
+        $lockedId = $this->stages->serviceIdOf($stageId) ?? throw NotFound::of('stage');
         StageChecks::check($name, $description);
 
         return $this->services->withStructureLock($lockedId, fn (Service $service): Stage => $this->editIn(
@@ -84,7 +80,7 @@ final readonly class ServiceStages
         ));
     }
 
-    private function editIn(Service $service, string $stageId, StageName $name, Description $description): Stage
+    private function editIn(Service $service, Uuid $stageId, StageName $name, Description $description): Stage
     {
         ArchiveRule::ensureStagesChangeable($service);
 

@@ -11,7 +11,6 @@ use App\Library\Time\Client\Calendar;
 use App\Platform\Access\Model\Group;
 use App\Platform\Access\Model\GroupScope;
 use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Component\Uid\NilUuid;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class PersonGroups
@@ -22,11 +21,9 @@ final readonly class PersonGroups
     ) {
     }
 
-    public function requireVisible(string $personId, GroupScope $scope): void
+    public function requireVisible(Uuid $personId, GroupScope $scope): void
     {
-        $id = Uuid::isValid($personId) ? Uuid::fromString($personId) : new NilUuid();
-
-        $open = new ArrayCollection($this->groups->openOn($id, $this->calendar->today()))->map(
+        $open = new ArrayCollection($this->groups->openOn($personId, $this->calendar->today()))->map(
             static fn (array $group): Group => new Group(
                 Uuid::fromString($group['serviceId']),
                 $group['stageId'] === null ? null : Uuid::fromString($group['stageId']),

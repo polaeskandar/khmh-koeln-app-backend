@@ -12,6 +12,8 @@ use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\People\Application\Service\Attendees;
+use App\Library\Problem\Model\Ids;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class RemoveMarkWorkflow
 {
@@ -26,15 +28,17 @@ final readonly class RemoveMarkWorkflow
     public function __invoke(string $sessionId, string $personId, string $accountId, ?string $reason): void
     {
         $this->access->require(Action::Delete, Resource::Attendance);
-        $group = CoveredSchedules::groupOfSession($this->sessions->find($sessionId));
+        $found = $this->sessions->find(Ids::toUuid($sessionId, notFound: 'session'));
+        $group = CoveredSchedules::groupOfSession($found);
         $this->access->requireIn(Action::Delete, Resource::Attendance, $group, missing: 'session');
 
-        $this->sessions->whileMarkable($sessionId, function (Session $session) use (
+        $this->sessions->whileMarkable($found->id(), function (Session $session) use (
             $personId,
             $accountId,
             $reason,
         ): Session {
-            $this->marks->remove($session->id(), $this->attendees->find($personId)->id(), $accountId, $reason);
+            $person = $this->attendees->find(Ids::toUuid($personId, notFound: 'person'));
+            $this->marks->remove($session->id(), $person->id(), Uuid::fromString($accountId), $reason);
 
             return $session;
         });

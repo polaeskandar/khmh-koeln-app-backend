@@ -15,6 +15,7 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\StageRosters;
 use App\Context\People\Domain\ValueObject\RosterBook;
 use App\Context\People\Domain\ValueObject\RosterKey;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\AudienceAccounts;
 use App\Workflow\Learning\Model\AudienceKeys;
 use App\Workflow\Learning\Model\AudienceSize;
@@ -43,7 +44,7 @@ final readonly class ListHomeworkWorkflow
     {
         $this->access->require(Action::Read, Resource::Homework);
 
-        $stage = $this->structure->stage($stageId);
+        $stage = $this->structure->stage(Ids::toUuid($stageId, notFound: 'stage'));
         $this->access->requireIn(Action::Read, Resource::Homework, StructureGroup::ofStage($stage), missing: 'stage');
         $homework = $this->homework->ofStage($stage->id());
         $reports = $homework->reports;

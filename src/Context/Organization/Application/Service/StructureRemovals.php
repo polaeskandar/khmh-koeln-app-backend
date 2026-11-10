@@ -26,10 +26,8 @@ final readonly class StructureRemovals
     /**
      * @param callable(Service, list<Uuid>): StructureUse $release
      */
-    public function removeService(string $id, callable $release): void
+    public function removeService(Uuid $serviceId, callable $release): void
     {
-        $serviceId = Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('service');
-
         $this->services->withStructureLock($serviceId, function (Service $service) use ($release): Service {
             $stages = $this->stages->ofService($service);
             $stageIds = $stages->map(static fn (Stage $stage): Uuid => $stage->id())->getValues();
@@ -48,9 +46,8 @@ final readonly class StructureRemovals
     /**
      * @param callable(Stage): StructureUse $release
      */
-    public function removeStage(string $id, callable $release): void
+    public function removeStage(Uuid $stageId, callable $release): void
     {
-        $stageId = Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('stage');
         $serviceId = $this->stages->serviceIdOf($stageId) ?? throw NotFound::of('stage');
 
         $this->services->withStructureLock($serviceId, function (Service $service) use ($stageId, $release): Stage {

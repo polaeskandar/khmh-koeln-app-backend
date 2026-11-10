@@ -58,11 +58,9 @@ final readonly class DataRequests
         return $this->requests->all();
     }
 
-    public function find(string $id): DataRequest
+    public function find(Uuid $id): DataRequest
     {
-        $request = Uuid::isValid($id) ? $this->requests->find(Uuid::fromString($id)) : null;
-
-        return $request ?? throw NotFound::of('request');
+        return $this->requests->find($id) ?? throw NotFound::of('request');
     }
 
     public function copyLinkOf(DataRequest $request): ?CopyLink

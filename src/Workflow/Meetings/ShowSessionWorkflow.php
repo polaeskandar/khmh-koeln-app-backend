@@ -12,6 +12,7 @@ use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Model\Ids;
 use App\Library\Time\Client\Calendar;
 use App\Workflow\Meetings\Model\ActorReferences;
 use App\Workflow\Meetings\Model\HistoryEntry;
@@ -41,7 +42,7 @@ final readonly class ShowSessionWorkflow
     {
         $this->access->require(Action::Read, Resource::Services);
 
-        $session = $this->sessions->find($id);
+        $session = $this->sessions->find(Ids::toUuid($id, notFound: 'session'));
         $group = CoveredSchedules::groupOfSession($session);
         $this->access->requireIn(Action::Read, Resource::Services, $group, missing: 'session');
         $history = new ArrayCollection($this->historyOf($session));

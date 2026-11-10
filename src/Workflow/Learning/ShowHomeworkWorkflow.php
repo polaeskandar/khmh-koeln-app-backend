@@ -16,6 +16,7 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\StageRosters;
 use App\Context\People\Domain\ValueObject\RosterBook;
 use App\Context\People\Domain\ValueObject\RosterKey;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\AudienceAccounts;
 use App\Workflow\Learning\Model\AudienceCounts;
 use App\Workflow\Learning\Model\AudienceKeys;
@@ -44,9 +45,9 @@ final readonly class ShowHomeworkWorkflow
     {
         $this->access->require(Action::Read, Resource::Homework);
 
-        $reading = $this->homework->reading($id);
+        $reading = $this->homework->reading(Ids::toUuid($id, notFound: 'homework'));
         $task = $reading->task;
-        $stage = $this->structure->stage($task->stageId()->toRfc4122());
+        $stage = $this->structure->stage($task->stageId());
 
         $this->access->requireIn(
             Action::Read,

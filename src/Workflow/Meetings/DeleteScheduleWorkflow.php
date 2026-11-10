@@ -11,6 +11,7 @@ use App\Context\Learning\Application\Service\LessonMeetings;
 use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSchedules;
 use App\Context\Meetings\Application\Service\ScheduleRemovals;
+use App\Library\Problem\Model\Ids;
 
 final readonly class DeleteScheduleWorkflow
 {
@@ -26,13 +27,15 @@ final readonly class DeleteScheduleWorkflow
     {
         $this->access->require(Action::Delete, Resource::Sessions);
 
+        $schedule = $this->schedules->find(Ids::toUuid($id, notFound: 'schedule'));
+
         $this->access->requireIn(
             Action::Delete,
             Resource::Sessions,
-            CoveredSchedules::groupOf($this->schedules->find($id)),
+            CoveredSchedules::groupOf($schedule),
             missing: 'schedule',
         );
 
-        $this->removals->remove($id, lessonsOf: $this->lessons->countForSchedule(...));
+        $this->removals->remove($schedule->id(), lessonsOf: $this->lessons->countForSchedule(...));
     }
 }

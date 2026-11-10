@@ -7,6 +7,7 @@ namespace App\Workflow\People;
 use App\Context\Identity\Application\Service\ParentAccounts;
 use App\Context\People\Application\Service\Children;
 use App\Context\People\Application\Service\Guardianship;
+use App\Library\Problem\Model\Ids;
 use App\Platform\Doctrine\Contract\Transactions;
 
 final readonly class LinkGuardianWorkflow
@@ -22,7 +23,7 @@ final readonly class LinkGuardianWorkflow
     public function __invoke(string $email, string $personId, string $relationship): void
     {
         $account = $this->accounts->activeByEmail($email);
-        $child = $this->children->active($personId);
+        $child = $this->children->active(Ids::toUuid($personId, notFound: 'person'));
 
         $this->transactions->run(function () use ($account, $child, $relationship): void {
             $this->guardianship->link($account->id(), $child, $relationship);

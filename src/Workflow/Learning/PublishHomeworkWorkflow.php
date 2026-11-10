@@ -11,6 +11,7 @@ use App\Context\Learning\Application\Service\HomeworkLifecycle;
 use App\Context\Learning\Application\Service\HomeworkWrites;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\ChangedHomework;
 use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Organization\Model\StructureGroup;
@@ -29,12 +30,15 @@ final readonly class PublishHomeworkWorkflow
     {
         $this->access->require(Action::Update, Resource::Homework, refusal: 'homework.changeStageOnly');
 
-        return ChangedHomework::of($this->homework->locked($id, $this->published(...)));
+        return ChangedHomework::of($this->homework->locked(
+            Ids::toUuid($id, notFound: 'homework'),
+            $this->published(...),
+        ));
     }
 
     private function published(HomeworkAssignment $task): HomeworkAssignment
     {
-        $stage = $this->structure->stage($task->stageId()->toRfc4122());
+        $stage = $this->structure->stage($task->stageId());
 
         $this->access->requireIn(
             Action::Update,

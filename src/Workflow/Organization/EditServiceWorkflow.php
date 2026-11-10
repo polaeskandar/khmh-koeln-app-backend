@@ -10,6 +10,7 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\People\Application\Service\Rosters;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\MemberCounts;
 use App\Workflow\Organization\Model\ServiceOverview;
 use App\Workflow\Organization\Model\StructureGroup;
@@ -28,10 +29,11 @@ final readonly class EditServiceWorkflow
     {
         $this->access->require(Action::Update, Resource::Services);
 
-        $group = StructureGroup::ofService($this->services->find($id));
+        $found = $this->services->find(Ids::toUuid($id, notFound: 'service'));
+        $group = StructureGroup::ofService($found);
         $this->access->requireIn(Action::Update, Resource::Services, $group, missing: 'service');
 
-        $service = $this->services->edit($id, $name, $description);
+        $service = $this->services->edit($found->id(), $name, $description);
 
         return ServiceOverview::of(
             $service,

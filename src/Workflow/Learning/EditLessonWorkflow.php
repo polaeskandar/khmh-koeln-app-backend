@@ -15,6 +15,7 @@ use App\Context\Learning\Domain\ValueObject\OfferedMeeting;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\LessonChoice;
 use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Learning\Model\OfferedMeetings;
@@ -37,9 +38,14 @@ final readonly class EditLessonWorkflow
     {
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.changeStageOnly');
 
-        $lesson = $this->lessons->editable($id, $version, ensureAllowed: $this->ensureAllowed(...));
-        $group = StructureGroup::ofStage($this->structure->stage($lesson->stageId()->toRfc4122()));
-        $stage = LessonStages::opened($this->structure->stage($lesson->stageId()->toRfc4122()));
+        $lesson = $this->lessons->editable(
+            Ids::toUuid($id, notFound: 'lesson'),
+            $version,
+            ensureAllowed: $this->ensureAllowed(...),
+        );
+
+        $group = StructureGroup::ofStage($this->structure->stage($lesson->stageId()));
+        $stage = LessonStages::opened($this->structure->stage($lesson->stageId()));
         $draft = $choice->draft();
 
         return WrittenLesson::of($this->meetings->whileScheduleKept(
@@ -56,7 +62,7 @@ final readonly class EditLessonWorkflow
 
     private function ensureAllowed(Lesson $lesson): void
     {
-        $stage = $this->structure->stage($lesson->stageId()->toRfc4122());
+        $stage = $this->structure->stage($lesson->stageId());
         $this->access->requireIn(Action::Update, Resource::Lessons, StructureGroup::ofStage($stage), missing: 'lesson');
     }
 

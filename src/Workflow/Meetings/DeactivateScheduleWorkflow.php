@@ -10,6 +10,7 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSchedules;
 use App\Context\Meetings\Application\Service\ScheduleWrites;
+use App\Library\Problem\Model\Ids;
 
 final readonly class DeactivateScheduleWorkflow
 {
@@ -24,7 +25,7 @@ final readonly class DeactivateScheduleWorkflow
     {
         $this->access->require(Action::Update, Resource::Sessions);
 
-        $schedule = $this->schedules->find($id);
+        $schedule = $this->schedules->find(Ids::toUuid($id, notFound: 'schedule'));
 
         $this->access->requireIn(
             Action::Update,

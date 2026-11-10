@@ -9,15 +9,12 @@ use App\Context\Learning\Domain\Repository\HomeworkReportRepositoryInterface;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\CompletionOutcome;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
-use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
 use LogicException;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class HomeworkCompletions
 {
-    private const string MISSING_TASK = 'notFound.homework';
-
     public function __construct(
         private HomeworkRepositoryInterface $homework,
         private HomeworkReportRepositoryInterface $reports,
@@ -29,25 +26,12 @@ final readonly class HomeworkCompletions
      * @template T of object
      *
      * @param callable(HomeworkAssignment): T $work
-     * @param callable(): never $whenMissing
      *
-     * @return T
+     * @return T|null null when the request names no task that exists
      */
-    public function whileLocked(string $homeworkId, callable $work, callable $whenMissing): object
+    public function whileLocked(?Uuid $homeworkId, callable $work): ?object
     {
-        if (!Uuid::isValid($homeworkId)) {
-            $whenMissing();
-        }
-
-        try {
-            return $this->homework->withLock(Uuid::fromString($homeworkId), $work);
-        } catch (NotFound $notFound) {
-            if ($notFound->getMessage() === self::MISSING_TASK) {
-                $whenMissing();
-            }
-
-            throw $notFound;
-        }
+        return $homeworkId === null ? null : $this->homework->withLock($homeworkId, $work);
     }
 
     public function report(VisibleTask $visible, Uuid $childId, Uuid $by): CompletionOutcome

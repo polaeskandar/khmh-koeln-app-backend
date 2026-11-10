@@ -17,6 +17,7 @@ use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\ValueObject\Placement;
 use App\Context\People\Domain\ValueObject\RosterNames;
 use App\Library\Collections\Model\Collections;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\StructureGroup;
 use App\Workflow\People\Model\AddedMembership;
 use App\Workflow\People\Model\PlacementChoice;
@@ -36,8 +37,8 @@ final readonly class AddMembershipWorkflow
     {
         $scope = $this->access->scope(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
 
-        $person = $this->memberships->personOf($personId);
-        $this->groups->requireVisible($personId, $scope);
+        $person = $this->memberships->personOf(Ids::toUuid($personId, notFound: 'person'));
+        $this->groups->requireVisible($person->id(), $scope);
 
         return $this->placements->whileKept([$choice->serviceId], fn (): AddedMembership => $this->added(
             $person,

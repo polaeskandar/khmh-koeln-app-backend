@@ -6,9 +6,8 @@ namespace App\Workflow\Privacy;
 
 use App\Context\Identity\Application\Service\AccountErasures;
 use App\Context\People\Application\Service\PersonErasures;
-use App\Library\Problem\Exception\NotFound;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Privacy\Model\ErasureCounts;
-use Symfony\Component\Uid\Uuid;
 
 final readonly class EraseAccountWorkflow
 {
@@ -20,7 +19,7 @@ final readonly class EraseAccountWorkflow
 
     public function __invoke(string $accountId): ErasureCounts
     {
-        $id = Uuid::isValid($accountId) ? Uuid::fromString($accountId) : throw NotFound::of('account');
+        $id = Ids::toUuid($accountId, notFound: 'account');
         $guardianLinks = $this->people->guardianLinksOf($id);
 
         return ErasureCounts::of($this->accounts->erase($id), $guardianLinks);

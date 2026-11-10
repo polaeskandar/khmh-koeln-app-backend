@@ -7,6 +7,7 @@ namespace App\Workflow\Organization;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Organization\Application\Service\AssignmentChanges;
 use App\Context\Organization\Application\Service\StaffAssignments;
+use App\Library\Problem\Model\Ids;
 use App\Platform\Access\Model\Group;
 
 final readonly class RemoveAssignmentWorkflow
@@ -22,7 +23,7 @@ final readonly class RemoveAssignmentWorkflow
     {
         $this->access->requireAssigning();
 
-        $assignment = $this->assignments->find($id);
+        $assignment = $this->assignments->find(Ids::toUuid($id, notFound: 'assignment'));
         $this->access->requireAssigningIn(new Group($assignment->service()->id(), $assignment->stage()?->id()));
 
         $this->changes->remove($assignment);

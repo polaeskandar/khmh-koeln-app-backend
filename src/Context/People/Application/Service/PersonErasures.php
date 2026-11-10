@@ -14,7 +14,6 @@ use App\Context\People\Domain\ValueObject\ErasedElsewhere;
 use App\Context\People\Domain\ValueObject\PersonErased;
 use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Collections\Model\Collections;
-use App\Library\Problem\Exception\NotFound;
 use App\Library\Strings\Model\WholeWord;
 use App\Platform\Privacy\Contract\PersonNotes;
 use App\Platform\Privacy\Contract\PersonReferences;
@@ -47,17 +46,16 @@ final readonly class PersonErasures
     /**
      * @param callable(ErasablePerson): ?string $groupOf
      */
-    public function erase(string $personId, callable $groupOf): PersonErased
+    public function erase(Uuid $personId, callable $groupOf): PersonErased
     {
-        $id = Uuid::isValid($personId) ? Uuid::fromString($personId) : throw NotFound::of('person');
-        $erasable = $this->erasable($id);
+        $erasable = $this->erasable($personId);
         $person = $this->erasedOf($erasable, $groupOf($erasable));
 
         $elsewhere = Collections::of($this->references)->map(
             static fn (PersonReferences $context): array => $context->forgetPerson($person),
         );
 
-        return new PersonErased($this->traces->forget($id), ErasedElsewhere::of($elsewhere->getValues()));
+        return new PersonErased($this->traces->forget($personId), ErasedElsewhere::of($elsewhere->getValues()));
     }
 
     /**

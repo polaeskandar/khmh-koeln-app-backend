@@ -16,6 +16,7 @@ use App\Context\Identity\Domain\ValueObject\RoleName;
 use App\Context\Identity\Domain\ValueObject\ScopeChoice;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\RuleViolation;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class RoleDefinitions
 {
@@ -49,7 +50,7 @@ final readonly class RoleDefinitions
     /**
      * @param list<array{action: string|null, resource: string|null}> $permissions
      */
-    public function change(string $id, string $name, ?string $scope, array $permissions): void
+    public function change(Uuid $id, string $name, ?string $scope, array $permissions): void
     {
         $this->administration->whileLocked(function () use ($id, $name, $scope, $permissions): void {
             $role = $this->catalog->find($id);
@@ -69,7 +70,7 @@ final readonly class RoleDefinitions
         });
     }
 
-    public function remove(string $id): void
+    public function remove(Uuid $id): void
     {
         $this->administration->whileLocked(function () use ($id): void {
             $role = $this->catalog->find($id);

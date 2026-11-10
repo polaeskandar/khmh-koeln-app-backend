@@ -44,7 +44,7 @@ final readonly class PasswordLinks
         return $this->issue($this->active($user), self::LIFETIME_HOURS, createdBy: null);
     }
 
-    public function sendToAccount(string $accountId, string $actorId): DateTimeImmutable
+    public function sendToAccount(Uuid $accountId, Uuid $actorId): DateTimeImmutable
     {
         $user = $this->account($accountId);
 
@@ -65,11 +65,9 @@ final readonly class PasswordLinks
         return $user->status()->isActive() ? $user : throw new RuleViolation('accounts.passwordLinkUnavailable');
     }
 
-    private function account(string $id): User
+    private function account(Uuid $id): User
     {
-        $user = Uuid::isValid($id) ? $this->users->find(Uuid::fromString($id)) : null;
-
-        return $user ?? throw NotFound::of('user');
+        return $this->users->find($id) ?? throw NotFound::of('user');
     }
 
     private function issue(User $user, int $hours, ?User $createdBy): DateTimeImmutable

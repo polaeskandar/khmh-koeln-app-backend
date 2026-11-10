@@ -11,6 +11,7 @@ use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
+use App\Library\Problem\Model\Ids;
 use App\Library\Strings\Model\Text;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -44,7 +45,7 @@ final readonly class AccountApprovals
             throw InvalidInput::field('roleIds', 'roles.chooseRole');
         }
 
-        $chosen = $this->roles->findByIds(Collections::mapPresent($ids, self::uuidOf(...))->getValues());
+        $chosen = $this->roles->findByIds(Collections::mapPresent($ids, Ids::toUuidOrNull(...))->getValues());
 
         return $chosen->count() === $ids->count() ? $chosen : throw InvalidInput::field('roleIds', 'roles.unknown');
     }
@@ -67,7 +68,7 @@ final readonly class AccountApprovals
         return new ArrayCollection($roles->getValues());
     }
 
-    public function ensurePending(string $id): void
+    public function ensurePending(Uuid $id): void
     {
         $this->requests->ensurePending($id);
     }
@@ -76,7 +77,7 @@ final readonly class AccountApprovals
      * @param ReadableCollection<int, Role> $roles
      * @param callable(User): void $alongside
      */
-    public function approve(string $id, string $actorId, ReadableCollection $roles, callable $alongside): User
+    public function approve(Uuid $id, Uuid $actorId, ReadableCollection $roles, callable $alongside): User
     {
         $actor = $this->account($actorId);
 
@@ -102,13 +103,8 @@ final readonly class AccountApprovals
         $this->notices->send($approved);
     }
 
-    public function account(string $id): User
+    public function account(Uuid $id): User
     {
-        return $this->users->find(Uuid::fromString($id)) ?? throw NotFound::of('user');
-    }
-
-    private static function uuidOf(string $id): ?Uuid
-    {
-        return Uuid::isValid($id) ? Uuid::fromString($id) : null;
+        return $this->users->find($id) ?? throw NotFound::of('user');
     }
 }

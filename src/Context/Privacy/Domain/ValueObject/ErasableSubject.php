@@ -15,11 +15,11 @@ final readonly class ErasableSubject
     private function __construct(
         public ?Uuid $personId,
         public ?Uuid $accountId,
-        private string $viewerId,
+        private ?Uuid $viewerId,
     ) {
     }
 
-    public static function of(DataRequest $request, string $viewerId): self
+    public static function of(DataRequest $request, ?Uuid $viewerId): self
     {
         if ($request->status() !== RequestStatus::Open) {
             throw new RuleViolation('privacy.notOpen');
@@ -42,7 +42,7 @@ final readonly class ErasableSubject
     {
         $joined = new self($this->personId ?? $record, $this->accountId ?? $account, $this->viewerId);
 
-        return $joined->accountId?->toRfc4122() === $this->viewerId
+        return $this->viewerId !== null && $joined->accountId?->equals($this->viewerId) === true
             ? throw new RuleViolation('privacy.ownAccount')
             : $joined;
     }

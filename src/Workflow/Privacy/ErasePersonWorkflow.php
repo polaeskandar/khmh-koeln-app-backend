@@ -7,6 +7,7 @@ namespace App\Workflow\Privacy;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\PersonErasures;
 use App\Context\People\Domain\ValueObject\ErasablePerson;
+use App\Library\Problem\Model\Ids;
 use App\Platform\Doctrine\Contract\Transactions;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\Placements;
@@ -25,7 +26,7 @@ final readonly class ErasePersonWorkflow
     public function __invoke(string $personId): PersonErasureCounts
     {
         return $this->transactions->run(fn (): PersonErasureCounts => PersonErasureCounts::of($this->people->erase(
-            $personId,
+            Ids::toUuid($personId, notFound: 'person'),
             $this->groupOf(...),
         )));
     }

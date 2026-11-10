@@ -12,6 +12,7 @@ use App\Context\Learning\Application\Service\PupilHomework;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\ParentChildren;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\ChildHomeworkDetail;
 use App\Workflow\Learning\Model\HomeworkLessonView;
 use App\Workflow\Learning\Model\HomeworkTextView;
@@ -37,8 +38,9 @@ final readonly class ShowChildHomeworkWorkflow
 
         $viewer = Uuid::fromString($viewerId);
         $visible = $this->visibleTo($viewer);
-        $child = $visible->requireChild($childId);
-        $shown = $visible->requireTask($childId, $homeworkId);
+        $id = Ids::toUuid($childId, notFound: 'person');
+        $child = $visible->requireChild($id);
+        $shown = $visible->requireTask($id, Ids::toUuidOrNull($homeworkId));
 
         return new ChildHomeworkDetail(
             today: $visible->today->toString(),

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Workflow\Learning\Model;
 
 use App\Context\Learning\Domain\ValueObject\ResponsibleChoice;
+use App\Library\Problem\Model\Ids;
 use Doctrine\Common\Collections\ReadableCollection;
-use Symfony\Component\Uid\Uuid;
 
 final readonly class ResponsibleChoices
 {
@@ -15,7 +15,7 @@ final readonly class ResponsibleChoices
      */
     public static function of(?string $sent, ReadableCollection $preparerIds): ResponsibleChoice
     {
-        $responsible = $sent !== null && Uuid::isValid($sent) ? Uuid::fromString($sent) : null;
+        $responsible = Ids::toUuidOrNull($sent);
 
         return new ResponsibleChoice(
             $responsible,
