@@ -56,6 +56,44 @@ final class TextTest extends TestCase
         self::assertFalse(Text::of("\xC3\x28")->isUtf8());
     }
 
+    public function testIsUtf8AcceptsEveryScalarValueAndNothingElse(): void
+    {
+        self::assertTrue(Text::of('')->isUtf8());
+        self::assertTrue(Text::of("\u{1F600}\u{FFFF}\u{10FFFF}\u{FEFF}\u{200C}")->isUtf8());
+        self::assertFalse(Text::of("\xED\xA0\x80")->isUtf8());
+        self::assertFalse(Text::of("\xC0\x80")->isUtf8());
+        self::assertFalse(Text::of("\xF4\x90\x80\x80")->isUtf8());
+        self::assertFalse(Text::of("\xE2\x82")->isUtf8());
+        self::assertFalse(Text::of("Chor \xFF")->isUtf8());
+    }
+
+    public function testLowerFollowsUnicodeCaseMappingWithoutComposing(): void
+    {
+        self::assertSame('straße', Text::of('STRAẞE')->lower()->toString());
+        self::assertSame("i\u{0307}", Text::of('İ')->lower()->toString());
+        self::assertSame("u\u{0308}", Text::of("U\u{0308}")->lower()->toString());
+        self::assertSame('مدارس الأحد', Text::of('مدارس الأحد')->lower()->toString());
+    }
+
+    public function testMatchesAnswersNoWhenAUnicodePatternMeetsBrokenBytes(): void
+    {
+        self::assertTrue(Text::of('mina@example.org')->matches('/^[^\s@]+@[^\s@]+$/u'));
+        self::assertFalse(Text::of("mina\xFF@example.org")->matches('/^[^\s@]+@[^\s@]+$/u'));
+    }
+
+    public function testReplaceMatchesWorksOnBytesUnlessThePatternIsUnicode(): void
+    {
+        self::assertSame("Chor \xFF", Text::of("Chor  \xFF")->replaceMatches('/ +/', ' ')->toString());
+        self::assertSame('مدارس_الأحد', Text::of("مدارس\u{00A0}الأحد")->replaceMatches('/\s/u', '_')->toString());
+        self::assertSame("مدارس\u{00A0}الأحد", Text::of("مدارس\u{00A0}الأحد")->replaceMatches('/\s/', '_')->toString());
+    }
+
+    public function testAnEmptyPrefixStartsEveryText(): void
+    {
+        self::assertTrue(Text::of('/api')->startsWith(''));
+        self::assertTrue(Text::of('')->startsWith(''));
+    }
+
     public function testIsDigitsAcceptsOnlyARunOfDigits(): void
     {
         self::assertTrue(Text::of('120')->isDigits());
