@@ -16,7 +16,6 @@ final class EnvironmentVariablesAreDocumentedTest extends TestCase
     private const array PATTERNS = [
         "/Autowire\\(env: '(?:[^':]+:)*([A-Z][A-Z0-9_]*)'/",
         '/%env\((?:[^:)]+:)*([A-Z][A-Z0-9_]*)\)%/',
-        '/\{\$([A-Z][A-Z0-9_]*)\}/',
     ];
 
     public function testEveryVariableTheCodeReadsIsInTheConfigurationTable(): void
@@ -64,10 +63,6 @@ final class EnvironmentVariablesAreDocumentedTest extends TestCase
      */
     private static function files(): iterable
     {
-        yield 'docker/frankenphp/Caddyfile' => (string) file_get_contents(
-            self::root() . '/docker/frankenphp/Caddyfile',
-        );
-
         foreach (['config', 'src'] as $folder) {
             $entries = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::root() . '/' . $folder));
 

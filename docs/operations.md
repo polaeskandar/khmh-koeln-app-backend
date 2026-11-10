@@ -1,107 +1,59 @@
 # Operations
 
-What production needs, so an EU host can be chosen on Tue 3 Nov (#5). Provisioning follows in #74, data
-protection procedures in #112.
+What the application needs to run in production, its configuration and the commands operators run. How and where
+it is deployed is not part of this repository.
 
-To start, everything except the database runs on **one server**, next to **one managed PostgreSQL**, both in
-the EU and on a private network. More servers come only when load or availability require them.
-
-## Topology
-
-```mermaid
-flowchart LR
-    browser["Browser, iOS and Android apps"] -->|"HTTPS only"| proxy
-    subgraph server["Server (Docker Compose)"]
-        proxy["Proxy: FrankenPHP<br/>app.khmk-koeln.com, TLS, HSTS<br/>serves the static web bundle"]
-        proxy -->|"/api/*"| api["API container<br/>Symfony"]
-        worker["Worker container<br/>messenger:consume"]
-        backup["Daily backup<br/>pg_dump, encrypted"] --> volume[("Backup volume")]
-    end
-    api --> db[("Managed PostgreSQL 18<br/>one schema per context")]
-    worker --> db
-    backup --> db
-```
-
-- **One origin (D2):** `https://app.khmk-koeln.com` serves the static app at `/` and the API at `/api`, both
-  from the proxy on the server. The session cookie is `__Host-` prefixed and first-party, so production needs
-  no CORS. HTTP redirects to HTTPS.
-- **Containers:** the API and the worker run the same image (#27); the worker runs with the image's HTTP health
-  check off (`healthcheck: disable: true`). One-off commands (`app:migrations:migrate`,
-  `app:user:password-link`) run in a container from that image. Docker Compose restarts them after a reboot.
-- **Database:** managed by the provider, reachable only from the server over a private network.
-- **Backups:** the provider's automated database backups are the first copy. Our daily dump on the server is
-  the second, in a different place from the database. It moves to EU object storage once a bucket is set up
-  (see [Backups](#backups)).
-
-## Requirements
+## Runtime
 
 **Must** blocks the launch. **Should** is wanted, with a workaround if missing.
 
-### Server
+| Requirement | Level | Needed by |
+| --- | --- | --- |
+| PHP 8.5 with `pdo_pgsql`, `intl` and `opcache`, served by FrankenPHP (as `compose.yaml` does) or any PHP server with `public/` as the document root | Must | `composer.json` |
+| Production code only: `APP_ENV=prod`, `APP_DEBUG=0`, Composer without dev packages, `php.ini-production`; PHP hides its version and errors | Must | A debug page would show code and data |
+| Everything, data and backups included, in the EU, under a signed GDPR Art. 28 data processing agreement | Must | Special-category data (Art. 9), see [Data protection](data-protection.md#processors-and-data-locations) |
+| One origin (D2): `https://app.khmk-koeln.com` serves the static web app at `/` and the API at `/api`, over HTTPS only (HTTP redirects to HTTPS, HSTS) | Must | The `__Host-` session cookie (`Secure`, first-party), so production needs no CORS |
+| Exactly one API instance, reachable only through the reverse proxy | Must | Sign-in limits count per instance (§ Configuration); `TRUSTED_PROXIES` |
+| Migrations run as a one-off command before new code serves requests, never on start (§ Migrations) | Must | `app:migrations:migrate` |
+| The Messenger worker, `php bin/console messenger:consume async`, with the API's code and environment, restarted when it stops | Should | No message is routed to `async` yet; the first one makes it a Must |
+| The scheduled commands (§ Scheduled commands), each with an alert on a non-zero exit | Must | Sessions, purges and erasures |
+| Secrets passed as environment variables from a secret store, never in the repository or a build | Must | `APP_SECRET`, `DATABASE_URL`, `MAILER_DSN` (#41) |
+| Logs kept 14 days (to be confirmed by the data protection adviser) | Must | D6, #112 |
+| An uptime check on `GET /api/health/ready` from outside, with alerts; `GET /api/health` never touches the database | Must | [API contract](api.md#health) |
+
+### Database
 
 | Requirement | Level | Needed by |
 | --- | --- | --- |
-| EU region; provider bound by a signed GDPR Art. 28 data processing agreement | Must | Special-category data (Art. 9), see [Data protection](architecture.md#data-protection-dsgvo) |
-| Data and backups stay in the EU region. A provider headquartered outside the EU (for example in the US) needs a DPA with a valid transfer basis (EU-US Data Privacy Framework, standard contractual clauses) and the data protection adviser's written approval, because its home country's authorities may demand access | Must | Art. 9 data of children and parents |
-| One VM with Docker Compose, a firewall that opens only 80 and 443, SSH by key only | Must | The whole stack runs on it |
-| Exactly one API container, reachable only through the proxy | Must | Sign-in throttling counts per instance (#19); `trusted_proxies` (#41) |
-| TLS certificates renewed automatically by the proxy (FrankenPHP/Caddy, Let's Encrypt), HSTS | Must | `__Host-` session cookie (`Secure`), one origin |
-| Encrypted disks for the server and the backup volume | Must | DSGVO Art. 32 |
-| Security updates of the OS applied automatically, reboots scheduled | Must | The server faces the internet |
-| Deploy by image tag, with rollback to the previous tag | Should | Release and rollback procedure (#43) |
-| Snapshots of the server | Should | Fast rebuild after a failure |
-
-### Web bundle
-
-| Requirement | Level | Needed by |
-| --- | --- | --- |
-| Per-path response headers and cache rules (immutable assets, no-cache HTML) | Must | frontend#20 |
-| Trailing-slash redirects and a real 404 page, no SPA fallback | Must | Static export routing, frontend#20 |
-| `.txt` served as `text/plain` | Must | Next.js RSC payloads |
-
-The exact rules are in frontend#20; the proxy on the server applies them.
-
-### Managed PostgreSQL
-
-| Requirement | Level | Needed by |
-| --- | --- | --- |
-| PostgreSQL 18; 16 or 17 only if CI (#12) and the backup image (#42) use the same major | Must | `compose.yaml`, migrations tested on 18 |
-| Same provider or region as the server, connected over a private network | Must | No database port on the internet |
+| PostgreSQL 18, the version CI and `compose.yaml` run the migrations and tests on | Must | Migrations tested on 18 |
+| Reachable only from the app over a private network, no database port on the internet | Must | DSGVO Art. 32 |
 | Encryption at rest | Must | DSGVO Art. 32 |
 | Encoding UTF8 with ICU collations (`de-x-icu`) | Must | German name order in member lists |
 | The application owns its database without being superuser and may create schemas | Must | `app:migrations:migrate` runs `CREATE SCHEMA` per context |
 | No extensions required | Must | Keeps every managed offer eligible |
-| Session-mode connections (no transaction pooler between server and database) | Must | `LOCK_DSN` advisory lock of the hourly generator (#53) and PHP sessions in PostgreSQL (#14) |
-| At least two connections per PHP worker, plus the worker, the hourly job and the backup | Must | Doctrine plus the session handler per request |
+| Session-mode connections (no transaction pooler between the app and the database) | Must | `LOCK_DSN` advisory lock of the hourly generator (#53) and PHP sessions in PostgreSQL (#14) |
+| At least two connections per PHP worker, plus the Messenger worker and the scheduled commands | Must | Doctrine plus the session handler per request |
 | TLS `verify-full` for Doctrine, the session handler and `LOCK_DSN`, unless the private network is the only route | Must | Data in transit, DSGVO Art. 32 |
 | Server logs kept ≤ 14 days with `log_error_verbosity = terse` | Must | Unique violations would log emails (D6) |
-| Automated daily backups with point-in-time recovery, kept 30 days | Must | First backup copy |
+| Daily encrypted backups in the EU, kept 30 days and restored only at the host, never on a laptop; after a restore the erasure ledger is replayed before the app reopens | Must | [Data protection](data-protection.md#erasure-ledger) |
 
-### Jobs
+## Scheduled commands
 
-| Requirement | Level | Needed by |
+| Command | When | Needed by |
 | --- | --- | --- |
-| One-off commands from the image (migrations before each release) | Must | `app:migrations:migrate` (#43) |
-| The session generator every hour at minute 5 from the host's scheduler (cron, a systemd timer or a Kubernetes CronJob), with an alert on a non-zero exit | Must | `app:sessions:generate` (#53) |
-| A daily backup at 02:15 Europe/Berlin, with an alert on failure | Must | #42 |
-| The unconfirmed-registration purge daily (e.g. `30 3 * * *`: `php bin/console app:user:purge-unconfirmed --no-interaction`); it prints only a count | Must | #84 |
-| The scheduled erasures daily (e.g. `45 3 * * *`: `php bin/console app:privacy:erase-due --no-interaction`), with an alert on a non-zero exit; see [Scheduled erasures](#scheduled-erasures) | Must | #315 |
-| Secrets in the host's secret store, passed to the containers as environment variables, never in the image (the image never reads a `.env.local`) | Must | `APP_SECRET`, `DATABASE_URL`, `MAILER_DSN` (#41) |
-| Logs kept 14 days (to be confirmed by the data protection adviser by Tue 3 Nov) | Must | D6, #112 |
-| Uptime check on `GET /api/health/ready` from outside the server, with alerts | Must | Launch watch (#117) |
+| `php bin/console app:sessions:generate --no-interaction` | Every hour at minute 5, and once after each release; see [Session generator](#session-generator) | #53 |
+| `php bin/console app:user:purge-unconfirmed --no-interaction` | Daily (e.g. `30 3 * * *`); it prints only a count | #84 |
+| `php bin/console app:privacy:erase-due --no-interaction` | Daily (e.g. `45 3 * * *`); see [Scheduled erasures](#scheduled-erasures) | #315 |
 
 ### Session generator
 
 `bin/console app:sessions:generate` creates today's and tomorrow's sessions of the active schedules (church-today in
-Europe/Berlin) and exits. The host runs it every hour at minute 5 and once after each deploy:
+Europe/Berlin) and exits. It runs every hour at minute 5 and once after each release:
 
 ```cron
 5 * * * * php bin/console app:sessions:generate --no-interaction
 ```
 
-- systemd: a `OnCalendar=*-*-* *:05:00` timer starting a oneshot service with the same command.
-- Kubernetes: a CronJob with `schedule: "5 * * * *"` and `concurrencyPolicy: Forbid` running the image with the same
-  command.
 - A run takes a non-blocking PostgreSQL advisory lock (`session-generator`, Symfony Lock on the Doctrine connection,
   so it needs a session-mode connection). When another run holds it, the command logs that and exits 0.
 - Exit codes: 0 done or skipped, 1 a schedule failed (the others are created), 2 an invalid `--date`. Alert on
@@ -116,7 +68,7 @@ Europe/Berlin) and exits. The host runs it every hour at minute 5 and once after
 An erasure request made in the app waits 14 days (`erasesOn`), so the person can withdraw it. `bin/console
 app:privacy:erase-due` erases every request whose `erasesOn` is church-today or earlier and that is still open: the
 account and, when it is linked to its own member record, that record too, as `POST /api/data-requests/{id}/erase`
-with `clearNotes: true` does, and closes the request with the counts. The host runs it once a day next to
+with `clearNotes: true` does, and closes the request with the counts. It runs once a day next to
 `app:user:purge-unconfirmed`:
 
 ```cron
@@ -130,6 +82,13 @@ with `clearNotes: true` does, and closes the request with the counts. The host r
 - It prints only counts (`Erased 2 scheduled requests, 0 failed.`). Exit codes: 0 done, 1 a request failed. Alert on
   anything but 0.
 - `--dry-run` runs the same steps inside a transaction that is rolled back and prints what it would have erased.
+
+## First administrators
+
+An empty database has no account. After migrating it, create each administrator with
+`php bin/console app:user:create <email> "<name>" --role=administrator --no-password`, then
+`php bin/console app:user:password-link <email>`; the link reaches them by email and is valid 24 hours. Tell each
+of them in person that it is coming.
 
 ## Importing members
 
@@ -174,92 +133,19 @@ php bin/console app:user:confirm-email person@example.org
   prints that nothing changed and exits 0. An unknown address prints an error and exits 1.
 - `app:user:purge-unconfirmed` no longer deletes the registration once it is confirmed.
 
-## Backups
-
-The database provider's backups are the first copy. The second is our own encrypted daily dump in EU object
-storage, made by the provider-neutral image in `deploy/backup` (`postgres:18-alpine` pinned by digest, plus `age`
-and `rclone`). Children's data needs a tested restore and never an unencrypted copy.
-
-### Making a backup
-
-`backup.sh` (the image's entry point) runs `pg_dump --format=custom | age --encrypt` into a temporary file,
-uploads it as `khmk-<UTC timestamp>.dump.age` only when the dump succeeded, then pings the heartbeat. It refuses
-to run without recipients, and it accepts the Doctrine-style `DATABASE_URL` (it drops the `serverVersion` and
-`charset` parameters libpq rejects).
-
-| Variable | Example | Purpose |
-| --- | --- | --- |
-| `DATABASE_URL` | `postgresql://backup:…@db:5432/khmk?serverVersion=18` | The database to dump (a read-only role is enough) |
-| `BACKUP_RECIPIENTS` | `age1…` (one per line) | The age public keys the dump is encrypted to |
-| `BACKUP_REMOTE` | `backups:khmk-koeln` | rclone remote and path |
-| `RCLONE_CONFIG_BACKUPS_TYPE` and the other `RCLONE_CONFIG_BACKUPS_*` | `s3`, provider, region, endpoint, keys | The remote, configured by environment only |
-| `BACKUP_HEARTBEAT_URL` | `https://hc-ping.com/…` | Pinged after a successful upload, so a missed backup alerts |
-
-- **The bucket** is in the EU, has a lifecycle rule deleting objects after 30 days, and the backup job's
-  credentials can write but not read or delete.
-- **The key pair** is made offline with `age-keygen`. Only the public key is in the job's configuration; the
-  private key is kept offline by two named people of the church, never on the server or in CI.
-
-### Restoring
-
-`restore.sh` (`docker run -i … --entrypoint restore.sh <image> [object] < private-key.txt`) streams `rclone cat |
-age --decrypt | pg_restore --no-owner` into the empty scratch database in `RESTORE_DATABASE_URL`, then prints the
-rows of every table. Without an object name it takes the newest. The private key comes on stdin and is passed to
-`age` through a pipe; neither the key nor a decrypted dump is written to disk. Then check the schema with the API
-image: `php bin/console app:migrations:check` against the scratch database.
-
-- **Restores happen only at the provider,** into a scratch database there; never on a laptop.
-- **RPO 24 h, RTO 2 h:** at most a day of changes is lost, and a restore takes at most two hours.
-- **Erasures:** after restoring, re-apply the erasures made since the backup (the data protection log lists
-  them), so erased people do not come back.
-
-CI builds the image and round-trips fictional data on PostgreSQL 18 on every pull request: the object starts with
-`age-encryption.org/v1`, `pg_restore --list` fails on it and a fictional name is not in it; the restored row
-counts match and the migrations are up to date; a run without recipients or with a failing `pg_dump` exits
-non-zero, uploads nothing and sends no heartbeat.
-
-## Shortlisted hosts
-
-State on 31 Oct 2026. "To confirm" means the public documentation did not answer it; ask the provider before
-Tue 3 Nov.
-
-| Must-have | Hetzner Cloud + Ubicloud (DE) | Scaleway (FR) | OVHcloud (FR) | DigitalOcean (US) |
-| --- | --- | --- | --- | --- |
-| Server: EU VM with Docker | Hetzner Cloud VM, Nuremberg or Falkenstein | Instance, Paris or Amsterdam | Public Cloud instance, e.g. Frankfurt or Gravelines | Droplet, Frankfurt (FRA1) or Amsterdam (AMS3) |
-| Managed PostgreSQL 18 | Ubicloud on Hetzner, Germany; 18 is the default | Up to 17 listed; 18 to confirm | 18 announced, availability to confirm | Yes, Standard Edition 15–18 |
-| Private network between server and database | To confirm (two providers) | Private Network | vRack / private network | VPC |
-| Art. 28 DPA, EU headquarters | Hetzner yes; Ubicloud's seat and DPA to confirm | Yes | Yes | DPA yes (Data Privacy Framework, SCC fallback); US headquarters, needs the adviser's approval |
-| Encryption at rest (database) | To confirm | To confirm | To confirm | To confirm |
-| ICU, non-superuser owner, session-mode connections | To confirm | To confirm | To confirm | To confirm |
-| Automated backups and point-in-time recovery | Yes (Ubicloud) | Yes | Yes | Yes; retention to confirm against our 30 days |
-| EU object storage for later | Hetzner Object Storage | Object Storage | Object Storage | Spaces (FRA1, AMS3) |
-| Number of processors to sign with | Two | One | One | One |
-
-Not shortlisted: platforms without plain VMs (for example Clever Cloud). DigitalOcean stays on the list only if
-the data protection adviser accepts a US-headquartered processor for Art. 9 data; its Standard Edition plans
-are limited to 4 GiB of RAM and no standby nodes from 30 Nov 2026, which is enough for this app.
-
-Sources: [Ubicloud on Hetzner](https://ubicloud.com/blog/open-and-portable-managed-postgresql-avail-hetzner),
-[Ubicloud changelog 2026-08](https://www.ubicloud.com/docs/changelog/2026-08),
-[Scaleway Managed PostgreSQL](https://www.scaleway.com/en/managed-postgresql-mysql/),
-[Scaleway database engines API](https://www.scaleway.com/en/developers/api/managed-database-postgre-mysql/engines),
-[OVHcloud database lifecycle](https://docs.ovhcloud.com/en/guides/web-cloud/databases/db-eos-eol.md),
-[OVHcloud Managed PostgreSQL](https://www.ovhcloud.com/de/public-cloud/postgresql/),
-[DigitalOcean PostgreSQL versions](https://docs.digitalocean.com/products/databases/postgresql/how-to/create/),
-[DigitalOcean DPA (January 2026)](https://www.digitalocean.com/legal/data-processing-agreement-january-2026).
-
 ## Configuration
 
 The variables the application reads. `EnvironmentVariablesAreDocumentedTest` fails for one that the
-configuration, the code or the Caddyfile reads and this table lacks; `APP_DEBUG` is read by the kernel itself. The production image bakes the defaults of `.env` into `.env.local.php`; values set in the
-container's environment win. Secrets live only in the host's secret store, never in the repository or the image;
-the Symfony secrets vault is not used.
+configuration or the code reads and this table lacks; `APP_DEBUG` is read by the kernel itself. `.env` holds
+development defaults, and values set in the environment win, so production sets every variable it needs, at least
+`APP_SECRET`, `DATABASE_URL`, `DEFAULT_URI`, `MAILER_DSN`, `TRUSTED_HOSTS` and `TRUSTED_PROXIES` (empty when no
+proxy forwards requests). Secrets live only in the host's secret store, never in the repository; the Symfony
+secrets vault is not used.
 
 | Variable | Example | Secret | Purpose |
 | --- | --- | --- | --- |
 | `APP_ENV` | `prod` | No | Symfony environment: `dev`, `test` or `prod` |
-| `APP_DEBUG` | `0` | No | Symfony debug mode; the image sets `0` |
-| `SERVER_NAME` | `:8080` | No | The address FrankenPHP's Caddyfile serves; the image sets `:8080` (plain HTTP behind the proxy) |
+| `APP_DEBUG` | `0` | No | Symfony debug mode; `0` in production |
 | `APP_SECRET` | 32 random hex bytes | Yes | Signs CSRF tokens and other Symfony secrets |
 | `APP_SHARE_DIR` | `var/share` | No | Directory for data shared across deploys |
 | `DATABASE_URL` | `postgresql://app:…@db:5432/khmk?serverVersion=18&charset=utf8` | Yes | PostgreSQL connection |
@@ -273,12 +159,12 @@ the Symfony secrets vault is not used.
 | `TRUSTED_PROXIES` | `10.0.0.0/8` or `REMOTE_ADDR` | No | Only the reverse proxy's address or private range. Its `X-Forwarded-For`, `-Proto` and `-Port` are trusted, so sign-in limits count the real client; `X-Forwarded-Host` is not, so the proxy passes the public `Host` through. Empty: forwarded headers are ignored. |
 | `MAILER_DSN` | `mailgun+api://KEY:DOMAIN@default?region=eu` | Yes | Where email goes. Production: Mailgun's EU region (with a DPA, Art. 28) through `symfony/mailgun-mailer`. `.env` and tests use `null://null` (nothing is sent); `.env.dev` uses `log://default`, which writes each email (recipient, subject, text) to stderr instead of sending it. `bin/console app:mail:test <email>` checks the setting with a real account. |
 | `MAILER_FROM` | `KHMK Köln <no-reply@khmk-koeln.com>` | No | Sender of every email. The sending domain needs Mailgun's SPF and DKIM records. |
-| `TRUSTED_HOSTS` | see below | No | Production only: a regular expression of the `Host` values the API answers; anything else gets 400. Add the platform's health-probe host, and keep `127.0.0.1`, which the image's own health check calls. Empty would turn the check off, so the image refuses to start without it. |
+| `TRUSTED_HOSTS` | see below | No | Production only: a regular expression of the `Host` values the API answers; anything else gets 400. Add the host every health probe sends (`127.0.0.1` for a probe on the same machine). Empty turns the check off, so production must set it. |
 | `DEFAULT_URI` | `https://app.khmk-koeln.com` | No | Base URL for links generated outside a request (console) |
 | `SENTRY_DSN` | empty, or `https://<key>@<host>/<project>` | Yes | Error tracking for 5xx responses (Sentry's EU region or a self-hosted GlitchTip). Empty, the default: no event is ever built. Set it only once the service's data processing agreement is signed. |
 | `TEST_TOKEN` | `1` | No | Test only: the PHPUnit runner's suffix for parallel test databases |
 
-The production `TRUSTED_HOSTS`, with the probe host added at the end:
+The production `TRUSTED_HOSTS`, with the probe hosts added at the end:
 
 ```text
 ^(app\.khmk-koeln\.com|localhost|127\.0\.0\.1|<probe host>)$
@@ -328,53 +214,16 @@ but no source lines or argument values. 4xx answers send nothing. The bundle com
 contrib recipe (`allow-contrib` is on for it); `config/packages/sentry.yaml` keeps the recipe's values and adds
 these privacy settings.
 
-Logs are kept 14 days unless the data protection adviser decides otherwise by Tue 3 Nov. Access logs of the
-reverse proxy leave out query strings (#27, #74).
-
-## Release
-
-A release ships one API image (`ghcr.io/polaeskandar/khmh-koeln-app-backend:<sha>`) and one web bundle. The API
-part runs from GitHub Actions: **Actions › Deploy › Run workflow** with the image's full commit SHA. The steps below
-stay the manual fallback, and publishing the web bundle stays manual.
-
-The `Deploy` workflow (`.github/workflows/deploy.yml`) runs in the GitHub environment `production`, which needs a
-required reviewer, one run at a time (a second dispatch waits). With the reviewer's approval it:
-
-1. records the SHA the server runs (`deploy/release.sh current`: the image of the running API container, not the
-   `.env`, which an interrupted roll-out may already have changed; nothing when no API container runs, and then
-   there is nothing to roll back to);
-2. pulls the new image on the server with a short-lived package token, then logs out again;
-3. migrates in a one-off container of the new image (`app:migrations:migrate --no-interaction`, nothing to do when
-   none are pending);
-4. rolls the API and worker out (`deploy/release.sh rollout <sha>`: `API_IMAGE` in the server's `.env`, then
-   `docker compose up --detach --wait`);
-5. runs `deploy/smoke-test.sh` against `BASE_URL`;
-6. on any failure after step 1, rolls back to the recorded SHA and smoke-tests again; the run ends red either way.
-   Migrations are never rolled back (§ Migrations).
-
-The job summary lists the requested and the previous SHA, the migration and the smoke-test outcome. The
-environment holds `DEPLOY_TARGET` (`deploy@<server>`), `DEPLOY_SSH_KEY` (a key only for deploys),
-`DEPLOY_KNOWN_HOSTS` (the server's host key), `SMOKE_EMAIL` and `SMOKE_PASSWORD` as secrets and `BASE_URL` as a
-variable; no secret is printed. The server keeps its Compose project in `/srv/khmk` (`DEPLOY_DIR`), whose services
-take their image from `API_IMAGE` in the project's `.env`.
-
-1. **Note the rollback target:** the SHA of the running API image and the running web bundle's build.
-2. **Back up:** run the backup job once and wait for its heartbeat (§ Backups).
-3. **Migrate** in a one-off container of the new image, against production, before anything switches:
-   `docker run --rm <the API's environment> <new image> php bin/console app:migrations:migrate --no-interaction`
-   (the same variables as the API containers, § Configuration).
-   It applies the pending migrations of every context and does nothing when there are none. The running release
-   keeps working, because every migration is compatible with it (§ Migrations).
-4. **Switch the API** to `<new sha>` (the API, the worker and the jobs use the same image).
-5. **Publish the web bundle,** keeping the previous `_next/static` files, so open tabs still load their chunks.
-6. **Smoke test:** `deploy/smoke-test.sh` with the smoke account (§ Smoke test).
-7. **Generate sessions once:** `php bin/console app:sessions:generate` in a one-off container.
-8. **Log** the date, the API and web SHAs, each context's latest migration and who released. Step 3 has
-   applied every pending migration; a context's latest one is
-   `SELECT max(version) FROM <context>_migration_versions` (`identity`, `organization`, `people`, `meetings`,
-   `learning`).
+Logs are kept 14 days unless the data protection adviser decides otherwise. The access logs of the web server and
+the reverse proxy leave out query strings, cookies and `Authorization`.
 
 ## Migrations
+
+Migrations run as a one-off command against production before the new code serves requests:
+`php bin/console app:migrations:migrate --no-interaction`, with the same environment as the API. It applies the
+pending migrations of every context and does nothing when there are none. A context's latest one is
+`SELECT max(version) FROM <context>_migration_versions` (`identity`, `organization`, `people`, `meetings`,
+`learning`).
 
 Migrations are written expand/contract, so the release before the new code keeps running against the migrated
 schema:
@@ -383,64 +232,6 @@ schema:
   that uses them; a migration never breaks the previous release's queries.
 - **Contract one release later:** dropping or renaming a column or table, and a new `NOT NULL` on an existing
   column, ship in the release after the one whose code stopped using it.
-- **Forward only:** no `down` migrations in production; a fix is a new migration.
+- **Forward only:** no `down` migrations in production; a fix is a new migration. Going back to the previous
+  release keeps the migrations, because they were compatible with it.
 - Every pull request with a migration ticks "Migration is compatible with the running release" in the template.
-
-## Rollback
-
-1. **Redeploy** the previous API SHA and web bundle noted in step 1 of the release. The migrations stay: they
-   were compatible with that release.
-2. **Smoke test** again.
-3. **Restore from backup** (§ Backups) only for data loss or corruption, never for a broken release; then
-   re-apply the erasures made since the backup.
-
-## First release
-
-1. **Migrate** an empty database as in step 3 of the release.
-2. **First administrators:** `php bin/console app:user:create <email> "<name>" --role=administrator --no-password`,
-   then `php bin/console app:user:password-link <email>`; the link reaches them by email and is valid 24 hours.
-   Tell each of them in person that it is coming.
-3. **The smoke account:** `app:user:create smoke@… "Smoke Test" --password-stdin`, no role; its password goes
-   only into the secret store.
-4. **Smoke test** and generate sessions as in steps 6 and 7.
-
-## Smoke test
-
-`deploy/smoke-test.sh` proves a deployed environment works end to end. It needs only bash, curl and jq, reads
-nothing but its own session, signs in once (so it never trips the sign-in limit) and stops at the first failed
-check with its name and a non-zero exit. It never prints the password or the session cookie.
-
-```bash
-BASE_URL=https://app.khmk-koeln.com SMOKE_EMAIL=smoke@example.org SMOKE_PASSWORD=… deploy/smoke-test.sh
-```
-
-- **API:** `/api/health/ready` 200; an unknown `/api/…` path 404 `application/problem+json` `notFound.route`; on
-  https, `http://` redirects to `https://`.
-- **Web** (`SMOKE_WEB=0` skips it): `/` and `/de/` 200 with HSTS, `nosniff`, a `Referrer-Policy` and a CSP with
-  `frame-ancestors 'none'`; `/de/index.txt` as `text/plain`; an unknown path 404 (no SPA fallback).
-- **Auth:** sign-in from a foreign `Origin` → 403 `forbidden`; sign-in → 204 with an `HttpOnly`, `Secure`,
-  `SameSite=Lax` cookie; `GET /api/me` 200 with no roles, `today` and `no-store`; sign-out 204; the old cookie
-  then gets 401 `auth.unauthenticated`.
-
-CI runs it with `SMOKE_WEB=0` against the production image on `http://localhost:8080` (curl keeps `Secure`
-cookies over plain HTTP for localhost), after creating a fictional account with `app:user:create … --password-stdin`.
-Run it after every production release.
-
-**The smoke account** is fictional ("Smoke Test", `smoke@…`), has no roles, so it sees nothing, and its password
-lives only in the secret store. It stays in production unless the church and its data protection adviser decide
-otherwise at the Tue 3 Nov decision.
-
-## Decision checklist for Tue 3 Nov
-
-| Decision | Owner |
-| --- | --- |
-| Provider and region for the server and the database | Project lead with the church |
-| Whether a US-headquartered provider (DigitalOcean) is acceptable for Art. 9 data | Data protection adviser |
-| DPA signed (Art. 28) with every processor, sub-processors reviewed | Church (controller) |
-| DNS control of `khmk-koeln.com`; which other subdomains exist (HSTS `includeSubDomains` affects them) | Church |
-| Interim backups on the server accepted; date for moving them to object storage | Data protection adviser and project lead |
-| Backup encryption key and its two custodians | Church and project lead |
-| Retention: logs 14 days, backups 30 days | Data protection adviser |
-| Alert recipients for the hourly job, the backup and the uptime check | Project lead |
-| Who gets production access (SSH, database) | Church and project lead |
-| Monthly cost approved | Church |

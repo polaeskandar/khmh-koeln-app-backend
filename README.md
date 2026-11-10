@@ -47,32 +47,15 @@ There is no account screen at launch; operators run these commands on the server
 The link goes only to the account's own address, never to the console or the logs, and is stored only as a
 SHA-256 hash.
 
-## Container
+## Deployment
 
-Production runs one image, built from the `prod` target of the `Dockerfile` (FrankenPHP on a digest-pinned
-PHP 8.5 base; Composer without dev packages, an authoritative class map and a warmed `prod` cache). CI builds
-it on every pull request, smoke-tests it, and on `main` pushes
-`ghcr.io/polaeskandar/khmh-koeln-app-backend:<commit sha>`, so releases and rollbacks name an immutable tag.
-
-```sh
-docker build --target prod -t khmk-api .
-docker run -p 8080:8080 --env-file prod.env khmk-api
-docker run --rm --env-file prod.env khmk-api php bin/console app:migrations:migrate --no-interaction
-```
-
-- It serves plain HTTP on port 8080 (`SERVER_NAME`) behind the TLS proxy, runs as a non-root user that can
-  write only `var/`, and has a `HEALTHCHECK` on `/api/health`. The worker runs from the same image with the
-  health check off (`--no-healthcheck`, or `healthcheck: disable: true` in Compose), since it serves no HTTP.
-- It refuses to start without `APP_SECRET`, `DATABASE_URL`, `DEFAULT_URI`, `MAILER_DSN` and `TRUSTED_HOSTS`, or with
-  `TRUSTED_PROXIES` unset (set it empty when no proxy forwards requests). The image bakes `.env` in, so a missing
-  variable would otherwise fall back to its development value. It never migrates on its own: migrations and other
-  console commands run as one-off containers of the same image.
-- It holds the email templates and translations, and runs PHP with `php.ini-production`.
-- Dependabot keeps the pinned base and Composer images up to date.
-- Opcache doesn't revalidate files and preloads `config/preload.php`; PHP hides its version and errors.
-- The access log is JSON on stderr without query strings, cookies or `Authorization`.
-- The variables are listed in [Operations](docs/operations.md#configuration).
-- `compose.yaml` builds the `dev` target for local work.
+Deployment is not part of this repository. [Operations](docs/operations.md) lists what the app needs to run:
+PHP, PostgreSQL, the worker, the scheduled commands and the environment variables.
+The hand-off issues describe what the removed setup did:
+[#332](https://github.com/polaeskandar/khmh-koeln-app-backend/issues/332) (production image),
+[#333](https://github.com/polaeskandar/khmh-koeln-app-backend/issues/333) (release, rollback and smoke test),
+[#334](https://github.com/polaeskandar/khmh-koeln-app-backend/issues/334) (database backups) and
+[frontend#285](https://github.com/polaeskandar/khmh-koeln-app-frontend/issues/285) (web hosting).
 
 ## Docs
 
@@ -81,9 +64,8 @@ docker run --rm --env-file prod.env khmk-api php bin/console app:migrations:migr
 - [API contract](docs/api.md)
 - [Code style](docs/code-style.md)
 - [Testing](docs/testing.md)
-- [Operations](docs/operations.md), with the [release and rollback procedure](docs/operations.md#release)
+- [Operations](docs/operations.md): runtime requirements, configuration, logging, migrations and console commands
 - [Data protection](docs/data-protection.md): inventory, measures and request procedures
-- [Launch checklist](docs/launch-checklist.md)
 
 Commits follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat: …`, `fix: …`).
 Git hooks are installed on `docker compose up`: `commit-msg` checks the message, `pre-commit` runs

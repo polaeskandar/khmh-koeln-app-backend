@@ -2,7 +2,7 @@
 
 How the app handles personal data, so the office answers every request within one month (Art. 12(3) GDPR) and
 the church's data protection adviser can complete the Art. 30 record and the DPIA screening. The data model is in
-[data-model.md](data-model.md#data-protection); the hosting choices in [operations.md](operations.md).
+[data-model.md](data-model.md#data-protection); what the app needs to run in [operations.md](operations.md).
 
 ## Inventory
 
@@ -40,7 +40,7 @@ account is assigned to; parents see only their own approved children.
 
 | Processor | What | Where | Art. 28 DPA |
 | --- | --- | --- | --- |
-| Hosting provider (chosen on Tue 3 Nov, see [operations.md § Shortlisted hosts](operations.md#shortlisted-hosts)) | Server, managed PostgreSQL, backups, object storage | EU region | To sign before launch |
+| Hosting provider (not chosen yet; requirements in [operations.md § Runtime](operations.md#runtime)) | Server, managed PostgreSQL, backups | EU region | To sign before launch |
 | Mailgun (EU region) | Transactional emails: password links, registration notices | EU | To sign before launch |
 
 No other processor receives personal data. Logs leave the server only without personal data (see Logging).
@@ -48,8 +48,8 @@ No other processor receives personal data. Logs leave the server only without pe
 ## Technical and organisational measures
 
 - **Transport:** TLS only; HSTS; the session cookie is `__Host-`, `Secure`, `HttpOnly`, `SameSite=Lax`.
-- **Backups:** daily, encrypted with age before leaving the database host; the private key is offline with two
-  named people; restores only at the provider ([operations.md § Backups](operations.md#backups)).
+- **Backups:** daily, encrypted, in the EU and kept 30 days; restores only at the host, never on a laptop
+  ([operations.md § Database](operations.md#database)).
 - **Access:** every workflow checks its permission (`AccessCheck`) before it reads or writes, and for data of a
   service or stage also the group: servants and service leaders reach only the groups they are assigned to
   (`organization.staff_assignment`), anything else answers as if it did not exist; parent routes deny
@@ -86,8 +86,8 @@ can open.
 
 - **One line per erasure:** the date, the request id, `person` or `account`, and the erased id. No names, no
   emails.
-- **Kept as long as a backup older than the entry exists:** the provider keeps backups for 30 days
-  ([operations.md § Backups](operations.md#backups)), so older entries are removed.
+- **Kept as long as a backup older than the entry exists:** backups are kept for 30 days
+  ([operations.md § Database](operations.md#database)), so older entries are removed.
 - **After a restore:** before reopening the app, the operator replays every entry newer than the backup with
   `app:privacy:erase-person <id>` or `app:privacy:erase-account <id>`, then records the replay in the ledger.
 
