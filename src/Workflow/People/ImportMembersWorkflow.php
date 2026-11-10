@@ -28,7 +28,7 @@ final readonly class ImportMembersWorkflow
     {
         $policy = ImportPolicies::of($duplicates);
         $serviceIds = $this->planned($path, $policy)->serviceIds();
-        $plan = $this->placements->whileKept($serviceIds, fn (): ImportPlan => $this->saved($path, $policy));
+        $plan = $this->placements->whileServicesKept($serviceIds, fn (): ImportPlan => $this->saved($path, $policy));
 
         if ($plan->isValid()) {
             $this->files->delete($path);

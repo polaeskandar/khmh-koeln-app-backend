@@ -73,7 +73,7 @@ final class DoctrineHomeworkRepositoryTest extends KernelTestCase
     {
         $other = DriverManager::getConnection($this->database()->connection()->getParams());
 
-        $this->homework()->withLock($this->task()->id(), static function (HomeworkAssignment $task) use (
+        $this->homework()->withWriteLock($this->task()->id(), static function (HomeworkAssignment $task) use (
             $other,
         ): HomeworkAssignment {
             $sqlState = null;
@@ -100,7 +100,7 @@ final class DoctrineHomeworkRepositoryTest extends KernelTestCase
         $failure = null;
 
         try {
-            $this->homework()->withLock(
+            $this->homework()->withWriteLock(
                 $this->task()->id(),
                 static fn (HomeworkAssignment $task): HomeworkAssignment => throw new RuntimeException(
                     $task->id()->toRfc4122(),
@@ -126,7 +126,10 @@ final class DoctrineHomeworkRepositoryTest extends KernelTestCase
 
         $this->database()->connection()->executeStatement(self::PUBLISH, [$id->toRfc4122()]);
 
-        $locked = $this->homework()->withLock($id, static fn (HomeworkAssignment $task): HomeworkAssignment => $task);
+        $locked = $this->homework()->withWriteLock(
+            $id,
+            static fn (HomeworkAssignment $task): HomeworkAssignment => $task,
+        );
 
         self::assertNotNull($locked);
         self::assertSame(HomeworkStatus::Published, $locked->state()->status);
@@ -135,7 +138,7 @@ final class DoctrineHomeworkRepositoryTest extends KernelTestCase
 
     public function testAnUnknownTaskIsLockedForNothing(): void
     {
-        self::assertNull($this->homework()->withLock(
+        self::assertNull($this->homework()->withWriteLock(
             Uuid::v7(),
             static fn (HomeworkAssignment $task): HomeworkAssignment => $task,
         ));

@@ -82,7 +82,7 @@ final readonly class DoctrineServiceRepository implements ServiceRepositoryInter
     }
 
     #[Override]
-    public function withStructureLock(Uuid $id, callable $work): object
+    public function withWriteLock(Uuid $id, callable $work): object
     {
         return $this->entityManager->wrapInTransaction(function () use ($id, $work): object {
             $this->entityManager->getConnection()->executeQuery(self::LOCK_ROW, [$id->toRfc4122()]);

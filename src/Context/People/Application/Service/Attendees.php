@@ -82,7 +82,7 @@ final readonly class Attendees
      *
      * @return T
      */
-    public function whileKept(Uuid $personId, callable $work): mixed
+    public function whilePersonKept(Uuid $personId, callable $work): mixed
     {
         return $this->people->withShareLock($personId, $work);
     }

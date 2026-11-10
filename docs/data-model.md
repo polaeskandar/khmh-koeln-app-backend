@@ -93,7 +93,7 @@ only with a parent's or guardian's agreement. Younger children never have accoun
   `tone` 1–8, non-blank names, description lengths and `position >= 0`; `stage.service_id` references `service` with
   `ON DELETE RESTRICT`; an index on `stage(service_id, position)`. Positions are not unique: writes that
   reorder stages lock the service row instead.
-- **The structure lock** (`ServiceRepositoryInterface::withStructureLock()`) locks the service row with `SELECT …
+- **The structure lock** (`ServiceRepositoryInterface::withWriteLock()`) locks the service row with `SELECT …
   FOR UPDATE`, forgets the services and stages the request had loaded, and reads them again. So adding, editing,
   reordering, archiving and restoring stages, and archiving and restoring the service, always decide on what the
   previous write committed, never on a copy loaded before the lock.
@@ -104,7 +104,7 @@ only with a parent's or guardian's agreement. Younger children never have accoun
   other. Restoring leaves the schedules inactive.
 - Other contexts store `service_id` and `stage_id` without foreign keys. The workflows that write them check
   through Organization's `PlacementChoices` that the stage belongs to the service, and they do it under a share
-  lock on the service row (`PlacementChoices::whileKept()`, `StructureLookup::whileStageKept()` for lessons): adding or moving a membership,
+  lock on the service row (`PlacementChoices::whileServicesKept()`, `StructureLookup::whileStageKept()` for lessons): adding or moving a membership,
   importing members, creating a schedule or a one-off session, and creating a lesson. Deleting a service or a stage
   (`DeleteServiceWorkflow`, `DeleteStageWorkflow`) holds the structure lock, so it waits for those writes and they
   wait for it; a write that waited then finds the service or stage gone.
@@ -303,7 +303,7 @@ lesson's `Material` rules, ≤10), `status`, `published_at`, `archived_at`, `cre
 erasure process), timestamps. CHECKs: status enum, published needs `published_at`, `(status = 'archived') =
 (archived_at IS NOT NULL)`, non-blank title, non-blank instructions ≤2000, ≤10 resources. Indexes `(stage_id,
 status)` and `lesson_id`. Lifecycle changes and parents' reports take the task row `FOR UPDATE`
-(`HomeworkRepositoryInterface::withLock()`), so "back to draft" and a new report never interleave. The due date is
+(`HomeworkRepositoryInterface::withWriteLock()`), so "back to draft" and a new report never interleave. The due date is
 checked against the lesson's date by the workflow (#60), because it spans two rows.
 
 `learning.homework_completion` (`HomeworkCompletion`): `assignment_id` (RESTRICT), `person_id` (People, plain id),

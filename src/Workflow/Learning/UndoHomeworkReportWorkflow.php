@@ -35,7 +35,7 @@ final readonly class UndoHomeworkReportWorkflow
         $viewer = Uuid::fromString($viewerId);
         $child = Ids::toUuid($childId, notFound: 'person');
 
-        $undone = $this->completions->whileLocked(
+        $undone = $this->completions->whileTaskLocked(
             Ids::toUuidOrNull($homeworkId),
             fn (HomeworkAssignment $task): VisibleTask => $this->undone($viewer, $child, $task),
         );

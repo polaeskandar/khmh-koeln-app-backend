@@ -45,7 +45,7 @@ final readonly class MarkPresentWorkflow
             Uuid::fromString($accountId),
         );
 
-        $recorded = $this->attendees->whileKept($person, fn (): RecordedMark => $this->sessions->whileMarkable(
+        $recorded = $this->attendees->whilePersonKept($person, fn (): RecordedMark => $this->sessions->whileMarkable(
             $found->id(),
             $record,
         ));

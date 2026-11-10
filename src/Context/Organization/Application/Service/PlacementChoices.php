@@ -34,7 +34,7 @@ final readonly class PlacementChoices
      *
      * @return T
      */
-    public function whileKept(array $serviceIds, callable $work): mixed
+    public function whileServicesKept(array $serviceIds, callable $work): mixed
     {
         $ids = Collections::mapPresent(new ArrayCollection($serviceIds), Ids::toUuidOrNull(...));
 

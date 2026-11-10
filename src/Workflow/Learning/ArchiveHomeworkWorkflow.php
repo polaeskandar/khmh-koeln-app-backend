@@ -30,7 +30,7 @@ final readonly class ArchiveHomeworkWorkflow
     {
         $this->access->require(Action::Update, Resource::Homework, refusal: 'homework.changeStageOnly');
 
-        return ChangedHomework::of($this->homework->locked(
+        return ChangedHomework::of($this->homework->whileTaskLocked(
             Ids::toUuid($id, notFound: 'homework'),
             $this->changed(...),
         ));

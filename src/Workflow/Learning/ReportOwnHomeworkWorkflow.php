@@ -32,7 +32,7 @@ final readonly class ReportOwnHomeworkWorkflow
         $viewer = Uuid::fromString($viewerId);
         $personId = $this->member->require($viewer);
 
-        $outcome = $this->records->whileKept($personId, fn (): CompletionOutcome => $this->reportedOnLockedTask(
+        $outcome = $this->records->whilePersonKept($personId, fn (): CompletionOutcome => $this->reportedOnLockedTask(
             $personId,
             $viewer,
             Ids::toUuidOrNull($homeworkId),
@@ -44,7 +44,7 @@ final readonly class ReportOwnHomeworkWorkflow
     private function reportedOnLockedTask(Uuid $personId, Uuid $viewer, ?Uuid $homeworkId): CompletionOutcome
     {
         $report = fn (HomeworkAssignment $task): CompletionOutcome => $this->reported($personId, $viewer, $task);
-        $reported = $this->completions->whileLocked($homeworkId, $report);
+        $reported = $this->completions->whileTaskLocked($homeworkId, $report);
 
         return $reported ?? OwnHomework::notAvailable();
     }

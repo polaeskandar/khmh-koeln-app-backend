@@ -168,7 +168,7 @@ Naming and Doctrine rules:
 - Entities create their UUIDv7 id in the constructor. The `$id` property is not `readonly`: when Doctrine loads a
   lazy reference it sets the id again with a new `Uuid` instance, which a readonly property refuses. For the
   same reason Doctrine can't refresh a managed entity whose readonly embeddables hold objects, so a lock
-  (`SessionRepositoryInterface::withWriteLock()`, `HomeworkRepositoryInterface::withLock()`,
+  (`SessionRepositoryInterface::withWriteLock()`, `HomeworkRepositoryInterface::withWriteLock()`,
   `UserRepositoryInterface::withWriteLock()`) detaches a managed
   copy and loads the row again `FOR UPDATE`. Instants (`*_at`) are `datetimetz_immutable`.
 - `created_at` and `updated_at` come only from the mapped superclasses in `App\Library\Persistence\Mapping`: an

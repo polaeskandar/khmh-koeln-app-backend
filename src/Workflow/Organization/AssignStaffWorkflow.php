@@ -29,7 +29,7 @@ final readonly class AssignStaffWorkflow
 
         $account = $this->accounts->found(Ids::toUuid($accountId, notFound: 'user'));
 
-        return $this->placements->whileKept([$serviceId], fn (): AssignmentView => $this->assigned(
+        return $this->placements->whileServicesKept([$serviceId], fn (): AssignmentView => $this->assigned(
             $account,
             $serviceId,
             $stageId,

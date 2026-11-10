@@ -23,7 +23,7 @@ final readonly class ServiceArchives
      */
     public function archive(Uuid $id, callable $pauseSchedules): Service
     {
-        return $this->services->withStructureLock($id, function (Service $service) use ($pauseSchedules): Service {
+        return $this->services->withWriteLock($id, function (Service $service) use ($pauseSchedules): Service {
             ArchiveRule::ensureServiceOpen($service);
             $pauseSchedules($service);
             $service->archive($this->calendar->now());
@@ -35,7 +35,7 @@ final readonly class ServiceArchives
 
     public function restore(Uuid $id): Service
     {
-        return $this->services->withStructureLock($id, function (Service $service): Service {
+        return $this->services->withWriteLock($id, function (Service $service): Service {
             ArchiveRule::ensureServiceArchived($service);
             $service->restore();
             $this->services->save($service);

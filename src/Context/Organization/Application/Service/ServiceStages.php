@@ -60,7 +60,7 @@ final readonly class ServiceStages
     {
         StageChecks::check($name, $description);
 
-        return $this->services->withStructureLock($serviceId, fn (Service $service): Stage => $this->addTo(
+        return $this->services->withWriteLock($serviceId, fn (Service $service): Stage => $this->addTo(
             $service,
             StageName::of($name),
             StageChecks::description($description),
@@ -72,7 +72,7 @@ final readonly class ServiceStages
         $lockedId = $this->stages->serviceIdOf($stageId) ?? throw NotFound::of('stage');
         StageChecks::check($name, $description);
 
-        return $this->services->withStructureLock($lockedId, fn (Service $service): Stage => $this->editIn(
+        return $this->services->withWriteLock($lockedId, fn (Service $service): Stage => $this->editIn(
             $service,
             $stageId,
             StageName::of($name),

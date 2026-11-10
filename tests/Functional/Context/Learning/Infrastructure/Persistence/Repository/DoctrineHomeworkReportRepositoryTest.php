@@ -114,7 +114,7 @@ final class DoctrineHomeworkReportRepositoryTest extends KernelTestCase
         try {
             new DoctrineHomeworkRepository(
                 $database->entityManager(),
-            )->withLock($this->task()->id(), fn (HomeworkAssignment $task): HomeworkAssignment => $this->reports()->reportDone(
+            )->withWriteLock($this->task()->id(), fn (HomeworkAssignment $task): HomeworkAssignment => $this->reports()->reportDone(
                 $task->id(),
                 Uuid::v7(),
                 new DateTimeImmutable(),

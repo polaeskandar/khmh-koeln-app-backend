@@ -59,7 +59,7 @@ final readonly class DoctrineHomeworkRepository implements HomeworkRepositoryInt
     }
 
     #[Override]
-    public function withLock(Uuid $id, callable $work): ?object
+    public function withWriteLock(Uuid $id, callable $work): ?object
     {
         return $this->entityManager->wrapInTransaction(function () use ($id, $work): ?object {
             $loaded = $this->entityManager->getUnitOfWork()->tryGetById(['id' => $id], HomeworkAssignment::class);
