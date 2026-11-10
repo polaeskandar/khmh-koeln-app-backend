@@ -48,4 +48,9 @@ final readonly class Type
     {
         return is_string($this->value) ? $this->value : null;
     }
+
+    public function toStringAt(int|string $key): string
+    {
+        return self::of(is_array($this->value) ? $this->value[$key] ?? null : null)->toString();
+    }
 }
