@@ -26,7 +26,7 @@ final readonly class LessonMeetings
         ?Lesson $editing = null,
     ): MeetingLink {
         $link = match (true) {
-            $choice->sessionId !== null, $choice->scheduleId !== null => MeetingLinks::to(
+            $choice->sessionId !== null, $choice->scheduleId !== null => self::offeredLink(
                 $stageId,
                 $offered,
                 $editing?->link(),
@@ -40,14 +40,22 @@ final readonly class LessonMeetings
         return $link;
     }
 
-    public function countForSchedule(Uuid $scheduleId): int
-    {
-        return $this->lessons->countForSchedule($scheduleId);
-    }
-
     private function ensureFree(MeetingLink $link, ?Lesson $editing): void
     {
         $holder = $link->scheduleId === null ? null : $this->lessons->currentAt($link->scheduleId, $link->teachingDate);
         MeetingLessonRule::ensureFreeToChoose($holder, $editing);
+    }
+
+    private static function offeredLink(Uuid $stageId, ?OfferedMeeting $offered, ?MeetingLink $current): MeetingLink
+    {
+        if ($offered?->belongsTo($stageId) !== true || $offered->isNewlyCanceled($current)) {
+            throw MeetingChoice::refusal('lessons.chooseMeeting');
+        }
+
+        if ($offered->isNewlyUnscheduled($current)) {
+            throw MeetingChoice::refusal('lessons.noMeetingThatDay', ['name' => $offered->name]);
+        }
+
+        return $offered->link;
     }
 }

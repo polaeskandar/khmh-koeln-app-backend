@@ -8,15 +8,20 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Learning\Application\Service\LessonOptionLookup;
+use App\Context\Learning\Domain\Entity\Lesson;
+use App\Context\Learning\Domain\Query\LessonQueryInterface;
+use App\Context\Learning\Domain\ValueObject\LessonWindow;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\PlannedDate;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Model\Ids;
+use App\Library\Time\Client\Calendar;
 use App\Workflow\Learning\Model\LessonOptions;
 use App\Workflow\Organization\Model\StructureGroup;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class ListLessonOptionsWorkflow
@@ -25,8 +30,9 @@ final readonly class ListLessonOptionsWorkflow
         private AccessCheck $access,
         private StructureLookup $structure,
         private MeetingLookup $meetings,
-        private LessonOptionLookup $lessons,
+        private LessonQueryInterface $lessons,
         private AccountLookup $accounts,
+        private Calendar $calendar,
     ) {
     }
 
@@ -38,21 +44,37 @@ final readonly class ListLessonOptionsWorkflow
         $group = StructureGroup::ofStage($stage);
         $this->access->requireIn(Action::Update, Resource::Lessons, $group, missing: 'stage');
 
-        $edited = $this->lessons->edited(
-            $stage->id(),
-            $lessonId === null ? null : Ids::toUuid($lessonId, notFound: 'lesson'),
-        );
+        $edited = $lessonId === null ? null : $this->editedIn($stage->id(), Ids::toUuid($lessonId, notFound: 'lesson'));
 
-        $window = $this->lessons->windowFor($edited);
+        $window = LessonWindow::around($this->calendar->today(), $edited);
         $archived = ArchivedStructure::of($this->structure->archivedIds());
         $dates = $this->meetings->datesOfStage($stage->id(), $archived, $window->from, $window->to);
 
         return LessonOptions::of(
             $window,
             $dates,
-            $this->lessons->takenIn(self::scheduleIdsOf($dates), $window, $edited),
+            $this->takenIn(self::scheduleIdsOf($dates), $window, $edited),
             $this->accounts->activeAllowedIn(Action::Update, Resource::Lessons, $group),
         );
+    }
+
+    private function editedIn(Uuid $stageId, Uuid $lessonId): Lesson
+    {
+        $lesson = $this->lessons->find($lessonId);
+
+        return $lesson?->stageId()->equals($stageId) === true ? $lesson : throw NotFound::of('lesson');
+    }
+
+    /**
+     * @param list<Uuid> $scheduleIds
+     *
+     * @return ReadableCollection<int, Lesson>
+     */
+    private function takenIn(array $scheduleIds, LessonWindow $window, ?Lesson $edited): ReadableCollection
+    {
+        return $this->lessons
+            ->listCurrentBetween($scheduleIds, $window->from, $window->to)
+            ->filter(static fn (Lesson $lesson): bool => $lesson !== $edited);
     }
 
     /**

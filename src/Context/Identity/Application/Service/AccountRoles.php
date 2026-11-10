@@ -6,6 +6,8 @@ namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Entity\Role;
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Enum\Action;
+use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\Interface\AdministrationLockInterface;
 use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
@@ -46,7 +48,7 @@ final readonly class AccountRoles
         $this->administration->whileLocked(function () use ($accountId, $roleId, $actorId): void {
             $user = $this->account($accountId);
             $role = $this->role($roleId) ?? throw NotFound::of('role');
-            OwnAdministration::ensureKept($user, $role, $actorId);
+            self::ensureOwnAdministrationKept($user, $role, $actorId);
 
             if ($this->lastAdministrator->wouldLoseIt($user, $role)) {
                 throw new RuleViolation('roles.lastAdministrator');
@@ -56,6 +58,17 @@ final readonly class AccountRoles
             $user->unassign($role);
             $this->users->save($user);
         });
+    }
+
+    private static function ensureOwnAdministrationKept(User $user, Role $role, Uuid $actorId): void
+    {
+        if (!$user->id()->equals($actorId) || !RolePermissions::roleAllows($role, Action::Update, Resource::Roles)) {
+            return;
+        }
+
+        if (!RolePermissions::accountHasWithout($user, $role, Action::Update, Resource::Roles)) {
+            throw new RuleViolation('roles.ownAdminRole');
+        }
     }
 
     private function account(Uuid $id): User

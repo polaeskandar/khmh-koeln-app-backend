@@ -8,16 +8,22 @@ use App\Context\Organization\Domain\Entity\StaffAssignment;
 use App\Context\Organization\Domain\Repository\RegistrationServiceRepositoryInterface;
 use App\Context\Organization\Domain\Repository\StaffAssignmentRepositoryInterface;
 use App\Context\Organization\Domain\ValueObject\ChosenPlacement;
+use App\Library\Collections\Model\Collections;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\RuleViolation;
+use Closure;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class AssignmentChanges
 {
+    private const int MAX_CHOSEN = 50;
+
     public function __construct(
         private StaffAssignmentRepositoryInterface $assignments,
-        private AssignmentChoices $choices,
+        private PlacementChoices $placements,
         private RegistrationServiceRepositoryInterface $registrations,
     ) {
     }
@@ -29,7 +35,32 @@ final readonly class AssignmentChanges
      */
     public function chosen(array $choices, string $field): ReadableCollection
     {
-        return $this->choices->chosen($choices, $field);
+        $listed = new ArrayCollection($choices);
+
+        if ($listed->count() > self::MAX_CHOSEN) {
+            throw InvalidInput::field($field, 'validation.tooMany', ['max' => self::MAX_CHOSEN]);
+        }
+
+        $pick =
+            /** @param array{serviceId: ?string, stageId: ?string} $choice */
+            fn (array $choice, int $index): ChosenPlacement => $this->placements->chosen(
+                $choice['serviceId'],
+                $choice['stageId'],
+                fieldPrefix: $field . '.' . $index . '.',
+            );
+
+        InvalidInput::all(...Collections::mapArray(
+            $choices,
+            /** @param array{serviceId: ?string, stageId: ?string} $choice */
+            static fn (array $choice, int $index): Closure => static fn (): ChosenPlacement => $pick($choice, $index),
+        ));
+
+        return new ArrayCollection(
+            Collections::firstPerKey(
+                new ArrayCollection(Collections::mapArray($choices, $pick)),
+                keyOf: self::keyOf(...),
+            )->getValues(),
+        );
     }
 
     /**
@@ -78,5 +109,13 @@ final readonly class AssignmentChanges
         $where = $group->stage?->name()->value ?? $group->service->name()->value;
 
         return new RuleViolation('assignments.alreadyAssigned', ['name' => $accountName, 'where' => $where]);
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private static function keyOf(ChosenPlacement $group): string
+    {
+        return $group->service->id()->toRfc4122() . '/' . ($group->stage?->id()->toRfc4122() ?? '');
     }
 }

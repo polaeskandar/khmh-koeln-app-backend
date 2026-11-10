@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Workflow\People;
 
 use App\Context\Identity\Application\Service\ParentAccounts;
-use App\Context\People\Application\Service\Children;
 use App\Context\People\Application\Service\Guardianship;
 use App\Context\People\Domain\Enum\GuardianKind;
 use App\Library\Problem\Exception\InvalidInput;
@@ -16,7 +15,6 @@ final readonly class LinkGuardianWorkflow
 {
     public function __construct(
         private ParentAccounts $accounts,
-        private Children $children,
         private Guardianship $guardianship,
         private Transactions $transactions,
     ) {
@@ -25,7 +23,7 @@ final readonly class LinkGuardianWorkflow
     public function __invoke(string $email, string $personId, string $relationship): void
     {
         $account = $this->accounts->activeByEmail($email);
-        $child = $this->children->active(Ids::toUuid($personId, notFound: 'person'));
+        $child = $this->guardianship->getActiveChild(Ids::toUuid($personId, notFound: 'person'));
 
         $kind = GuardianKind::tryFrom($relationship) ?? throw InvalidInput::field(
             'relationship',

@@ -7,7 +7,11 @@ namespace App\Context\People\Application\Service;
 use App\Context\People\Domain\Entity\GuardianRelationship;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\GuardianKind;
+use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
+use App\Context\People\Domain\Repository\PersonRepositoryInterface;
+use App\Library\Problem\Exception\NotFound;
+use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -16,8 +20,16 @@ final readonly class Guardianship
 {
     public function __construct(
         private GuardianRelationshipRepositoryInterface $links,
+        private PersonRepositoryInterface $people,
         private Calendar $calendar,
     ) {
+    }
+
+    public function getActiveChild(Uuid $personId): Person
+    {
+        $child = $this->people->find($personId) ?? throw NotFound::of('person');
+
+        return $child->status() === PersonStatus::Active ? $child : throw new RuleViolation('guardians.childInactive');
     }
 
     public function linkGuardian(Uuid $accountId, Person $child, GuardianKind $kind): void

@@ -103,7 +103,7 @@ final readonly class DoctrineLessonRepository implements LessonRepositoryInterfa
      * @param list<Uuid> $scheduleIds
      */
     #[Override]
-    public function currentBetween(array $scheduleIds, LocalDate $from, LocalDate $to): ReadableCollection
+    public function listCurrentBetween(array $scheduleIds, LocalDate $from, LocalDate $to): ReadableCollection
     {
         if ($scheduleIds === []) {
             return new ArrayCollection();
