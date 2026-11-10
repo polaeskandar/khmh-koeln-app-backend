@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\People;
 
-use App\Context\People\Application\Service\MembershipEndings;
+use App\Context\People\Application\Service\MembershipWrites;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\ValueObject\PersonName;
@@ -57,7 +57,7 @@ final class DirectoryControllerTest extends ApiTestCase
         $youth = Structure::service('Youth');
         $kiro = new Person(PersonName::of('Kirollos', 'Iskander', 'Kiro'));
         $ended = new Membership($kiro, $youth->id(), null, Tenure::from(LocalDate::of('2020-01-01')));
-        MembershipEndings::end($ended, LocalDate::of('2021-01-01'));
+        MembershipWrites::end($ended, LocalDate::of('2021-01-01'));
 
         $this->database()->persisted(
             $school,

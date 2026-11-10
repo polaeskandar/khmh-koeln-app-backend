@@ -12,7 +12,7 @@ use App\Context\Meetings\Application\Service\ScheduleRemovals;
 use App\Context\Organization\Application\Service\StructureRemovals;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\ValueObject\StructureUse;
-use App\Context\People\Application\Service\Memberships;
+use App\Context\People\Domain\Query\MembershipQueryInterface;
 use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\StructureGroup;
 use Symfony\Component\Uid\Uuid;
@@ -24,7 +24,7 @@ final readonly class DeleteServiceWorkflow
         private StructureRemovals $removals,
         private ScheduleRemovals $schedules,
         private StageLessons $lessons,
-        private Memberships $memberships,
+        private MembershipQueryInterface $memberships,
     ) {
     }
 

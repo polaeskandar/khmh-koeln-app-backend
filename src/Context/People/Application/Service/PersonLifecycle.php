@@ -53,7 +53,7 @@ final readonly class PersonLifecycle
             ->filter(static fn (Membership $membership): bool => $membership->tenure()->endsOn === null);
 
         foreach ($open as $membership) {
-            match (MembershipEndings::end($membership, $today)) {
+            match (MembershipWrites::end($membership, $today)) {
                 MembershipEnding::DeleteInstead => $this->memberships->remove($membership),
                 MembershipEnding::Ended => $this->memberships->save($membership),
             };

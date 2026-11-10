@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Context\People\Application\Service;
 
-use App\Context\People\Application\Service\MembershipEndings;
+use App\Context\People\Application\Service\MembershipWrites;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\MembershipEnding;
@@ -15,13 +15,13 @@ use App\Library\Time\Model\LocalDate;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
 
-final class MembershipEndingsTest extends TestCase
+final class MembershipWritesTest extends TestCase
 {
     public function testEndingFromTodayEndsItYesterday(): void
     {
         $membership = self::startingOn('2026-09-01');
 
-        self::assertSame(MembershipEnding::Ended, MembershipEndings::end($membership, LocalDate::of('2026-11-08')));
+        self::assertSame(MembershipEnding::Ended, MembershipWrites::end($membership, LocalDate::of('2026-11-08')));
 
         self::assertSame('2026-11-07', $membership->tenure()->endsOn?->toString());
     }
@@ -30,7 +30,7 @@ final class MembershipEndingsTest extends TestCase
     {
         $membership = self::startingOn('2026-11-08');
 
-        self::assertSame(MembershipEnding::DeleteInstead, MembershipEndings::end(
+        self::assertSame(MembershipEnding::DeleteInstead, MembershipWrites::end(
             $membership,
             LocalDate::of('2026-11-08'),
         ));
@@ -41,11 +41,11 @@ final class MembershipEndingsTest extends TestCase
     public function testAnEndedMembershipCannotEndAgain(): void
     {
         $membership = self::startingOn('2026-09-01');
-        MembershipEndings::end($membership, LocalDate::of('2026-11-08'));
+        MembershipWrites::end($membership, LocalDate::of('2026-11-08'));
 
         $this->expectExceptionObject(new RuleViolation('people.membershipEnded'));
 
-        MembershipEndings::end($membership, LocalDate::of('2026-11-09'));
+        MembershipWrites::end($membership, LocalDate::of('2026-11-09'));
     }
 
     private static function startingOn(string $date): Membership

@@ -6,19 +6,16 @@ namespace App\Context\People\Domain\Repository;
 
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\Query\MembershipQueryInterface;
 use App\Context\People\Domain\ValueObject\Placement;
 use App\Library\Time\Model\LocalDate;
 use Symfony\Component\Uid\Uuid;
 
-interface MembershipRepositoryInterface
+interface MembershipRepositoryInterface extends MembershipQueryInterface
 {
     public function save(Membership $membership): void;
 
     public function remove(Membership $membership): void;
-
-    public function countInService(Uuid $serviceId): int;
-
-    public function countInStage(Uuid $stageId): int;
 
     public function hasCurrent(Person $person, Uuid $serviceId, ?Uuid $stageId, LocalDate $on): bool;
 
