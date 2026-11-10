@@ -10,7 +10,6 @@ use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
 use App\Context\Organization\Domain\ValueObject\Description;
 use App\Context\Organization\Domain\ValueObject\StageName;
 use App\Library\Problem\Exception\InvalidInput;
-use App\Library\Problem\Exception\RuleViolation;
 
 final readonly class StageChecks
 {
@@ -32,13 +31,6 @@ final readonly class StageChecks
     public static function description(?string $description): Description
     {
         return Description::of($description, max: self::DESCRIPTION_LENGTH);
-    }
-
-    public static function ensureOpen(Service $service): void
-    {
-        if ($service->isArchived()) {
-            throw new RuleViolation('services.archivedNoStageChanges', ['name' => $service->name()->value]);
-        }
     }
 
     public function ensureFree(Service $service, StageName $name, ?Stage $stage): void

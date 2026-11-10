@@ -7,10 +7,12 @@ namespace App\Context\People\Application\Service;
 use App\Context\People\Domain\Entity\GuardianRelationship;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\GuardianKind;
+use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\ValueObject\AccessGrant;
-use App\Context\People\Domain\ValueObject\ActiveChild;
+use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Time\Client\Calendar;
 use App\Platform\Doctrine\Contract\Transactions;
@@ -29,7 +31,17 @@ final readonly class ParentGrants
 
     public function child(string $personId): Person
     {
-        return ActiveChild::of(Uuid::isValid($personId) ? $this->people->find(Uuid::fromString($personId)) : null);
+        $child = Uuid::isValid($personId) ? $this->people->find(Uuid::fromString($personId)) : null;
+
+        if ($child === null) {
+            throw NotFound::of('person');
+        }
+
+        if ($child->status() !== PersonStatus::Active) {
+            throw InvalidInput::field('personId', 'accounts.childNotFound');
+        }
+
+        return $child;
     }
 
     /**

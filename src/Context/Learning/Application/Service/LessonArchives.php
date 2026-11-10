@@ -6,8 +6,8 @@ namespace App\Context\Learning\Application\Service;
 
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
+use App\Context\Learning\Domain\Validation\MeetingLessonRule;
 use App\Context\Learning\Domain\ValueObject\ArchivedLesson;
-use App\Context\Learning\Domain\ValueObject\MeetingHolder;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
 use App\Platform\Doctrine\Contract\Transactions;
@@ -51,7 +51,7 @@ final readonly class LessonArchives
     {
         $link = $lesson->link();
         $holder = $link->scheduleId === null ? null : $this->lessons->currentAt($link->scheduleId, $link->teachingDate);
-        MeetingHolder::ensureFreeFor($lesson, $holder);
+        MeetingLessonRule::ensureFreeToRestore($holder, $lesson);
         $lesson->changeState($lesson->state()->restored());
         $this->lessons->save($lesson);
 

@@ -8,7 +8,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
-use App\Context\Organization\Domain\ValueObject\Archival;
+use App\Context\Organization\Domain\Validation\ArchiveRule;
 use App\Context\Organization\Domain\ValueObject\StageLineup;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
@@ -31,7 +31,7 @@ final readonly class StageArchives
     public function archive(string $id, callable $pause): Stage
     {
         return $this->whileStructureLocked($id, function (Stage $stage) use ($pause): Stage {
-            self::archivalOf($stage)->ensureOpen('stages.alreadyArchived');
+            ArchiveRule::ensureStageOpen($stage);
 
             if (!$pause($stage)) {
                 throw new RuleViolation('stages.takingAttendance', ['name' => $stage->name()->value]);
@@ -46,7 +46,7 @@ final readonly class StageArchives
     public function restore(string $id): Stage
     {
         return $this->whileStructureLocked($id, function (Stage $stage): Stage {
-            self::archivalOf($stage)->ensureArchived('stages.notArchived');
+            ArchiveRule::ensureStageArchived($stage);
             $stage->restore();
 
             return $this->placed($stage);
@@ -62,7 +62,7 @@ final readonly class StageArchives
         $serviceId = $this->stages->serviceIdOf($stageId) ?? throw NotFound::of('stage');
 
         return $this->services->withStructureLock($serviceId, function (Service $service) use ($stageId, $work): Stage {
-            StageChecks::ensureOpen($service);
+            ArchiveRule::ensureStagesChangeable($service);
 
             return $work($this->stages->find($stageId) ?? throw NotFound::of('stage'));
         });
@@ -74,10 +74,5 @@ final readonly class StageArchives
         $this->order->renumber($lineup->placing($stage));
 
         return $stage;
-    }
-
-    private static function archivalOf(Stage $stage): Archival
-    {
-        return new Archival($stage->archivedAt(), $stage->name()->value);
     }
 }

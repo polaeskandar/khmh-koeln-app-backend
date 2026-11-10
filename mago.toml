@@ -144,7 +144,7 @@ deny-from = ["App\\Interface\\**"]
 reason = "Interface reaches the contexts through workflows; of a context it names only the enums in Domain\\Enum."
 
 [[guard.perimeter.restrictions]]
-dependency = "App\\Context\\*\\Domain\\{Attribute,Entity,Exception,Interface,Query,Repository,ValueObject}\\**"
+dependency = "App\\Context\\*\\Domain\\{Attribute,Entity,Exception,Interface,Query,Repository,Validation,ValueObject}\\**"
 deny-from = ["App\\Interface\\**"]
 reason = "Interface reaches the contexts through workflows; of a context it names only the enums in Domain\\Enum."
 
@@ -234,6 +234,11 @@ deny-from = ["App\\Workflow\\*\\Model\\**"]
 reason = "A workflow model is built from values; the workflow asks clients such as the Calendar."
 
 [[guard.perimeter.restrictions]]
+dependency = "App\\Context\\*\\{Application\\**,Infrastructure\\**,Domain\\Repository\\**,Domain\\Query\\**,Domain\\Interface\\**}"
+deny-from = ["App\\Context\\*\\Domain\\Validation\\**"]
+reason = "A domain rule is pure: the application service loads the facts and hands them over."
+
+[[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Identity\\Application\\Service\\AccessCheck"
 allow-from = ["App\\Workflow\\*", "App\\Tests\\**"]
 reason = "Workflows manage access; models, controllers and context services never check it."
@@ -283,6 +288,14 @@ target = "class"
 must-be-final = true
 must-be-readonly = true
 reason = "A value object is immutable."
+
+[[guard.structural.rules]]
+on = "App\\Context\\*\\Domain\\Validation\\**"
+must-be = ["class"]
+must-be-named = "*Rule"
+must-be-final = true
+must-be-readonly = true
+reason = "A domain rule is named <Rule>Rule and checks the values and entities it is given with ensure…() methods."
 
 [[guard.structural.rules]]
 on = "App\\Context\\*\\Domain\\Enum\\**"

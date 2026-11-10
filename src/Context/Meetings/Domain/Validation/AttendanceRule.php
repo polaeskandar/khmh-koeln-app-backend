@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Context\Meetings\Domain\ValueObject;
+namespace App\Context\Meetings\Domain\Validation;
 
 use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Library\Problem\Exception\RuleViolation;
 
-final readonly class MarkingRules
+final readonly class AttendanceRule
 {
     public static function ensureMarkable(SessionStatus $status): void
     {
