@@ -142,7 +142,10 @@ or passed on. Arguments are named when the call doesn't explain itself: a litera
 values of the same type (`new MigrationSet(context: …, schema: …, namespace: …, directory: …)`), an array or
 collection whose role isn't obvious (`new Readiness(status: …, checks: […])`), a callback
 (`Collections::firstPerKey($items, keyOf: …)`), or an optional argument after skipped ones. Calls whose
-meaning is clear from the method name stay positional (`new Problem($status, $code)`, `Text::format($pattern, …)`). Mago analyzer at the strictest level,
+meaning is clear from the method name stay positional (`new Problem($status, $code)`, `Text::format($pattern, …)`).
+Named arguments come in the order the callee declares its parameters, in attributes too
+(`#[OA\Response(ref: …, response: 'default')]`), so a call reads like the signature it fills
+(`tests/Architecture/NamedArgumentsFollowParameterOrderTest`). Mago analyzer at the strictest level,
 `literal-named-argument`, PHP Insights `DisallowMixedTypeHint`.
 
 Enums are backed (`enum Language: string`), so every case has a stable value for the database, JSON and

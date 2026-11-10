@@ -164,6 +164,7 @@
         "captainhook/hook-installer": "^1.0",
         "carthage-software/mago": "^1.59",
         "dama/doctrine-test-bundle": "^8.7",
+        "nikic/php-parser": "^5.9",
         "nunomaduro/phpinsights": "^2.15",
         "opis/json-schema": "^2.6.1",
         "phpunit/phpunit": "^13.4.5",
