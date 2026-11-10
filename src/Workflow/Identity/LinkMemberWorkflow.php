@@ -31,7 +31,7 @@ final readonly class LinkMemberWorkflow
             $note,
         ): void {
             $record = new MemberRecord($person->id(), $person->name()->fullName());
-            $this->accounts->link($account, $record, $age, $note);
+            $this->accounts->linkToRecord($account, $record, $age, $note);
         });
     }
 }

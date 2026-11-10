@@ -27,7 +27,7 @@ final readonly class AddStageWorkflow
     {
         $this->access->require(Action::Create, Resource::Stages);
 
-        $service = $this->services->find(Ids::toUuid($serviceId, notFound: 'service'));
+        $service = $this->services->get(Ids::toUuid($serviceId, notFound: 'service'));
         $group = StructureGroup::ofService($service);
         $this->access->requireIn(Action::Create, Resource::Stages, $group, missing: 'service');
 

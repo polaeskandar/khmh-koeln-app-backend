@@ -53,10 +53,10 @@ final readonly class ShowChildHomeworkWorkflow
 
     private function visibleTo(Uuid $viewer): VisibleHomework
     {
-        $family = $this->families->of($viewer);
+        $family = $this->families->familyOf($viewer);
 
-        return $this->accounts->account($viewer)?->status()->isActive() === true
-            ? VisibleHomework::forFamily($family, $this->homework->of(VisibleHomework::pupilsOf($family)))
+        return $this->accounts->findAccount($viewer)?->status()->isActive() === true
+            ? VisibleHomework::forFamily($family, $this->homework->tasksOf(VisibleHomework::pupilsOf($family)))
             : VisibleHomework::none($family);
     }
 

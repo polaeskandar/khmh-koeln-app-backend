@@ -29,7 +29,7 @@ final readonly class AssignmentChanges
      */
     public function chosen(array $choices, string $field): ReadableCollection
     {
-        return $this->choices->of($choices, $field);
+        return $this->choices->chosen($choices, $field);
     }
 
     /**

@@ -45,7 +45,7 @@ final readonly class AccessCheck
 
     public function scopeOf(Action $action, Resource $resource): GroupScope
     {
-        return $this->groups->ofViewer($action, $resource);
+        return $this->groups->scopeOfViewer($action, $resource);
     }
 
     public function requireIn(Action $action, Resource $resource, Group $group, string $missing): void

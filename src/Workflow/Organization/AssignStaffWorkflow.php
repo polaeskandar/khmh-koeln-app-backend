@@ -27,7 +27,7 @@ final readonly class AssignStaffWorkflow
     {
         $this->access->requireAssigning();
 
-        $account = $this->accounts->found(Ids::toUuid($accountId, notFound: 'user'));
+        $account = $this->accounts->get(Ids::toUuid($accountId, notFound: 'user'));
 
         return $this->placements->whileServicesKept([$serviceId], fn (): AssignmentView => $this->assigned(
             $account,
@@ -38,7 +38,7 @@ final readonly class AssignStaffWorkflow
 
     private function assigned(User $account, ?string $serviceId, ?string $stageId): AssignmentView
     {
-        $group = $this->placements->of($serviceId, $stageId, fieldPrefix: '');
+        $group = $this->placements->chosen($serviceId, $stageId, fieldPrefix: '');
         $this->access->requireAssigningIn(StructureGroup::ofPlacement($group));
 
         return AssignmentView::of($this->changes->assign(

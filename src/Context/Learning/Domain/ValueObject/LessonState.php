@@ -55,7 +55,7 @@ final readonly class LessonState
         };
     }
 
-    public function isCompletedAfter(LocalDate $teachingDate, LocalDate $today): bool
+    public function isCompletedBeforeTeachingDate(LocalDate $teachingDate, LocalDate $today): bool
     {
         return $this->status === LessonStatus::Completed && $today->isBefore($teachingDate);
     }

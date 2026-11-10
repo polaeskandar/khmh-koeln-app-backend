@@ -18,7 +18,7 @@ final readonly class LessonStatuses
     ) {
     }
 
-    public function change(Lesson $lesson, LessonStatus $status): Lesson
+    public function changeStatus(Lesson $lesson, LessonStatus $status): Lesson
     {
         $state = $lesson->state()->withStatus($status, $this->calendar->now());
 
@@ -26,7 +26,7 @@ final readonly class LessonStatuses
             return $lesson;
         }
 
-        if ($state->isCompletedAfter($lesson->link()->teachingDate, $this->calendar->today())) {
+        if ($state->isCompletedBeforeTeachingDate($lesson->link()->teachingDate, $this->calendar->today())) {
             throw new RuleViolation('lessons.taughtAfterDate');
         }
 

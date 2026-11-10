@@ -36,7 +36,7 @@ final readonly class RoleCatalog
         return $this->holders->holderCounts();
     }
 
-    public function find(Uuid $id): Role
+    public function get(Uuid $id): Role
     {
         return $this->roles->find($id) ?? throw NotFound::of('role');
     }

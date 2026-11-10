@@ -63,7 +63,7 @@ final readonly class ApproveMemberRequestWorkflow
             Uuid::fromString($actorId),
             new ArrayCollection(),
             function (User $user) use ($record, $age, $member): void {
-                $this->members->link($user, $record, $age, $member->guardianConsentNote);
+                $this->members->linkToRecord($user, $record, $age, $member->guardianConsentNote);
                 $this->registrations->forget($user->id());
             },
         );

@@ -60,7 +60,7 @@ final readonly class CreateScheduleWorkflow
 
     private function chosenRoster(?string $serviceId, ?string $stageId): ChosenPlacement
     {
-        $chosen = $this->placements->of($serviceId, $stageId, fieldPrefix: self::ROSTER);
+        $chosen = $this->placements->chosen($serviceId, $stageId, fieldPrefix: self::ROSTER);
 
         $this->access->requireChosen(
             Action::Create,

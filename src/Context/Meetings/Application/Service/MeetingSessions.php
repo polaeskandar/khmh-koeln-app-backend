@@ -33,9 +33,9 @@ final readonly class MeetingSessions
     /**
      * @return ReadableCollection<int, Session>
      */
-    public function on(LocalDate $date, GroupScope $scope): ReadableCollection
+    public function listOn(LocalDate $date, GroupScope $scope): ReadableCollection
     {
-        return CoveredSchedules::sessionsWithin($scope, $this->lists->on($date));
+        return CoveredSchedules::sessionsWithin($scope, $this->lists->listOn($date));
     }
 
     /**
@@ -95,7 +95,7 @@ final readonly class MeetingSessions
         );
     }
 
-    public function find(Uuid $id): Session
+    public function get(Uuid $id): Session
     {
         return $this->sessions->find($id) ?? throw NotFound::of('session');
     }

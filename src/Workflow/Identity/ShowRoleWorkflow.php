@@ -26,13 +26,13 @@ final readonly class ShowRoleWorkflow
     {
         $this->access->require(Action::Read, Resource::Roles, refusal: 'roles.adminOnly');
 
-        $role = $this->catalog->find(Ids::toUuid($id, notFound: 'role'));
+        $role = $this->catalog->get(Ids::toUuid($id, notFound: 'role'));
 
         return RoleDetails::of(
             $role,
             PermissionCatalog::grantsOf($role),
             $this->catalog->holdersOf($role),
-            onlyWayToChangeRoles: $this->lastAdministrator->isKeptOnlyBy($role),
+            onlyWayToChangeRoles: $this->lastAdministrator->isKeptOnlyByRole($role),
         );
     }
 }

@@ -25,13 +25,10 @@ final readonly class RenameSessionWorkflow
     public function __invoke(string $id, string $accountId, ?string $title, ?string $location): string
     {
         $this->access->require(Action::Update, Resource::Sessions);
-        $session = $this->sessions->find(Ids::toUuid($id, notFound: 'session'));
+        $session = $this->sessions->get(Ids::toUuid($id, notFound: 'session'));
         $group = CoveredSchedules::groupOfSession($session);
         $this->access->requireIn(Action::Update, Resource::Sessions, $group, missing: 'session');
 
-        return $this->details
-            ->change($session->id(), Uuid::fromString($accountId), $title, $location)
-            ->id()
-            ->toRfc4122();
+        return $this->details->edit($session->id(), Uuid::fromString($accountId), $title, $location)->id()->toRfc4122();
     }
 }

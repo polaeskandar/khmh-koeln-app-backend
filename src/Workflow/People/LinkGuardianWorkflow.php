@@ -33,7 +33,7 @@ final readonly class LinkGuardianWorkflow
         );
 
         $this->transactions->run(function () use ($account, $child, $kind): void {
-            $this->guardianship->link($account->id(), $child, $kind);
+            $this->guardianship->linkGuardian($account->id(), $child, $kind);
             $this->accounts->giveParentRole($account);
         });
     }

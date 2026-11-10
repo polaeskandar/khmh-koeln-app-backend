@@ -52,7 +52,7 @@ final readonly class MoveMembershipWorkflow
 
     private function movedTo(Membership $membership, ?string $stageId): AddedMembership
     {
-        $chosen = $this->placements->inService($membership->serviceId()->toRfc4122(), $stageId, field: 'stageId');
+        $chosen = $this->placements->chosenInService($membership->serviceId()->toRfc4122(), $stageId, field: 'stageId');
 
         $this->access->requireChosen(
             Action::Update,

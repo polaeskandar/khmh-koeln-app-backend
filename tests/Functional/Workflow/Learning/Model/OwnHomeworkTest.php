@@ -123,11 +123,11 @@ final class OwnHomeworkTest extends KernelTestCase
         $families->link($hoda, $youssef);
         $course->report('greeting', $youssef, 'hoda@example.org');
 
-        $family = self::service(ParentChildren::class)->of(Uuid::fromString($hoda));
+        $family = self::service(ParentChildren::class)->familyOf(Uuid::fromString($hoda));
 
         $asParent = VisibleHomework::forFamily(
             $family,
-            self::service(PupilHomework::class)->of(VisibleHomework::pupilsOf($family)),
+            self::service(PupilHomework::class)->tasksOf(VisibleHomework::pupilsOf($family)),
         )->of($youssef->id());
 
         $own = $this->own($youssef)->homework;
@@ -149,7 +149,7 @@ final class OwnHomeworkTest extends KernelTestCase
         $reports = self::service(HomeworkReports::class)->reading($task->id())->reports;
         $stage = self::service(StructureLookup::class)->stage($task->stageId());
         $key = AudienceKeys::keyOf($stage, $reports->today);
-        $book = self::service(StageRosters::class)->on([$key], $reports->reporterIds());
+        $book = self::service(StageRosters::class)->rosterBookOn([$key], $reports->reporterIds());
 
         $audiences = TaskAudiences::of(
             $reports,
@@ -182,7 +182,7 @@ final class OwnHomeworkTest extends KernelTestCase
     {
         $record = self::service(MemberRecords::class)->ownRecord($member->id());
 
-        return OwnHomework::of($record, self::service(PupilHomework::class)->of(OwnHomework::pupilsOf($record)));
+        return OwnHomework::of($record, self::service(PupilHomework::class)->tasksOf(OwnHomework::pupilsOf($record)));
     }
 
     /**

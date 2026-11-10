@@ -20,7 +20,7 @@ final readonly class Guardianship
     ) {
     }
 
-    public function link(Uuid $accountId, Person $child, GuardianKind $kind): void
+    public function linkGuardian(Uuid $accountId, Person $child, GuardianKind $kind): void
     {
         if ($this->links->approvedFor($accountId, $child) !== null) {
             return;

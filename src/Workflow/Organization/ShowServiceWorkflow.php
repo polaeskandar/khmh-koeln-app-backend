@@ -29,7 +29,7 @@ final readonly class ShowServiceWorkflow
     {
         $scope = $this->access->scope(Action::Read, Resource::Services);
 
-        $service = $this->services->find(Ids::toUuid($id, notFound: 'service'));
+        $service = $this->services->get(Ids::toUuid($id, notFound: 'service'));
         $this->access->requireReaching(Action::Read, Resource::Services, $service->id(), missing: 'service');
 
         return ServiceOverview::of(

@@ -50,16 +50,19 @@ final readonly class RoleDefinitions
     /**
      * @param list<array{action: string|null, resource: string|null}> $permissions
      */
-    public function change(Uuid $id, string $name, ?string $scope, array $permissions): void
+    public function edit(Uuid $id, string $name, ?string $scope, array $permissions): void
     {
         $this->administration->whileLocked(function () use ($id, $name, $scope, $permissions): void {
-            $role = $this->catalog->find($id);
+            $role = $this->catalog->get($id);
             self::check($name, $scope, $permissions);
             $roleName = RoleName::of($name);
             $selection = PermissionSelection::of($permissions);
             $this->ensureFree($roleName, $role);
 
-            if ($this->lastAdministrator->isKeptOnlyBy($role) && !$selection->grants(Action::Update, Resource::Roles)) {
+            if (
+                $this->lastAdministrator->isKeptOnlyByRole($role)
+                && !$selection->grants(Action::Update, Resource::Roles)
+            ) {
                 throw new RuleViolation('roles.lastAdministrator');
             }
 
@@ -73,9 +76,9 @@ final readonly class RoleDefinitions
     public function remove(Uuid $id): void
     {
         $this->administration->whileLocked(function () use ($id): void {
-            $role = $this->catalog->find($id);
+            $role = $this->catalog->get($id);
 
-            if ($this->lastAdministrator->isKeptOnlyBy($role)) {
+            if ($this->lastAdministrator->isKeptOnlyByRole($role)) {
                 throw new RuleViolation('roles.lastAdministrator');
             }
 

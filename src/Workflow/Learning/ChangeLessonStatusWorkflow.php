@@ -42,7 +42,7 @@ final readonly class ChangeLessonStatusWorkflow
 
         $chosen = LessonStatus::tryFrom($status) ?? throw InvalidInput::field('status', 'validation.invalidChoice');
 
-        return LessonStatusView::of($this->statuses->change($lesson, $chosen));
+        return LessonStatusView::of($this->statuses->changeStatus($lesson, $chosen));
     }
 
     private function ensureAllowed(Lesson $lesson): void

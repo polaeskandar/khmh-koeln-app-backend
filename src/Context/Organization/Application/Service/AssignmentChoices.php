@@ -25,7 +25,7 @@ final readonly class AssignmentChoices
      *
      * @return ReadableCollection<int, ChosenPlacement> each group once
      */
-    public function of(array $choices, string $field): ReadableCollection
+    public function chosen(array $choices, string $field): ReadableCollection
     {
         $listed = new ArrayCollection($choices);
 
@@ -35,7 +35,7 @@ final readonly class AssignmentChoices
 
         $pick =
             /** @param array{serviceId: ?string, stageId: ?string} $choice */
-            fn (array $choice, int $index): ChosenPlacement => $this->placements->of(
+            fn (array $choice, int $index): ChosenPlacement => $this->placements->chosen(
                 $choice['serviceId'],
                 $choice['stageId'],
                 fieldPrefix: $field . '.' . $index . '.',

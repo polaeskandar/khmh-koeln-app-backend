@@ -37,7 +37,7 @@ final readonly class ShowCurrentAccountWorkflow
 
     public function __invoke(string $userId): CurrentAccount
     {
-        $user = $this->accounts->find(Uuid::fromString($userId));
+        $user = $this->accounts->get(Uuid::fromString($userId));
 
         return new CurrentAccount(
             account: AccountSummary::of($user),

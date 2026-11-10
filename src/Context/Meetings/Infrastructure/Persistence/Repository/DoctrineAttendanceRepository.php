@@ -75,7 +75,7 @@ final readonly class DoctrineAttendanceRepository implements AttendanceRepositor
     }
 
     #[Override]
-    public function currentOf(Uuid $sessionId): ReadableCollection
+    public function currentMarksOf(Uuid $sessionId): ReadableCollection
     {
         return $this->entityManager->getRepository(Attendance::class)->matching(Criteria::create()
             ->where(Criteria::expr()->eq('session', $sessionId))

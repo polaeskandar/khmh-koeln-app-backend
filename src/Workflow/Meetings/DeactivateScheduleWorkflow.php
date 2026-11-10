@@ -25,7 +25,7 @@ final readonly class DeactivateScheduleWorkflow
     {
         $this->access->require(Action::Update, Resource::Sessions);
 
-        $schedule = $this->schedules->find(Ids::toUuid($id, notFound: 'schedule'));
+        $schedule = $this->schedules->get(Ids::toUuid($id, notFound: 'schedule'));
 
         $this->access->requireIn(
             Action::Update,

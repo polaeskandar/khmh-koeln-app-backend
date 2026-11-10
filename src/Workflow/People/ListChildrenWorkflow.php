@@ -34,10 +34,10 @@ final readonly class ListChildrenWorkflow
         $this->access->require(Action::Read, Resource::ParentPortal);
 
         $viewer = Uuid::fromString($viewerId);
-        $family = $this->families->of($viewer);
+        $family = $this->families->familyOf($viewer);
 
-        $visible = $this->accounts->account($viewer)?->status()->isActive() === true
-            ? VisibleHomework::forFamily($family, $this->homework->of(VisibleHomework::pupilsOf($family)))
+        $visible = $this->accounts->findAccount($viewer)?->status()->isActive() === true
+            ? VisibleHomework::forFamily($family, $this->homework->tasksOf(VisibleHomework::pupilsOf($family)))
             : VisibleHomework::none($family);
 
         $memberships = $visible->memberships();

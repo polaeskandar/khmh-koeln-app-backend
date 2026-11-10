@@ -50,7 +50,9 @@ final class TaskAudiencesTest extends KernelTestCase
         $key = AudienceKeys::keyOf($stage, LocalDate::of('2026-11-08'));
 
         self::assertSame(2, AudienceSize::of(
-            new TaskAudienceLookups(self::getContainer())->rosters()->on([$key], alsoPersonIds: []),
+            new TaskAudienceLookups(self::getContainer())
+                ->rosters()
+                ->rosterBookOn([$key], alsoPersonIds: []),
             $key,
         ));
 

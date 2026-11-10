@@ -49,7 +49,7 @@ final readonly class ListHomeworkWorkflow
         $homework = $this->homework->ofStage($stage->id());
         $reports = $homework->reports;
         $key = AudienceKeys::keyOf($stage, $reports->today);
-        $book = $this->rosters->on([$key], $reports->reporterIds());
+        $book = $this->rosters->rosterBookOn([$key], $reports->reporterIds());
 
         return new HomeworkList(
             stage: StageSummary::of($stage),

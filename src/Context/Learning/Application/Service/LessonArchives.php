@@ -23,7 +23,7 @@ final readonly class LessonArchives
     ) {
     }
 
-    public function find(Uuid $id): Lesson
+    public function get(Uuid $id): Lesson
     {
         return $this->lessons->find($id) ?? throw NotFound::of('lesson');
     }

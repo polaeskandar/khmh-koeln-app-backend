@@ -66,7 +66,7 @@ final readonly class CreatePersonWorkflow
             return null;
         }
 
-        $chosen = $this->placements->of($choice->serviceId, $choice->stageId, fieldPrefix: self::PLACEMENT);
+        $chosen = $this->placements->chosen($choice->serviceId, $choice->stageId, fieldPrefix: self::PLACEMENT);
 
         $this->access->requireChosen(
             Action::Create,

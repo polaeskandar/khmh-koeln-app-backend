@@ -34,15 +34,15 @@ final readonly class AttendanceMarks
     /**
      * @return ReadableCollection<int, Attendance>
      */
-    public function currentOf(Uuid $sessionId): ReadableCollection
+    public function currentMarksOf(Uuid $sessionId): ReadableCollection
     {
-        return $this->attendance->currentOf($sessionId);
+        return $this->attendance->currentMarksOf($sessionId);
     }
 
     /**
      * @return ReadableCollection<int, Attendance>
      */
-    public function removedOf(Uuid $sessionId): ReadableCollection
+    public function removedMarksOf(Uuid $sessionId): ReadableCollection
     {
         return $this->attendance->removedMarksOf($sessionId);
     }

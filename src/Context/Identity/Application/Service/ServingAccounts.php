@@ -25,7 +25,7 @@ final readonly class ServingAccounts
     ) {
     }
 
-    public function found(Uuid $id): User
+    public function get(Uuid $id): User
     {
         return $this->users->find($id) ?? throw NotFound::of('user');
     }

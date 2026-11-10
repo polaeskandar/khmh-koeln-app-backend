@@ -30,7 +30,7 @@ final readonly class ListServiceServantsWorkflow
     {
         $this->access->require(Action::Read, Resource::Services);
 
-        $service = $this->services->find(Ids::toUuid($serviceId, notFound: 'service'));
+        $service = $this->services->get(Ids::toUuid($serviceId, notFound: 'service'));
         $this->access->requireReaching(Action::Read, Resource::Services, $service->id(), missing: 'service');
         $this->access->requireAssigningIn(StructureGroup::ofService($service));
 

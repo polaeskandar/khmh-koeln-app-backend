@@ -65,7 +65,7 @@ final class RoleAssignmentsTest extends KernelTestCase
             'administrator',
         );
 
-        self::assertTrue($this->fixtures()->lastAdministrator()->is($admin));
+        self::assertTrue($this->fixtures()->lastAdministrator()->isKeptOnlyByAccount($admin));
 
         $this->assertRefused('roles.lastAdministrator', fn () => $this
             ->fixtures()
@@ -80,7 +80,7 @@ final class RoleAssignmentsTest extends KernelTestCase
         $admin = $this->fixtures()->account('admin@example.org', [], 'administrator');
         $this->fixtures()->account('other@example.org', [], 'administrator');
 
-        self::assertFalse($this->fixtures()->lastAdministrator()->is($admin));
+        self::assertFalse($this->fixtures()->lastAdministrator()->isKeptOnlyByAccount($admin));
         $this->fixtures()->assignments()->take('admin@example.org', 'Administrator');
 
         self::assertSame([], $this->fixtures()->roleKeysOf('admin@example.org'));

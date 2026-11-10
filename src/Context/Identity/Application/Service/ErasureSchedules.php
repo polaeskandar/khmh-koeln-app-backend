@@ -25,7 +25,7 @@ final readonly class ErasureSchedules
     {
         $this->administration->whileLocked(function () use ($accountId, $erasesOn): void {
             $this->users->withWriteLock($accountId, function (User $user) use ($erasesOn): void {
-                if ($this->lastAdministrator->is($user)) {
+                if ($this->lastAdministrator->isKeptOnlyByAccount($user)) {
                     throw new RuleViolation('roles.lastAdministrator');
                 }
 

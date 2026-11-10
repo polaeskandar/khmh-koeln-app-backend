@@ -40,7 +40,7 @@ final readonly class CreateOneOffSessionWorkflow
     private function created(OneOffChoice $oneOff, string $accountId): string
     {
         $roster = $oneOff->roster;
-        $chosen = $this->placements->of($roster->serviceId, $roster->stageId, fieldPrefix: self::ROSTER);
+        $chosen = $this->placements->chosen($roster->serviceId, $roster->stageId, fieldPrefix: self::ROSTER);
 
         $this->access->requireChosen(
             Action::Create,

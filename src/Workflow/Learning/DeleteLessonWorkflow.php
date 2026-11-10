@@ -28,7 +28,7 @@ final readonly class DeleteLessonWorkflow
     {
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.changeStageOnly');
 
-        $lesson = $this->archives->find(Ids::toUuid($id, notFound: 'lesson'));
+        $lesson = $this->archives->get(Ids::toUuid($id, notFound: 'lesson'));
         $stage = $this->structure->stage($lesson->stageId());
         $this->access->requireIn(Action::Update, Resource::Lessons, StructureGroup::ofStage($stage), missing: 'lesson');
         LessonStages::opened($stage);

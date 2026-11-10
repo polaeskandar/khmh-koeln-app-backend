@@ -26,7 +26,7 @@ final readonly class EditStageWorkflow
     {
         $this->access->require(Action::Update, Resource::Stages);
 
-        $found = $this->stages->find(Ids::toUuid($stageId, notFound: 'stage'));
+        $found = $this->stages->get(Ids::toUuid($stageId, notFound: 'stage'));
         $this->access->requireIn(Action::Update, Resource::Stages, StructureGroup::ofStage($found), missing: 'stage');
 
         $stage = $this->stages->edit($found->id(), $name, $description);

@@ -42,7 +42,7 @@ final readonly class ShowSessionWorkflow
     {
         $this->access->require(Action::Read, Resource::Services);
 
-        $session = $this->sessions->find(Ids::toUuid($id, notFound: 'session'));
+        $session = $this->sessions->get(Ids::toUuid($id, notFound: 'session'));
         $group = CoveredSchedules::groupOfSession($session);
         $this->access->requireIn(Action::Read, Resource::Services, $group, missing: 'session');
         $history = new ArrayCollection($this->historyOf($session));
@@ -56,7 +56,7 @@ final readonly class ShowSessionWorkflow
         return new SessionDetail(
             today: $this->calendar->today()->toString(),
             session: $this->viewOf($session, $progress),
-            state: SessionState::of($session, $this->accounts->account($session->progress()->closed->by)),
+            state: SessionState::of($session, $this->accounts->findAccount($session->progress()->closed->by)),
             schedule: ScheduleBrief::ofRecurring($session->schedule()),
             history: $history->getValues(),
         );

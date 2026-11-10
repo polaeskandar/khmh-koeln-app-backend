@@ -16,7 +16,7 @@ final readonly class ServiceChoices
     ) {
     }
 
-    public function of(?string $serviceId, string $field): Service
+    public function chosen(?string $serviceId, string $field): Service
     {
         $id = Ids::toUuidOrNull($serviceId);
         $service = $id === null ? null : $this->services->find($id);

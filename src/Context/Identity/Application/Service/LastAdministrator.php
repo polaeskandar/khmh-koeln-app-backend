@@ -19,7 +19,7 @@ final readonly class LastAdministrator
     ) {
     }
 
-    public function is(User $user): bool
+    public function isKeptOnlyByAccount(User $user): bool
     {
         $administers = RolePermissions::activeAccountHas($user, Action::Update, Resource::Roles);
 
@@ -33,10 +33,10 @@ final readonly class LastAdministrator
         $roleAdministers = RolePermissions::roleAllows($role, Action::Update, Resource::Roles);
         $keepsIt = RolePermissions::accountHasWithout($user, $role, Action::Update, Resource::Roles);
 
-        return $roleAdministers && !$keepsIt && $this->is($user);
+        return $roleAdministers && !$keepsIt && $this->isKeptOnlyByAccount($user);
     }
 
-    public function isKeptOnlyBy(Role $role): bool
+    public function isKeptOnlyByRole(Role $role): bool
     {
         $roleAdministers = RolePermissions::roleAllows($role, Action::Update, Resource::Roles);
         $othersDo = $this->holders->hasActiveAccountThatCanWithout($role, Action::Update, Resource::Roles);
