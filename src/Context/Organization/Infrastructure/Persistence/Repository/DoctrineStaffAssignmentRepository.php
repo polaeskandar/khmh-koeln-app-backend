@@ -68,6 +68,12 @@ final readonly class DoctrineStaffAssignmentRepository implements StaffAssignmen
         );
     }
 
+    #[Override]
+    public function ofService(Uuid $serviceId): ReadableCollection
+    {
+        return $this->listed($this->ordered()->where('s.id = :service')->setParameter('service', $serviceId));
+    }
+
     /**
      * @param list<Uuid> $serviceIds
      * @param list<Uuid> $stageIds

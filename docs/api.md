@@ -1466,6 +1466,22 @@ order; anything else → 422 field error `status`: `validation.invalidChoice`. A
 `services: read`. `{items: [AccountRef]}`, the approved, enabled accounts with the Service leader role, by name,
 the same for every viewer and every service: it lists accounts, not group data.
 
+#### `GET /api/services/{id}/servants`
+
+`services: read`, else 403 `forbidden`. 404 `notFound.service` for a service outside the viewer's groups, also for an
+id that is not a UUID. Inside them only those who may assign in the service as a whole get the list (the rule of
+`POST /api/accounts/{id}/assignments`: a church role with `users: update` or `stages: update`, or `stages: update`
+with an assignment to this service); anyone else → 403 `assignments.notAllowed`.
+
+→ 200 `{servants: [{assignmentId, account: {id, name}, stage: StageRef | null}], assignable: [{id, name}]}`, without
+email addresses:
+
+- `servants`: one row per assignment to the service (`stage` `null`) or to one of its stages, archived stages
+  included, of the active accounts with a role limited to assigned groups; by name, then the service itself first,
+  then by stage position. `DELETE /api/assignments/{id}` takes the `assignmentId`.
+- `assignable`: every active account with a role limited to assigned groups, by name, whether it serves here
+  already or not: the accounts the service's groups can be given to.
+
 #### `POST /api/services`
 
 `services: create` (403 `services.adminOnlyCreate`). Body `{name, description?}`. The name is cleaned (spaces
@@ -2259,10 +2275,12 @@ groups.
 
 #### `GET /api/member/servants`
 
-→ 200 `{items: [{id, name, role}]}`: the active staff accounts with a role limited to assigned groups whose
-assignments cover one of the member's current groups. `role` is `service_leader` for an account with a service
-assignment that covers one of them, else `servant`; leaders first, then by name. The app shows them with each
-group.
+→ 200 `{items: [{id, name, role, groups: [{service: ServiceRef, stage: StageRef | null}]}]}`: the active staff
+accounts with a role limited to assigned groups whose assignments cover one of the member's current groups. `role` is
+`service_leader` for an account with a service assignment that covers one of them, else `servant`; leaders first,
+then by name. `groups` are the member's current groups the account's assignments cover (archived ones included, as
+`archived` says), by service name, the service's own roster first, then by stage position; the app shows each
+servant with those groups.
 
 #### `GET /api/member/meetings`
 

@@ -28,6 +28,14 @@ final readonly class StaffAssignments
     }
 
     /**
+     * @return ReadableCollection<int, StaffAssignment> the service's own first, then by stage position
+     */
+    public function ofService(Uuid $serviceId): ReadableCollection
+    {
+        return $this->assignments->ofService($serviceId);
+    }
+
+    /**
      * @param list<Uuid> $serviceIds the services whose own rosters the groups are on
      * @param list<Uuid> $stageIds
      *

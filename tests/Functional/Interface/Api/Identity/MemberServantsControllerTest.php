@@ -37,7 +37,8 @@ final class MemberServantsControllerTest extends ApiTestCase
 
         $sunday = $sundaySchool->id()->toRfc4122();
         $this->staff('Zeina Gerges', ['servant'], [$sunday, $third->id()->toRfc4122()]);
-        $this->staff('Adel Fahmy', ['service_leader'], [$sunday, null]);
+        $adel = $this->staff('Adel Fahmy', ['service_leader'], [$sunday, null]);
+        new ServedGroups(self::getContainer())->assign($adel, $choir->id()->toRfc4122());
         $this->staff('Marina Tawfik', ['servant'], [$choir->id()->toRfc4122(), null]);
         $this->staff('Bishoy Adel', ['servant', 'administrator'], [$sunday, $third->id()->toRfc4122()]);
         $this->staff('Ramy Soliman', ['servant'], [$sunday, $first->id()->toRfc4122()]);
@@ -70,7 +71,57 @@ final class MemberServantsControllerTest extends ApiTestCase
             ], $this->items()),
         );
 
-        self::assertSame(['id', 'name', 'role'], array_keys(JsonBody::asArray($this->items()[0] ?? null, 'item')));
+        self::assertSame(
+            ['id', 'name', 'role', 'groups'],
+            array_keys(JsonBody::asArray($this->items()[0] ?? null, 'item')),
+        );
+    }
+
+    public function testEachServantCarriesTheMembersGroupsItsAssignmentsCover(): void
+    {
+        self::mockTime('2026-11-08T12:00:00+01:00');
+        $sundaySchool = Structure::service('Sunday School');
+        $third = Structure::stage($sundaySchool, '3rd Class', position: 2);
+        $first = Structure::stage($sundaySchool, '1st Class', position: 0);
+        $choir = Structure::service('Choir');
+        new Database(self::getContainer())->persisted($sundaySchool, $third, $first, $choir);
+        $rosters = new Rosters(self::getContainer());
+        $kirollos = $rosters->person('Kirollos', 'Girgis');
+        $rosters->place($kirollos, $sundaySchool, $third, '2026-09-01');
+        $rosters->place($kirollos, $choir, null, '2026-09-01');
+        $account = new SignInAccounts(self::getContainer())->add('kirollos@example.org');
+        new MemberLinks(self::getContainer())->link($account, $kirollos->id()->toRfc4122());
+
+        $sunday = $sundaySchool->id()->toRfc4122();
+        $adel = $this->staff('Adel Fahmy', ['service_leader'], [$sunday, null]);
+        new ServedGroups(self::getContainer())->assign($adel, $choir->id()->toRfc4122());
+        $zeina = $this->staff('Zeina Gerges', ['servant'], [$sunday, $third->id()->toRfc4122()]);
+        new ServedGroups(self::getContainer())->assign($zeina, $sunday, $first->id()->toRfc4122());
+
+        $this->signInAs('kirollos@example.org', SignInAccounts::TYPED);
+
+        $this->jsonRequest('GET', '/api/member/servants');
+
+        self::assertResponseIsSuccessful();
+        $choirGroup = ['service' => $this->serviceRef($choir->id()->toRfc4122(), 'Choir'), 'stage' => null];
+
+        $thirdGroup = [
+            'service' => $this->serviceRef($sunday, 'Sunday School'),
+            'stage' => ['id' => $third->id()->toRfc4122(), 'name' => '3rd Class', 'position' => 2, 'archived' => false],
+        ];
+
+        $this->assertJsonPath('items.0.name', 'Adel Fahmy');
+        $this->assertJsonPath('items.0.groups', [$choirGroup, $thirdGroup]);
+        $this->assertJsonPath('items.1.name', 'Zeina Gerges');
+        $this->assertJsonPath('items.1.groups', [$thirdGroup]);
+    }
+
+    /**
+     * @return array{id: string, name: string, tone: int, archived: bool}
+     */
+    private function serviceRef(string $id, string $name): array
+    {
+        return ['id' => $id, 'name' => $name, 'tone' => 1, 'archived' => false];
     }
 
     /**
@@ -86,12 +137,14 @@ final class MemberServantsControllerTest extends ApiTestCase
      * @param array{string, string|null} $group
      * @param array<string, string|null> $columns
      */
-    private function staff(string $name, array $roles, array $group, array $columns = []): void
+    private function staff(string $name, array $roles, array $group, array $columns = []): string
     {
         $email = strtolower(strtr($name, from: ' ', to: '.')) . '@example.org';
         $id = new SignInAccounts(self::getContainer())->add($email, ['display_name' => $name, ...$columns]);
 
         new RoleGrants(self::getContainer())->grant($id, ...$roles);
         new ServedGroups(self::getContainer())->assign($id, ...$group);
+
+        return $id;
     }
 }
