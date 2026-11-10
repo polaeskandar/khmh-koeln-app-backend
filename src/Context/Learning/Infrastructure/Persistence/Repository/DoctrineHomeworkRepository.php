@@ -142,12 +142,14 @@ final readonly class DoctrineHomeworkRepository implements HomeworkRepositoryInt
         return $this->entityManager
             ->getConnection()
             ->createQueryBuilder()
-            ->select('lesson_id', "count(*) FILTER (WHERE status = 'published') AS published")
-            ->addSelect("count(*) FILTER (WHERE status = 'draft') AS drafts")
+            ->select('lesson_id', 'count(*) FILTER (WHERE status = :published) AS published')
+            ->addSelect('count(*) FILTER (WHERE status = :draft) AS drafts')
             ->from('learning.homework_assignment')
             ->where('lesson_id IN (:lessons)')
             ->andWhere('archived_at IS NULL')
             ->groupBy('lesson_id')
+            ->setParameter('published', HomeworkStatus::Published->value)
+            ->setParameter('draft', HomeworkStatus::Draft->value)
             ->setParameter('lessons', self::ids($lessonIds), ArrayParameterType::STRING);
     }
 }

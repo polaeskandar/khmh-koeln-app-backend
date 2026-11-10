@@ -28,39 +28,29 @@ final readonly class HomeworkState
         return new self(HomeworkStatus::Draft, publishedAt: null, archivedAt: null);
     }
 
-    public function published(DateTimeImmutable $at): self
+    public function withStatus(HomeworkStatus $status): self
     {
-        return match (true) {
-            $this->archivedAt !== null => throw new RuleViolation('homework.archivedNoPublish'),
-            $this->status === HomeworkStatus::Published => $this,
-            default => new self(HomeworkStatus::Published, $at, $this->archivedAt),
-        };
+        return new self($status, $this->publishedAt, $this->archivedAt);
     }
 
-    public function archived(DateTimeImmutable $at): self
+    public function withPublishedAt(DateTimeImmutable $at): self
     {
-        return new self(HomeworkStatus::Archived, $this->publishedAt, $this->archivedAt ?? $at);
+        return new self($this->status, $at, $this->archivedAt);
     }
 
-    public function drafted(): self
+    public function withArchivedAt(?DateTimeImmutable $at): self
     {
-        return $this->status === HomeworkStatus::Published
-            ? new self(HomeworkStatus::Draft, $this->publishedAt, $this->archivedAt)
-            : throw new RuleViolation('homework.onlyPublishedBack');
+        return new self($this->status, $this->publishedAt, $at);
     }
 
-    public function restored(): self
+    public function wasPublished(): bool
     {
-        return match (true) {
-            $this->archivedAt === null => throw new RuleViolation('homework.notArchived'),
-            $this->publishedAt === null => new self(HomeworkStatus::Draft, publishedAt: null, archivedAt: null),
-            default => new self(HomeworkStatus::Published, $this->publishedAt, archivedAt: null),
-        };
+        return $this->publishedAt !== null;
     }
 
     public function ensureNeverPublished(): void
     {
-        if ($this->publishedAt !== null) {
+        if ($this->wasPublished()) {
             throw new RuleViolation('homework.publishedStays');
         }
     }

@@ -136,12 +136,12 @@ final class StateMachinesAnswerEveryPlaceTest extends KernelTestCase
         );
 
         self::assertInstanceOf(Transition::class, $named);
-        $metadata = $machine->getMetadataStore()->getTransitionMetadata($named);
-        self::assertIsArray($metadata['refusals'] ?? null);
 
-        return array_combine(
-            array_map(strval(...), array_keys($metadata['refusals'])),
-            array_map(strval(...), $metadata['refusals']),
+        $refusals = JsonBody::asArray(
+            $machine->getMetadataStore()->getTransitionMetadata($named)['refusals'] ?? [],
+            'refusals',
         );
+
+        return array_combine(array_map(strval(...), array_keys($refusals)), array_map(strval(...), $refusals));
     }
 }

@@ -4,23 +4,20 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Application\Service;
 
-use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\Entity\Lesson;
-use App\Context\Learning\Domain\Repository\LessonHomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\ArchivedLesson;
 use App\Context\Learning\Domain\ValueObject\MeetingHolder;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
 use App\Platform\Doctrine\Contract\Transactions;
-use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class LessonArchives
 {
     public function __construct(
         private LessonRepositoryInterface $lessons,
-        private LessonHomeworkRepositoryInterface $homework,
+        private HomeworkLifecycle $homework,
         private Transactions $transactions,
         private Calendar $calendar,
     ) {
@@ -43,17 +40,10 @@ final readonly class LessonArchives
             }
 
             $lesson->archive($at);
-            $archived = new ArrayCollection($this->homework->lockedOf($lesson->id()))->filter(
-                static fn (HomeworkAssignment $task): bool => $task->state()->archivedAt === null,
-            );
-
-            foreach ($archived as $task) {
-                $task->changeState($task->state()->archived($at));
-            }
-
+            $homeworkArchived = $this->homework->archiveAllOf($lesson, $at);
             $this->lessons->save($lesson);
 
-            return new ArchivedLesson($lesson, $archived->count());
+            return new ArchivedLesson($lesson, $homeworkArchived);
         });
     }
 

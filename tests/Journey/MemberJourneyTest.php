@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Journey;
 
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Context\Meetings\Domain\Entity\Schedule;
@@ -103,7 +104,13 @@ final class MemberJourneyTest extends ApiTestCase
             createdBy: null,
         );
 
-        $task->changeState($task->state()->published(new DateTimeImmutable('2026-11-08T12:00:00+01:00')));
+        $task->changeState(
+            $task
+                ->state()
+                ->withStatus(HomeworkStatus::Published)
+                ->withPublishedAt(new DateTimeImmutable('2026-11-08T12:00:00+01:00')),
+        );
+
         new Database(self::getContainer())->persisted($task);
 
         return [$advanced, $saturday, $task->id()->toRfc4122(), $youth->id()->toRfc4122()];

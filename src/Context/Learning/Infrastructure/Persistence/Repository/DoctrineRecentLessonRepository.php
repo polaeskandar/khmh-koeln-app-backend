@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Infrastructure\Persistence\Repository;
 
+use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Context\Learning\Domain\Repository\RecentLessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\TaughtLesson;
 use App\Library\Collections\Model\Collections;
@@ -20,7 +21,7 @@ final readonly class DoctrineRecentLessonRepository implements RecentLessonRepos
     private const string LAST = <<<'SQL'
         SELECT DISTINCT ON (stage_id) stage_id::text AS stage, title, teaching_date::text AS date, passage, memory_verse
         FROM learning.lesson
-        WHERE stage_id IN (:stages) AND status <> 'draft' AND archived_at IS NULL AND teaching_date <= :today
+        WHERE stage_id IN (:stages) AND status <> :draft AND archived_at IS NULL AND teaching_date <= :today
         ORDER BY stage_id, teaching_date DESC, id DESC
         SQL;
 
@@ -40,9 +41,8 @@ final readonly class DoctrineRecentLessonRepository implements RecentLessonRepos
         $rows = $this->entityManager->getConnection()->fetchAllAssociative(
             self::LAST,
             [
-                'stages' => new ArrayCollection($stageIds)->map(
-                    static fn (Uuid $id): string => $id->toRfc4122(),
-                )->getValues(),
+                'stages' => self::ids($stageIds),
+                'draft' => LessonStatus::Draft->value,
                 'today' => $today->toString(),
             ],
             ['stages' => ArrayParameterType::STRING],
@@ -59,5 +59,15 @@ final readonly class DoctrineRecentLessonRepository implements RecentLessonRepos
             passage: Type::of($row['passage'] ?? null)->toStringOrNull(),
             memoryVerse: Type::of($row['memory_verse'] ?? null)->toStringOrNull(),
         ))->toArray();
+    }
+
+    /**
+     * @param list<Uuid> $ids
+     *
+     * @return list<string>
+     */
+    private static function ids(array $ids): array
+    {
+        return new ArrayCollection($ids)->map(static fn (Uuid $id): string => $id->toRfc4122())->getValues();
     }
 }

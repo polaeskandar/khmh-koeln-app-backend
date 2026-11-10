@@ -7,6 +7,7 @@ namespace App\Workflow\Learning;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Learning\Application\Service\HomeworkLifecycle;
 use App\Context\Learning\Application\Service\HomeworkWrites;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Organization\Application\Service\StructureLookup;
@@ -20,6 +21,7 @@ final readonly class PublishHomeworkWorkflow
         private AccessCheck $access,
         private StructureLookup $structure,
         private HomeworkWrites $homework,
+        private HomeworkLifecycle $lifecycle,
     ) {
     }
 
@@ -43,6 +45,6 @@ final readonly class PublishHomeworkWorkflow
 
         LessonStages::opened($stage);
 
-        return $this->homework->publish($task);
+        return $this->lifecycle->publish($task);
     }
 }

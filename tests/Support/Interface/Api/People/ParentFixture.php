@@ -6,6 +6,7 @@ namespace App\Tests\Support\Interface\Api\People;
 
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\Entity\Lesson;
+use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Context\Organization\Domain\Entity\Stage;
@@ -36,7 +37,12 @@ final readonly class ParentFixture
         );
 
         if ($publishedAt !== null) {
-            $task->changeState($task->state()->published(new DateTimeImmutable($publishedAt)));
+            $task->changeState(
+                $task
+                    ->state()
+                    ->withStatus(HomeworkStatus::Published)
+                    ->withPublishedAt(new DateTimeImmutable($publishedAt)),
+            );
         }
 
         new Database($this->container)->persisted($task);

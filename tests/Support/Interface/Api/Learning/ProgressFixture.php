@@ -7,6 +7,7 @@ namespace App\Tests\Support\Interface\Api\Learning;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\Entity\HomeworkCompletion;
 use App\Context\Learning\Domain\Entity\Lesson;
+use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Context\Organization\Domain\Entity\Stage;
@@ -85,7 +86,13 @@ final readonly class ProgressFixture
             createdBy: null,
         );
 
-        $task->changeState($task->state()->published(new DateTimeImmutable('2026-11-01T09:00:00+01:00')));
+        $task->changeState(
+            $task
+                ->state()
+                ->withStatus(HomeworkStatus::Published)
+                ->withPublishedAt(new DateTimeImmutable('2026-11-01T09:00:00+01:00')),
+        );
+
         new Database($this->container)->persisted($task);
 
         return $task;
