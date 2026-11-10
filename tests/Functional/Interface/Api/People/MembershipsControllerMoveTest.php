@@ -11,6 +11,7 @@ use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Time\Model\LocalDate;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -32,7 +33,11 @@ final class MembershipsControllerMoveTest extends ApiTestCase
         [$school, $second, $third] = $this->structure();
         $mina = new Rosters(self::getContainer())->person('Mina');
         new Rosters(self::getContainer())->place($mina, $school, $second, '2026-09-01');
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->move($this->membershipOf($mina->id()->toRfc4122()), $third->id()->toRfc4122());
 
@@ -61,7 +66,11 @@ final class MembershipsControllerMoveTest extends ApiTestCase
         $mina = new Rosters(self::getContainer())->person('Mina');
         new Rosters(self::getContainer())->place($mina, $school, $second, '2026-11-08');
         $id = $this->membershipOf($mina->id()->toRfc4122());
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->move($id, $third->id()->toRfc4122());
         $this->assertJsonPath('id', $id);
@@ -89,7 +98,12 @@ final class MembershipsControllerMoveTest extends ApiTestCase
         $rosters->place($mina, $school, $third, '2026-09-01');
         $kiro = $rosters->person('Kiro');
         $rosters->place($kiro, $school, $second, '2026-09-01', '2026-10-01');
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
+
         $before = $this->rows();
         $minaInSecond = $this->membershipIn($mina->id()->toRfc4122(), $second);
 

@@ -11,6 +11,7 @@ use App\Context\Identity\Domain\Repository\MemberAccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\RoleHolderRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Collections\Model\Collections;
+use App\Platform\Access\Model\Group;
 use Collator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -24,6 +25,7 @@ final readonly class AccountLookup
         private UserRepositoryInterface $users,
         private RoleHolderRepositoryInterface $roleHolders,
         private MemberAccountRepositoryInterface $members,
+        private GroupPermissions $groups,
     ) {
     }
 
@@ -80,6 +82,23 @@ final readonly class AccountLookup
             static fn (User $user): string => (string) $collator->getSortKey($user->profile()->displayName->value);
 
         return Collections::sortedBy($this->users->activeThatCan($action, $resource), keyOf: $nameKeyOf);
+    }
+
+    /**
+     * @return list<User> by name
+     */
+    public function activeAllowedIn(Action $action, Resource $resource, Group $group): array
+    {
+        $allowed = $this->groups->allowedIn(
+            $this->users->activeThatCan($action, $resource),
+            $action,
+            $resource,
+            $group,
+        );
+
+        return new ArrayCollection($this->activeAllowedTo($action, $resource))
+            ->filter($allowed->contains(...))
+            ->getValues();
     }
 
     public function isActiveAndAllowedTo(Uuid $accountId, Action $action, Resource $resource): bool

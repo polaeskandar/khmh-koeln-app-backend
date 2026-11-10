@@ -8,6 +8,7 @@ use App\Context\Learning\Domain\Entity\Lesson;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Database;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 use Symfony\Component\Uid\Uuid;
@@ -20,7 +21,7 @@ final class HomeworkControllerRulesTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         $lesson = $this->lesson();
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
         $this->jsonRequest('POST', $this->create($lesson), $this->body([]));
         $id = $this->createdId();
         $connection = new Database(self::getContainer())->connection();
@@ -44,7 +45,7 @@ final class HomeworkControllerRulesTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         $lesson = $this->lesson();
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
         $this->jsonRequest('POST', $this->create($lesson), $this->body([]));
         $id = $this->createdId();
         $connection = new Database(self::getContainer())->connection();
@@ -86,7 +87,7 @@ final class HomeworkControllerRulesTest extends ApiTestCase
         $this->assertProblem(403, 'homework.changeStageOnly');
 
         foreach (['service_leader', 'administrator'] as $role) {
-            $this->signInWithRoles($role . '@example.org', $role);
+            new ServedGroups(self::getContainer())->everyService($this->signInWithRoles($role . '@example.org', $role));
             $this->jsonRequest('POST', $this->create($lesson), $this->body([]));
             self::assertResponseStatusCodeSame(201);
         }

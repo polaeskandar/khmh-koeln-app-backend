@@ -9,9 +9,11 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\RosterScopes;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Context\Organization\Domain\ValueObject\ChosenPlacement;
 use App\Context\People\Application\Service\PersonLists;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
+use App\Workflow\Organization\Model\StructureGroup;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\PageInfo;
 use App\Workflow\People\Model\PeoplePage;
@@ -31,11 +33,12 @@ final readonly class ListPeopleWorkflow
 
     public function __invoke(PeopleQuery $query): PeoplePage
     {
-        $this->access->require(Action::Read, Resource::Members);
+        $scope = $this->access->scope(Action::Read, Resource::Members);
 
-        $scope = $this->scopes->of($query->serviceId, $query->stageId);
-        $filter = $this->lists->filterOf($query->status, $scope?->service->id(), $scope?->stage?->id(), $query->text);
-        $people = $this->lists->page($filter, $query->page);
+        $roster = $this->scopes->of($query->serviceId, $query->stageId);
+        $this->requireShown($roster);
+        $filter = $this->lists->filterOf($query->status, $roster?->service->id(), $roster?->stage?->id(), $query->text);
+        $people = $this->lists->page($filter, $query->page, $scope);
         $memberships = $this->lists->membershipsOf($people);
 
         $placements = Placements::of(
@@ -51,7 +54,27 @@ final readonly class ListPeopleWorkflow
                 $placements,
                 $filter->today,
             ))->getValues(),
-            pages: new PageInfo($query->page, PersonLists::PAGE_SIZE, $this->lists->count($filter)),
+            pages: new PageInfo($query->page, PersonLists::PAGE_SIZE, $this->lists->count($filter, $scope)),
         );
+    }
+
+    private function requireShown(?ChosenPlacement $roster): void
+    {
+        if ($roster?->stage !== null) {
+            $this->access->requireIn(
+                Action::Read,
+                Resource::Members,
+                StructureGroup::ofPlacement($roster),
+                missing: 'stage',
+            );
+
+            return;
+        }
+
+        if ($roster === null) {
+            return;
+        }
+
+        $this->access->requireReaching(Action::Read, Resource::Members, $roster->service->id(), missing: 'service');
     }
 }

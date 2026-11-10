@@ -12,6 +12,7 @@ use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Tests\Support\Interface\Api\Learning\LessonRequests;
@@ -27,7 +28,11 @@ final class LessonsControllerHelpersTest extends ApiTestCase
         self::mockTime('2026-11-08T10:00:00+01:00');
         [$third, $class] = $this->thirdClass();
         $christine = $this->servant('christine@example.org', 'Christine Adel');
-        $daniel = $this->signInWithRoles('daniel@example.org', 'servant');
+
+        $daniel = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'daniel@example.org',
+            'servant',
+        ));
 
         $this->jsonRequest('POST', '/api/stages/' . $third->id()->toRfc4122() . '/lessons', [
             'details' => ['title' => 'The Good Samaritan', 'collaboratorIds' => [$christine, $christine, $daniel]],
@@ -48,7 +53,11 @@ final class LessonsControllerHelpersTest extends ApiTestCase
         self::mockTime('2026-11-08T10:00:00+01:00');
         [$third, $class] = $this->thirdClass();
         $christine = $this->servant('christine@example.org', 'Christine Adel');
-        $daniel = $this->signInWithRoles('daniel@example.org', 'servant');
+
+        $daniel = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'daniel@example.org',
+            'servant',
+        ));
 
         $this->jsonRequest('POST', '/api/stages/' . $third->id()->toRfc4122() . '/lessons', [
             'details' => [
@@ -90,7 +99,12 @@ final class LessonsControllerHelpersTest extends ApiTestCase
         $christine = $this->servant('christine@example.org', 'Christine Adel');
         $mina = $this->servant('mina@example.org', 'Mina Wassef');
         $parent = new SignInAccounts(self::getContainer())->add('hoda@example.org');
-        $daniel = $this->signInWithRoles('daniel@example.org', 'servant');
+
+        $daniel = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'daniel@example.org',
+            'servant',
+        ));
+
         $lesson = new Lessons(self::getContainer())->stored($third, $class, '2026-11-15');
 
         new Database(self::getContainer())
@@ -130,7 +144,7 @@ final class LessonsControllerHelpersTest extends ApiTestCase
         $christine = $this->servant('christine@example.org', 'Christine Adel');
         $lessons = new Lessons(self::getContainer());
         $this->helped($lessons->stored($third, $class, '2026-11-15')->id()->toRfc4122(), $christine);
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
         $path = '/api/stages/' . $third->id()->toRfc4122() . '/lessons?tab=upcoming';
         $this->jsonRequest('GET', $path);
         $few = \count(new Logs(self::getContainer())->containing('SELECT'));
@@ -157,6 +171,7 @@ final class LessonsControllerHelpersTest extends ApiTestCase
     {
         $id = new SignInAccounts(self::getContainer())->add($email, ['display_name' => $name]);
         new RoleGrants(self::getContainer())->grant($id, 'servant');
+        new ServedGroups(self::getContainer())->everyService($id);
 
         return $id;
     }

@@ -18,6 +18,7 @@ use App\Context\People\Domain\ValueObject\Placement;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\Text;
+use App\Workflow\Organization\Model\StructureGroup;
 use App\Workflow\People\Model\CreatedPerson;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\DirectoryEntry;
@@ -27,6 +28,8 @@ use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class CreatePersonWorkflow
 {
+    private const string PLACEMENT = 'placement.';
+
     public function __construct(
         private AccessCheck $access,
         private PersonRecords $records,
@@ -58,10 +61,19 @@ final readonly class CreatePersonWorkflow
     private function placementOf(?PlacementChoice $choice): ?Placement
     {
         if ($choice === null) {
+            $this->access->requireChosen(Action::Create, Resource::Members, null, fieldPrefix: self::PLACEMENT);
+
             return null;
         }
 
-        $chosen = $this->placements->of($choice->serviceId, $choice->stageId, fieldPrefix: 'placement.');
+        $chosen = $this->placements->of($choice->serviceId, $choice->stageId, fieldPrefix: self::PLACEMENT);
+
+        $this->access->requireChosen(
+            Action::Create,
+            Resource::Members,
+            StructureGroup::ofPlacement($chosen),
+            fieldPrefix: self::PLACEMENT,
+        );
 
         return new Placement($chosen->service->id(), $chosen->stage?->id());
     }

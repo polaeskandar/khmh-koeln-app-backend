@@ -13,6 +13,7 @@ use App\Context\Organization\Application\Service\StructureLookup;
 use App\Workflow\Learning\Model\HomeworkChoice;
 use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Learning\Model\WrittenHomework;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class EditHomeworkWorkflow
 {
@@ -34,7 +35,16 @@ final readonly class EditHomeworkWorkflow
 
     private function edited(HomeworkAssignment $task, HomeworkChoice $choice): HomeworkAssignment
     {
-        LessonStages::opened($this->structure->stage($task->stageId()->toRfc4122()));
+        $stage = $this->structure->stage($task->stageId()->toRfc4122());
+
+        $this->access->requireIn(
+            Action::Update,
+            Resource::Homework,
+            StructureGroup::ofStage($stage),
+            missing: 'homework',
+        );
+
+        LessonStages::opened($stage);
 
         return $this->homework->edit($task, $choice->draft());
     }

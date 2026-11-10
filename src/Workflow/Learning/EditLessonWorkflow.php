@@ -20,6 +20,7 @@ use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Learning\Model\OfferedMeetings;
 use App\Workflow\Learning\Model\TeamChoices;
 use App\Workflow\Learning\Model\WrittenLesson;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class EditLessonWorkflow
 {
@@ -36,7 +37,8 @@ final readonly class EditLessonWorkflow
     {
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.changeStageOnly');
 
-        $lesson = $this->lessons->editable($id, $version);
+        $lesson = $this->lessons->editable($id, $version, ensureAllowed: $this->ensureAllowed(...));
+        $group = StructureGroup::ofStage($this->structure->stage($lesson->stageId()->toRfc4122()));
         $stage = LessonStages::opened($this->structure->stage($lesson->stageId()->toRfc4122()));
         $draft = $choice->draft();
 
@@ -47,9 +49,15 @@ final readonly class EditLessonWorkflow
                 $stage,
                 $draft,
                 $this->offeredFor($draft->meeting),
-                TeamChoices::of($choice, $this->accounts->activeAllowedTo(Action::Update, Resource::Lessons)),
+                TeamChoices::of($choice, $this->accounts->activeAllowedIn(Action::Update, Resource::Lessons, $group)),
             ),
         ));
+    }
+
+    private function ensureAllowed(Lesson $lesson): void
+    {
+        $stage = $this->structure->stage($lesson->stageId()->toRfc4122());
+        $this->access->requireIn(Action::Update, Resource::Lessons, StructureGroup::ofStage($stage), missing: 'lesson');
     }
 
     private function offeredFor(MeetingChoice $choice): ?OfferedMeeting

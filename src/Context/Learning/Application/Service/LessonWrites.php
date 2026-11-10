@@ -31,12 +31,16 @@ final readonly class LessonWrites
     ) {
     }
 
-    public function editable(string $id, ?int $version): Lesson
+    /**
+     * @param callable(Lesson): void $ensureAllowed
+     */
+    public function editable(string $id, ?int $version, callable $ensureAllowed): Lesson
     {
         $lesson = (Uuid::isValid($id) ? $this->lessons->find(Uuid::fromString($id)) : null) ?? throw NotFound::of(
             'lesson',
         );
 
+        $ensureAllowed($lesson);
         $lesson->state()->ensureEditable();
         $this->versions->ensureCurrent($lesson, $version, 'lessons.changedMeanwhile');
 

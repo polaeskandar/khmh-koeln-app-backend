@@ -8,6 +8,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Domain\Entity\Person;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -32,7 +33,8 @@ final class PeopleControllerListTest extends ApiTestCase
         $rosters->place($mina, $youth, null, '2026-09-01');
         $bishoy = $rosters->person('Bishoy', 'Gerges');
         $rosters->place($bishoy, $school, $third, '2026-09-01', '2026-11-07');
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         $this->jsonRequest('GET', '/api/people');
 
@@ -56,7 +58,7 @@ final class PeopleControllerListTest extends ApiTestCase
         $rosters->place($rosters->person('Mina'), $school, $third, '2026-09-01');
         $rosters->place($rosters->person('Marina'), $school, $fourth, '2026-09-01');
         $rosters->person('Kirollos');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/people?stageId=' . $third->id()->toRfc4122());
         $this->assertJsonPath('total', 1);
@@ -89,7 +91,7 @@ final class PeopleControllerListTest extends ApiTestCase
             ->connection()
             ->update('people.person', ['status' => 'inactive'], ['id' => $marina->id()->toRfc4122()]);
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         $this->jsonRequest('GET', '/api/people?q=mina%20han');
         $this->assertJsonPath('total', 1);
@@ -118,7 +120,7 @@ final class PeopleControllerListTest extends ApiTestCase
     public function testPagesHoldTwentyFiveRowsAndTheTotal(): void
     {
         $this->people(30);
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         $this->jsonRequest('GET', '/api/people?page=2');
 
@@ -143,7 +145,7 @@ final class PeopleControllerListTest extends ApiTestCase
         [$school, $third] = $this->structure('Sunday School');
         $rosters = new Rosters(self::getContainer());
         $rosters->place($rosters->person('Mina'), $school, $third, '2026-09-01');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/people');
         $few = count(new Logs(self::getContainer())->containing('SELECT'));

@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Interface\Api\Learning;
 
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Interface\Api\Learning\ProgressFixture;
 use App\Tests\Support\JsonBody;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
@@ -19,7 +20,11 @@ final class HomeworkControllerProgressAccessTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T12:30:00+01:00');
         [$task] = new ProgressFixture(self::getContainer())->create();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('GET', $this->path($task));
         $progress = $this->responseJson();
@@ -63,7 +68,7 @@ final class HomeworkControllerProgressAccessTest extends ApiTestCase
         $this->assertProblem(401, 'auth.unauthenticated');
 
         foreach (['servant', 'service_leader', 'administrator'] as $role) {
-            $this->signInWithRoles($role . '@example.org', $role);
+            new ServedGroups(self::getContainer())->everyService($this->signInWithRoles($role . '@example.org', $role));
             $this->jsonRequest('GET', $this->path($task));
             self::assertResponseIsSuccessful();
         }
@@ -72,7 +77,7 @@ final class HomeworkControllerProgressAccessTest extends ApiTestCase
         $this->jsonRequest('GET', $this->path($task));
         $this->assertProblem(403, 'forbidden');
 
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         foreach ([Uuid::v7()->toRfc4122(), 'not-a-uuid'] as $unknown) {
             $this->jsonRequest('GET', '/api/homework/' . $unknown . '/progress');

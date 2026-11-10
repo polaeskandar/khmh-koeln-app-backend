@@ -9,6 +9,7 @@ use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Database;
 
 final class HomeworkControllerVersionTest extends ApiTestCase
@@ -16,7 +17,7 @@ final class HomeworkControllerVersionTest extends ApiTestCase
     public function testASecondEditWithTheSameVersionIsRefusedAndTheFirstStays(): void
     {
         $task = $this->task();
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
         $this->jsonRequest('GET', $this->path($task));
         $this->assertJsonPath('version', 1);
 
@@ -49,7 +50,7 @@ final class HomeworkControllerVersionTest extends ApiTestCase
     public function testPublishingMovesTheVersion(): void
     {
         $task = $this->task();
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('POST', $this->path($task) . '/publish', []);
         $this->assertJsonPath('version', 2);

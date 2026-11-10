@@ -20,6 +20,7 @@ use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Learning\Model\OfferedMeetings;
 use App\Workflow\Learning\Model\TeamChoices;
 use App\Workflow\Learning\Model\WrittenLesson;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class CreateLessonWorkflow
 {
@@ -41,7 +42,10 @@ final readonly class CreateLessonWorkflow
 
     private function created(string $stageId, LessonChoice $choice): WrittenLesson
     {
-        $stage = LessonStages::opened($this->structure->stage($stageId));
+        $found = $this->structure->stage($stageId);
+        $group = StructureGroup::ofStage($found);
+        $this->access->requireIn(Action::Create, Resource::Lessons, $group, missing: 'stage');
+        $stage = LessonStages::opened($found);
         $draft = $choice->draft();
 
         return WrittenLesson::of($this->meetings->whileScheduleKept(
@@ -50,7 +54,7 @@ final readonly class CreateLessonWorkflow
                 $stage,
                 $draft,
                 $this->offeredFor($draft->meeting),
-                TeamChoices::of($choice, $this->accounts->activeAllowedTo(Action::Update, Resource::Lessons)),
+                TeamChoices::of($choice, $this->accounts->activeAllowedIn(Action::Update, Resource::Lessons, $group)),
             ),
         ));
     }

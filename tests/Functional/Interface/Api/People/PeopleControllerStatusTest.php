@@ -11,6 +11,7 @@ use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Time\Model\LocalDate;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -36,7 +37,8 @@ final class PeopleControllerStatusTest extends ApiTestCase
         $rosters->place($lydia, $school, $fourth, '2026-09-01');
         $rosters->place($lydia, $youth, null, '2026-10-01');
         $rosters->place($lydia, $school, null, '2026-11-08');
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         $this->deactivate($lydia->id()->toRfc4122());
 
@@ -66,7 +68,7 @@ final class PeopleControllerStatusTest extends ApiTestCase
         $rosters = new Rosters(self::getContainer());
         $lydia = $rosters->person('Lydia', 'Gerges');
         $rosters->place($lydia, $school, $fourth, '2026-09-01');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->signInWithRoles('office@example.org', 'administrator');
         $id = $lydia->id()->toRfc4122();
 
         $this->deactivate($id);
@@ -88,7 +90,9 @@ final class PeopleControllerStatusTest extends ApiTestCase
     {
         [$school, $fourth] = $this->structure();
         $lydia = new Rosters(self::getContainer())->person('Lydia', 'Gerges');
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        $this->signInWithRoles('office@example.org', 'administrator');
+
         $this->deactivate($lydia->id()->toRfc4122());
 
         $this->jsonRequest('POST', '/api/people/' . $lydia->id()->toRfc4122() . '/memberships', [
@@ -114,7 +118,10 @@ final class PeopleControllerStatusTest extends ApiTestCase
                 ->fetchOne('SELECT id FROM people.membership WHERE person_id = ?', [$lydia->id()->toRfc4122()]),
         )->toString();
 
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('POST', '/api/memberships/' . $membership . '/move', ['stageId' => null]);
 
@@ -133,7 +140,12 @@ final class PeopleControllerStatusTest extends ApiTestCase
     public function testUnknownPeopleAndParentsAreRefused(): void
     {
         $lydia = new Rosters(self::getContainer())->person('Lydia', 'Gerges');
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
+
         $this->deactivate(Uuid::v7()->toRfc4122());
         $this->assertProblem(404, 'notFound.person');
         $this->deactivate('not-a-person');

@@ -26,6 +26,7 @@ use App\Workflow\Learning\Model\HomeworkLessonView;
 use App\Workflow\Learning\Model\HomeworkView;
 use App\Workflow\Learning\Model\LessonStageView;
 use App\Workflow\Learning\Model\TaskAudiences;
+use App\Workflow\Organization\Model\StructureGroup;
 use Doctrine\Common\Collections\ArrayCollection;
 
 final readonly class ShowHomeworkWorkflow
@@ -46,6 +47,13 @@ final readonly class ShowHomeworkWorkflow
         $reading = $this->homework->reading($id);
         $task = $reading->task;
         $stage = $this->structure->stage($task->stageId()->toRfc4122());
+
+        $this->access->requireIn(
+            Action::Read,
+            Resource::Homework,
+            StructureGroup::ofStage($stage),
+            missing: 'homework',
+        );
 
         return new HomeworkDetail(
             task: HomeworkView::of($reading),

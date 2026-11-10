@@ -8,6 +8,8 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\People\Application\Service\MembershipEndings;
+use App\Context\People\Application\Service\PersonGroups;
+use App\Context\People\Domain\Entity\Membership;
 
 final readonly class EndMembershipWorkflow
 {
@@ -21,6 +23,11 @@ final readonly class EndMembershipWorkflow
     {
         $this->access->require(Action::Delete, Resource::Members, refusal: 'people.removeNotAllowed');
 
-        $this->endings->endById($membershipId);
+        $this->endings->endById($membershipId, ensureAllowed: fn (Membership $membership) => $this->access->requireIn(
+            Action::Delete,
+            Resource::Members,
+            PersonGroups::groupOf($membership),
+            missing: 'membership',
+        ));
     }
 }

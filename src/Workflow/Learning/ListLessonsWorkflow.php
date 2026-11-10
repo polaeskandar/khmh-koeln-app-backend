@@ -23,6 +23,7 @@ use App\Workflow\Learning\Model\NoMeeting;
 use App\Workflow\Learning\Model\OffScheduleMeeting;
 use App\Workflow\Learning\Model\PlannedMeeting;
 use App\Workflow\Learning\Model\SessionMeeting;
+use App\Workflow\Organization\Model\StructureGroup;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 
@@ -42,9 +43,11 @@ final readonly class ListLessonsWorkflow
         $this->access->require(Action::Read, Resource::Lessons);
 
         $stage = $this->structure->stage($stageId);
+        $group = StructureGroup::ofStage($stage);
+        $this->access->requireIn(Action::Read, Resource::Lessons, $group, missing: 'stage');
         $listing = $this->lessons->listed($stage->id(), $tab, $query);
         $shown = new ArrayCollection($listing->shown);
-        $preparers = $this->accounts->activeAllowedTo(Action::Update, Resource::Lessons);
+        $preparers = $this->accounts->activeAllowedIn(Action::Update, Resource::Lessons, $group);
 
         return new LessonList(
             stage: LessonStageView::of($stage),

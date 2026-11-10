@@ -10,6 +10,7 @@ use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Database;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 use Symfony\Component\Uid\Uuid;
@@ -21,7 +22,7 @@ final class HomeworkControllerPublishTest extends ApiTestCase
     public function testAPublishStampsTheTimeOnceAndARetryChangesNothing(): void
     {
         $task = $this->task(new Lessons(self::getContainer())->inThirdClass());
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         self::mockTime('2026-11-08T10:00:00+01:00');
         $this->publish($task);
@@ -46,7 +47,7 @@ final class HomeworkControllerPublishTest extends ApiTestCase
                 ['id' => $task->id()->toRfc4122()],
             );
 
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
         self::mockTime('2026-11-08T10:00:00+01:00');
         $this->publish($task);
 
@@ -60,7 +61,7 @@ final class HomeworkControllerPublishTest extends ApiTestCase
         $task = $this->task($lesson);
         $connection = new Database(self::getContainer())->connection();
         $archived = ['archived_at' => '2026-11-01 12:00:00+01'];
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $connection->update('organization.stage', $archived, ['id' => $lesson->stageId()->toRfc4122()]);
         $this->publish($task);
@@ -92,7 +93,7 @@ final class HomeworkControllerPublishTest extends ApiTestCase
         $this->publish($task);
         $this->assertProblem(403, 'homework.changeStageOnly');
 
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         foreach ([Uuid::v7()->toRfc4122(), 'not-a-uuid'] as $unknown) {
             $this->jsonRequest('POST', '/api/homework/' . $unknown . '/publish', []);

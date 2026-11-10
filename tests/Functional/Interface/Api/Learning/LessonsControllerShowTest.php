@@ -9,6 +9,7 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
@@ -23,7 +24,7 @@ final class LessonsControllerShowTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         [$third, $lesson] = $this->lesson('2026-11-15');
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('GET', $this->path($lesson));
 
@@ -64,7 +65,7 @@ final class LessonsControllerShowTest extends ApiTestCase
     public function testTodayIsTheChurchDayAndAnArchivedLessonStaysReadable(): void
     {
         [, $lesson] = $this->lesson('2026-11-15');
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         self::mockTime('2026-11-14T23:30:00+01:00');
         $this->jsonRequest('GET', $this->path($lesson));
@@ -95,7 +96,7 @@ final class LessonsControllerShowTest extends ApiTestCase
         $this->jsonRequest('GET', $this->path($lesson));
         $this->assertProblem(401, 'auth.unauthenticated');
 
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         new Database(self::getContainer())
             ->connection()

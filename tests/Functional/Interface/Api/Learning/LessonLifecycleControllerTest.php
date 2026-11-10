@@ -15,6 +15,7 @@ use App\Library\Types\Model\Integers;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Learning\Domain\Entity\Reports;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
 use App\Tests\Support\Database;
 use DateTimeImmutable;
@@ -31,7 +32,7 @@ final class LessonLifecycleControllerTest extends ApiTestCase
         $published = [$this->publishedTask($lesson), $this->publishedTask($lesson)];
         $this->draftTask($lesson);
         new Reports(self::getContainer())->stored($published[0], new Families(self::getContainer())->child('Mina'));
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->post($lesson, 'archive');
 
@@ -65,7 +66,7 @@ final class LessonLifecycleControllerTest extends ApiTestCase
         $lessons = new Lessons(self::getContainer());
         $lesson = $lessons->inThirdClass();
         $this->publishedTask($lesson);
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
         $this->post($lesson, 'archive');
 
         $this->post($lesson, 'restore');
@@ -100,7 +101,7 @@ final class LessonLifecycleControllerTest extends ApiTestCase
 
         $published = $this->sibling($empty, '2026-12-06');
         $this->publishedTask($published);
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('DELETE', '/api/lessons/' . $empty->id()->toRfc4122());
         self::assertResponseStatusCodeSame(204);
@@ -134,7 +135,7 @@ final class LessonLifecycleControllerTest extends ApiTestCase
             ->connection()
             ->executeStatement('UPDATE organization.stage SET archived_at = now()');
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
         $this->post($lesson, 'archive');
         $this->assertProblem(409, 'lessons.stageArchived', ['name' => '3rd Class']);
 

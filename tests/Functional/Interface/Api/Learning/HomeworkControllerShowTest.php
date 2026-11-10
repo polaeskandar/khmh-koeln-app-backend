@@ -12,6 +12,7 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Library\Time\Model\LocalDate;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
@@ -27,7 +28,7 @@ final class HomeworkControllerShowTest extends ApiTestCase
         $lesson = $this->lesson();
         $this->roster($lesson, 14);
         $task = $this->task($lesson, null);
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('GET', $this->path($task));
 
@@ -62,7 +63,7 @@ final class HomeworkControllerShowTest extends ApiTestCase
             ->connection()
             ->update('learning.lesson', ['teaching_date' => '2026-11-22'], ['id' => $lesson->id()->toRfc4122()]);
 
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
         $this->jsonRequest('GET', $this->path($task));
 
         $this->assertJsonPath('minDueDate', '2026-11-15');
@@ -82,7 +83,7 @@ final class HomeworkControllerShowTest extends ApiTestCase
 
         $connection->executeStatement("UPDATE learning.homework_assignment SET status = 'archived', archived_at = '2026-11-08 09:30:00+01' WHERE id = ?", [$archived->id()->toRfc4122()]);
 
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('GET', $this->path($published));
         $this->assertJsonPath('counts.assigned', 3);
@@ -115,7 +116,7 @@ final class HomeworkControllerShowTest extends ApiTestCase
         $this->jsonRequest('GET', $this->path($task));
         $this->assertProblem(403, 'forbidden');
 
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         foreach ([Uuid::v7()->toRfc4122(), 'not-a-uuid'] as $unknown) {
             $this->jsonRequest('GET', '/api/homework/' . $unknown);

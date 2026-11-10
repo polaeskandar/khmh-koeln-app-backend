@@ -12,10 +12,12 @@ use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\Memberships;
+use App\Context\People\Application\Service\PersonGroups;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\ValueObject\Placement;
 use App\Context\People\Domain\ValueObject\RosterNames;
 use App\Library\Collections\Model\Collections;
+use App\Workflow\Organization\Model\StructureGroup;
 use App\Workflow\People\Model\AddedMembership;
 use App\Workflow\People\Model\PlacementChoice;
 
@@ -26,14 +28,16 @@ final readonly class AddMembershipWorkflow
         private PlacementChoices $placements,
         private ServiceStages $stages,
         private Memberships $memberships,
+        private PersonGroups $groups,
     ) {
     }
 
     public function __invoke(string $personId, PlacementChoice $choice): AddedMembership
     {
-        $this->access->require(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
+        $scope = $this->access->scope(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
 
         $person = $this->memberships->personOf($personId);
+        $this->groups->requireVisible($personId, $scope);
 
         return $this->placements->whileKept([$choice->serviceId], fn (): AddedMembership => $this->added(
             $person,
@@ -44,6 +48,14 @@ final readonly class AddMembershipWorkflow
     private function added(Person $person, PlacementChoice $choice): AddedMembership
     {
         $chosen = $this->placements->of($choice->serviceId, $choice->stageId, fieldPrefix: '');
+
+        $this->access->requireChosen(
+            Action::Update,
+            Resource::Members,
+            StructureGroup::ofPlacement($chosen),
+            fieldPrefix: '',
+        );
+
         $placement = new Placement($chosen->service->id(), $chosen->stage?->id());
 
         return AddedMembership::of(

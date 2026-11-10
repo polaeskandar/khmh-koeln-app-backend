@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Interface\Api\People;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -26,7 +27,7 @@ final class MembershipsControllerServiceOrStagesTest extends ApiTestCase
         $rosters = new Rosters(self::getContainer());
         $mina = $rosters->person('Mina', 'Hanna');
         $marina = $rosters->person('Marina', 'Hanna');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         $this->add($mina->id()->toRfc4122(), $school, null);
         self::assertResponseStatusCodeSame(201);
@@ -61,7 +62,7 @@ final class MembershipsControllerServiceOrStagesTest extends ApiTestCase
         $rosters->place($mina, $school, $third, '2026-09-01', '2026-11-07');
         $marina = $rosters->person('Marina', 'Hanna');
         $rosters->place($marina, $school, null, '2026-11-09');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         $this->add($mina->id()->toRfc4122(), $school, null);
         self::assertResponseStatusCodeSame(201);
@@ -78,7 +79,11 @@ final class MembershipsControllerServiceOrStagesTest extends ApiTestCase
         $mina = $rosters->person('Mina');
         $rosters->place($mina, $school, $third, '2026-09-01');
         $rosters->place($mina, $school, $fourth, '2026-09-01');
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest(
             'POST',

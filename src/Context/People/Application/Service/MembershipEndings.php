@@ -20,12 +20,17 @@ final readonly class MembershipEndings
     ) {
     }
 
-    public function endById(string $membershipId): void
+    /**
+     * @param callable(Membership): void $ensureAllowed
+     */
+    public function endById(string $membershipId, callable $ensureAllowed): void
     {
         $today = $this->calendar->today();
         $id = Uuid::isValid($membershipId) ? Uuid::fromString($membershipId) : throw NotFound::of('membership');
 
-        $this->memberships->withWriteLock($id, function (Membership $membership) use ($today): void {
+        $this->memberships->withWriteLock($id, function (Membership $membership) use ($today, $ensureAllowed): void {
+            $ensureAllowed($membership);
+
             if (self::end($membership, $today) === MembershipEnding::DeleteInstead) {
                 $this->memberships->remove($membership);
 

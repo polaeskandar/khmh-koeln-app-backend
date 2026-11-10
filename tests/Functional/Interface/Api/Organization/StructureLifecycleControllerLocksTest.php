@@ -25,10 +25,7 @@ final class StructureLifecycleControllerLocksTest extends ApiTestCase
         [$school, $third] = $this->structure();
         $mina = new Rosters(self::getContainer())->person('Mina');
 
-        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
-            'leader@example.org',
-            'service_leader',
-        ));
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         $this->jsonRequest('POST', '/api/people/' . $mina->id()->toRfc4122() . '/memberships', [
             'serviceId' => $school->id()->toRfc4122(),
