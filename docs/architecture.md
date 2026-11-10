@@ -433,4 +433,5 @@ rankings, and the wording stays gentle ("Was due yesterday", never "overdue").
 - Member accounts, with the church's adviser: whether a noted agreement of a parent or guardian is enough for
   members under 16 or a signed form is needed; the legal basis for member accounts; the privacy notice draft's
   new member items (what member accounts store, what members see, how long members who leave are kept).
-- Hosting, deployment, backups and monitoring: requirements and shortlist in [Operations](operations.md).
+- Hosting, deployment, backups and monitoring: chosen and set up outside this repository; what the app needs to
+  run is in [Operations](operations.md).
