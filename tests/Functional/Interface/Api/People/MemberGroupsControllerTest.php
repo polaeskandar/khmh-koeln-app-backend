@@ -35,6 +35,7 @@ final class MemberGroupsControllerTest extends ApiTestCase
         $this->assertJsonPath('items.1.schedules.0.name', 'Level 1 class');
         $this->assertJsonPath('items.1.schedules.0.startTime', '18:00');
         $this->assertJsonPath('items.1.schedules.0.recurrence.weekdays', [1]);
+        self::assertSame(['Level 1 class'], $this->scheduleNames(1));
 
         $this->assertJsonPath('items.1.lastLesson', [
             'title' => 'The first eight letters',
@@ -111,6 +112,23 @@ final class MemberGroupsControllerTest extends ApiTestCase
 
         self::assertCount(5, JsonBody::asArray($this->responseJson()['items'] ?? null, 'items'));
         self::assertCount($one, new Logs(self::getContainer())->containing('SELECT'));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function scheduleNames(int $item): array
+    {
+        $items = JsonBody::asArray($this->responseJson()['items'] ?? null, 'items');
+
+        $schedules = JsonBody::asArray(
+            JsonBody::asArray($items[$item] ?? null, 'item')['schedules'] ?? null,
+            'schedules',
+        );
+
+        return array_values(array_map(static fn (mixed $schedule): string => Type::of(
+            JsonBody::asArray($schedule, 'schedule')['name'] ?? null,
+        )->toString(), $schedules));
     }
 
     /**

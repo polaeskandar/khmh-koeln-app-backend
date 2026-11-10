@@ -35,6 +35,7 @@ final readonly class MemberGroupsFixture
         $evening = $schedules->weekly($bible, 'Bible Study evening', 3);
         $schedules->session($evening, '2026-11-11', "status = 'canceled', cancel_reason = 'Retreat weekend'");
         $class = $schedules->weekly($coptic, 'Level 1 class', 1, stage: $level1);
+        $schedules->weekly($coptic, 'Level 1 summer reading', 4, endsOn: '2026-10-29', stage: $level1);
 
         new Database($this->container)
             ->connection()
