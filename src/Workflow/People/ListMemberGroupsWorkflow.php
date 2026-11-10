@@ -10,6 +10,7 @@ use App\Context\Meetings\Application\Service\MeetingSchedules;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\MemberRecords;
+use App\Library\Time\Model\LocalDate;
 use App\Workflow\People\Model\MemberGroupList;
 use App\Workflow\People\Model\MemberRoster;
 
@@ -38,8 +39,13 @@ final readonly class ListMemberGroupsWorkflow
             $roster,
             $this->schedules
                 ->recurring(serviceId: null, stageId: null)
-                ->filter(static fn (Schedule $schedule): bool => $schedule->isActive()),
+                ->filter(static fn (Schedule $schedule): bool => self::isCurrent($schedule, $roster->today)),
             $this->lessons->lastTaughtIn($roster->stageIds(), $roster->today),
         );
+    }
+
+    private static function isCurrent(Schedule $schedule, LocalDate $today): bool
+    {
+        return $schedule->isActive() && $schedule->recurrence()->nextOccurrence($today) !== null;
     }
 }
