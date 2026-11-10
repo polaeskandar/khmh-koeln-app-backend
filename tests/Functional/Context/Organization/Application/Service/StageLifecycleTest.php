@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Context\Organization\Application\Service;
 
-use App\Context\Organization\Application\Service\StageArchives;
+use App\Context\Organization\Application\Service\StageLifecycle;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-final class StageArchivesTest extends KernelTestCase
+final class StageLifecycleTest extends KernelTestCase
 {
     public function testAnArchiveReadsTheStageAgainOnceTheServiceIsLocked(): void
     {
@@ -52,10 +52,10 @@ final class StageArchivesTest extends KernelTestCase
             ->update('organization.stage', ['archived_at' => $archivedAt], ['id' => $stage->id()->toRfc4122()]);
     }
 
-    private function archives(): StageArchives
+    private function archives(): StageLifecycle
     {
-        $archives = self::getContainer()->get(StageArchives::class);
-        self::assertInstanceOf(StageArchives::class, $archives);
+        $archives = self::getContainer()->get(StageLifecycle::class);
+        self::assertInstanceOf(StageLifecycle::class, $archives);
 
         return $archives;
     }

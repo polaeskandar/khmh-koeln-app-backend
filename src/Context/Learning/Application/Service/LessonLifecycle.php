@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace App\Context\Learning\Application\Service;
 
 use App\Context\Learning\Domain\Entity\Lesson;
+use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\Validation\MeetingLessonRule;
 use App\Context\Learning\Domain\ValueObject\ArchivedLesson;
 use App\Library\Problem\Exception\NotFound;
+use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Time\Client\Calendar;
 use App\Platform\Doctrine\Contract\Transactions;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class LessonArchives
+final readonly class LessonLifecycle
 {
     public function __construct(
         private LessonRepositoryInterface $lessons,
@@ -26,6 +28,24 @@ final readonly class LessonArchives
     public function get(Uuid $id): Lesson
     {
         return $this->lessons->find($id) ?? throw NotFound::of('lesson');
+    }
+
+    public function changeStatus(Lesson $lesson, LessonStatus $status): Lesson
+    {
+        $state = $lesson->state()->withStatus($status, $this->calendar->now());
+
+        if ($state === $lesson->state()) {
+            return $lesson;
+        }
+
+        if ($state->isCompletedBeforeTeachingDate($lesson->link()->teachingDate, $this->calendar->today())) {
+            throw new RuleViolation('lessons.taughtAfterDate');
+        }
+
+        $lesson->changeState($state);
+        $this->lessons->save($lesson);
+
+        return $lesson;
     }
 
     public function archive(Lesson $lesson): ArchivedLesson

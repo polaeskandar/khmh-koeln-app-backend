@@ -10,7 +10,7 @@ use App\Context\Organization\Domain\Validation\ArchiveRule;
 use App\Library\Time\Client\Calendar;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class ServiceArchives
+final readonly class ServiceLifecycle
 {
     public function __construct(
         private ServiceRepositoryInterface $services,

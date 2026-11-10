@@ -8,7 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\People\Application\Service\PersonGroups;
-use App\Context\People\Application\Service\PersonStatuses;
+use App\Context\People\Application\Service\PersonLifecycle;
 use App\Context\People\Domain\Enum\PersonStatus;
 use App\Library\Problem\Model\Ids;
 use App\Workflow\People\Model\PersonView;
@@ -17,7 +17,7 @@ final readonly class DeactivatePersonWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private PersonStatuses $statuses,
+        private PersonLifecycle $lifecycle,
         private PersonGroups $groups,
     ) {
     }
@@ -28,6 +28,6 @@ final readonly class DeactivatePersonWorkflow
         $id = Ids::toUuid($personId, notFound: 'person');
         $this->groups->requireVisible($id, $scope);
 
-        return PersonView::of($this->statuses->changeStatus($id, PersonStatus::Inactive));
+        return PersonView::of($this->lifecycle->changeStatus($id, PersonStatus::Inactive));
     }
 }

@@ -8,7 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\SchedulePauses;
-use App\Context\Organization\Application\Service\ServiceArchives;
+use App\Context\Organization\Application\Service\ServiceLifecycle;
 use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\People\Application\Service\Rosters;
@@ -21,7 +21,7 @@ final readonly class ArchiveServiceWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private ServiceArchives $archives,
+        private ServiceLifecycle $lifecycle,
         private SchedulePauses $pauses,
         private ServiceStages $stages,
         private Rosters $rosters,
@@ -41,7 +41,7 @@ final readonly class ArchiveServiceWorkflow
         );
 
         $pause = fn (Service $service) => $this->pauses->pauseService($service->id(), $service->name()->value);
-        $service = $this->archives->archive($serviceId, pauseSchedules: $pause);
+        $service = $this->lifecycle->archive($serviceId, pauseSchedules: $pause);
 
         return ServiceOverview::of(
             $service,

@@ -10,7 +10,7 @@ use App\Context\Organization\Domain\ValueObject\ChosenPlacement;
 use App\Library\Problem\Exception\NotFound;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class RosterScopes
+final readonly class RosterChoices
 {
     public function __construct(
         private ServiceRepositoryInterface $services,

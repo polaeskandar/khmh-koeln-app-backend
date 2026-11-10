@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Context\Organization\Application\Service;
 
-use App\Context\Organization\Application\Service\ChurchServices;
+use App\Context\Organization\Application\Service\ServiceWrites;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
@@ -15,15 +15,15 @@ use Doctrine\ORM\Events;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Uid\Uuid;
 
-final class ChurchServicesTest extends KernelTestCase
+final class ServiceWritesTest extends KernelTestCase
 {
     public function testANewServiceTakesTheToneFewestServicesUseArchivedOnesIncluded(): void
     {
         $choir = Structure::service(name: 'Choir');
         $choir->archive(Structure::now());
         new Database(self::getContainer())->persisted($choir);
-        $services = self::getContainer()->get(ChurchServices::class);
-        self::assertInstanceOf(ChurchServices::class, $services);
+        $services = self::getContainer()->get(ServiceWrites::class);
+        self::assertInstanceOf(ServiceWrites::class, $services);
 
         $sundaySchool = $services->create('Sunday School', description: null);
         $youth = $services->create('Youth', description: null);
@@ -61,8 +61,8 @@ final class ChurchServicesTest extends KernelTestCase
             }
         });
 
-        $services = self::getContainer()->get(ChurchServices::class);
-        self::assertInstanceOf(ChurchServices::class, $services);
+        $services = self::getContainer()->get(ServiceWrites::class);
+        self::assertInstanceOf(ServiceWrites::class, $services);
 
         self::assertSame(
             ['name' => ['code' => 'services.nameTakenArchived', 'params' => ['name' => 'Choir']]],

@@ -7,7 +7,7 @@ namespace App\Workflow\Organization;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Organization\Application\Service\ServiceArchives;
+use App\Context\Organization\Application\Service\ServiceLifecycle;
 use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\People\Application\Service\Rosters;
 use App\Library\Problem\Model\Ids;
@@ -19,7 +19,7 @@ final readonly class RestoreServiceWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private ServiceArchives $archives,
+        private ServiceLifecycle $lifecycle,
         private ServiceStages $stages,
         private Rosters $rosters,
     ) {
@@ -37,7 +37,7 @@ final readonly class RestoreServiceWorkflow
             missing: 'service',
         );
 
-        $service = $this->archives->restore($serviceId);
+        $service = $this->lifecycle->restore($serviceId);
 
         return ServiceOverview::of(
             $service,

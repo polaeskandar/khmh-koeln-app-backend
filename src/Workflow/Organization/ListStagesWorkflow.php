@@ -8,8 +8,8 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\StructureUsage;
-use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
+use App\Context\Organization\Application\Service\ServiceWrites;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\Rosters;
 use App\Library\Problem\Model\Ids;
@@ -21,7 +21,7 @@ final readonly class ListStagesWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private ChurchServices $services,
+        private ServiceWrites $services,
         private ServiceStages $stages,
         private Rosters $rosters,
         private StructureUsage $usage,

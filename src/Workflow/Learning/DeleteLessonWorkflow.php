@@ -7,7 +7,7 @@ namespace App\Workflow\Learning;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Learning\Application\Service\LessonArchives;
+use App\Context\Learning\Application\Service\LessonLifecycle;
 use App\Context\Learning\Application\Service\LessonRemovals;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Library\Problem\Model\Ids;
@@ -18,7 +18,7 @@ final readonly class DeleteLessonWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private LessonArchives $archives,
+        private LessonLifecycle $lifecycle,
         private LessonRemovals $removals,
         private StructureLookup $structure,
     ) {
@@ -28,7 +28,7 @@ final readonly class DeleteLessonWorkflow
     {
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.changeStageOnly');
 
-        $lesson = $this->archives->get(Ids::toUuid($id, notFound: 'lesson'));
+        $lesson = $this->lifecycle->get(Ids::toUuid($id, notFound: 'lesson'));
         $stage = $this->structure->stage($lesson->stageId());
         $this->access->requireIn(Action::Update, Resource::Lessons, StructureGroup::ofStage($stage), missing: 'lesson');
         LessonStages::opened($stage);

@@ -8,7 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\People\Application\Service\PersonGroups;
-use App\Context\People\Application\Service\PersonRecords;
+use App\Context\People\Application\Service\PersonWrites;
 use App\Library\Problem\Model\Ids;
 use App\Workflow\People\Model\PersonView;
 
@@ -16,7 +16,7 @@ final readonly class RenamePersonWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private PersonRecords $records,
+        private PersonWrites $records,
         private PersonGroups $groups,
     ) {
     }

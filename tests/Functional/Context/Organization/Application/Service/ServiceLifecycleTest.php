@@ -6,7 +6,7 @@ namespace App\Tests\Functional\Context\Organization\Application\Service;
 
 use App\Context\Meetings\Application\Service\SchedulePauses;
 use App\Context\Meetings\Domain\Entity\Session;
-use App\Context\Organization\Application\Service\ServiceArchives;
+use App\Context\Organization\Application\Service\ServiceLifecycle;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Tests\Support\CommittedRows;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
@@ -20,7 +20,7 @@ use Override;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 #[SkipDatabaseRollback]
-final class ServiceArchivesTest extends KernelTestCase
+final class ServiceLifecycleTest extends KernelTestCase
 {
     private const string NOWAIT = 'SELECT id FROM meetings.meeting_session WHERE id = ? FOR UPDATE NOWAIT';
 
@@ -75,10 +75,10 @@ final class ServiceArchivesTest extends KernelTestCase
         self::assertSame('55P03', $sqlState);
     }
 
-    private function archives(): ServiceArchives
+    private function archives(): ServiceLifecycle
     {
-        $archives = self::getContainer()->get(ServiceArchives::class);
-        self::assertInstanceOf(ServiceArchives::class, $archives);
+        $archives = self::getContainer()->get(ServiceLifecycle::class);
+        self::assertInstanceOf(ServiceLifecycle::class, $archives);
 
         return $archives;
     }

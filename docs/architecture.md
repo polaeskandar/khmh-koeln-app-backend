@@ -85,7 +85,7 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
 - A rule in `Domain/Validation` is pure: it checks the values and entities it is given and throws the rule's code,
   and never uses a repository, a query interface, a port or an application service (`mago guard`). The application
   service loads the facts under its lock and hands them over: `MeetingSessions` passes a session's status to
-  `AttendanceRule::ensureMarkable()`, `LessonArchives` passes the lesson that holds the meeting to
+  `AttendanceRule::ensureMarkable()`, `LessonLifecycle` passes the lesson that holds the meeting to
   `MeetingLessonRule::ensureFreeToRestore()`.
 - `Domain` and `Library` don't depend on `Platform`; outside `Platform`, code uses only `Platform/*/Contract`.
 - Symfony Workflow is used by a context's application services (its `<Subject>Lifecycle`), its
@@ -386,8 +386,9 @@ applied by the subject's `<Subject>Lifecycle` service ([Code style](code-style.m
 - `declined` is a stored value of data requests that nothing reaches yet; it stays a place without a transition.
 - A lesson's status has no machine. Draft, ready and completed may follow each other in any order, so a machine
   would list every pair and refuse nothing. Its one rule, completed only from the teaching date on, stays in
-  `LessonState::isCompletedBeforeTeachingDate()`, checked when the status changes and when a completed lesson moves to another
-  date; archiving is a separate date, not a status.
+  `LessonState::isCompletedBeforeTeachingDate()`, checked when the status changes and when a completed lesson
+  moves to another date; archiving is a separate date, not a status. `LessonLifecycle` changes the status and
+  archives and restores a lesson, applying that rule itself.
 - An account's state has no machine either. It has no status column: awaiting confirmation, pending, active and
   disabled are derived from `email_confirmed_at`, `approved_at` and `disabled_at` in `AccountStatus`, a declined
   registration is deleted, and each change has its own effect on `auth_version`. A machine would need a new

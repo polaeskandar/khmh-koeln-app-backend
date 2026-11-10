@@ -10,7 +10,7 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\PlacementChoices;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\PersonDirectory;
-use App\Context\People\Application\Service\PersonRecords;
+use App\Context\People\Application\Service\PersonWrites;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\ValueObject\PersonName;
@@ -32,7 +32,7 @@ final readonly class CreatePersonWorkflow
 
     public function __construct(
         private AccessCheck $access,
-        private PersonRecords $records,
+        private PersonWrites $records,
         private PlacementChoices $placements,
         private PersonDirectory $directory,
         private StructureLookup $structure,

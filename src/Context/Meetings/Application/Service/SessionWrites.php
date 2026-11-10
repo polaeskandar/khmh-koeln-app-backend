@@ -14,7 +14,7 @@ use App\Library\Strings\Model\InputText;
 use App\Library\Time\Client\Calendar;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class SessionDetailChanges
+final readonly class SessionWrites
 {
     public function __construct(
         private SessionRepositoryInterface $sessions,

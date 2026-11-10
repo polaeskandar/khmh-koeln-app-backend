@@ -14,7 +14,7 @@ use App\Library\Problem\Exception\NotFound;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class ChurchServices
+final readonly class ServiceWrites
 {
     private const int DESCRIPTION_LENGTH = 2000;
 
