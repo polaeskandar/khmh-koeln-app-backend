@@ -10,12 +10,14 @@ use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\MembershipRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\ValueObject\AlreadyIn;
+use App\Context\People\Domain\ValueObject\AlreadyInService;
 use App\Context\People\Domain\ValueObject\Placement;
 use App\Context\People\Domain\ValueObject\RosterNames;
 use App\Context\People\Domain\ValueObject\Tenure;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Time\Client\Calendar;
+use App\Library\Time\Model\LocalDate;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\Uid\Uuid;
 
@@ -25,7 +27,6 @@ final readonly class Memberships
         private PersonRepositoryInterface $people,
         private MembershipRepositoryInterface $memberships,
         private Calendar $calendar,
-        private PlacementChecks $checks,
     ) {
     }
 
@@ -60,7 +61,7 @@ final readonly class Memberships
         }
 
         $today = $this->calendar->today();
-        $this->checks->ensureFree($person, $placement, $names, $today);
+        $this->ensureFree($person, $placement, $names, $today);
         $membership = new Membership($person, $placement->serviceId, $placement->stageId, Tenure::from($today));
 
         try {
@@ -70,6 +71,19 @@ final readonly class Memberships
         }
 
         return $membership;
+    }
+
+    private function ensureFree(Person $person, Placement $placement, RosterNames $names, LocalDate $on): void
+    {
+        if ($this->memberships->hasCurrent($person, $placement->serviceId, $placement->stageId, $on)) {
+            throw AlreadyIn::of($person, $names->of($placement->stageId));
+        }
+
+        $otherLevel = $this->memberships->findAtOtherLevel($person, $placement, $on);
+
+        if ($otherLevel !== null) {
+            throw AlreadyInService::of($person, $names->of($otherLevel->stageId()));
+        }
     }
 
     private static function nameOf(Person $person): string

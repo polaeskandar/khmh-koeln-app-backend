@@ -7,7 +7,7 @@ namespace App\Workflow\Meetings;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Learning\Application\Service\LessonMeetings;
+use App\Context\Learning\Domain\Query\LessonQueryInterface;
 use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSchedules;
 use App\Context\Meetings\Application\Service\ScheduleRemovals;
@@ -18,7 +18,7 @@ final readonly class DeleteScheduleWorkflow
     public function __construct(
         private AccessCheck $access,
         private ScheduleRemovals $removals,
-        private LessonMeetings $lessons,
+        private LessonQueryInterface $lessons,
         private MeetingSchedules $schedules,
     ) {
     }

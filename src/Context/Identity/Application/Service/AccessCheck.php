@@ -7,18 +7,22 @@ namespace App\Context\Identity\Application\Service;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\ValueObject\Access;
+use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Problem\Exception\NotFound;
 use App\Platform\Access\Model\Group;
 use App\Platform\Access\Model\GroupScope;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class AccessCheck
 {
+    private const string ASSIGNING_REFUSAL = 'assignments.notAllowed';
+
     public function __construct(
         private AuthorizationCheckerInterface $authorization,
         private GroupPermissions $groups,
-        private AssignmentRights $assignments,
     ) {
     }
 
@@ -50,26 +54,59 @@ final readonly class AccessCheck
 
     public function requireIn(Action $action, Resource $resource, Group $group, string $missing): void
     {
-        GroupRefusals::requireIn($this->scope($action, $resource), $group, $missing);
+        if ($this->scope($action, $resource)->covers($group)) {
+            return;
+        }
+
+        throw NotFound::of($missing);
     }
 
     public function requireReaching(Action $action, Resource $resource, Uuid $serviceId, string $missing): void
     {
-        GroupRefusals::requireReached($this->scope($action, $resource), $serviceId, $missing);
+        if ($this->scope($action, $resource)->reaches($serviceId)) {
+            return;
+        }
+
+        throw NotFound::of($missing);
     }
 
     public function requireChosen(Action $action, Resource $resource, ?Group $group, string $fieldPrefix): void
     {
-        GroupChoiceRefusals::requireChosen($this->scope($action, $resource), $group, $fieldPrefix);
+        $scope = $this->scope($action, $resource);
+        $chosen = $group === null ? [] : [$group];
+
+        if ($scope->covers(...$chosen)) {
+            return;
+        }
+
+        throw $group !== null && $scope->reaches($group->serviceId)
+            ? InvalidInput::field($fieldPrefix . 'stageId', 'meetings.chooseStage')
+            : InvalidInput::field($fieldPrefix . 'serviceId', 'meetings.chooseService');
     }
 
     public function requireAssigning(): GroupScope
     {
-        return $this->assignments->require();
+        $users = $this->groups->scopeOfViewer(Action::Update, Resource::Users);
+
+        $assignable = $users->isChurchWide()
+            ? $users
+            : $this->groups->scopeOfViewer(Action::Update, Resource::Stages)->serviceWide();
+
+        return $assignable->serviceIds() === []
+            ? throw new AccessDeniedHttpException(self::ASSIGNING_REFUSAL)
+            : $assignable;
     }
 
     public function requireAssigningIn(Group ...$groups): void
     {
-        $this->assignments->requireIn(...$groups);
+        $outside = new ArrayCollection($groups)->filter(fn (Group $group): bool => !$this->requireAssigning()->covers(
+            $group,
+        ));
+
+        if ($outside->isEmpty()) {
+            return;
+        }
+
+        throw new AccessDeniedHttpException(self::ASSIGNING_REFUSAL);
     }
 }
