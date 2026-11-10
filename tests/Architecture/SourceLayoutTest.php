@@ -21,6 +21,7 @@ final class SourceLayoutTest extends TestCase
         'Enum',
         'Exception',
         'Interface',
+        'Query',
         'Repository',
         'ValueObject',
     ];
