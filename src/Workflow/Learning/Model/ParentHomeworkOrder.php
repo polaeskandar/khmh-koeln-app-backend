@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
+use App\Context\Learning\Domain\Enum\HomeworkFilter;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Library\Collections\Model\Orderings;
 use Doctrine\Common\Collections\ArrayCollection;
 
 final readonly class ParentHomeworkOrder
 {
-    public const string DONE = 'done';
-
     private const string UNDATED = '9999-12-31';
 
     /**
@@ -19,9 +18,9 @@ final readonly class ParentHomeworkOrder
      *
      * @return list<VisibleTask>
      */
-    public static function shown(array $tasks, string $state): array
+    public static function shown(array $tasks, HomeworkFilter $filter): array
     {
-        $done = $state === self::DONE;
+        $done = $filter === HomeworkFilter::Done;
 
         $shown = new ArrayCollection($tasks)->filter(static fn (VisibleTask $task): bool => $task->isDone() === $done);
 

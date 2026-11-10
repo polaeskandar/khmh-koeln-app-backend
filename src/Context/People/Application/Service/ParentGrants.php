@@ -6,7 +6,6 @@ namespace App\Context\People\Application\Service;
 
 use App\Context\People\Domain\Entity\GuardianRelationship;
 use App\Context\People\Domain\Entity\Person;
-use App\Context\People\Domain\Enum\GuardianKind;
 use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
@@ -56,9 +55,9 @@ final readonly class ParentGrants
         $link = new GuardianRelationship(
             $grant->accountId,
             $child,
-            GuardianKind::from($grant->relationship),
+            $grant->relationship,
             approvedAt: $this->calendar->now(),
-            approvedBy: Uuid::fromString($grant->approvedBy),
+            approvedBy: $grant->approvedBy,
         );
 
         try {

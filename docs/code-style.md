@@ -312,7 +312,7 @@ Each rule has one authoritative place, in the layer that owns it:
   field (`HomeworkDraft` with `HomeworkRule`, `RecurrenceRule::ensureValid()` with its four fields).
 - A class goes to `Domain/Validation` when it is a rule, not a value: `ArchiveRule` holds nothing and checks a
   service or stage it is given. A value object that checks its own value stays one (`PlainPassword`, `Email`), and
-  so does one that carries facts another context handed over and checks them (`StructureUse::ensureUnused()`).
+  so does one that carries facts another context handed over and checks them (`StructureUse::ensureServiceUnused()`).
 - A one-line check that only one place needs stays where it is (in the value object or the service).
 - Codes and their order are the API (`docs/api.md`); moving a rule keeps both.
 

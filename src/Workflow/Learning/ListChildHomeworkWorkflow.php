@@ -9,9 +9,11 @@ use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\PupilHomework;
+use App\Context\Learning\Domain\Enum\HomeworkFilter;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\ParentChildren;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\ChildHomeworkList;
 use App\Workflow\Learning\Model\ParentHomeworkItems;
@@ -37,7 +39,8 @@ final readonly class ListChildHomeworkWorkflow
         $viewer = Uuid::fromString($viewerId);
         $visible = $this->visibleTo($viewer);
         $child = $visible->requireChild(Ids::toUuid($childId, notFound: 'person'));
-        $shown = ParentHomeworkOrder::shown($child->tasks->tasks, $state);
+        $filter = HomeworkFilter::tryFrom($state) ?? throw InvalidInput::field('state', 'validation.invalidChoice');
+        $shown = ParentHomeworkOrder::shown($child->tasks->tasks, $filter);
 
         return new ChildHomeworkList($visible->today->toString(), $this->itemsOf($shown, $viewer)->listOf($shown));
     }

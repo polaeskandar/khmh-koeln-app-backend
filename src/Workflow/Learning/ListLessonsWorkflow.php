@@ -10,9 +10,11 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\StageLessons;
 use App\Context\Learning\Domain\Entity\Lesson;
+use App\Context\Learning\Domain\Enum\LessonTab;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Model\Ids;
 use App\Workflow\Identity\Model\AccountReference;
 use App\Workflow\Identity\Model\AccountReferences;
@@ -46,7 +48,8 @@ final readonly class ListLessonsWorkflow
         $stage = $this->structure->stage(Ids::toUuid($stageId, notFound: 'stage'));
         $group = StructureGroup::ofStage($stage);
         $this->access->requireIn(Action::Read, Resource::Lessons, $group, missing: 'stage');
-        $listing = $this->lessons->listed($stage->id(), $tab, $query);
+        $chosen = LessonTab::tryFrom($tab) ?? throw InvalidInput::field('tab', 'validation.invalidChoice');
+        $listing = $this->lessons->listed($stage->id(), $chosen, $query);
         $shown = new ArrayCollection($listing->shown);
         $preparers = $this->accounts->activeAllowedIn(Action::Update, Resource::Lessons, $group);
 

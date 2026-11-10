@@ -36,14 +36,14 @@ final readonly class AccountRegistration
     ) {
     }
 
-    public function profile(string $firstName, string $lastName, string $email, string $language): Profile
+    public function profile(string $firstName, string $lastName, string $email, Language $language): Profile
     {
         $name = Text::format('%s %s', $firstName, $lastName)->toString();
 
         return new Profile(
             Email::of($email),
             DisplayName::of(InputText::of($name)->collapsed()->toString()),
-            Language::from($language),
+            $language,
         );
     }
 

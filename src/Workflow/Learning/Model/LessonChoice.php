@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
+use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Context\Learning\Domain\ValueObject\LessonDraft;
 
 final readonly class LessonChoice
@@ -19,6 +20,11 @@ final readonly class LessonChoice
 
     public function draft(): LessonDraft
     {
-        return new LessonDraft($this->details->draft(), $this->meeting->choice(), $this->plan->draft(), $this->status);
+        return new LessonDraft(
+            $this->details->draft(),
+            $this->meeting->choice(),
+            $this->plan->draft(),
+            $this->status === null ? null : LessonStatus::from($this->status),
+        );
     }
 }

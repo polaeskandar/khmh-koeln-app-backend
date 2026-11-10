@@ -10,7 +10,9 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\LessonStatuses;
 use App\Context\Learning\Application\Service\LessonWrites;
 use App\Context\Learning\Domain\Entity\Lesson;
+use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Learning\Model\LessonStatusView;
@@ -38,7 +40,9 @@ final readonly class ChangeLessonStatusWorkflow
 
         LessonStages::opened($this->structure->stage($lesson->stageId()));
 
-        return LessonStatusView::of($this->statuses->change($lesson, $status));
+        $chosen = LessonStatus::tryFrom($status) ?? throw InvalidInput::field('status', 'validation.invalidChoice');
+
+        return LessonStatusView::of($this->statuses->change($lesson, $chosen));
     }
 
     private function ensureAllowed(Lesson $lesson): void

@@ -10,7 +10,6 @@ use App\Context\Identity\Domain\Repository\MemberAccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\MemberLink;
 use App\Context\Identity\Domain\ValueObject\MemberRecord;
-use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -31,14 +30,13 @@ final readonly class MemberAccounts
         return $account->status()->isActive() ? $account : throw new RuleViolation('accounts.accountInactive');
     }
 
-    public function link(User $account, MemberRecord $record, string $ageCheck, ?string $note): void
+    public function link(User $account, MemberRecord $record, AgeCheck $age, ?string $note): void
     {
         if ($account->member()->isLinkedTo($record->personId)) {
             return;
         }
 
         $this->ensureFree($record);
-        $age = AgeCheck::tryFrom($ageCheck) ?? throw InvalidInput::field('ageCheck', 'accounts.chooseAge');
         $account->changeMember(MemberLink::of($record->personId, $age, $note));
 
         try {

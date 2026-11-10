@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\ApprovedAccounts;
+use App\Context\Identity\Domain\Enum\Language;
+use App\Library\Problem\Exception\InvalidInput;
 use SensitiveParameter;
 
 final readonly class CreateUserWorkflow
@@ -22,6 +24,8 @@ final readonly class CreateUserWorkflow
         ?string $password,
         ?string $role,
     ): string {
-        return $this->accounts->create($email, $displayName, $language, $password, $role)->toRfc4122();
+        $chosen = Language::tryFrom($language) ?? throw InvalidInput::field('language', 'accounts.chooseLanguage');
+
+        return $this->accounts->create($email, $displayName, $chosen, $password, $role)->toRfc4122();
     }
 }

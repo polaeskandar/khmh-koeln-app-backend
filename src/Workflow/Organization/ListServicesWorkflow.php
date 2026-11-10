@@ -11,7 +11,9 @@ use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
+use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\People\Application\Service\Rosters;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Workflow\Organization\Model\MemberCounts;
 use App\Workflow\Organization\Model\ServiceList;
 use App\Workflow\Organization\Model\ServiceOverview;
@@ -32,7 +34,9 @@ final readonly class ListServicesWorkflow
     {
         $scope = $this->access->scope(Action::Read, Resource::Services);
 
-        $services = $this->services->listed($status)->filter(static fn (Service $service): bool => $scope->reaches(
+        $filter = ServiceFilter::tryFrom($status) ?? throw InvalidInput::field('status', 'validation.invalidChoice');
+
+        $services = $this->services->listed($filter)->filter(static fn (Service $service): bool => $scope->reaches(
             $service->id(),
         ));
 

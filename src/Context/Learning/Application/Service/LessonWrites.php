@@ -98,7 +98,7 @@ final readonly class LessonWrites
     private function described(Lesson $lesson, LessonDraft $draft, LessonTeam $team, LessonStatus $unchanged): Lesson
     {
         $lesson->describe($draft->plan->plan(), $draft->plan->materials());
-        $status = $draft->status === null ? $unchanged : LessonStatus::from($draft->status);
+        $status = $draft->status ?? $unchanged;
         $lesson->changeState($lesson->state()->withStatus($status, $this->calendar->now()));
 
         return $this->teams->savedWith($lesson, $team);

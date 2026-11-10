@@ -6,7 +6,7 @@ namespace App\Context\People\Application\Service;
 
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
-use App\Context\People\Domain\Enum\PersonStatus;
+use App\Context\People\Domain\Enum\PersonStatusFilter;
 use App\Context\People\Domain\Repository\PersonListRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Context\People\Domain\ValueObject\CoveredRosters;
@@ -27,8 +27,6 @@ final readonly class PersonLists
 
     private const int LAST_PAGE = 10_000;
 
-    private const string ALL = 'all';
-
     public function __construct(
         private PersonListRepositoryInterface $list,
         private PersonRepositoryInterface $people,
@@ -36,12 +34,12 @@ final readonly class PersonLists
     ) {
     }
 
-    public function filterOf(string $status, ?Uuid $serviceId, ?Uuid $stageId, string $text): PersonFilter
+    public function filterOf(PersonStatusFilter $status, ?Uuid $serviceId, ?Uuid $stageId, string $text): PersonFilter
     {
         $words = new ArrayCollection(Text::of(InputText::of($text)->folded()->toString())->split(' '));
 
         return new PersonFilter(
-            status: self::statusOf($status),
+            status: $status->status(),
             serviceId: $serviceId,
             stageId: $stageId,
             words: $words->filter(static fn (string $word): bool => $word !== '')->getValues(),
@@ -92,14 +90,5 @@ final readonly class PersonLists
     private static function coveredBy(GroupScope $scope): CoveredRosters
     {
         return new CoveredRosters($scope->serviceIds(), $scope->stageIds());
-    }
-
-    private static function statusOf(string $status): ?PersonStatus
-    {
-        if ($status === self::ALL) {
-            return null;
-        }
-
-        return PersonStatus::tryFrom($status) ?? throw InvalidInput::field('status', 'validation.invalidChoice');
     }
 }
