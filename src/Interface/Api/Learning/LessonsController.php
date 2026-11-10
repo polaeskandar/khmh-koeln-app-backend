@@ -35,7 +35,7 @@ final class LessonsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: LessonListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(
         string $stageId,
         ListLessonsWorkflow $listLessons,
@@ -52,7 +52,7 @@ final class LessonsController extends AbstractController
         description: 'Created.',
         content: new OA\JsonContent(ref: new Model(type: WrittenLessonResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function create(
         string $stageId,
         #[MapRequestPayload]
@@ -71,7 +71,7 @@ final class LessonsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: LessonDetailResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function show(string $id, ShowLessonWorkflow $showLesson): JsonResponse
     {
         return $this->json(new LessonDetailResponse($showLesson($id)));
@@ -84,7 +84,7 @@ final class LessonsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: WrittenLessonResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function edit(
         string $id,
         #[MapRequestPayload]
@@ -103,7 +103,7 @@ final class LessonsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: LessonStatusResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function changeStatus(
         string $id,
         #[MapRequestPayload]

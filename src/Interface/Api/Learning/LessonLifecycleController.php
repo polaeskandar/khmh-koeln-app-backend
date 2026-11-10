@@ -26,7 +26,7 @@ final class LessonLifecycleController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: LessonArchiveResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function archive(string $id, ArchiveLessonWorkflow $archiveLesson): JsonResponse
     {
         return $this->json(LessonArchiveResponse::of($archiveLesson($id)));
@@ -44,7 +44,7 @@ final class LessonLifecycleController extends AbstractController
             new OA\Property(property: 'version', type: 'integer'),
         ]),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function restore(string $id, RestoreLessonWorkflow $restoreLesson): JsonResponse
     {
         $restored = $restoreLesson($id);
@@ -55,7 +55,7 @@ final class LessonLifecycleController extends AbstractController
     #[Route('', name: 'api_lessons_delete', methods: ['DELETE'])]
     #[OA\Delete(summary: 'Lessons delete.')]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function delete(string $id, DeleteLessonWorkflow $deleteLesson): Response
     {
         $deleteLesson($id);

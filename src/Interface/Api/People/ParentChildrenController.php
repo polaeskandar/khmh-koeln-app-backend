@@ -23,7 +23,7 @@ final class ParentChildrenController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ChildListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(#[CurrentUser] UserInterface $user, ListChildrenWorkflow $listChildren): JsonResponse
     {
         return $this->json(ChildListResponse::of($listChildren($user->getUserIdentifier())));

@@ -32,7 +32,7 @@ final class ForgotPasswordController extends AbstractController
     }
 
     #[Route('/api/auth/forgot-password', name: 'api_auth_forgot_password', methods: ['POST'])]
-    #[OA\Post(security: [], summary: 'Auth forgot password.')]
+    #[OA\Post(summary: 'Auth forgot password.', security: [])]
     #[OA\Response(
         response: 202,
         description: 'Accepted.',
@@ -40,7 +40,7 @@ final class ForgotPasswordController extends AbstractController
             new OA\Property(property: 'status', type: 'string', enum: ['received']),
         ]),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function request(
         Request $request,
         #[MapRequestPayload]

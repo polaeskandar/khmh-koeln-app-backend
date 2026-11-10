@@ -21,20 +21,20 @@ final class HealthController extends AbstractController
     private const int TIMEOUT_SECONDS = 2;
 
     #[Route('', name: 'health')]
-    #[OA\Get(security: [], summary: 'Health.')]
+    #[OA\Get(summary: 'Health.', security: [])]
     #[OA\Response(
         response: 200,
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: LivenessResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function live(): JsonResponse
     {
         return $this->json(new LivenessResponse());
     }
 
     #[Route('/ready', name: 'health_ready')]
-    #[OA\Get(security: [], summary: 'Health ready.')]
+    #[OA\Get(summary: 'Health ready.', security: [])]
     #[OA\Response(
         response: 200,
         description: 'The result.',
@@ -45,7 +45,7 @@ final class HealthController extends AbstractController
         description: 'Not ready.',
         content: new OA\JsonContent(ref: new Model(type: ReadinessResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function ready(DatabaseProbe $database): JsonResponse
     {
         $available = $database->isAvailable(self::TIMEOUT_SECONDS) ? Readiness::OK : Readiness::UNAVAILABLE;

@@ -14,13 +14,13 @@ final readonly class LessonDetailsRequest
      */
     public function __construct(
         #[Assert\NotBlank(message: 'lessons.titleRequired', allowNull: true, normalizer: 'trim')]
-        #[Assert\Length(max: 160, maxMessage: 'validation.tooLong', normalizer: 'trim')]
+        #[Assert\Length(max: 160, normalizer: 'trim', maxMessage: 'validation.tooLong')]
         public ?string $title = null,
-        #[Assert\Length(max: 1000, maxMessage: 'validation.tooLong', normalizer: 'trim')]
+        #[Assert\Length(max: 1000, normalizer: 'trim', maxMessage: 'validation.tooLong')]
         public ?string $summary = null,
-        #[Assert\Length(max: 200, maxMessage: 'validation.tooLong', normalizer: 'trim')]
+        #[Assert\Length(max: 200, normalizer: 'trim', maxMessage: 'validation.tooLong')]
         public ?string $passage = null,
-        #[Assert\Length(max: 500, maxMessage: 'validation.tooLong', normalizer: 'trim')]
+        #[Assert\Length(max: 500, normalizer: 'trim', maxMessage: 'validation.tooLong')]
         public ?string $memoryVerse = null,
         #[Assert\All([new Assert\Uuid(message: 'validation.invalidType')])]
         public ?array $collaboratorIds = null,

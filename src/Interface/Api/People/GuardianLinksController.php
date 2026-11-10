@@ -30,7 +30,7 @@ final class GuardianLinksController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ParentAccessListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(ListParentAccessWorkflow $listParentAccess): JsonResponse
     {
         return $this->json(ParentAccessListResponse::of($listParentAccess()));
@@ -43,7 +43,7 @@ final class GuardianLinksController extends AbstractController
         description: 'Created.',
         content: new OA\JsonContent(ref: new Model(type: ParentAccessItemResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function give(
         #[CurrentUser]
         UserInterface $user,
@@ -65,7 +65,7 @@ final class GuardianLinksController extends AbstractController
     #[OA\Post(summary: 'Guardian links revoke.')]
     #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function revoke(
         string $id,
         #[CurrentUser]

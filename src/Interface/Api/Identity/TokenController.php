@@ -21,7 +21,7 @@ final readonly class TokenController
     }
 
     #[Route('/api/auth/tokens', name: 'api_auth_tokens', methods: ['POST'])]
-    #[OA\Post(security: [], summary: 'Auth tokens.')]
+    #[OA\Post(summary: 'Auth tokens.', security: [])]
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(required: ['email', 'password'], properties: [
@@ -38,7 +38,7 @@ final readonly class TokenController
             new OA\Property(property: 'expiresAt', type: 'string'),
         ]),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function issue(): never
     {
         throw new BadRequestHttpException('invalidRequest');
@@ -47,7 +47,7 @@ final readonly class TokenController
     #[Route('/api/auth/tokens/current', name: 'api_auth_tokens_current', methods: ['DELETE'])]
     #[OA\Delete(summary: 'Auth tokens current.')]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function revoke(Request $request, #[\SensitiveParameter] RevokeApiTokenWorkflow $revokeApiToken): Response
     {
         $token = $this->bearerTokens->of($request) ?? throw new LogicException(

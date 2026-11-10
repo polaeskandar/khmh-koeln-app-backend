@@ -36,7 +36,7 @@ final class HomeworkController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: HomeworkListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(string $stageId, ListHomeworkWorkflow $listHomework): JsonResponse
     {
         return $this->json(new HomeworkListResponse($listHomework($stageId)));
@@ -49,7 +49,7 @@ final class HomeworkController extends AbstractController
         description: 'Created.',
         content: new OA\JsonContent(ref: new Model(type: WrittenHomeworkResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function create(
         string $lessonId,
         #[CurrentUser]
@@ -70,7 +70,7 @@ final class HomeworkController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: HomeworkDetailResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function show(string $id, ShowHomeworkWorkflow $showHomework): JsonResponse
     {
         return $this->json(new HomeworkDetailResponse($showHomework($id)));
@@ -83,7 +83,7 @@ final class HomeworkController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: WrittenHomeworkResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function edit(
         string $id,
         #[MapRequestPayload]
@@ -103,7 +103,7 @@ final class HomeworkController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ChangedHomeworkResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function publish(string $id, PublishHomeworkWorkflow $publishHomework): JsonResponse
     {
         return $this->json(ChangedHomeworkResponse::of($publishHomework($id)));
@@ -116,7 +116,7 @@ final class HomeworkController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: HomeworkProgressResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function progress(string $id, ShowHomeworkProgressWorkflow $showHomeworkProgress): JsonResponse
     {
         return $this->json(new HomeworkProgressResponse($showHomeworkProgress($id)));

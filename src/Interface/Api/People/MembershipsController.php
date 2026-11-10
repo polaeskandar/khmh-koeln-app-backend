@@ -27,7 +27,7 @@ final class MembershipsController extends AbstractController
         description: 'Created.',
         content: new OA\JsonContent(ref: new Model(type: AddedMembershipResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function add(
         string $id,
         #[MapRequestPayload]
@@ -47,7 +47,7 @@ final class MembershipsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: AddedMembershipResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function move(
         string $id,
         #[MapRequestPayload]
@@ -61,7 +61,7 @@ final class MembershipsController extends AbstractController
     #[OA\Post(summary: 'Memberships end.')]
     #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function end(string $id, EndMembershipWorkflow $endMembership): Response
     {
         $endMembership($id);

@@ -18,7 +18,7 @@ final readonly class RecordDataRequestRequest
         public RequestSubjectRequest $subject = new RequestSubjectRequest(),
         #[Assert\Valid]
         public ReceiptRequest $receipt = new ReceiptRequest(),
-        #[Assert\Length(max: 2000, maxMessage: 'validation.tooLong', normalizer: 'trim')]
+        #[Assert\Length(max: 2000, normalizer: 'trim', maxMessage: 'validation.tooLong')]
         public ?string $note = null,
     ) {
     }

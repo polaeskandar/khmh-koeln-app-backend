@@ -28,9 +28,9 @@ final class EmailConfirmationController extends AbstractController
     }
 
     #[Route('/api/auth/email-confirmations', name: 'api_auth_email_confirmations', methods: ['POST'])]
-    #[OA\Post(security: [], summary: 'Auth email confirmations.')]
+    #[OA\Post(summary: 'Auth email confirmations.', security: [])]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function confirm(
         Request $request,
         #[MapRequestPayload]

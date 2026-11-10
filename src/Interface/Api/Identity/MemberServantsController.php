@@ -30,7 +30,7 @@ final class MemberServantsController extends AbstractController
             ),
         ]),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function servants(
         #[CurrentUser]
         UserInterface $viewer,

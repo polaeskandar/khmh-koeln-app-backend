@@ -23,7 +23,7 @@ final class DirectoryController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: DirectoryResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function search(SearchDirectoryWorkflow $searchDirectory, #[MapQueryParameter] string $q = ''): JsonResponse
     {
         return $this->json(new DirectoryResponse($searchDirectory($q)));

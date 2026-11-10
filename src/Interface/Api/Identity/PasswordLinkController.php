@@ -29,9 +29,9 @@ final class PasswordLinkController extends AbstractController
     }
 
     #[Route('', name: 'api_auth_password_links', methods: ['POST'])]
-    #[OA\Post(security: [], summary: 'Auth password links.')]
+    #[OA\Post(summary: 'Auth password links.', security: [])]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function use(
         Request $request,
         #[MapRequestPayload]

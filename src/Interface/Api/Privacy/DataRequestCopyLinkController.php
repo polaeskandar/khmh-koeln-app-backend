@@ -23,7 +23,7 @@ final class DataRequestCopyLinkController extends AbstractController
         description: 'Created.',
         content: new OA\JsonContent(ref: new Model(type: CopyLinkResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function issue(string $id, IssueCopyLinkWorkflow $issueCopyLink): JsonResponse
     {
         return $this->json(CopyLinkResponse::of($issueCopyLink($id)), status: Response::HTTP_CREATED);

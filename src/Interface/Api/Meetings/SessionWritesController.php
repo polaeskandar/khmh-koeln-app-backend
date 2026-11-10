@@ -29,7 +29,7 @@ final class SessionWritesController extends AbstractController
             new OA\Property(property: 'id', type: 'string', format: 'uuid'),
         ]),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function create(
         #[CurrentUser]
         UserInterface $user,
@@ -51,7 +51,7 @@ final class SessionWritesController extends AbstractController
             new OA\Property(property: 'id', type: 'string', format: 'uuid'),
         ]),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function rename(
         string $id,
         #[CurrentUser]

@@ -33,13 +33,13 @@ final class RegistrationController extends AbstractController
     }
 
     #[Route('', name: 'api_auth_register', methods: ['POST'])]
-    #[OA\Post(security: [], summary: 'Auth register.')]
+    #[OA\Post(summary: 'Auth register.', security: [])]
     #[OA\Response(
         response: 202,
         description: 'Accepted.',
         content: new OA\JsonContent(ref: new Model(type: RegistrationReceivedResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function register(
         Request $request,
         #[MapRequestPayload]
@@ -60,13 +60,13 @@ final class RegistrationController extends AbstractController
     }
 
     #[Route('/services', name: 'api_auth_register_services', methods: ['GET'])]
-    #[OA\Get(security: [], summary: 'Auth register services.')]
+    #[OA\Get(summary: 'Auth register services.', security: [])]
     #[OA\Response(
         response: 200,
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: RegistrationServicesResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function services(ListRegistrationServicesWorkflow $listRegistrationServices): JsonResponse
     {
         return $this->json(RegistrationServicesResponse::of($listRegistrationServices()));

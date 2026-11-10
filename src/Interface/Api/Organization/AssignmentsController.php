@@ -26,7 +26,7 @@ final class AssignmentsController extends AbstractController
         description: 'Created.',
         content: new OA\JsonContent(ref: new Model(type: AssignmentView::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function add(
         string $id,
         #[MapRequestPayload]
@@ -42,7 +42,7 @@ final class AssignmentsController extends AbstractController
     #[Route('/assignments/{id}', name: 'api_assignments_remove', methods: ['DELETE'])]
     #[OA\Delete(summary: 'Assignments remove.')]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function remove(string $id, RemoveAssignmentWorkflow $removeAssignment): Response
     {
         $removeAssignment($id);

@@ -30,7 +30,7 @@ final class DataRequestsController extends AbstractController
             new OA\Property(property: 'id', type: 'string', format: 'uuid'),
         ]),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function record(
         #[MapRequestPayload]
         RecordDataRequestRequest $request,
@@ -46,7 +46,7 @@ final class DataRequestsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: DataRequestListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(ListDataRequestsWorkflow $listDataRequests): JsonResponse
     {
         return $this->json(DataRequestListResponse::of($listDataRequests()));
@@ -59,7 +59,7 @@ final class DataRequestsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: DataRequestDetailResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function show(string $id, ShowDataRequestWorkflow $showDataRequest): JsonResponse
     {
         return $this->json(DataRequestDetailResponse::of($showDataRequest($id)));

@@ -27,7 +27,7 @@ final class MeController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: MeResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function show(
         #[CurrentUser]
         UserInterface $user,
@@ -43,7 +43,7 @@ final class MeController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: MeResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function changeLanguage(
         #[CurrentUser]
         UserInterface $user,

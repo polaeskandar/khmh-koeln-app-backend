@@ -30,7 +30,7 @@ final class RolesController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: RoleListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(ListRolesWorkflow $listRoles): JsonResponse
     {
         return $this->json(RoleListResponse::of($listRoles()));
@@ -43,7 +43,7 @@ final class RolesController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: RoleDetailsResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function show(string $id, ShowRoleWorkflow $showRole): JsonResponse
     {
         return $this->json(new RoleDetailsResponse($showRole($id)));
@@ -58,7 +58,7 @@ final class RolesController extends AbstractController
             new OA\Property(property: 'id', type: 'string', format: 'uuid'),
         ]),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function create(#[MapRequestPayload] RoleRequest $role, CreateRoleWorkflow $createRole): JsonResponse
     {
         $id = $createRole($role->name ?? '', $role->scope, $role->permissionChoices());
@@ -77,7 +77,7 @@ final class RolesController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: RoleDetailsResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function edit(string $id, #[MapRequestPayload] RoleRequest $role, EditRoleWorkflow $editRole): JsonResponse
     {
         return $this->json(new RoleDetailsResponse($editRole(
@@ -92,7 +92,7 @@ final class RolesController extends AbstractController
     #[OA\Delete(summary: 'Roles delete.')]
     #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function delete(string $id, DeleteRoleWorkflow $deleteRole): Response
     {
         $deleteRole($id);
