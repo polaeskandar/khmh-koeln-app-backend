@@ -27,6 +27,12 @@ interface StaffAssignmentRepositoryInterface
     public function ofAccounts(array $accountIds): ReadableCollection;
 
     /**
+     * @return ReadableCollection<int, StaffAssignment> the assignments of the service and of its stages, the service's
+     *     own first, then by stage position
+     */
+    public function ofService(Uuid $serviceId): ReadableCollection;
+
+    /**
      * @param list<Uuid> $serviceIds
      * @param list<Uuid> $stageIds
      *

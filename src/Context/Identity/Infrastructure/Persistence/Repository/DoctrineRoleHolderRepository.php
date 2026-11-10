@@ -8,6 +8,7 @@ use App\Context\Identity\Domain\Entity\Role;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Identity\Domain\Enum\RoleScope;
 use App\Context\Identity\Domain\Repository\RoleHolderRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use App\Library\Types\Model\Integers;
@@ -27,6 +28,14 @@ final readonly class DoctrineRoleHolderRepository implements RoleHolderRepositor
           AND u.status.approvedAt IS NOT NULL
           AND u.status.disabledAt IS NULL
         ORDER BY u.profile.displayName.value, u.id
+        DQL;
+
+    private const string HOLDERS_IN = <<<'DQL'
+        SELECT DISTINCT u FROM App\Context\Identity\Domain\Entity\User u
+        JOIN u.roles r
+        WHERE r.scope = :scope
+          AND u.status.approvedAt IS NOT NULL
+          AND u.status.disabledAt IS NULL
         DQL;
 
     private const string HOLDERS_OF = <<<'DQL'
@@ -65,6 +74,14 @@ final readonly class DoctrineRoleHolderRepository implements RoleHolderRepositor
     public function activeHolders(string $roleNameKey): ReadableCollection
     {
         $query = $this->entityManager->createQuery(self::HOLDERS)->setParameter('key', $roleNameKey);
+
+        return new ArrayCollection(ListOf::instances($query->getResult(), User::class));
+    }
+
+    #[Override]
+    public function activeHoldersIn(RoleScope $scope): ReadableCollection
+    {
+        $query = $this->entityManager->createQuery(self::HOLDERS_IN)->setParameter('scope', $scope);
 
         return new ArrayCollection(ListOf::instances($query->getResult(), User::class));
     }

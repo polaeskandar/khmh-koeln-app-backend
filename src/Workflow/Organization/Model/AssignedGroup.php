@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Workflow\Organization\Model;
 
+use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\StaffAssignment;
+use App\Context\Organization\Domain\Entity\Stage;
 
 final readonly class AssignedGroup
 {
@@ -22,5 +24,15 @@ final readonly class AssignedGroup
             ServiceReference::of($assignment->service()),
             $stage === null ? null : StageReference::of($stage),
         );
+    }
+
+    public static function ofService(Service $service): self
+    {
+        return new self(ServiceReference::of($service), stage: null);
+    }
+
+    public static function ofStage(Stage $stage): self
+    {
+        return new self(ServiceReference::of($stage->service()), StageReference::of($stage));
     }
 }

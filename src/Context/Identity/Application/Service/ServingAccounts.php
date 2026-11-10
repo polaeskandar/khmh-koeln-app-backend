@@ -7,6 +7,7 @@ namespace App\Context\Identity\Application\Service;
 use App\Context\Identity\Domain\Entity\Role;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\RoleScope;
+use App\Context\Identity\Domain\Repository\RoleHolderRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
@@ -20,6 +21,7 @@ final readonly class ServingAccounts
 
     public function __construct(
         private UserRepositoryInterface $users,
+        private RoleHolderRepositoryInterface $holders,
     ) {
     }
 
@@ -48,6 +50,14 @@ final readonly class ServingAccounts
                         ->isEmpty(),
                 ),
         );
+    }
+
+    /**
+     * @return list<User> the active accounts with a role that holds in assigned groups, by name
+     */
+    public function active(): array
+    {
+        return self::byName($this->holders->activeHoldersIn(RoleScope::AssignedGroups));
     }
 
     /**

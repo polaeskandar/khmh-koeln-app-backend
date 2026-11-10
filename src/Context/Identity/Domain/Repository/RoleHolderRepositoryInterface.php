@@ -8,6 +8,7 @@ use App\Context\Identity\Domain\Entity\Role;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Identity\Domain\Enum\RoleScope;
 use Doctrine\Common\Collections\ReadableCollection;
 
 interface RoleHolderRepositoryInterface
@@ -16,6 +17,11 @@ interface RoleHolderRepositoryInterface
      * @return ReadableCollection<int, User>
      */
     public function activeHolders(string $roleNameKey): ReadableCollection;
+
+    /**
+     * @return ReadableCollection<int, User> the approved, enabled accounts with a role of that scope
+     */
+    public function activeHoldersIn(RoleScope $scope): ReadableCollection;
 
     /**
      * @return ReadableCollection<int, User>

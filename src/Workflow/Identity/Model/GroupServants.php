@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Workflow\Identity\Model;
 
 use App\Context\Identity\Domain\Entity\User;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class GroupServants
@@ -15,25 +14,21 @@ final readonly class GroupServants
     public const string SERVANT = 'servant';
 
     /**
-     * @param ReadableCollection<int, User> $leaders
-     * @param ReadableCollection<int, User> $servants
+     * @param ReadableCollection<int, User> $servants by name
      *
      * @return list<GroupServant> service leaders first, then servants, each by name
      */
-    public static function of(ReadableCollection $leaders, ReadableCollection $servants): array
+    public static function of(ReadableCollection $servants, ServantGroups $groups): array
     {
-        $leaderIds = $leaders->map(static fn (User $leader): string => $leader->id()->toRfc4122());
-
-        $others = $servants->filter(
-            static fn (User $servant): bool => !$leaderIds->contains($servant->id()->toRfc4122()),
-        );
+        $leaders = $servants->filter($groups->isLedBy(...));
+        $others = $servants->filter(static fn (User $servant): bool => !$groups->isLedBy($servant));
 
         return [
             ...$leaders->map(
-                static fn (User $leader): GroupServant => GroupServant::of($leader, self::LEADER),
+                static fn (User $leader): GroupServant => GroupServant::of($leader, self::LEADER, $groups),
             )->getValues(),
-            ...new ArrayCollection($others->getValues())->map(
-                static fn (User $servant): GroupServant => GroupServant::of($servant, self::SERVANT),
+            ...$others->map(
+                static fn (User $servant): GroupServant => GroupServant::of($servant, self::SERVANT, $groups),
             )->getValues(),
         ];
     }
