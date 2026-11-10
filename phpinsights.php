@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use NunoMaduro\PhpInsights\Domain\Insights\CyclomaticComplexityIsHigh;
 use NunoMaduro\PhpInsights\Domain\Sniffs\ForbiddenSetterSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Files\LineLengthSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Formatting\SpaceAfterNotSniff;
@@ -18,6 +19,7 @@ return [
         ForbiddenSetterSniff::class => ['exclude' => ['src/Platform/OpenApi/Service']],
         UnusedParameterSniff::class => ['exclude' => ['src/Platform/OpenApi/Service/ArrayShapes.php']],
         ForbiddenPublicPropertySniff::class => ['exclude' => ['src/Interface/Console']],
+        CyclomaticComplexityIsHigh::class => ['maxComplexity' => 10],
     ],
     'requirements' => [
         'min-quality' => 100,

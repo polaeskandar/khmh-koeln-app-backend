@@ -31,6 +31,8 @@ prefer-self-return-type = { enabled = true }
 variable-name = { enabled = true }
 method-name = { enabled = true }
 property-name = { enabled = true }
+excessive-parameter-list = { enabled = true, threshold = 5, constructor-threshold = 7 }
+too-many-methods = { enabled = true, threshold = 15 }
 
 [analyzer]
 minimum-fail-level = "Note"
