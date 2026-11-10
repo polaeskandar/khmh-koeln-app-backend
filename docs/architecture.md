@@ -396,6 +396,8 @@ applied by the subject's `<Subject>Lifecycle` service ([Code style](code-style.m
   disabled are derived from `email_confirmed_at`, `approved_at` and `disabled_at` in `AccountStatus`, a declined
   registration is deleted, and each change has its own effect on `auth_version`. A machine would need a new
   column, a backfill and a CHECK to say what the dates already say; `AccountStatusTransitionsTest` pins the table.
+  `AccountLifecycle` approves, declines, disables and enables an account; registering it and confirming its email
+  stay with `AccountRegistration` and `EmailConfirmations`, which own the tokens and mails of those steps.
 
 ### Sessions are created the day before
 

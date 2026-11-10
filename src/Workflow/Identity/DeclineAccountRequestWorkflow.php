@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\AccessCheck;
-use App\Context\Identity\Application\Service\AccountRequests;
+use App\Context\Identity\Application\Service\AccountLifecycle;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
@@ -17,7 +17,7 @@ final readonly class DeclineAccountRequestWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private AccountRequests $requests,
+        private AccountLifecycle $accounts,
         private RegistrationServices $registrations,
         private Transactions $transactions,
     ) {
@@ -28,10 +28,8 @@ final readonly class DeclineAccountRequestWorkflow
         $this->access->require(Action::Delete, Resource::Users, refusal: 'accounts.adminOnly');
 
         $accountId = Ids::toUuid($id, notFound: 'user');
+        $forgetRegistration = fn (User $user) => $this->registrations->forget($user->id());
 
-        $this->transactions->run(fn () => $this->requests->whileUndecided($accountId, function (User $user): void {
-            $this->registrations->forget($user->id());
-            $this->requests->decline($user);
-        }));
+        $this->transactions->run(fn () => $this->accounts->decline($accountId, $forgetRegistration));
     }
 }

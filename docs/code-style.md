@@ -220,7 +220,7 @@ each layer's classes live and how they are shaped is in [Architecture](architect
 | Guard listener of a state machine | `block<Condition>` | nothing; adds a `TransitionBlocker` |
 | Transformation | `normalize`, `convert`, `calculate`, `format`, `build`, `to<Type>` | a new value |
 | Factory | `of()` from raw values, `from<Source>()` from another model, a state for a starting value (`draft()`) | a new value object |
-| Locked call | repositories `withWriteLock()` or `withShareLock()`, services `while<Condition>()` (`whileEditable`, `whilePersonKept`, `whileUndecided`) | what the callback returns |
+| Locked call | repositories `withWriteLock()` or `withShareLock()`, services `while<Condition>()` (`whileEditable`, `whilePersonKept`, `whileMarkable`) | what the callback returns |
 
 Accessors of entities and value objects are named after what they return (`status()`, `id()`). `__invoke()`,
 methods an interface requires and established repository operations (`save`, `remove`) keep their names. No vague

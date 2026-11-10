@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\AccessCheck;
-use App\Context\Identity\Application\Service\AccountApprovals;
+use App\Context\Identity\Application\Service\AccountLifecycle;
+use App\Context\Identity\Application\Service\ApprovalNotices;
+use App\Context\Identity\Application\Service\RoleChoices;
 use App\Context\Identity\Domain\Entity\Role;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Action;
@@ -30,7 +32,9 @@ final readonly class ApproveAccountRequestWorkflow
 
     public function __construct(
         private AccessCheck $access,
-        private AccountApprovals $approvals,
+        private AccountLifecycle $accounts,
+        private RoleChoices $roles,
+        private ApprovalNotices $notices,
         private ChildChoices $children,
         private Guardianship $guardianship,
         private AssignmentChanges $assignments,
@@ -42,7 +46,7 @@ final readonly class ApproveAccountRequestWorkflow
         $this->access->require(Action::Update, Resource::Users, refusal: 'accounts.adminOnly');
         $this->access->require(Action::Update, Resource::Roles, refusal: 'accounts.adminOnly');
         $accountId = Ids::toUuid($id, notFound: 'user');
-        $this->approvals->ensurePending($accountId);
+        $this->accounts->ensurePending($accountId);
 
         InvalidInput::all(
             fn (): ReadableCollection => $this->rolesOf($choice),
@@ -51,7 +55,7 @@ final readonly class ApproveAccountRequestWorkflow
         );
 
         $approved = $this->approved($accountId, Uuid::fromString($actorId), $choice);
-        $this->approvals->announce($approved);
+        $this->notices->send($approved);
 
         return AccountSummary::of($approved);
     }
@@ -62,7 +66,7 @@ final readonly class ApproveAccountRequestWorkflow
         $groups = $this->groupsOf($choice);
         $this->access->requireAssigningIn(...$groups->map(StructureGroup::ofPlacement(...))->getValues());
 
-        return $this->approvals->approve($accountId, $actor, $this->rolesOf($choice), fn (User $user) => $this->settle(
+        return $this->accounts->approve($accountId, $actor, $this->rolesOf($choice), fn (User $user) => $this->settle(
             $user,
             $children,
             $groups,
@@ -76,8 +80,8 @@ final readonly class ApproveAccountRequestWorkflow
     private function rolesOf(ApprovalChoice $choice): ReadableCollection
     {
         return $choice->isParent()
-            ? $this->approvals->chosenParentRoles($choice->roleIds)
-            : $this->approvals->chosenRoles($choice->roleIds);
+            ? $this->roles->chosenWithParent($choice->roleIds)
+            : $this->roles->chosen($choice->roleIds);
     }
 
     /**

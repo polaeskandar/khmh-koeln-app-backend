@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Workflow\Identity;
 
-use App\Context\Identity\Application\Service\DisabledAccounts;
+use App\Context\Identity\Application\Service\AccountLifecycle;
 
 final readonly class DisableUserWorkflow
 {
     public function __construct(
-        private DisabledAccounts $accounts,
+        private AccountLifecycle $accounts,
     ) {
     }
 

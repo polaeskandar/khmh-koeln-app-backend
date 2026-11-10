@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\AccessCheck;
-use App\Context\Identity\Application\Service\AccountRequests;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Identity\Domain\Query\RoleQueryInterface;
+use App\Context\Identity\Domain\Query\UserQueryInterface;
 use App\Context\Organization\Application\Service\RegistrationServices;
 use App\Library\Time\Client\Calendar;
 use App\Workflow\Identity\Model\AccountRequest;
@@ -18,9 +19,12 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class ListAccountRequestsWorkflow
 {
+    private const int LISTED = 200;
+
     public function __construct(
         private AccessCheck $access,
-        private AccountRequests $requests,
+        private UserQueryInterface $users,
+        private RoleQueryInterface $roles,
         private RegistrationServices $registrations,
         private Calendar $calendar,
     ) {
@@ -30,7 +34,7 @@ final readonly class ListAccountRequestsWorkflow
     {
         $this->access->require(Action::Read, Resource::Users, refusal: 'accounts.adminOnly');
 
-        $pending = $this->requests->pending();
+        $pending = $this->users->listPending(self::LISTED);
 
         $chosen = $this->registrations->chosenBy(
             $pending->map(static fn (User $user): Uuid => $user->id())->getValues(),
@@ -40,8 +44,8 @@ final readonly class ListAccountRequestsWorkflow
             items: $pending->map(
                 static fn (User $user): AccountRequest => AccountRequest::of($user, $chosen),
             )->getValues(),
-            roles: $this->requests
-                ->roleChoices()
+            roles: $this->roles
+                ->listByName()
                 ->map(RoleSummary::of(...))
                 ->getValues(),
             today: $this->calendar->today()->toString(),
