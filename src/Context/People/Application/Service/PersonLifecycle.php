@@ -14,7 +14,7 @@ use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class PersonStatuses
+final readonly class PersonLifecycle
 {
     public function __construct(
         private PersonRepositoryInterface $people,

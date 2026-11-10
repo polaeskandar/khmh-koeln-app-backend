@@ -7,8 +7,8 @@ namespace App\Workflow\Organization;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
+use App\Context\Organization\Application\Service\ServiceWrites;
 use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\StageDetails;
 use App\Workflow\Organization\Model\StructureGroup;
@@ -19,7 +19,7 @@ final readonly class AddStageWorkflow
     public function __construct(
         private AccessCheck $access,
         private ServiceStages $stages,
-        private ChurchServices $services,
+        private ServiceWrites $services,
     ) {
     }
 

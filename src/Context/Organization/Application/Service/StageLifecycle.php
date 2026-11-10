@@ -14,7 +14,7 @@ use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class StageArchives
+final readonly class StageLifecycle
 {
     public function __construct(
         private ServiceRepositoryInterface $services,

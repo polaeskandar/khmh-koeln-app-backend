@@ -12,7 +12,7 @@ use App\Library\Problem\Exception\NotFound;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class RoleCatalog
+final readonly class RoleLookup
 {
     public function __construct(
         private RoleRepositoryInterface $roles,

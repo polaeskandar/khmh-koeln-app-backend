@@ -7,7 +7,7 @@ namespace App\Workflow\People;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Organization\Application\Service\RosterScopes;
+use App\Context\Organization\Application\Service\RosterChoices;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\ValueObject\ChosenPlacement;
 use App\Context\People\Application\Service\PersonLists;
@@ -29,7 +29,7 @@ final readonly class ListPeopleWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private RosterScopes $scopes,
+        private RosterChoices $scopes,
         private PersonLists $lists,
         private StructureLookup $structure,
     ) {

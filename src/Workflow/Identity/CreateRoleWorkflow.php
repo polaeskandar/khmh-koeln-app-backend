@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\AccessCheck;
-use App\Context\Identity\Application\Service\RoleDefinitions;
+use App\Context\Identity\Application\Service\RoleWrites;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 
@@ -13,7 +13,7 @@ final readonly class CreateRoleWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private RoleDefinitions $definitions,
+        private RoleWrites $definitions,
     ) {
     }
 

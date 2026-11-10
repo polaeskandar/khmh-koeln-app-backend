@@ -7,7 +7,7 @@ namespace App\Workflow\Organization;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Organization\Application\Service\ChurchServices;
+use App\Context\Organization\Application\Service\ServiceWrites;
 use App\Workflow\Organization\Model\MemberCounts;
 use App\Workflow\Organization\Model\ServiceOverview;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -16,7 +16,7 @@ final readonly class CreateServiceWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private ChurchServices $services,
+        private ServiceWrites $services,
     ) {
     }
 

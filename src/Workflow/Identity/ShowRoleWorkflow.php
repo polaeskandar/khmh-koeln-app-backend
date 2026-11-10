@@ -7,7 +7,7 @@ namespace App\Workflow\Identity;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\LastAdministrator;
 use App\Context\Identity\Application\Service\PermissionCatalog;
-use App\Context\Identity\Application\Service\RoleCatalog;
+use App\Context\Identity\Application\Service\RoleLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Library\Problem\Model\Ids;
@@ -17,7 +17,7 @@ final readonly class ShowRoleWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private RoleCatalog $catalog,
+        private RoleLookup $catalog,
         private LastAdministrator $lastAdministrator,
     ) {
     }

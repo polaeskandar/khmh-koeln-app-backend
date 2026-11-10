@@ -16,7 +16,7 @@ use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class PersonRecords
+final readonly class PersonWrites
 {
     public function __construct(
         private PersonRepositoryInterface $people,

@@ -8,7 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ServiceStages;
-use App\Context\Organization\Application\Service\StageArchives;
+use App\Context\Organization\Application\Service\StageLifecycle;
 use App\Context\People\Application\Service\Rosters;
 use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\StageDetails;
@@ -18,7 +18,7 @@ final readonly class RestoreStageWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private StageArchives $archives,
+        private StageLifecycle $lifecycle,
         private Rosters $rosters,
         private ServiceStages $stages,
     ) {
@@ -30,7 +30,7 @@ final readonly class RestoreStageWorkflow
         $found = $this->stages->get(Ids::toUuid($id, notFound: 'stage'));
         $this->access->requireIn(Action::Update, Resource::Stages, StructureGroup::ofStage($found), missing: 'stage');
 
-        $stage = $this->archives->restore($found->id());
+        $stage = $this->lifecycle->restore($found->id());
 
         return StageDetails::of($stage, $this->rosters->stageMembersToday([$stage->id()]));
     }

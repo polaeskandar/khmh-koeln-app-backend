@@ -7,7 +7,7 @@ namespace App\Workflow\Learning;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Learning\Application\Service\LessonStatuses;
+use App\Context\Learning\Application\Service\LessonLifecycle;
 use App\Context\Learning\Application\Service\LessonWrites;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Enum\LessonStatus;
@@ -24,7 +24,7 @@ final readonly class ChangeLessonStatusWorkflow
         private AccessCheck $access,
         private StructureLookup $structure,
         private LessonWrites $lessons,
-        private LessonStatuses $statuses,
+        private LessonLifecycle $lifecycle,
     ) {
     }
 
@@ -42,7 +42,7 @@ final readonly class ChangeLessonStatusWorkflow
 
         $chosen = LessonStatus::tryFrom($status) ?? throw InvalidInput::field('status', 'validation.invalidChoice');
 
-        return LessonStatusView::of($this->statuses->changeStatus($lesson, $chosen));
+        return LessonStatusView::of($this->lifecycle->changeStatus($lesson, $chosen));
     }
 
     private function ensureAllowed(Lesson $lesson): void

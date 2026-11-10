@@ -18,12 +18,12 @@ use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\RuleViolation;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class RoleDefinitions
+final readonly class RoleWrites
 {
     public function __construct(
         private RoleRepositoryInterface $roles,
         private PermissionRepositoryInterface $permissions,
-        private RoleCatalog $catalog,
+        private RoleLookup $catalog,
         private LastAdministrator $lastAdministrator,
         private AdministrationLockInterface $administration,
     ) {
