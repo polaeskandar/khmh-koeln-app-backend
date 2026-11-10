@@ -30,6 +30,7 @@ final readonly class CopyLinks
     public function __construct(
         private DataRequestRepositoryInterface $requests,
         private CopyLinkRepositoryInterface $links,
+        private DataRequestLifecycle $lifecycle,
         private Calendar $calendar,
     ) {
     }
@@ -58,10 +59,10 @@ final readonly class CopyLinks
     {
         $now = $this->calendar->now()->toDateTimeImmutable();
 
-        return $this->links->spend(Checksum::sha256($token), $now, static function (DataRequest $request) use (
+        return $this->links->spend(Checksum::sha256($token), $now, function (DataRequest $request) use (
             $now,
         ): RequestSubject {
-            $request->complete($now, by: null, outcome: null);
+            $this->lifecycle->complete($request, $now, by: null, outcome: null);
 
             return $request->subject();
         });

@@ -18,6 +18,7 @@ final readonly class ScheduledErasures
 
     public function __construct(
         private DataRequestRepositoryInterface $requests,
+        private DataRequestLifecycle $lifecycle,
         private Calendar $calendar,
     ) {
     }
@@ -31,11 +32,7 @@ final readonly class ScheduledErasures
         }
 
         $this->requests->withWriteLock($scheduled->id(), function (DataRequest $request): void {
-            if (!$request->isOpen()) {
-                throw new RuleViolation('privacy.nothingScheduled');
-            }
-
-            $request->withdraw($this->calendar->now()->toDateTimeImmutable());
+            $this->lifecycle->withdraw($request, $this->calendar->now()->toDateTimeImmutable());
         });
     }
 
@@ -59,7 +56,12 @@ final readonly class ScheduledErasures
     public function complete(Uuid $requestId, array $outcome): void
     {
         $request = $this->requests->find($requestId) ?? throw NotFound::of('request');
-        $request->complete($this->calendar->now()->toDateTimeImmutable(), by: null, outcome: $outcome);
-        $this->requests->save($request);
+
+        $this->lifecycle->complete(
+            $request,
+            $this->calendar->now()->toDateTimeImmutable(),
+            by: null,
+            outcome: $outcome,
+        );
     }
 }

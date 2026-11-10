@@ -16,8 +16,18 @@ return [
     'remove' => [SpaceAfterNotSniff::class, SuperfluousInterfaceNamingSniff::class],
     'config' => [
         LineLengthSniff::class => ['lineLimit' => 120, 'absoluteLineLimit' => 120],
-        ForbiddenSetterSniff::class => ['exclude' => ['src/Platform/OpenApi/Service']],
-        UnusedParameterSniff::class => ['exclude' => ['src/Platform/OpenApi/Service/ArrayShapes.php']],
+        ForbiddenSetterSniff::class => [
+            'exclude' => [
+                'src/Platform/OpenApi/Service',
+                'src/Context/Privacy/Infrastructure/Lifecycle/DataRequestMarkingStore.php',
+            ],
+        ],
+        UnusedParameterSniff::class => [
+            'exclude' => [
+                'src/Platform/OpenApi/Service/ArrayShapes.php',
+                'src/Context/Privacy/Infrastructure/Lifecycle/DataRequestMarkingStore.php',
+            ],
+        ],
         ForbiddenPublicPropertySniff::class => ['exclude' => ['src/Interface/Console']],
         CyclomaticComplexityIsHigh::class => ['maxComplexity' => 10],
     ],
