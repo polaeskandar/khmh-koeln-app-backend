@@ -49,6 +49,8 @@ stays the agreed contract (D5): its conventions, code catalog and endpoint secti
   64 characters of letters, digits and `-`); anything else is replaced by a generated id. Quote it when reporting a
   problem.
 - `null` is sent, not omitted: a documented member is always present.
+- Text is composed to Unicode NFC before it is cleaned, checked, compared or stored, so a name typed with
+  combining marks ("u" + "◌̈") is the same name as the composed one ("ü"), and responses carry the composed form.
 
 ### Values
 

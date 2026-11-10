@@ -133,7 +133,7 @@ Each native operation is wrapped once in a Library model, and the rest of the ap
 
 | Need | Model |
 | --- | --- |
-| Strings (`sprintf`, `strtolower`, `str_starts_with`, `preg_*`, `ctype_digit`) | `Strings\Model\Text`; user input (`trim`, `mb_strlen`, whitespace) `Strings\Model\InputText`; name comparison `Strings\Model\NameKey` |
+| Strings (`sprintf`, `strtolower`, `str_starts_with`, `preg_*`, `ctype_digit`) | `Strings\Model\Text`; user input (NFC, `trim`, `mb_strlen`, whitespace) `Strings\Model\InputText`; name comparison `Strings\Model\NameKey` |
 | Narrowing `mixed` (`is_string`, `is_scalar`) | `Types\Model\Type` |
 | Lists and maps (`array_*`, `in_array`, `iterator_to_array`) | Doctrine `ArrayCollection`, plus `Collections\Model\Collections` for what Doctrine lacks (`of`, `firstPerKey`, `rekeyed`, `mapPresent`, `withoutKeys`, `mapArray`, `mapItems`) |
 | Paths (`glob`, `dirname`, `basename`) | `Files\Model\Path` |

@@ -16,7 +16,7 @@ final readonly class InputText
 
     public static function of(?string $value): self
     {
-        return new self($value ?? '');
+        return new self(ComposedForm::of($value ?? ''));
     }
 
     public function trimmed(): self
@@ -33,14 +33,17 @@ final readonly class InputText
     {
         $decomposed = Normalizer::normalize($this->collapsed()->value, Normalizer::FORM_D);
 
-        return new self($decomposed === false ? $this->value : $decomposed)
-            ->replaced('/\p{Mn}+/u', replacement: '')
-            ->lowered();
+        $unmarked = new self($decomposed === false ? $this->value : $decomposed)->replaced(
+            '/\p{Mn}+/u',
+            replacement: '',
+        );
+
+        return new self(mb_strtolower($unmarked->value));
     }
 
     public function lowered(): self
     {
-        return new self(mb_strtolower($this->value));
+        return new self($this->value |> mb_strtolower(...) |> ComposedForm::of(...));
     }
 
     public function length(): int

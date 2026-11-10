@@ -103,6 +103,19 @@ final class StagesControllerTest extends ApiTestCase
         yield 'archived' => ['old class', 'stages.nameTakenArchived', ['name' => 'Old Class']];
     }
 
+    public function testAStageNameTypedInTheOtherFormIsTaken(): void
+    {
+        $service = SundaySchool::withStagesIn(new Database(self::getContainer()));
+        $this->signInWithRoles('admin@example.org', 'administrator');
+
+        $this->jsonRequest('POST', SundaySchool::stagesPath($service), ['name' => "A\u{0308}ltere"]);
+        self::assertResponseStatusCodeSame(201);
+
+        $this->jsonRequest('POST', SundaySchool::stagesPath($service), ['name' => "\u{00C4}LTERE"]);
+        $this->assertProblem(422, 'checkFields');
+        $this->assertFieldError('name', 'stages.nameTaken', ['name' => "\u{00C4}ltere"]);
+    }
+
     public function testAServantReadsAStage(): void
     {
         $service = SundaySchool::withStagesIn(new Database(self::getContainer()));

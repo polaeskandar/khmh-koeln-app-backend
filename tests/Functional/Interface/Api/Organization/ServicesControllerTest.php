@@ -32,6 +32,23 @@ final class ServicesControllerTest extends ApiTestCase
         self::assertSame($created, $this->responseJson());
     }
 
+    public function testANameTypedDecomposedIsStoredComposedAndTakenInEitherForm(): void
+    {
+        $this->signInWithRoles('admin@example.org', 'administrator');
+
+        $this->jsonRequest('POST', '/api/services', ['name' => "Chor Mu\u{0308}hle"]);
+
+        self::assertResponseStatusCodeSame(201);
+        $this->assertJsonPath('name', "Chor M\u{00FC}hle");
+
+        $this->jsonRequest('POST', '/api/services', ['name' => "chor m\u{00FC}hle"]);
+        $this->assertProblem(422, 'checkFields');
+        $this->assertFieldError('name', 'services.nameTaken', ['name' => "Chor M\u{00FC}hle"]);
+
+        $this->jsonRequest('POST', '/api/services', ['name' => "CHOR MU\u{0308}HLE"]);
+        $this->assertFieldError('name', 'services.nameTaken', ['name' => "Chor M\u{00FC}hle"]);
+    }
+
     #[DataProvider('nonAdministrators')]
     public function testOnlyAdministratorsCreateServices(string $role): void
     {
