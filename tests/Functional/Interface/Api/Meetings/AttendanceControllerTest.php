@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Interface\Api\Meetings;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -22,14 +23,18 @@ final class AttendanceControllerTest extends ApiTestCase
     {
         $session = $this->session(self::ACTIVE);
         $mina = new Rosters(self::getContainer())->person('Mina');
-        $first = $this->signInWithRoles('first@example.org', 'servant');
+
+        $first = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'first@example.org',
+            'servant',
+        ));
 
         $this->mark($session, $mina->id()->toRfc4122());
         self::assertResponseStatusCodeSame(201);
         $this->assertJsonPath('recordedBy.id', $first);
         $mark = $this->responseJson();
 
-        $this->signInWithRoles('second@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('second@example.org', 'servant'));
         $this->mark($session, $mina->id()->toRfc4122());
         self::assertResponseStatusCodeSame(200);
         self::assertSame($mark, $this->responseJson());
@@ -45,13 +50,17 @@ final class AttendanceControllerTest extends ApiTestCase
             ->id()
             ->toRfc4122();
 
-        $servant = $this->signInWithRoles('servant@example.org', 'servant');
+        $servant = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'servant@example.org',
+            'servant',
+        ));
+
         $this->mark($session, $visitor);
         $first = $this->responseJson();
 
         $this->remove($session, $visitor, ['reason' => '  wrong child ']);
         self::assertResponseStatusCodeSame(204);
-        $this->signInWithRoles('other@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('other@example.org', 'servant'));
         $this->remove($session, $visitor, ['reason' => 'again']);
         self::assertResponseStatusCodeSame(204);
         self::assertSame(1, $this->rows("removal_reason = 'wrong child' AND removed_by = '" . $servant . "'"));
@@ -85,7 +94,7 @@ final class AttendanceControllerTest extends ApiTestCase
             ->connection()
             ->update('people.person', ['status' => $personStatus], ['id' => $mina->id()->toRfc4122()]);
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->mark($session, $mina->id()->toRfc4122());
 
@@ -135,7 +144,7 @@ final class AttendanceControllerTest extends ApiTestCase
     public function testUnknownSessionsAndPeopleAreNotFound(): void
     {
         $session = $this->session(self::ACTIVE);
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest(
             'PUT',
@@ -163,7 +172,7 @@ final class AttendanceControllerTest extends ApiTestCase
             ->id()
             ->toRfc4122();
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $insideTheLock = static function (array $lines, string $write): bool {
             $at =

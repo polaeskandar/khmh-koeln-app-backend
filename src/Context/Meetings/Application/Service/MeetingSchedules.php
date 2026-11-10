@@ -13,6 +13,7 @@ use App\Context\Meetings\Domain\ValueObject\AgendaRange;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\RecurringSchedule;
 use App\Library\Problem\Exception\InvalidInput;
+use App\Platform\Access\Model\GroupScope;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -25,16 +26,15 @@ final readonly class MeetingSchedules
     ) {
     }
 
+    /**
+     * @param ReadableCollection<int, Schedule> $schedules
+     */
     public function agendaOf(
-        ?string $scheduleId,
-        ?string $serviceId,
-        ?string $stageId,
+        ReadableCollection $schedules,
         ArchivedStructure $archived,
         AgendaRange $range,
     ): AgendaDates {
-        $dates = $this->plannedDates->agendaOf($this->chosen($scheduleId, $serviceId, $stageId), $archived, $range);
-
-        return $this->withPresent($dates);
+        return $this->withPresent($this->plannedDates->agendaOf($schedules, $archived, $range));
     }
 
     /**
@@ -48,9 +48,12 @@ final readonly class MeetingSchedules
         return $this->plannedDates->agendaOf($schedules, $archived, $range);
     }
 
-    public function upcomingOf(ArchivedStructure $archived, AgendaRange $range): AgendaDates
+    public function upcomingOf(ArchivedStructure $archived, AgendaRange $range, GroupScope $scope): AgendaDates
     {
-        $schedules = $archived->inOpenServices($this->schedules->listed(serviceId: null, stageId: null));
+        $schedules = CoveredSchedules::within(
+            $scope,
+            $archived->inOpenServices($this->schedules->listed(serviceId: null, stageId: null)),
+        );
 
         return $this->withPresent($this->plannedDates->agendaOf($schedules, $archived, $range)->withoutCompleted());
     }

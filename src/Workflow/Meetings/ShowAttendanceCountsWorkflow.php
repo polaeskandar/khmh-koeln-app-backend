@@ -32,10 +32,10 @@ final readonly class ShowAttendanceCountsWorkflow
      */
     public function __invoke(array $sessionIds): array
     {
-        $this->access->require(Action::Read, Resource::Attendance);
+        $scope = $this->access->scope(Action::Read, Resource::Attendance);
 
         $ids = CountedSessions::idsOf($sessionIds);
-        $sessions = $this->sessions->byIds($ids);
+        $sessions = $this->sessions->byIds($ids, $scope);
         $schedules = OverviewSessions::schedulesOf($sessions);
 
         $tallies = SessionTallies::of(

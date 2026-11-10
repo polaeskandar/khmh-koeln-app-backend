@@ -7,6 +7,7 @@ namespace App\Workflow\Meetings;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\ScheduleOutlooks;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
@@ -38,6 +39,8 @@ final readonly class ShowScheduleWorkflow
         $today = $this->calendar->today();
         $archived = ArchivedStructure::of($this->structure->archivedIds());
         $outlook = $this->outlooks->found($id, $archived, $today);
+        $group = CoveredSchedules::groupOf($outlook->schedule);
+        $this->access->requireIn(Action::Read, Resource::Services, $group, missing: 'schedule');
         $schedules = RosterSizes::schedulesOf([$outlook]);
 
         return new DatedSchedule($today->toString(), ScheduleSummary::of(

@@ -9,8 +9,8 @@ use App\Context\Identity\Application\Service\ServingAccounts;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Organization\Application\Service\AssignmentChanges;
 use App\Context\Organization\Application\Service\PlacementChoices;
-use App\Platform\Access\Model\Group;
 use App\Workflow\Organization\Model\AssignmentView;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class AssignStaffWorkflow
 {
@@ -38,7 +38,7 @@ final readonly class AssignStaffWorkflow
     private function assigned(User $account, ?string $serviceId, ?string $stageId): AssignmentView
     {
         $group = $this->placements->of($serviceId, $stageId, fieldPrefix: '');
-        $this->access->requireAssigningIn(new Group($group->service->id(), $group->stage?->id()));
+        $this->access->requireAssigningIn(StructureGroup::ofPlacement($group));
 
         return AssignmentView::of($this->changes->assign(
             $account->id(),

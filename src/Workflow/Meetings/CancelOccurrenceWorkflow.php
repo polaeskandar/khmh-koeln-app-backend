@@ -7,6 +7,7 @@ namespace App\Workflow\Meetings;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\OccurrenceCancellations;
 use App\Context\Organization\Application\Service\ArchiveGuard;
 use App\Workflow\Meetings\Model\CanceledOccurrence;
@@ -25,6 +26,14 @@ final readonly class CancelOccurrenceWorkflow
         $this->access->require(Action::Update, Resource::Sessions);
 
         $planned = $this->cancellations->cancelable($scheduleId, $date);
+
+        $this->access->requireIn(
+            Action::Update,
+            Resource::Sessions,
+            CoveredSchedules::groupOf($planned->schedule),
+            missing: 'schedule',
+        );
+
         $this->archive->ensureOpen($planned->schedule->roster()->serviceId, $planned->schedule->roster()->stageId);
 
         return CanceledOccurrence::of($this->cancellations->cancel($planned, $accountId, $reason));

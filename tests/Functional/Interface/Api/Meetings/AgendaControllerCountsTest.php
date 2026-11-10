@@ -11,6 +11,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -50,7 +51,11 @@ final class AgendaControllerCountsTest extends ApiTestCase
         $schedules->session($open, '2026-11-07', self::DONE . ", roster_mode = 'open'");
         $schedules->session($schedules->weekly($service, 'Choir', 1), '2026-11-09');
         $schedules->session($schedules->weekly($service, 'Youth', 2), '2026-11-10', "status = 'canceled'");
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('GET', '/api/agenda?from=2026-11-07&to=2026-11-10');
 
@@ -81,7 +86,12 @@ final class AgendaControllerCountsTest extends ApiTestCase
         self::mockTime('2026-11-08T12:00:00+01:00');
         [$service, $third] = $this->structure();
         $this->classWithMarks($service, $third);
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
+
         $this->jsonRequest('GET', '/api/agenda?from=2026-11-08&to=2026-11-08');
         $few = \count(new Logs(self::getContainer())->containing('SELECT'));
 

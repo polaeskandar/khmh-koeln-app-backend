@@ -12,6 +12,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Domain\Entity\Roles;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use Symfony\Component\Uid\Uuid;
@@ -49,7 +50,7 @@ final class SessionsControllerTest extends ApiTestCase
     {
         $winter = $this->sundaySession('2026-11-08');
         $summer = $this->sundaySession('2027-03-28');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/sessions/' . $winter->id()->toRfc4122());
         $this->assertJsonPath('session.startsAt', '2026-11-08T18:30:00+01:00');
@@ -85,7 +86,12 @@ final class SessionsControllerTest extends ApiTestCase
     public function testLeadersReadSessionsAndParentsMayNot(): void
     {
         $session = $this->sundaySession('2026-11-08');
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
+
         $this->jsonRequest('GET', '/api/sessions/' . $session->id()->toRfc4122());
         self::assertResponseIsSuccessful();
         $this->assertJsonPath('session.service.name', 'Sunday School');

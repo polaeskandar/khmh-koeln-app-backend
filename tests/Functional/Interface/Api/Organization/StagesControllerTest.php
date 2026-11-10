@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Interface\Api\Organization;
 
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\Organization\Domain\Entity\SundaySchool;
 use App\Tests\Support\Database;
@@ -17,7 +18,11 @@ final class StagesControllerTest extends ApiTestCase
     public function testALeaderAddsAStageAfterTheActiveOnesAndBeforeTheArchived(): void
     {
         $service = SundaySchool::withStagesIn(new Database(self::getContainer()));
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $response = $this->jsonRequest('POST', SundaySchool::stagesPath($service), ['name' => ' 3rd  Class ']);
 
@@ -77,7 +82,11 @@ final class StagesControllerTest extends ApiTestCase
     public function testAStageNameIsFreeWithinItsService(string $name, string $code, array $params): void
     {
         $service = SundaySchool::withStagesIn(new Database(self::getContainer()));
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('POST', SundaySchool::stagesPath($service), ['name' => $name]);
 
@@ -97,7 +106,7 @@ final class StagesControllerTest extends ApiTestCase
     public function testAServantReadsAStage(): void
     {
         $service = SundaySchool::withStagesIn(new Database(self::getContainer()));
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', SundaySchool::stagesPath($service));
         $stageId = Type::of(JsonBody::valueAt($this->responseJson(), ['stages', '1', 'id'], 'stages.1.id'))->toString();

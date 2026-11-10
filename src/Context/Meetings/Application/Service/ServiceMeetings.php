@@ -14,6 +14,7 @@ use App\Context\Meetings\Domain\ValueObject\MarkedSessions;
 use App\Context\Meetings\Domain\ValueObject\PlannedDate;
 use App\Library\Collections\Model\Collections;
 use App\Library\Time\Client\Calendar;
+use App\Platform\Access\Model\GroupScope;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -33,10 +34,10 @@ final readonly class ServiceMeetings
     ) {
     }
 
-    public function recentlyCompleted(): MarkedSessions
+    public function recentlyCompleted(GroupScope $scope): MarkedSessions
     {
         $today = $this->calendar->today();
-        $schedules = $this->schedules->listed(serviceId: null, stageId: null);
+        $schedules = CoveredSchedules::within($scope, $this->schedules->listed(serviceId: null, stageId: null));
 
         $completed = $this->sessions
             ->ofSchedulesBetween($schedules, $today->addDays(-self::TREND_DAYS), $today->addDays(-1))
@@ -50,10 +51,10 @@ final readonly class ServiceMeetings
     /**
      * @return ReadableCollection<non-empty-string, PlannedDate>
      */
-    public function nextByService(ArchivedStructure $archived): ReadableCollection
+    public function nextByService(ArchivedStructure $archived, GroupScope $scope): ReadableCollection
     {
         $today = $this->calendar->today();
-        $schedules = $this->schedules->listed(serviceId: null, stageId: null);
+        $schedules = CoveredSchedules::within($scope, $this->schedules->listed(serviceId: null, stageId: null));
         $dates = $this->plannedDates->between($schedules, $archived, $today, $today->addDays(self::NEXT_DAYS));
         $upcoming = new ArrayCollection($dates)->filter(static fn (PlannedDate $date): bool => $date->isUpcoming());
 

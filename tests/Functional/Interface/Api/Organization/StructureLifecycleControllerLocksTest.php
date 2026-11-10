@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Interface\Api\Organization;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -23,7 +24,11 @@ final class StructureLifecycleControllerLocksTest extends ApiTestCase
     {
         [$school, $third] = $this->structure();
         $mina = new Rosters(self::getContainer())->person('Mina');
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('POST', '/api/people/' . $mina->id()->toRfc4122() . '/memberships', [
             'serviceId' => $school->id()->toRfc4122(),
@@ -38,7 +43,11 @@ final class StructureLifecycleControllerLocksTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         [$school, $third] = $this->structure();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('POST', '/api/schedules', [
             'roster' => [
@@ -64,7 +73,11 @@ final class StructureLifecycleControllerLocksTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         [, $third] = $this->structure();
-        $leader = $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        $leader = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('POST', '/api/stages/' . $third->id()->toRfc4122() . '/lessons', [
             'details' => ['title' => 'The Good Samaritan'],

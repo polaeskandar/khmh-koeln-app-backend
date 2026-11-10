@@ -32,7 +32,7 @@ final readonly class ServedGroups
         return $id;
     }
 
-    public function everyService(string $accountId): void
+    public function everyService(string $accountId): string
     {
         new Database($this->container)
             ->connection()
@@ -44,5 +44,7 @@ final readonly class ServedGroups
                   WHERE a.account_id = ? AND a.service_id = s.id AND a.stage_id IS NULL
                 )
                 SQL, [$accountId, $accountId]);
+
+        return $accountId;
     }
 }

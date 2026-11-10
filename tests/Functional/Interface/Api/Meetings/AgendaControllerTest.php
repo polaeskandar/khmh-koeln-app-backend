@@ -11,6 +11,7 @@ use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Tests\Support\Interface\Api\Meetings\ScheduleRows;
@@ -45,7 +46,11 @@ final class AgendaControllerTest extends ApiTestCase
         $old = $this->service('Old Choir');
         $schedules->weekly($old, 'Archived', 5);
         $rows->archive('organization.service', $old->id());
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('GET', self::FRIDAYS);
 
@@ -109,7 +114,7 @@ final class AgendaControllerTest extends ApiTestCase
         $service = $this->service('Sunday School');
         $schedules->session($schedules->weekly($service, 'Sunday class', 7), '2027-03-28');
         $schedules->session($schedules->weekly($service, 'Monday class', 1), '2027-03-29');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/agenda?from=2027-03-23&to=2027-03-28');
 
@@ -127,7 +132,7 @@ final class AgendaControllerTest extends ApiTestCase
         $schedules->weekly($school, 'Third class', 5, stage: $third);
         $schedules->weekly($school, 'Choir', 5);
         $youth = $schedules->weekly($this->service('Youth Meeting'), 'Youth', 5);
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/agenda');
         $this->assertJsonPath('from', '2026-11-03');
@@ -155,7 +160,7 @@ final class AgendaControllerTest extends ApiTestCase
         array $params = [],
     ): void {
         self::mockTime('2026-11-09T10:00:00+01:00');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/agenda?' . $query);
 
@@ -185,13 +190,19 @@ final class AgendaControllerTest extends ApiTestCase
             $schedules->session($schedules->weekly($this->service('Few ' . $number), 'Few', 1), '2026-11-09');
         }
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $servant = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'servant@example.org',
+            'servant',
+        ));
+
         $this->jsonRequest('GET', '/api/agenda?from=2026-11-03&to=2026-11-16');
         $few = count(new Logs(self::getContainer())->containing('SELECT'));
 
         foreach (range(start: 1, end: 14) as $number) {
             $schedules->session($schedules->weekly($this->service('Many ' . $number), 'Many', 1), '2026-11-09');
         }
+
+        new ServedGroups(self::getContainer())->everyService($servant);
 
         $this->jsonRequest('GET', '/api/agenda?from=2026-11-03&to=2026-11-16');
 

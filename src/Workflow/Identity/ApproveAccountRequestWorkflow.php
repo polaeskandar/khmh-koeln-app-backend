@@ -16,9 +16,9 @@ use App\Context\People\Application\Service\ChildChoices;
 use App\Context\People\Application\Service\Guardianship;
 use App\Context\People\Domain\Entity\Person;
 use App\Library\Problem\Exception\InvalidInput;
-use App\Platform\Access\Model\Group;
 use App\Workflow\Identity\Model\AccountSummary;
 use App\Workflow\Identity\Model\ApprovalChoice;
+use App\Workflow\Organization\Model\StructureGroup;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 
@@ -49,7 +49,7 @@ final readonly class ApproveAccountRequestWorkflow
 
         $children = $this->childrenOf($choice);
         $groups = $this->groupsOf($choice);
-        $this->access->requireAssigningIn(...$groups->map(self::groupOf(...))->getValues());
+        $this->access->requireAssigningIn(...$groups->map(StructureGroup::ofPlacement(...))->getValues());
 
         $approved = $this->approvals->approve($id, $actorId, $this->rolesOf($choice), fn (User $user) => $this->settle(
             $user,
@@ -89,11 +89,6 @@ final readonly class ApproveAccountRequestWorkflow
         return $choice->isParent()
             ? new ArrayCollection()
             : $this->assignments->chosen($choice->assignments, self::ASSIGNMENTS);
-    }
-
-    private static function groupOf(ChosenPlacement $group): Group
-    {
-        return new Group($group->service->id(), $group->stage?->id());
     }
 
     /**

@@ -7,6 +7,7 @@ namespace App\Context\Meetings\Infrastructure\Persistence\Repository;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Context\Meetings\Domain\Repository\SessionListRepositoryInterface;
+use App\Context\Meetings\Domain\ValueObject\CoveredRosters;
 use App\Library\Time\Model\LocalDate;
 use App\Library\Types\Model\ListOf;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -49,7 +50,7 @@ final readonly class DoctrineSessionListRepository implements SessionListReposit
      * @param list<Uuid> $archivedIds
      */
     #[Override]
-    public function latestClosed(int $limit, array $archivedIds): ReadableCollection
+    public function latestClosed(int $limit, array $archivedIds, CoveredRosters $covered): ReadableCollection
     {
         $query = $this
             ->withSchedules()
@@ -64,6 +65,13 @@ final readonly class DoctrineSessionListRepository implements SessionListReposit
                 ->andWhere('sc.roster.serviceId NOT IN (:excluded)')
                 ->andWhere('sc.roster.stageId IS NULL OR sc.roster.stageId NOT IN (:excluded)')
                 ->setParameter('excluded', $archivedIds);
+        }
+
+        if ($covered->serviceIds !== null) {
+            $query
+                ->andWhere('sc.roster.serviceId IN (:coveredServices) OR sc.roster.stageId IN (:coveredStages)')
+                ->setParameter('coveredServices', $covered->serviceIds)
+                ->setParameter('coveredStages', $covered->stageIds ?? []);
         }
 
         return $this->sessions($query);

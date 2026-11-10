@@ -40,12 +40,27 @@ final readonly class AccessCheck
     {
         $this->require($action, $resource, $refusal);
 
+        return $this->scopeOf($action, $resource);
+    }
+
+    public function scopeOf(Action $action, Resource $resource): GroupScope
+    {
         return $this->groups->ofViewer($action, $resource);
     }
 
-    public function allowsIn(Action $action, Resource $resource, Uuid $serviceId, ?Uuid $stageId): bool
+    public function requireIn(Action $action, Resource $resource, Group $group, string $missing): void
     {
-        return $this->allows($action, $resource) && $this->covers($action, $resource, $serviceId, $stageId);
+        GroupRefusals::requireIn($this->scope($action, $resource), $group, $missing);
+    }
+
+    public function requireReaching(Action $action, Resource $resource, Uuid $serviceId, string $missing): void
+    {
+        GroupRefusals::requireReached($this->scope($action, $resource), $serviceId, $missing);
+    }
+
+    public function requireChosen(Action $action, Resource $resource, Group $group, string $fieldPrefix): void
+    {
+        GroupRefusals::requireChosen($this->scope($action, $resource), $group, $fieldPrefix);
     }
 
     public function requireAssigning(): GroupScope
@@ -56,10 +71,5 @@ final readonly class AccessCheck
     public function requireAssigningIn(Group ...$groups): void
     {
         $this->assignments->requireIn(...$groups);
-    }
-
-    private function covers(Action $action, Resource $resource, Uuid $serviceId, ?Uuid $stageId): bool
-    {
-        return $this->groups->ofViewer($action, $resource)->covers($serviceId, $stageId);
     }
 }

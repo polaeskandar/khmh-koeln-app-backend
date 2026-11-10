@@ -9,6 +9,7 @@ use App\Library\Types\Model\Integers;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Tests\Support\Logs;
@@ -33,7 +34,11 @@ final class ScheduleLifecycleControllerTest extends ApiTestCase
         $inArchivedService = $schedules->weekly($other, 'Youth evening', 5);
         $inArchivedStage = $schedules->weekly($service, 'Sunday class', 7, stage: $stage);
         $active = $schedules->weekly($service, 'Service meeting', 3);
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->post($inArchivedService, 'activate');
         $this->assertProblem(409, 'meetings.serviceArchivedRestoreFirst', ['name' => 'Youth Meeting']);
@@ -48,7 +53,11 @@ final class ScheduleLifecycleControllerTest extends ApiTestCase
     {
         self::mockTime('2026-11-07T10:00:00+01:00');
         $sunday = $this->inactiveSunday();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->post($sunday, 'activate');
 
@@ -69,7 +78,11 @@ final class ScheduleLifecycleControllerTest extends ApiTestCase
         new Database(self::getContainer())->persisted($service);
         $sunday = new Schedules(self::getContainer())->weekly($service, 'Sunday class', 7);
         new Schedules(self::getContainer())->session($sunday, '2026-11-08');
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->post($sunday, 'deactivate');
         self::assertResponseIsSuccessful();
@@ -96,7 +109,11 @@ final class ScheduleLifecycleControllerTest extends ApiTestCase
         $schedules->session($canceled, '2026-12-02', "status = 'canceled'");
         $planned = $schedules->weekly($service, 'Planned', 7, stage: $stage);
         new Lessons(self::getContainer())->stored($stage, $planned, '2026-12-06');
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('DELETE', '/api/schedules/' . $canceled->id()->toRfc4122());
         $this->assertProblem(409, 'meetings.scheduleHasSessions', ['count' => 1]);
@@ -115,7 +132,11 @@ final class ScheduleLifecycleControllerTest extends ApiTestCase
         $stage = Structure::stage($service);
         new Database(self::getContainer())->persisted($service, $stage);
         $class = new Schedules(self::getContainer())->weekly($service, 'Sunday class', 7, stage: $stage);
-        $leader = $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        $leader = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('POST', '/api/stages/' . $stage->id()->toRfc4122() . '/lessons', [
             'details' => ['title' => 'The Good Samaritan'],
@@ -135,7 +156,7 @@ final class ScheduleLifecycleControllerTest extends ApiTestCase
     public function testServantsAndUnknownSchedulesAreRefused(): void
     {
         $sunday = $this->inactiveSunday();
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         foreach (['activate', 'deactivate'] as $action) {
             $this->post($sunday, $action);
@@ -146,7 +167,12 @@ final class ScheduleLifecycleControllerTest extends ApiTestCase
         $this->assertProblem(403, 'forbidden');
 
         $this->browser()->getCookieJar()->clear();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
+
         $this->jsonRequest('POST', '/api/schedules/' . Uuid::v7()->toRfc4122() . '/activate');
         $this->assertProblem(404, 'notFound.schedule');
 

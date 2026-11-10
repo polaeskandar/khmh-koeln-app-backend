@@ -13,6 +13,7 @@ use App\Context\Organization\Application\Service\StructureRemovals;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\ValueObject\StructureUse;
 use App\Context\People\Application\Service\Memberships;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class DeleteStageWorkflow
 {
@@ -34,6 +35,8 @@ final readonly class DeleteStageWorkflow
 
     private function released(Stage $stage): StructureUse
     {
+        $this->access->requireIn(Action::Delete, Resource::Stages, StructureGroup::ofStage($stage), missing: 'stage');
+
         return new StructureUse(
             sessions: $this->schedules->releaseOfStage($stage->id()),
             lessons: $this->lessons->countIn([$stage->id()]),

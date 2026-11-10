@@ -7,6 +7,7 @@ namespace App\Workflow\Meetings;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSchedules;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Entity\Session;
@@ -19,6 +20,7 @@ use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\Attendees;
 use App\Library\Time\Client\Calendar;
 use App\Library\Time\Model\LocalDate;
+use App\Platform\Access\Model\GroupScope;
 use App\Workflow\Meetings\Model\Agenda;
 use App\Workflow\Meetings\Model\AgendaCounts;
 use App\Workflow\Meetings\Model\AgendaFilter;
@@ -45,7 +47,7 @@ final readonly class ShowAgendaWorkflow
 
     public function __invoke(AgendaFilter $filter): Agenda
     {
-        $this->access->require(Action::Read, Resource::Services);
+        $scope = $this->access->scope(Action::Read, Resource::Services);
 
         $today = $this->calendar->today();
         $archived = ArchivedStructure::of($this->structure->archivedIds());
@@ -57,8 +59,16 @@ final readonly class ShowAgendaWorkflow
             : AgendaRange::ahead($today, $days);
 
         $dates = $days === null
-            ? $this->schedules->agendaOf($choice->scheduleId, $choice->serviceId, $choice->stageId, $archived, $range)
-            : $this->schedules->upcomingOf($archived, $range);
+            ? $this->schedules->agendaOf(
+                CoveredSchedules::within($scope, $this->schedules->chosen(
+                    $choice->scheduleId,
+                    $choice->serviceId,
+                    $choice->stageId,
+                )),
+                $archived,
+                $range,
+            )
+            : $this->schedules->upcomingOf($archived, $range, $scope);
 
         return Agenda::of($range, $this->itemsOf($dates, $this->referencesOf($dates->schedules)));
     }
@@ -68,14 +78,11 @@ final readonly class ShowAgendaWorkflow
      */
     private function itemsOf(AgendaDates $dates, RosterReferences $references): array
     {
-        $shown = $this->access->allows(Action::Read, Resource::Attendance)
-            ? static fn (SessionView $view): SessionView => $view
-            : static fn (SessionView $view): SessionView => $view->withoutCancelReason();
-
+        $attendance = $this->access->scopeOf(Action::Read, Resource::Attendance);
         $tallies = $this->talliesOf($dates);
 
         $sessionOf = fn (Session $session): AgendaItem => AgendaItem::session(
-            $shown($this->viewOf($session, $references)),
+            self::shownTo($attendance, $session, $this->viewOf($session, $references)),
             AgendaCounts::of($tallies, $session),
         );
 
@@ -89,6 +96,11 @@ final readonly class ShowAgendaWorkflow
             ...$dates->sessions->map($sessionOf)->getValues(),
             ...new ArrayCollection($dates->planned)->map($plannedOf)->getValues(),
         ];
+    }
+
+    private static function shownTo(GroupScope $attendance, Session $session, SessionView $view): SessionView
+    {
+        return $attendance->covers(CoveredSchedules::groupOfSession($session)) ? $view : $view->withoutCancelReason();
     }
 
     /**

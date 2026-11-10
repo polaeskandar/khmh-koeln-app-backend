@@ -22,6 +22,7 @@ use App\Workflow\Meetings\Model\HistoryRows;
 use App\Workflow\Meetings\Model\HistorySession;
 use App\Workflow\Meetings\Model\SessionTallies;
 use App\Workflow\Meetings\Model\TalliedSessions;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class ShowStageAttendanceHistoryWorkflow
 {
@@ -41,6 +42,7 @@ final readonly class ShowStageAttendanceHistoryWorkflow
         $this->access->require(Action::Read, Resource::Members);
 
         $stage = $this->structure->stage($stageId);
+        $this->access->requireIn(Action::Read, Resource::Members, StructureGroup::ofStage($stage), missing: 'stage');
         $today = $this->calendar->today();
         $tallied = $this->talliedOf($this->history->latestCompleted($stage->id(), self::SESSIONS));
 

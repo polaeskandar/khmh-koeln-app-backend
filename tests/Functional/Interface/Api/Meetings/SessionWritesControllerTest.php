@@ -9,6 +9,7 @@ use App\Library\Types\Model\Integers;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -24,7 +25,11 @@ final class SessionWritesControllerTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         $service = $this->service();
-        $leader = $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        $leader = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $first = $this->created($this->body($service));
         $second = $this->created($this->body($service, ['title' => 'Choir practice']));
@@ -62,7 +67,11 @@ final class SessionWritesControllerTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         $service = $this->service();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('POST', '/api/sessions', $this->body($service, $changes));
 
@@ -149,7 +158,11 @@ final class SessionWritesControllerTest extends ApiTestCase
         ];
 
         $canceled = $schedules->session($class, '2026-11-22', "status = 'canceled'");
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         foreach ($sessions as $status => $session) {
             $this->jsonRequest('PUT', '/api/sessions/' . $session->id()->toRfc4122() . '/details', [

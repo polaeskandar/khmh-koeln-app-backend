@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Interface\Api\Meetings;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
@@ -33,7 +34,7 @@ final class SchedulesControllerTest extends ApiTestCase
         $schedules->monthly($service, 'Family Saturday', 1, 6);
         $sunday = $schedules->weekly($service, 'Sunday class', 7);
         $open = $schedules->session($sunday, '2026-11-08', "status = 'active', opened_at = created_at");
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/schedules');
 
@@ -69,7 +70,10 @@ final class SchedulesControllerTest extends ApiTestCase
             ->connection()
             ->executeStatement('UPDATE meetings.meeting_schedule SET active = false WHERE id = ?', [$inactive->id()->toRfc4122()]);
 
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('GET', '/api/schedules');
 
@@ -86,7 +90,7 @@ final class SchedulesControllerTest extends ApiTestCase
         $schedules = new Schedules(self::getContainer());
         $schedule = $schedules->weekly($youth, 'Youth Meeting', 5);
         $schedules->weekly($choir, 'Choir practice', 4);
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/schedules?serviceId=' . $youth->id()->toRfc4122());
         $this->assertJsonPath('items.0.name', 'Youth Meeting');
@@ -105,7 +109,7 @@ final class SchedulesControllerTest extends ApiTestCase
 
     public function testFiltersThatMatchNothingAndMalformedIds(): void
     {
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/schedules?stageId=019a3b6e-0000-7000-8000-000000000002');
         self::assertResponseIsSuccessful();
@@ -126,7 +130,7 @@ final class SchedulesControllerTest extends ApiTestCase
         $schedules->weekly($school, 'b Class meeting', 7, stage: $third);
         $schedules->weekly($school, 'A old class meeting', 7, stage: $old);
         $schedules->weekly($school, 'service-wide', 7);
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/schedules?stageId=' . $third->id()->toRfc4122());
         $this->assertJsonPath('items.0.name', 'b Class meeting');

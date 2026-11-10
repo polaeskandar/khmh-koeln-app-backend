@@ -11,6 +11,7 @@ use App\Context\Meetings\Domain\ValueObject\Occurrences;
 use App\Context\Meetings\Domain\ValueObject\PlannedDate;
 use App\Context\Meetings\Domain\ValueObject\ScheduleOutlook;
 use App\Library\Time\Model\LocalDate;
+use App\Platform\Access\Model\GroupScope;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use LogicException;
@@ -29,9 +30,16 @@ final readonly class ScheduleOutlooks
     /**
      * @return list<ScheduleOutlook>
      */
-    public function listed(?string $serviceId, ?string $stageId, ArchivedStructure $archived, LocalDate $today): array
-    {
-        return $this->outlooksOf($this->schedules->recurring($serviceId, $stageId), $archived, $today);
+    public function listed(
+        ?string $serviceId,
+        ?string $stageId,
+        ArchivedStructure $archived,
+        LocalDate $today,
+        GroupScope $scope,
+    ): array {
+        $schedules = CoveredSchedules::within($scope, $this->schedules->recurring($serviceId, $stageId));
+
+        return $this->outlooksOf($schedules, $archived, $today);
     }
 
     public function found(string $id, ArchivedStructure $archived, LocalDate $today): ScheduleOutlook

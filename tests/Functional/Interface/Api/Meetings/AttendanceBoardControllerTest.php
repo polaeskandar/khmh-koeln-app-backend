@@ -12,6 +12,7 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Domain\Entity\Person;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -57,7 +58,12 @@ final class AttendanceBoardControllerTest extends ApiTestCase
         new Database(self::getContainer())->persisted($youth);
         $rosters->place($visitor, $youth, null, '2026-09-01');
         $stranger = $rosters->person('Unplaced', 'Zaki');
-        $servant = $this->signInWithRoles('servant@example.org', 'servant');
+
+        $servant = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'servant@example.org',
+            'servant',
+        ));
+
         $marks = [...array_slice($children, offset: 0, length: 7), $visitor, $stranger];
         $this->mark($session, $servant, ...$marks);
         $this->correct($session, $servant, $children[7]);
@@ -94,7 +100,11 @@ final class AttendanceBoardControllerTest extends ApiTestCase
     public function testTheSessionEndpointCarriesTheOpeningAndClosing(): void
     {
         [$service, $third] = $this->structure();
-        $leader = $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        $leader = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $session = $this->session(
             $service,
@@ -151,7 +161,7 @@ final class AttendanceBoardControllerTest extends ApiTestCase
         $mina = $rosters->person('Mina');
         $rosters->place($mina, $service, $third, '2026-09-01');
         $this->mark($session, null, $mina);
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', $this->board($session));
 
@@ -165,7 +175,7 @@ final class AttendanceBoardControllerTest extends ApiTestCase
         [$service, $third] = $this->structure();
         $mina = new Rosters(self::getContainer())->person('Mina');
         new Rosters(self::getContainer())->place($mina, $service, $third, '2026-09-01');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         foreach (['', "status = 'canceled', cancel_reason = 'Holiday'"] as $set) {
             $session = $this->session($service, $third, $set);
@@ -182,7 +192,11 @@ final class AttendanceBoardControllerTest extends ApiTestCase
         $session = $this->session($service, $third, self::ACTIVE);
         $rosters = new Rosters(self::getContainer());
         $this->mark($session, null, $rosters->person('First'));
-        $servant = $this->signInWithRoles('servant@example.org', 'servant');
+
+        $servant = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'servant@example.org',
+            'servant',
+        ));
 
         $this->jsonRequest('GET', $this->board($session));
         $few = count(new Logs(self::getContainer())->containing('SELECT'));

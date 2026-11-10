@@ -13,6 +13,7 @@ use App\Context\Organization\Application\Service\StageOrder;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\Rosters;
 use App\Workflow\Organization\Model\StageList;
+use App\Workflow\Organization\Model\StructureGroup;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class ReorderStagesWorkflow
@@ -32,6 +33,13 @@ final readonly class ReorderStagesWorkflow
     public function __invoke(string $serviceId, array $stageIds): StageList
     {
         $this->access->require(Action::Update, Resource::Stages);
+
+        $this->access->requireIn(
+            Action::Update,
+            Resource::Stages,
+            StructureGroup::ofServiceId($serviceId),
+            missing: 'service',
+        );
 
         $service = $this->order->reorder($serviceId, $stageIds);
         $stages = $this->stages->ofService($service);

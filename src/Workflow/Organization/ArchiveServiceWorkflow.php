@@ -14,6 +14,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\People\Application\Service\Rosters;
 use App\Workflow\Organization\Model\MemberCounts;
 use App\Workflow\Organization\Model\ServiceOverview;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class ArchiveServiceWorkflow
 {
@@ -29,6 +30,13 @@ final readonly class ArchiveServiceWorkflow
     public function __invoke(string $id): ServiceOverview
     {
         $this->access->require(Action::Delete, Resource::Services, refusal: 'services.adminOnlyArchive');
+
+        $this->access->requireIn(
+            Action::Delete,
+            Resource::Services,
+            StructureGroup::ofServiceId($id),
+            missing: 'service',
+        );
 
         $service = $this->archives->archive($id, pause: fn (Service $service): bool => $this->pauses->pauseService(
             $service->id(),

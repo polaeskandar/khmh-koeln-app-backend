@@ -8,6 +8,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\Organization\Domain\Entity\SundaySchool;
 use App\Tests\Support\Database;
@@ -20,7 +21,11 @@ final class StagesControllerEditTest extends ApiTestCase
         $school = SundaySchool::withStagesIn(new Database(self::getContainer()));
         $youth = Structure::service('Youth');
         new Database(self::getContainer())->persisted($youth);
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('POST', SundaySchool::stagesPath($youth), ['name' => '1st Class']);
         self::assertResponseStatusCodeSame(201);
@@ -36,7 +41,11 @@ final class StagesControllerEditTest extends ApiTestCase
     public function testEveryFailingFieldIsReportedAtOnceAndAnEditNeedsAName(): void
     {
         $service = SundaySchool::withStagesIn(new Database(self::getContainer()));
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('POST', SundaySchool::stagesPath($service), [
             'name' => ' ',
@@ -56,7 +65,10 @@ final class StagesControllerEditTest extends ApiTestCase
 
     public function testAMalformedServiceOrStageIdIsNotFound(): void
     {
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('POST', '/api/services/not-a-uuid/stages', ['name' => '3rd Class']);
         $this->assertProblem(404, 'notFound.service');
@@ -68,7 +80,11 @@ final class StagesControllerEditTest extends ApiTestCase
     public function testAnEditTakesNoNameAnotherStageOfTheServiceHas(): void
     {
         [$first] = $this->classes();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('PUT', '/api/stages/' . $first->id()->toRfc4122(), ['name' => ' 2ND  class']);
 
@@ -91,12 +107,16 @@ final class StagesControllerEditTest extends ApiTestCase
     public function testAnUnknownStageIsNotFoundAndOnlyStructureManagersEdit(): void
     {
         [$first] = $this->classes();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('PUT', '/api/stages/019a3b6e-0000-7000-8000-000000000001', ['name' => 'First Class']);
         $this->assertProblem(404, 'notFound.stage');
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
         $this->jsonRequest('PUT', '/api/stages/' . $first->id()->toRfc4122(), ['name' => 'First Class']);
         $this->assertProblem(403, 'forbidden');
     }

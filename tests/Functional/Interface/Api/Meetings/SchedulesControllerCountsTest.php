@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Interface\Api\Meetings;
 
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -40,7 +41,7 @@ final class SchedulesControllerCountsTest extends ApiTestCase
             ->connection()
             ->update('meetings.meeting_schedule', ['roster_mode' => 'open'], ['id' => $open->id()->toRfc4122()]);
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/schedules');
 
@@ -57,7 +58,7 @@ final class SchedulesControllerCountsTest extends ApiTestCase
         new Database(self::getContainer())->persisted($service);
         $schedules = new Schedules(self::getContainer());
         $schedules->weekly($service, 'Meeting 0', 1);
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
         $this->jsonRequest('GET', '/api/schedules');
         $few = \count(new Logs(self::getContainer())->containing('SELECT'));
 

@@ -9,6 +9,7 @@ use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\AttendanceMarks;
+use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\People\Application\Service\Attendees;
 use App\Workflow\Identity\Model\AccountReferences;
@@ -33,7 +34,10 @@ final readonly class ListAttendanceCorrectionsWorkflow
     {
         $this->access->require(Action::Read, Resource::Attendance);
 
-        $removed = $this->marks->removedOf($this->sessions->find($sessionId)->id());
+        $session = $this->sessions->find($sessionId);
+        $group = CoveredSchedules::groupOfSession($session);
+        $this->access->requireIn(Action::Read, Resource::Attendance, $group, missing: 'session');
+        $removed = $this->marks->removedOf($session->id());
 
         return Corrections::of(
             $removed,

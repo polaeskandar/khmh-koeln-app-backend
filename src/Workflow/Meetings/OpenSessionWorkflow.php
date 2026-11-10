@@ -8,6 +8,8 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Meetings\Application\Service\CoveredSchedules;
+use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Application\Service\SessionTransitions;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Application\Service\ArchiveGuard;
@@ -19,6 +21,7 @@ final readonly class OpenSessionWorkflow
         private AccessCheck $access,
         private SessionTransitions $transitions,
         private AccountLookup $accounts,
+        private MeetingSessions $sessions,
         private ArchiveGuard $archive,
     ) {
     }
@@ -26,6 +29,8 @@ final readonly class OpenSessionWorkflow
     public function __invoke(string $sessionId, string $accountId): SessionState
     {
         $this->access->require(Action::Create, Resource::Attendance);
+        $group = CoveredSchedules::groupOfSession($this->sessions->find($sessionId));
+        $this->access->requireIn(Action::Create, Resource::Attendance, $group, missing: 'session');
 
         $session = $this->transitions->open(
             $sessionId,

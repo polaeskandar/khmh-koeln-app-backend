@@ -9,6 +9,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
@@ -23,7 +24,11 @@ final class DashboardControllerTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T12:08:00+01:00');
         $this->fixture();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('GET', '/api/dashboard/upcoming');
 
@@ -61,7 +66,11 @@ final class DashboardControllerTest extends ApiTestCase
             );
 
         $schedules->session($late, '2026-11-09', "start_time = '00:30', end_time = NULL");
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('GET', '/api/dashboard/upcoming');
 
@@ -72,7 +81,12 @@ final class DashboardControllerTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T12:08:00+01:00');
         [$school] = $this->fixture();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
+
         $this->jsonRequest('GET', '/api/dashboard/upcoming');
         $few = \count(new Logs(self::getContainer())->containing('SELECT'));
         $schedules = new Schedules(self::getContainer());

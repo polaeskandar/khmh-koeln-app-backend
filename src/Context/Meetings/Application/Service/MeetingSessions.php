@@ -11,10 +11,12 @@ use App\Context\Meetings\Domain\Repository\RecentSessionRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\SessionListRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
+use App\Context\Meetings\Domain\ValueObject\CoveredRosters;
 use App\Context\Meetings\Domain\ValueObject\MarkingRules;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Model\LocalDate;
+use App\Platform\Access\Model\GroupScope;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -31,17 +33,17 @@ final readonly class MeetingSessions
     /**
      * @return ReadableCollection<int, Session>
      */
-    public function on(LocalDate $date): ReadableCollection
+    public function on(LocalDate $date, GroupScope $scope): ReadableCollection
     {
-        return $this->lists->on($date);
+        return CoveredSchedules::sessionsWithin($scope, $this->lists->on($date));
     }
 
     /**
      * @return ReadableCollection<int, Session>
      */
-    public function openBetween(LocalDate $from, LocalDate $to): ReadableCollection
+    public function openBetween(LocalDate $from, LocalDate $to, GroupScope $scope): ReadableCollection
     {
-        return $this->lists->openBetween($from, $to);
+        return CoveredSchedules::sessionsWithin($scope, $this->lists->openBetween($from, $to));
     }
 
     /**
@@ -49,9 +51,13 @@ final readonly class MeetingSessions
      *
      * @return ReadableCollection<int, Session>
      */
-    public function latestClosed(int $limit, array $archivedIds): ReadableCollection
+    public function latestClosed(int $limit, array $archivedIds, GroupScope $scope): ReadableCollection
     {
-        return $this->lists->latestClosed($limit, $archivedIds);
+        return $this->lists->latestClosed(
+            $limit,
+            $archivedIds,
+            new CoveredRosters($scope->serviceIds(), $scope->stageIds()),
+        );
     }
 
     /**
@@ -59,9 +65,9 @@ final readonly class MeetingSessions
      *
      * @return ReadableCollection<int, Session>
      */
-    public function byIds(array $ids): ReadableCollection
+    public function byIds(array $ids, GroupScope $scope): ReadableCollection
     {
-        return $this->lists->byIds($ids);
+        return CoveredSchedules::sessionsWithin($scope, $this->lists->byIds($ids));
     }
 
     /**
