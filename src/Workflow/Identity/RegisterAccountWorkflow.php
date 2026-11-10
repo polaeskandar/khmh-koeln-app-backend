@@ -10,6 +10,7 @@ use App\Context\Identity\Domain\Enum\RegisteredAs;
 use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Organization\Application\Service\RegistrationServices;
 use App\Context\Organization\Domain\Entity\Service;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Platform\Doctrine\Contract\Transactions;
 use App\Workflow\Identity\Model\AccountDetails;
 use App\Workflow\Identity\Model\RegistrationDetails;
@@ -47,6 +48,8 @@ final readonly class RegisterAccountWorkflow
             ));
         } catch (UniqueConstraintViolationException) {
             return;
+        } catch (InvalidInput $invalid) {
+            throw $invalid->nestedIn('account');
         }
 
         $this->accounts->sendConfirmation($accountId);
@@ -73,7 +76,7 @@ final readonly class RegisterAccountWorkflow
         RegistrationDetails $registration,
         ReadableCollection $services,
     ): ?Uuid {
-        $accountId = $this->accounts->registerUnlessTaken(
+        $accountId = $this->accounts->register(
             $profile,
             $password,
             $registeredAs,

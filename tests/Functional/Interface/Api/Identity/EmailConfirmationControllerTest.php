@@ -53,22 +53,16 @@ final class EmailConfirmationControllerTest extends ApiTestCase
         self::assertSame(self::INVALID, $this->browser()->getResponse()->getContent());
     }
 
-    public function testAConfirmedAddressGetsANoticeAndTheSameAnswer(): void
+    public function testAConfirmedAddressIsRefusedAsTakenWithoutAnEmail(): void
     {
-        $this->jsonRequest('POST', '/api/auth/register', Registrations::parent(['account' => [
-            'email' => 'nadia@example.org',
-        ]]));
-
-        $fresh = $this->browser()->getResponse()->getContent();
         new SignInAccounts(self::getContainer())->add(self::EMAIL, ['language' => 'en']);
         $hash = $this->passwordHash();
 
         $this->jsonRequest('POST', '/api/auth/register', Registrations::parent());
 
-        self::assertResponseStatusCodeSame(202);
-        self::assertSame($fresh, $this->browser()->getResponse()->getContent());
-        self::assertEmailCount(1);
-        $this->assertLastSubject('You already have a KHMK Köln account');
+        self::assertResponseStatusCodeSame(422);
+        $this->assertJsonPath('fieldErrors', ['account.email' => ['code' => 'accounts.emailTaken', 'params' => []]]);
+        self::assertEmailCount(0);
         self::assertSame($hash, $this->passwordHash());
 
         self::assertSame(
