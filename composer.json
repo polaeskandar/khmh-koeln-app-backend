@@ -23,6 +23,8 @@
         "symfony/console": "8.1.*",
         "symfony/doctrine-messenger": "8.1.*",
         "symfony/dotenv": "8.1.*",
+        "symfony/filesystem": "8.1.*",
+        "symfony/finder": "8.1.*",
         "symfony/flex": "^2.12",
         "symfony/framework-bundle": "8.1.*",
         "symfony/http-client": "8.1.*",
@@ -167,7 +169,6 @@
         "ramsey/conventional-commits": "^1.7",
         "symfony/browser-kit": "8.1.*",
         "symfony/css-selector": "8.1.*",
-        "symfony/finder": "8.1.*",
         "symfony/maker-bundle": "^1.68"
     }
 }

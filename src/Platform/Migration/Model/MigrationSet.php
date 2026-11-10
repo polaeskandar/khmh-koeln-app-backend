@@ -4,13 +4,20 @@ declare(strict_types=1);
 
 namespace App\Platform\Migration\Model;
 
-use App\Library\Files\Model\Path;
+use App\Library\Collections\Model\Collections;
 use App\Library\Strings\Model\Text;
 use Doctrine\Common\Collections\ArrayCollection;
 use InvalidArgumentException;
+use Symfony\Component\Filesystem\Path;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 
 final readonly class MigrationSet
 {
+    private const string CONTEXTS = 'src/Context';
+
+    private const string MIGRATIONS = '#^(\w+)/Infrastructure/Persistence/Migrations$#';
+
     private function __construct(
         public string $context,
         public string $schema,
@@ -24,9 +31,13 @@ final readonly class MigrationSet
      */
     public static function all(string $projectDir): ArrayCollection
     {
-        return Path::of($projectDir)->directories('src/Context/*/Infrastructure/Persistence/Migrations')->map(
-            self::fromDirectory(...),
-        );
+        $directories = new Finder()
+            ->directories()
+            ->in(Path::join($projectDir, self::CONTEXTS))
+            ->path(self::MIGRATIONS)
+            ->sortByName();
+
+        return new ArrayCollection(Collections::of($directories)->getValues())->map(self::fromDirectory(...));
     }
 
     public static function named(string $name, string $projectDir): self
@@ -47,15 +58,15 @@ final readonly class MigrationSet
         return $this->schema . '_migration_versions';
     }
 
-    private static function fromDirectory(Path $directory): self
+    private static function fromDirectory(SplFileInfo $directory): self
     {
-        $context = $directory->parent(levels: 3)->name();
+        $context = Text::of($directory->getRelativePathname())->replaceMatches(self::MIGRATIONS, '$1')->toString();
 
         return new self(
             context: $context,
             schema: Text::of($context)->lower()->toString(),
             namespace: Text::format('App\\Context\\%s\\Infrastructure\\Persistence\\Migrations', $context)->toString(),
-            directory: $directory->toString(),
+            directory: $directory->getPathname(),
         );
     }
 }
