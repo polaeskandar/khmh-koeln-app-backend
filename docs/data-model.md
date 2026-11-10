@@ -21,6 +21,16 @@ Doctrine on Symfony 7.4. It has no lessons, homework or parent access.
   them. Only drafts that nobody else saw can be deleted. The exception is erasure on a person's request
   (DSGVO Art. 17), which deletes their personal data for good; see [Data protection](#data-protection).
 - **JSON names** in the API are camelCase. Columns are snake_case.
+- **Text is stored in Unicode NFC.** What people type is composed first (`InputText::of()`, through
+  `ComposedForm`), so "ü" typed as one character or as "u" with a combining diaeresis is one name with one key,
+  and lengths count the composed characters. Name keys and emails are composed again after lowering;
+  `search_text` stays folded, which gives the same text for either form. One migration per context (Identity,
+  Organization, People) composed the rows stored before: names, emails and keys became `normalize(…, NFC)`.
+  Lowering keeps canonically equivalent text equivalent, so a composed stored key is exactly the key of the
+  composed name; `Version20261110045222Test` checks this against PostgreSQL for every character with a
+  canonical decomposition. Where role, service or stage names or emails would have become the same, the
+  migration stops and names the rows (accounts by id only) instead of merging them. People may share a key
+  (namesakes), so the People migration only composes.
 - **Contexts own their tables.** Each context has its own PostgreSQL schema. A reference to another
   context's record is its id without a foreign key, checked by the workflow that writes it; the foreign keys
   in the tables below hold within a context only (see [Code layout](architecture.md#code-layout)).

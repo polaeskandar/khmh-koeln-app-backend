@@ -19,6 +19,14 @@ final class WholeWordTest extends TestCase
         self::assertFalse(WholeWord::in('aab', 'a+b'));
     }
 
+    public function testAWordMatchesInEitherForm(): void
+    {
+        self::assertTrue(WholeWord::in("Frau Mu\u{0308}ller kam nicht", "M\u{00FC}ller"));
+        self::assertTrue(WholeWord::in("Frau M\u{00FC}ller kam nicht", "Mu\u{0308}ller"));
+        self::assertTrue(WholeWord::in("غاب ال\u{0627}\u{0654}خ", 'الأخ'));
+        self::assertFalse(WholeWord::in("Mu\u{0308}ller", 'Mu'));
+    }
+
     public function testUmlautsAndSharpSMatchInAnyCase(): void
     {
         self::assertTrue(WholeWord::in('Frau MÜLLER kam', 'Müller'));

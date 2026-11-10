@@ -41,6 +41,14 @@ final class NameKeyTest extends TestCase
         self::assertSame("می\u{200C}خواهم", NameKey::of("می\u{200C}خواهم"));
     }
 
+    public function testComposedAndDecomposedNamesShareOneKey(): void
+    {
+        self::assertSame("m\u{00FC}ller", NameKey::of("Mu\u{0308}ller"));
+        self::assertSame(NameKey::of("M\u{00FC}ller"), NameKey::of(" Mu\u{0308}ller"));
+        self::assertSame(NameKey::of('مدارس الأحد'), NameKey::of("مدارس ال\u{0627}\u{0654}حد"));
+        self::assertSame(NameKey::of("\u{01F0}ohn"), NameKey::of("J\u{030C}ohn"));
+    }
+
     public function testAByteOrderMarkIsNotSpace(): void
     {
         self::assertSame("\u{FEFF}choir", NameKey::of(" \u{FEFF}Choir"));

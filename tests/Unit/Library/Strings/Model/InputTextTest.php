@@ -62,6 +62,22 @@ final class InputTextTest extends TestCase
         self::assertSame('محبة', InputText::of('محبّة')->folded()->toString());
     }
 
+    public function testDecomposedInputIsComposedBeforeItIsCleanedCountedOrLowered(): void
+    {
+        $decomposed = InputText::of("\u{00A0}Mu\u{0308}ller  A\u{0308}ltere ");
+
+        self::assertSame("M\u{00FC}ller \u{00C4}ltere", $decomposed->collapsed()->toString());
+        self::assertSame(13, $decomposed->collapsed()->length());
+        self::assertSame("\u{00C4}ltere", InputText::of("A\u{0308}ltere")->toString());
+        self::assertSame("\u{01F0}ohn", InputText::of("J\u{030C}ohn")->lowered()->toString());
+    }
+
+    public function testFoldingGivesTheSameTextForEitherForm(): void
+    {
+        self::assertSame('muller', InputText::of("Mu\u{0308}ller")->folded()->toString());
+        self::assertSame('مدارس الاحد', InputText::of("مدارس ال\u{0627}\u{0654}حد")->folded()->toString());
+    }
+
     public function testLoweringKeepsSharpSAndUmlauts(): void
     {
         self::assertSame('straße über', InputText::of('STRAẞE ÜBER')->lowered()->toString());

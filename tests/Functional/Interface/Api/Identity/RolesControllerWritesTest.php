@@ -81,6 +81,11 @@ final class RolesControllerWritesTest extends ApiTestCase
         $this->jsonRequest('PUT', '/api/roles/' . self::SERVANT_ROLE, ['name' => 'SERVANT', 'permissions' => []]);
         self::assertResponseIsSuccessful();
         $this->assertJsonPath('name', 'SERVANT');
+
+        $this->jsonRequest('POST', '/api/roles', ['name' => "Chorleiter M\u{00FC}hle", 'permissions' => []]);
+        self::assertResponseStatusCodeSame(201);
+        $this->jsonRequest('POST', '/api/roles', ['name' => "chorleiter mu\u{0308}hle", 'permissions' => []]);
+        $this->assertNameRefused('roles.nameTaken', ['name' => "Chorleiter M\u{00FC}hle"]);
     }
 
     public function testEveryPermissionComesFromTheCatalogOnce(): void
