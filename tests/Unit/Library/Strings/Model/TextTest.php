@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Library\Strings\Model;
 
 use App\Library\Strings\Model\Text;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class TextTest extends TestCase
 {
@@ -34,6 +36,8 @@ final class TextTest extends TestCase
     {
         self::assertTrue(Text::of('/api/health')->startsWith('/api/'));
         self::assertFalse(Text::of('/apiary')->startsWith('/api/'));
+        self::assertTrue(Text::of('/api')->startsWith(''));
+        self::assertTrue(Text::of('')->startsWith(''));
     }
 
     public function testReplaceMatchesRewritesEveryMatch(): void
@@ -88,10 +92,20 @@ final class TextTest extends TestCase
         self::assertSame("مدارس\u{00A0}الأحد", Text::of("مدارس\u{00A0}الأحد")->replaceMatches('/\s/', '_')->toString());
     }
 
-    public function testAnEmptyPrefixStartsEveryText(): void
+    public function testAPatternThatDoesNotCompileFails(): void
     {
-        self::assertTrue(Text::of('/api')->startsWith(''));
-        self::assertTrue(Text::of('')->startsWith(''));
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/missing closing parenthesis/');
+
+        Text::of('Choir')->replaceMatches('/(/', '');
+    }
+
+    public function testAUnicodePatternFailsOnBrokenBytesNamingThePcreError(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageMatches('/PREG_BAD_UTF8_ERROR/');
+
+        Text::of("Chor \xFF")->replaceMatches('/\s+/u', ' ');
     }
 
     public function testIsDigitsAcceptsOnlyARunOfDigits(): void
