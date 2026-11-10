@@ -22,6 +22,7 @@ final readonly class PasswordChanges
         private PasswordHasherInterface $hasher,
         private Calendar $calendar,
         private ApiTokens $apiTokens,
+        private PasswordChecks $checks,
     ) {
     }
 
@@ -43,20 +44,14 @@ final readonly class PasswordChanges
         string $current,
         #[SensitiveParameter]
         string $new,
-    ): bool {
+    ): void {
+        $this->checks->ensureAttemptsLeft($accountId);
         $password = PlainPassword::of($new, field: 'newPassword');
-        $changed = false;
 
-        $this->users->withWriteLock($accountId, function (User $user) use ($current, $password, &$changed): void {
-            if (!$this->hasher->matches($user->passwordHash(), $current)) {
-                return;
-            }
-
+        $this->users->withWriteLock($accountId, function (User $user) use ($current, $password): void {
+            $this->checks->ensureMatches($user, $current, field: 'currentPassword');
             $user->changePassword($this->hasher->hash($password));
             $this->apiTokens->revokeAllOf($user->id());
-            $changed = true;
         });
-
-        return $changed;
     }
 }

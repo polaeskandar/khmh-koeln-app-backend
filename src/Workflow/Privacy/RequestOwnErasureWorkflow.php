@@ -31,13 +31,9 @@ final readonly class RequestOwnErasureWorkflow
         #[SensitiveParameter]
         string $password,
         ?string $note,
-    ): ?ScheduledOwnErasure {
+    ): ScheduledOwnErasure {
         $id = Uuid::fromString($accountId);
-
-        if (!$this->passwords->isOwn($id, $password)) {
-            return null;
-        }
-
+        $this->passwords->ensureOwn($id, $password, field: 'password');
         $requestedBy = ($this->accounts->account($id) ?? throw NotFound::of('account'))->profile()->displayName->value;
 
         return $this->transactions->run(function () use ($id, $requestedBy, $note): ScheduledOwnErasure {

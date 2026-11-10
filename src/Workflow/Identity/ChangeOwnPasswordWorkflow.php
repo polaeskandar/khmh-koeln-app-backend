@@ -23,13 +23,8 @@ final readonly class ChangeOwnPasswordWorkflow
         string $current,
         #[SensitiveParameter]
         string $new,
-    ): bool {
-        if (!$this->passwords->changeOwn(Uuid::fromString($accountId), $current, $new)) {
-            return false;
-        }
-
+    ): void {
+        $this->passwords->changeOwn(Uuid::fromString($accountId), $current, $new);
         $this->session->renew();
-
-        return true;
     }
 }
