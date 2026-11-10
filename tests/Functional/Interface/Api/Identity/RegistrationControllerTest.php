@@ -103,20 +103,20 @@ final class RegistrationControllerTest extends ApiTestCase
         self::assertSame($email, $this->database()->connection()->fetchOne('SELECT email FROM identity.app_user'));
     }
 
-    public function testAnExistingEmailGetsTheSameAnswerAndChangesNothing(): void
+    public function testAnExistingEmailIsRefusedAsTakenAndChangesNothing(): void
     {
         new SignInAccounts(self::getContainer())->add('mariam.hanna@example.org');
         $this->browser()->disableReboot();
         $hashesBefore = $this->spyHasher()->hashCount();
 
-        $response = $this->jsonRequest('POST', '/api/auth/register', Registrations::parent([
+        $this->jsonRequest('POST', '/api/auth/register', Registrations::parent([
             'account' => ['email' => 'Mariam.Hanna@Example.org'],
         ]));
 
-        self::assertSame(202, $response->getStatusCode());
-        self::assertSame('{"status":"received"}', $response->getContent());
+        $this->assertProblem(422, 'checkFields');
+        $this->assertJsonPath('fieldErrors', ['account.email' => ['code' => 'accounts.emailTaken', 'params' => []]]);
         self::assertSame(1, $this->rowsIn('identity.app_user'));
-        self::assertSame($hashesBefore + 1, $this->spyHasher()->hashCount());
+        self::assertSame($hashesBefore, $this->spyHasher()->hashCount());
     }
 
     public function testAStalePrivacyNoticeIsRefused(): void

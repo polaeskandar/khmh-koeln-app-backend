@@ -315,15 +315,15 @@ Public. Creates an account that waits for an administrator's approval. Its roles
 | Result | Answer |
 | --- | --- |
 | Valid, new email | 202 `{"status": "received"}`, a pending account and an `email_confirmation` email in its language with a link to `/{language}/confirm-email/#token=…`, valid 7 days |
-| Valid, the email has an unconfirmed registration | The same 202, byte for byte; a fresh link that voids the older one |
-| Valid, the email already has a confirmed account (any case, any state) | The same 202, byte for byte; an `account_exists` email in that account's language with the sign-in link; nothing else changes |
+| Valid, the email has an unconfirmed registration | The same 202; a fresh link that voids the older one, so someone who lost the email can finish |
+| Valid, the email already has a confirmed account (any case, any state) | 422 `checkFields` with `account.email` `accounts.emailTaken`; nothing changes and no email is sent |
 | A field fails | 422 `checkFields` with every failed field |
 | `privacy.version` is not the current one | 409 `accounts.privacyNoticeOutdated` |
 | More than 20 registrations from one client within an hour | 429 `auth.tooManyAttempts` + `Retry-After` |
 
-The password is hashed in every 202 case and emails leave after the response, so the answer takes as long either
-way. An address gets at most 3 of these emails per hour; further registrations still answer 202 and send
-nothing. The registration reaches the office (`GET /api/account-requests`) only after the link is used, and
+The answer says when an address already has an account, so the registration limit above is what keeps it from
+being used to probe addresses. Emails leave after the response. An address gets at most 3 confirmation emails per
+hour; further registrations still answer 202 and send nothing. The registration reaches the office (`GET /api/account-requests`) only after the link is used, and
 `app:user:purge-unconfirmed` (daily) deletes registrations left unconfirmed for 7 days whose newest link has
 expired too, so a link resent on day 6 still works until day 13. Signing in before the link is used answers 403
 `auth.unconfirmed`, and after it until the approval 403 `auth.pending`. When the email doesn't arrive, an operator

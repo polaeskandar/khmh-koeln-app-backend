@@ -15,6 +15,7 @@ use App\Context\Identity\Domain\ValueObject\Email;
 use App\Context\Identity\Domain\ValueObject\PlainPassword;
 use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Identity\Domain\ValueObject\Registration;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\InputText;
@@ -47,7 +48,7 @@ final readonly class AccountRegistration
         );
     }
 
-    public function registerUnlessTaken(
+    public function register(
         Profile $profile,
         #[SensitiveParameter]
         string $password,
@@ -59,15 +60,15 @@ final readonly class AccountRegistration
             throw new RuleViolation('accounts.privacyNoticeOutdated');
         }
 
-        $passwordHash = $this->hasher->hash(PlainPassword::of($password));
-
         $existing = $this->users->findByEmail($profile->email->value);
 
         if ($existing !== null) {
-            $this->confirmations->remind($existing);
+            $this->resendConfirmationTo($existing);
 
             return null;
         }
+
+        $passwordHash = $this->hasher->hash(PlainPassword::of($password));
 
         $registration = Registration::of(
             $registeredAs,
@@ -94,6 +95,15 @@ final readonly class AccountRegistration
     public function confirmEmailByHand(string $email): bool
     {
         return $this->confirmations->confirmByHand($this->users->findByEmail($email) ?? throw NotFound::of('account'));
+    }
+
+    private function resendConfirmationTo(User $existing): void
+    {
+        if (!$existing->status()->isAwaitingEmailConfirmation()) {
+            throw InvalidInput::field('email', 'accounts.emailTaken');
+        }
+
+        $this->confirmations->send($existing);
     }
 
     private function account(Uuid $accountId): User

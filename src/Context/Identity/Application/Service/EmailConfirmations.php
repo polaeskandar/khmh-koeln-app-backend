@@ -57,19 +57,6 @@ final readonly class EmailConfirmations
         ]);
     }
 
-    public function remind(User $existing): void
-    {
-        if ($existing->status()->emailConfirmedAt === null) {
-            $this->send($existing);
-
-            return;
-        }
-
-        if ($this->mayMail($existing)) {
-            $this->mailer->send($existing, 'account_exists', ['url' => $this->links->to($existing, 'sign-in')]);
-        }
-    }
-
     public function confirm(#[SensitiveParameter] string $token): bool
     {
         $now = $this->calendar->now()->toDateTimeImmutable();
