@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Privacy\Request;
 
+use App\Context\Privacy\Domain\Enum\RequestKind;
 use App\Workflow\Privacy\Model\DataRequestDetails;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -11,7 +12,7 @@ final readonly class RecordDataRequestRequest
 {
     public function __construct(
         #[Assert\NotNull(message: 'validation.invalidChoice')]
-        #[Assert\Choice(choices: ['erasure', 'copy'], message: 'validation.invalidChoice')]
+        #[Assert\Choice(callback: [RequestKind::class, 'values'], message: 'validation.invalidChoice')]
         public ?string $kind = null,
         #[Assert\Valid]
         public RequestSubjectRequest $subject = new RequestSubjectRequest(),

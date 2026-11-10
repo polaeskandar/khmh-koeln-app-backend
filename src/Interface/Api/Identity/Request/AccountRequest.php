@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Identity\Request;
 
+use App\Context\Identity\Domain\Enum\Language;
 use App\Workflow\Identity\Model\AccountDetails;
 use SensitiveParameter;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -26,7 +27,7 @@ final readonly class AccountRequest
         #[Assert\Length(min: 10, max: 200, minMessage: 'accounts.passwordTooShort', maxMessage: 'validation.tooLong')]
         public ?string $password = null,
         #[Assert\NotBlank(message: 'accounts.chooseLanguage')]
-        #[Assert\Choice(choices: ['en', 'de', 'ar'], message: 'accounts.chooseLanguage')]
+        #[Assert\Choice(callback: [Language::class, 'values'], message: 'accounts.chooseLanguage')]
         public ?string $language = null,
     ) {
     }

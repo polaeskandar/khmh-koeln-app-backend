@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use NunoMaduro\PhpInsights\Domain\Insights\CyclomaticComplexityIsHigh;
+use NunoMaduro\PhpInsights\Domain\Insights\ForbiddenDefineFunctions;
 use NunoMaduro\PhpInsights\Domain\Sniffs\ForbiddenSetterSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Files\LineLengthSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Formatting\SpaceAfterNotSniff;
@@ -34,6 +35,7 @@ return [
         ],
         ForbiddenPublicPropertySniff::class => ['exclude' => ['src/Interface/Console']],
         CyclomaticComplexityIsHigh::class => ['maxComplexity' => 10],
+        ForbiddenDefineFunctions::class => ['exclude' => ['Domain/Enum']],
     ],
     'requirements' => [
         'min-quality' => 100,

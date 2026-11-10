@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Learning\Request;
 
+use App\Context\Learning\Domain\Enum\LessonStatus;
 use App\Workflow\Learning\Model\LessonChoice;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -16,7 +17,10 @@ final readonly class LessonRequest
         #[Assert\Valid]
         public LessonPlanRequest $plan = new LessonPlanRequest(),
         public ?string $responsibleId = null,
-        #[Assert\Choice(choices: ['draft', 'ready'], message: 'validation.invalidChoice')]
+        #[Assert\Choice(choices: [
+            LessonStatus::Draft->value,
+            LessonStatus::Ready->value,
+        ], message: 'validation.invalidChoice')]
         public ?string $status = null,
     ) {
     }
