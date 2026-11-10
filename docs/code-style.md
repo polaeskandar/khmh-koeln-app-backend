@@ -296,7 +296,10 @@ Each rule has one authoritative place, in the layer that owns it:
 | Transition | Whether a state change may happen now | the state machine's guard ([§ 11](#11-state-transitions)) | `RuleViolation` with the transition's code |
 
 - The domain is the authority. A request may declare the same limit so the API document shows it (`maxLength`),
-  never a different one, and the domain checks it again for every caller: console, import, workflow.
+  never a different one, and the domain checks it again for every caller: console, import, workflow. The request
+  keeps its constraint because it reports every broken field of the body at once and before any domain check runs;
+  dropping it would change which errors appear together. Interface may not name the value object, so
+  `tests/Architecture/RequestLimitsMatchTheDomainTest` checks that each such pair has the same limit, code and field.
 - A rule in `Domain/Validation` is a final readonly class with `ensure…()` methods that throw the coded exception.
   It is pure: the application service loads the facts and passes them in; no repository, query interface, port or
   application service (`mago guard`), and no Symfony service.
