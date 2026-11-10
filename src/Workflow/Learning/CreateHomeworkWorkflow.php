@@ -12,6 +12,7 @@ use App\Context\Organization\Application\Service\StructureLookup;
 use App\Workflow\Learning\Model\HomeworkChoice;
 use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Learning\Model\WrittenHomework;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class CreateHomeworkWorkflow
 {
@@ -27,7 +28,16 @@ final readonly class CreateHomeworkWorkflow
         $this->access->require(Action::Create, Resource::Homework, refusal: 'homework.assignStageOnly');
 
         $lesson = $this->homework->lessonToAssign($lessonId);
-        LessonStages::opened($this->structure->stage($lesson->stageId()->toRfc4122()));
+        $stage = $this->structure->stage($lesson->stageId()->toRfc4122());
+
+        $this->access->requireIn(
+            Action::Create,
+            Resource::Homework,
+            StructureGroup::ofStage($stage),
+            missing: 'lesson',
+        );
+
+        LessonStages::opened($stage);
 
         return WrittenHomework::of($this->homework->create($lesson, $choice->draft(), $accountId));
     }

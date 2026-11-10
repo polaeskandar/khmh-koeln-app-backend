@@ -28,6 +28,7 @@ use App\Workflow\Learning\Model\NoMeeting;
 use App\Workflow\Learning\Model\OffScheduleMeeting;
 use App\Workflow\Learning\Model\PlannedMeeting;
 use App\Workflow\Learning\Model\SessionMeeting;
+use App\Workflow\Organization\Model\StructureGroup;
 use Doctrine\Common\Collections\ArrayCollection;
 use LogicException;
 
@@ -49,6 +50,8 @@ final readonly class ShowLessonWorkflow
         $reading = $this->lessons->reading($id);
         $lesson = $reading->lesson;
         $stage = $this->structure->stage($lesson->stageId()->toRfc4122());
+        $group = StructureGroup::ofStage($stage);
+        $this->access->requireIn(Action::Read, Resource::Lessons, $group, missing: 'lesson');
         $plan = LessonPlanView::of($lesson);
 
         return new LessonDetail(
@@ -57,7 +60,7 @@ final readonly class ShowLessonWorkflow
             lesson: LessonDetailView::of(
                 $this->rowOf($reading),
                 $lesson,
-                $this->access->allows(Action::Read, Resource::Members) ? $plan : $plan->withoutNotes(),
+                $this->access->scopeOf(Action::Read, Resource::Members)->covers($group) ? $plan : $plan->withoutNotes(),
             ),
         );
     }

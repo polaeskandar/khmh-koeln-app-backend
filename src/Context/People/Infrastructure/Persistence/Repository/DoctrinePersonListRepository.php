@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Context\People\Infrastructure\Persistence\Repository;
 
 use App\Context\People\Domain\Repository\PersonListRepositoryInterface;
+use App\Context\People\Domain\ValueObject\CoveredRosters;
 use App\Context\People\Domain\ValueObject\PersonFilter;
 use App\Library\Strings\Model\Text;
 use App\Library\Types\Model\Integers;
@@ -27,6 +28,13 @@ final readonly class DoctrinePersonListRepository implements PersonListRepositor
             AND m.starts_on <= CAST(:today AS date) AND (m.ends_on IS NULL OR m.ends_on >= CAST(:today AS date))))
         SQL;
 
+    private const string COVERED = <<<'SQL'
+        EXISTS (
+          SELECT 1 FROM people.membership c WHERE c.person_id = p.id
+            AND (c.ends_on IS NULL OR c.ends_on >= CAST(:today AS date))
+            AND (c.service_id::text IN (:coveredServices) OR c.stage_id::text IN (:coveredStages)))
+        SQL;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -36,10 +44,10 @@ final readonly class DoctrinePersonListRepository implements PersonListRepositor
      * @return list<Uuid>
      */
     #[Override]
-    public function page(PersonFilter $filter, int $offset, int $limit): array
+    public function page(PersonFilter $filter, CoveredRosters $covered, int $offset, int $limit): array
     {
         $ids = $this
-            ->matching($filter)
+            ->matching($filter, $covered)
             ->select('p.id')
             ->orderBy('p.last_name COLLATE "de-x-icu"')
             ->addOrderBy('p.first_name COLLATE "de-x-icu"')
@@ -87,12 +95,12 @@ final readonly class DoctrinePersonListRepository implements PersonListRepositor
     }
 
     #[Override]
-    public function count(PersonFilter $filter): int
+    public function count(PersonFilter $filter, CoveredRosters $covered): int
     {
-        return Integers::of($this->matching($filter)->select('count(*)')->executeQuery()->fetchOne());
+        return Integers::of($this->matching($filter, $covered)->select('count(*)')->executeQuery()->fetchOne());
     }
 
-    private function matching(PersonFilter $filter): QueryBuilder
+    private function matching(PersonFilter $filter, CoveredRosters $covered): QueryBuilder
     {
         $query = $this->entityManager
             ->getConnection()
@@ -105,6 +113,8 @@ final readonly class DoctrinePersonListRepository implements PersonListRepositor
             ->setParameter('stage', $filter->stageId?->toRfc4122())
             ->setParameter('today', $filter->today->toString());
 
+        self::limitTo($query, $covered);
+
         foreach ($filter->words as $index => $word) {
             $query->andWhere(Text::format("p.search_text LIKE :word%d ESCAPE '!'", $index)->toString())->setParameter(
                 'word' . $index,
@@ -113,6 +123,18 @@ final readonly class DoctrinePersonListRepository implements PersonListRepositor
         }
 
         return $query;
+    }
+
+    private static function limitTo(QueryBuilder $query, CoveredRosters $covered): void
+    {
+        if ($covered->serviceIds === null) {
+            return;
+        }
+
+        $query
+            ->andWhere(self::COVERED)
+            ->setParameter('coveredServices', $covered->serviceIds, ArrayParameterType::STRING)
+            ->setParameter('coveredStages', $covered->stageIds ?? [], ArrayParameterType::STRING);
     }
 
     /**

@@ -10,6 +10,7 @@ use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
@@ -35,7 +36,7 @@ final class LessonOptionsControllerTest extends ApiTestCase
 
         $schedules->session($class, '2026-11-08', "status = 'active', opened_at = created_at");
         $schedules->session($class, '2026-11-22', "status = 'canceled', cancel_reason = 'Holiday'");
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('GET', $this->options($third));
 
@@ -71,7 +72,11 @@ final class LessonOptionsControllerTest extends ApiTestCase
         $lessons = new Lessons(self::getContainer());
         $samaritan = $lessons->stored($third, $class, '2026-11-15');
         $early = $lessons->stored($third, $class, '2026-09-27', 'Creation');
-        $this->signInWithRoles('christine@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'christine@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('GET', $this->options($third));
 
@@ -96,7 +101,7 @@ final class LessonOptionsControllerTest extends ApiTestCase
         [$third, $class] = $this->thirdClass();
         $lessons = new Lessons(self::getContainer());
         $lessons->stored($third, $class, '2026-11-15');
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('GET', $this->options($third));
         $few = count(new Logs(self::getContainer())->containing('SELECT'));
@@ -118,7 +123,7 @@ final class LessonOptionsControllerTest extends ApiTestCase
         $first = Structure::stage(Structure::service('Youth Meeting'), '1st Class');
         new Database(self::getContainer())->persisted($first->service(), $first);
         $other = new Lessons(self::getContainer())->stored($first, null, '2026-11-15');
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('GET', $this->options($third) . '?lessonId=' . $other->id()->toRfc4122());
         $this->assertProblem(404, 'notFound.lesson');

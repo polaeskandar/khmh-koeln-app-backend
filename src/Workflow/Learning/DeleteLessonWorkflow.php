@@ -11,6 +11,7 @@ use App\Context\Learning\Application\Service\LessonArchives;
 use App\Context\Learning\Application\Service\LessonRemovals;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Workflow\Learning\Model\LessonStages;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class DeleteLessonWorkflow
 {
@@ -27,7 +28,9 @@ final readonly class DeleteLessonWorkflow
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.changeStageOnly');
 
         $lesson = $this->archives->find($id);
-        LessonStages::opened($this->structure->stage($lesson->stageId()->toRfc4122()));
+        $stage = $this->structure->stage($lesson->stageId()->toRfc4122());
+        $this->access->requireIn(Action::Update, Resource::Lessons, StructureGroup::ofStage($stage), missing: 'lesson');
+        LessonStages::opened($stage);
 
         $this->removals->delete($lesson);
     }

@@ -10,6 +10,7 @@ use App\Context\People\Domain\Repository\RosterRepositoryInterface;
 use App\Context\People\Domain\ValueObject\RosterKey;
 use App\Library\Time\Model\LocalDate;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -25,7 +26,7 @@ final class MembershipsControllerTest extends ApiTestCase
         self::mockTime('2026-11-08T10:00:00+01:00');
         [$school, $third, $fourth] = $this->structure();
         $mina = new Rosters(self::getContainer())->person('Mina', 'Hanna');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         $this->add($mina->id()->toRfc4122(), $school, $fourth);
         self::assertResponseStatusCodeSame(201);
@@ -57,7 +58,7 @@ final class MembershipsControllerTest extends ApiTestCase
         $rosters = new Rosters(self::getContainer());
         $mina = $rosters->person('Mina', 'Hanna');
         $rosters->place($mina, $school, $third, '2026-11-09');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         $this->add($mina->id()->toRfc4122(), $school, $third);
 
@@ -82,7 +83,7 @@ final class MembershipsControllerTest extends ApiTestCase
             ->connection()
             ->update('people.person', ['status' => 'inactive'], ['id' => $marina->id()->toRfc4122()]);
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         $this->add(Uuid::v7()->toRfc4122(), $school, $old);
         $this->assertProblem(404, 'notFound.person');
@@ -118,7 +119,11 @@ final class MembershipsControllerTest extends ApiTestCase
         $marina = $rosters->person('Marina');
         $rosters->place($mina, $school, $third, '2026-09-01');
         $rosters->place($marina, $school, $third, '2026-11-08');
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->end($this->membershipOf($mina->id()->toRfc4122()));
         self::assertResponseStatusCodeSame(204);

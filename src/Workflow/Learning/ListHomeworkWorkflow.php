@@ -25,6 +25,7 @@ use App\Workflow\Learning\Model\LessonStageView;
 use App\Workflow\Learning\Model\StageHomeworkFacts;
 use App\Workflow\Learning\Model\TaskAudiences;
 use App\Workflow\Organization\Model\StageSummary;
+use App\Workflow\Organization\Model\StructureGroup;
 use Doctrine\Common\Collections\ArrayCollection;
 
 final readonly class ListHomeworkWorkflow
@@ -43,6 +44,7 @@ final readonly class ListHomeworkWorkflow
         $this->access->require(Action::Read, Resource::Homework);
 
         $stage = $this->structure->stage($stageId);
+        $this->access->requireIn(Action::Read, Resource::Homework, StructureGroup::ofStage($stage), missing: 'stage');
         $homework = $this->homework->ofStage($stage->id());
         $reports = $homework->reports;
         $key = AudienceKeys::keyOf($stage, $reports->today);

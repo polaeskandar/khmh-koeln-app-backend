@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Interface\Api\People;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -23,7 +24,7 @@ final class PeopleControllerTest extends ApiTestCase
     {
         self::mockTime('2026-11-07T23:30:00Z');
         [$service, $third] = $this->structure();
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         $this->create([
             'firstName' => ' Mina ',
@@ -84,7 +85,7 @@ final class PeopleControllerTest extends ApiTestCase
             'unknown' => Uuid::v7()->toRfc4122(),
         ];
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
         $placement = JsonBody::asArray($body['placement'] ?? [], 'placement');
 
         $this->create([
@@ -161,7 +162,7 @@ final class PeopleControllerTest extends ApiTestCase
     public function testEveryNameAndPlacementErrorIsReportedTogether(): void
     {
         $mina = new Rosters(self::getContainer())->person('Mina', 'Hanna');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         $this->create(['firstName' => ' ', 'lastName' => ' ']);
         $errors = JsonBody::asArray($this->responseJson()['fieldErrors'] ?? null, 'fieldErrors');
@@ -184,7 +185,7 @@ final class PeopleControllerTest extends ApiTestCase
 
     public function testNameLengthsCountOnceTheSpacesAreCollapsed(): void
     {
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->signInWithRoles('office@example.org', 'administrator');
         $spaced = str_repeat('a', times: 39) . '   ' . str_repeat('b', times: 39);
 
         $this->create(['firstName' => $spaced, 'lastName' => 'Hanna']);
@@ -203,7 +204,7 @@ final class PeopleControllerTest extends ApiTestCase
             ->connection()
             ->update('people.person', ['status' => 'inactive'], ['id' => $inactive->id()->toRfc4122()]);
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         $this->create(['firstName' => '  mina   ', 'lastName' => 'HANNA ']);
 
@@ -224,7 +225,7 @@ final class PeopleControllerTest extends ApiTestCase
     public function testPeopleAreRenamedByAccountsThatMayChangeMembers(): void
     {
         $mina = new Rosters(self::getContainer())->person('Mina', 'Hanna');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         $this->jsonRequest('PUT', '/api/people/' . $mina->id()->toRfc4122(), [
             'firstName' => 'Mina',

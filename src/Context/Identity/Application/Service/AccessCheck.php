@@ -58,9 +58,9 @@ final readonly class AccessCheck
         GroupRefusals::requireReached($this->scope($action, $resource), $serviceId, $missing);
     }
 
-    public function requireChosen(Action $action, Resource $resource, Group $group, string $fieldPrefix): void
+    public function requireChosen(Action $action, Resource $resource, ?Group $group, string $fieldPrefix): void
     {
-        GroupRefusals::requireChosen($this->scope($action, $resource), $group, $fieldPrefix);
+        GroupChoiceRefusals::requireChosen($this->scope($action, $resource), $group, $fieldPrefix);
     }
 
     public function requireAssigning(): GroupScope

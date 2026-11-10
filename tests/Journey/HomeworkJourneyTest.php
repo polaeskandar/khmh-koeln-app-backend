@@ -10,6 +10,7 @@ use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -47,7 +48,7 @@ final class HomeworkJourneyTest extends ApiTestCase
         }
 
         $this->registerAndApproveHoda($mina, $mimi);
-        $daniel = $this->signInWithRoles(self::DANIEL, 'servant');
+        $daniel = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(self::DANIEL, 'servant'));
         new Families(self::getContainer())->link($this->signInWithRoles(self::SAMIR, 'parent'), $kiro);
         $task = $this->prepareHomework($third, $daniel);
 

@@ -17,6 +17,7 @@ use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
@@ -63,7 +64,7 @@ final class HomeworkControllerListTest extends ApiTestCase
             ),
         );
 
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
         $this->jsonRequest('GET', $this->path($stage));
 
         self::assertResponseIsSuccessful();
@@ -96,7 +97,7 @@ final class HomeworkControllerListTest extends ApiTestCase
         [$stage, $class] = $this->thirdClass();
         $lesson = new Lessons(self::getContainer())->stored($stage, $class, '2026-11-15');
         $this->task($lesson, 'First', null, self::PUBLISHED);
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('GET', $this->path($stage));
         $one = count(new Logs(self::getContainer())->containing('SELECT'));
@@ -138,7 +139,7 @@ final class HomeworkControllerListTest extends ApiTestCase
         $this->jsonRequest('GET', $this->path($stage));
         $this->assertProblem(403, 'forbidden');
 
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         foreach ([Uuid::v7()->toRfc4122(), 'not-a-uuid'] as $unknown) {
             $this->jsonRequest('GET', '/api/stages/' . $unknown . '/homework');

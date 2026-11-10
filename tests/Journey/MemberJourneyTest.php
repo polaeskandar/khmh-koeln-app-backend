@@ -14,6 +14,7 @@ use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -39,7 +40,12 @@ final class MemberJourneyTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T12:08:00+01:00');
         [$advanced, $saturday, $thirdTask, $youth] = $this->churchOfTwoMinas();
-        $peter = $this->signInWithRoles(self::PETER, 'service_leader');
+
+        $peter = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            self::PETER,
+            'service_leader',
+        ));
+
         $this->signInWithRoles(self::MARIAM, 'administrator');
         $this->registerAndApproveMina($youth);
         $task = $this->prepareAdvancedHomework($advanced, $saturday, $peter);

@@ -9,12 +9,14 @@ use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\PersonListRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
+use App\Context\People\Domain\ValueObject\CoveredRosters;
 use App\Context\People\Domain\ValueObject\PersonFilter;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Strings\Model\InputText;
 use App\Library\Strings\Model\Text;
 use App\Library\Time\Client\Calendar;
+use App\Platform\Access\Model\GroupScope;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -50,7 +52,7 @@ final readonly class PersonLists
     /**
      * @return ReadableCollection<int, Person>
      */
-    public function page(PersonFilter $filter, int $page): ReadableCollection
+    public function page(PersonFilter $filter, int $page, GroupScope $scope): ReadableCollection
     {
         if ($page < 1) {
             throw InvalidInput::field('page', 'validation.tooSmall', ['min' => 1]);
@@ -60,7 +62,7 @@ final readonly class PersonLists
             throw InvalidInput::field('page', 'validation.tooLarge', ['max' => self::LAST_PAGE]);
         }
 
-        $ids = $this->list->page($filter, ($page - 1) * self::PAGE_SIZE, self::PAGE_SIZE);
+        $ids = $this->list->page($filter, self::coveredBy($scope), ($page - 1) * self::PAGE_SIZE, self::PAGE_SIZE);
 
         $found = Collections::firstPerKey(
             $this->people->findByIds($ids),
@@ -72,9 +74,9 @@ final readonly class PersonLists
         ));
     }
 
-    public function count(PersonFilter $filter): int
+    public function count(PersonFilter $filter, GroupScope $scope): int
     {
-        return $this->list->count($filter);
+        return $this->list->count($filter, self::coveredBy($scope));
     }
 
     /**
@@ -85,6 +87,11 @@ final readonly class PersonLists
     public function membershipsOf(ReadableCollection $people): ReadableCollection
     {
         return $this->people->membershipsOf($people);
+    }
+
+    private static function coveredBy(GroupScope $scope): CoveredRosters
+    {
+        return new CoveredRosters($scope->serviceIds(), $scope->stageIds());
     }
 
     private static function statusOf(string $status): ?PersonStatus

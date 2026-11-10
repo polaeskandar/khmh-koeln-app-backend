@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Interface\Api\Learning;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Database;
 use App\Tests\Support\Interface\Api\Learning\LessonRequests;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -21,7 +22,11 @@ final class LessonsControllerTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         [$third, $class] = new LessonRequests(self::getContainer())->thirdClass();
-        $daniel = $this->signInWithRoles('daniel@example.org', 'servant');
+
+        $daniel = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'daniel@example.org',
+            'servant',
+        ));
 
         $this->jsonRequest(
             'POST',
@@ -74,7 +79,11 @@ final class LessonsControllerTest extends ApiTestCase
         self::mockTime('2026-11-08T10:00:00+01:00');
         [$third, $class] = new LessonRequests(self::getContainer())->thirdClass();
         new Lessons(self::getContainer())->stored($third, $class, '2026-11-29', 'Creation');
-        $daniel = $this->signInWithRoles('daniel@example.org', 'servant');
+
+        $daniel = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'daniel@example.org',
+            'servant',
+        ));
 
         $this->jsonRequest(
             'POST',
@@ -144,7 +153,11 @@ final class LessonsControllerTest extends ApiTestCase
         $this->assertProblem(403, 'lessons.prepareStageOnly');
 
         foreach (['service_leader' => '2026-11-15', 'administrator' => '2026-11-22'] as $role => $date) {
-            $id = $this->signInWithRoles($role . '@example.org', $role);
+            $id = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+                $role . '@example.org',
+                $role,
+            ));
+
             $this->jsonRequest('POST', LessonRequests::lessonsOf($third), LessonRequests::body($class, $date, $id, []));
             self::assertResponseStatusCodeSame(201);
         }

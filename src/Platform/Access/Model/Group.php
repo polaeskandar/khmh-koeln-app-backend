@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Platform\Access\Model;
 
+use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class Group
@@ -21,6 +22,14 @@ final readonly class Group
         }
 
         return $this->stageId === null || $group->stageId !== null && $this->stageId->equals($group->stageId);
+    }
+
+    /**
+     * @param ReadableCollection<int, self> $held
+     */
+    public function isIn(ReadableCollection $held): bool
+    {
+        return !$held->filter(fn (self $group): bool => $group->covers($this))->isEmpty();
     }
 
     public function isServiceWide(): bool

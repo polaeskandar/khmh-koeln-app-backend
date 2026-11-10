@@ -33,7 +33,9 @@ final class AttendanceJourneyTest extends ApiTestCase
         $mina = $rosters->person('Mina', 'Hanna');
         $kiro = $rosters->person('Kiro', 'Nashed');
         $rosters->place($rosters->person('Mimi', 'Gerges'), $school, $first, '2026-09-01');
+
         new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(self::DANIEL, 'servant'));
+
         $this->signInWithRoles('hoda@example.org', 'parent');
 
         $this->planOnFriday($school, $third, [$mina, $kiro, $rosters->person('Lydia', 'Rizk')]);
@@ -53,10 +55,14 @@ final class AttendanceJourneyTest extends ApiTestCase
     private function planOnFriday(Service $school, Stage $third, array $children): void
     {
         self::mockTime('2026-11-13T10:00:00+01:00');
+
         new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(self::CHRISTINE, 'service_leader'));
+
         $this->jsonRequest('POST', '/api/schedules', JourneyStructure::schedule($school, $third));
         self::assertResponseStatusCodeSame(201);
         $this->assertJsonPath('createdSessions', 0);
+
+        $this->signInWithRoles('office@example.org', 'administrator');
 
         foreach ($children as $child) {
             $this->jsonRequest('POST', '/api/people/' . $child->id()->toRfc4122() . '/memberships', [

@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Interface\Api\Learning;
 
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Database;
 use App\Tests\Support\Interface\Api\Learning\ProgressFixture;
 use App\Tests\Support\Interface\Api\Learning\ProgressRows;
@@ -20,7 +21,7 @@ final class HomeworkControllerProgressTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T12:30:00+01:00');
         [$task, $mina, $hoda] = new ProgressFixture(self::getContainer())->create();
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('GET', $this->path($task));
 
@@ -54,7 +55,7 @@ final class HomeworkControllerProgressTest extends ApiTestCase
         $connection = new Database(self::getContainer())->connection();
         $connection->executeStatement('DELETE FROM people.guardian_relationship WHERE user_id = ?', [$hoda]);
         $connection->executeStatement('DELETE FROM identity.app_user WHERE id = ?', [$hoda]);
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('GET', $this->path($task));
 

@@ -42,11 +42,17 @@ final readonly class GroupScope
         return new self($this->groups?->filter(static fn (Group $group): bool => $group->isServiceWide()));
     }
 
-    public function covers(Group $group): bool
+    public function covers(Group ...$groups): bool
     {
-        $covering = $this->groups?->filter(static fn (Group $held): bool => $held->covers($group));
+        $held = $this->groups;
 
-        return $covering?->isEmpty() !== true;
+        if ($held === null) {
+            return true;
+        }
+
+        return !new ArrayCollection($groups)
+            ->filter(static fn (Group $group): bool => $group->isIn($held))
+            ->isEmpty();
     }
 
     /**

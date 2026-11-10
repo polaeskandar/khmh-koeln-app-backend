@@ -8,6 +8,7 @@ use App\Context\Learning\Domain\Entity\Lesson;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -21,7 +22,11 @@ final class HomeworkControllerTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         $lesson = $this->lesson();
-        $daniel = $this->signInWithRoles('daniel@example.org', 'servant');
+
+        $daniel = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'daniel@example.org',
+            'servant',
+        ));
 
         $this->jsonRequest(
             'POST',
@@ -51,7 +56,7 @@ final class HomeworkControllerTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         $lesson = $this->lesson();
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('POST', $this->create($lesson), [
             'title' => '  ',
@@ -80,7 +85,7 @@ final class HomeworkControllerTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         $lesson = $this->lesson();
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('POST', $this->create($lesson), $this->body($changes));
 
@@ -106,7 +111,7 @@ final class HomeworkControllerTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         $lesson = $this->lesson();
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
         $this->jsonRequest('POST', $this->create($lesson), $this->body([]));
         $id = $this->createdId();
 

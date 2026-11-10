@@ -11,6 +11,7 @@ use App\Context\Identity\Domain\Enum\RoleScope;
 use App\Context\Identity\Domain\Interface\SignedInAccountInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Platform\Access\Contract\StaffGroups;
+use App\Platform\Access\Model\Group;
 use App\Platform\Access\Model\GroupScope;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -51,10 +52,9 @@ final readonly class GroupPermissions
         ReadableCollection $users,
         Action $action,
         Resource $resource,
-        Uuid $serviceId,
-        ?Uuid $stageId,
+        Group $group,
     ): ReadableCollection {
-        $covering = new ArrayCollection($this->groups->coveringAccounts($serviceId, $stageId))->map(
+        $covering = new ArrayCollection($this->groups->coveringAccounts($group->serviceId, $group->stageId))->map(
             static fn (Uuid $id): string => $id->toRfc4122(),
         );
 

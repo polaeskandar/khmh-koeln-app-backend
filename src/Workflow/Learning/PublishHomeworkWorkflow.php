@@ -12,6 +12,7 @@ use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Workflow\Learning\Model\ChangedHomework;
 use App\Workflow\Learning\Model\LessonStages;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class PublishHomeworkWorkflow
 {
@@ -31,7 +32,16 @@ final readonly class PublishHomeworkWorkflow
 
     private function published(HomeworkAssignment $task): HomeworkAssignment
     {
-        LessonStages::opened($this->structure->stage($task->stageId()->toRfc4122()));
+        $stage = $this->structure->stage($task->stageId()->toRfc4122());
+
+        $this->access->requireIn(
+            Action::Update,
+            Resource::Homework,
+            StructureGroup::ofStage($stage),
+            missing: 'homework',
+        );
+
+        LessonStages::opened($stage);
 
         return $this->homework->publish($task);
     }

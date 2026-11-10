@@ -12,6 +12,7 @@ use App\Library\Types\Model\Integers;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Learning\Domain\Entity\Reports;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
 use App\Tests\Support\Database;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
@@ -37,7 +38,7 @@ final class HomeworkLifecycleControllerTest extends ApiTestCase
         $families = new Families(self::getContainer());
         $reports->stored($reported, $families->child('Mina'));
         $reports->stored($undone, $families->child('Karim'), undoneAt: '2026-11-07T11:00:00+01:00');
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->act($free, 'unpublish');
         self::assertResponseIsSuccessful();
@@ -68,7 +69,7 @@ final class HomeworkLifecycleControllerTest extends ApiTestCase
         $lesson = new Lessons(self::getContainer())->inThirdClass();
         $task = $this->task($lesson, self::PUBLISHED);
         new Reports(self::getContainer())->stored($task, new Families(self::getContainer())->child('Mina'));
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
         $this->act($task, 'unpublish');
         $this->assertProblem(409, 'homework.alreadyReported');
     }
@@ -81,7 +82,7 @@ final class HomeworkLifecycleControllerTest extends ApiTestCase
         $published = $this->task($lesson, self::PUBLISHED);
         new Reports(self::getContainer())->stored($published, new Families(self::getContainer())->child('Mina'));
         $connection = new Database(self::getContainer())->connection();
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         foreach ([$draft, $published] as $task) {
             $this->act($task, 'archive');
@@ -114,7 +115,7 @@ final class HomeworkLifecycleControllerTest extends ApiTestCase
         $archived = ['archived_at' => '2026-11-02 09:00:00+01'];
         $connection = new Database(self::getContainer())->connection();
         $connection->update('learning.lesson', $archived, ['id' => $lesson->id()->toRfc4122()]);
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->act($task, 'restore');
         $this->assertProblem(409, 'homework.lessonArchived');
@@ -145,7 +146,7 @@ final class HomeworkLifecycleControllerTest extends ApiTestCase
         }
 
         $this->browser()->getCookieJar()->clear();
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
         $this->jsonRequest('POST', '/api/homework/' . Uuid::v7()->toRfc4122() . '/archive', []);
         $this->assertProblem(404, 'notFound.homework');
         $this->jsonRequest('POST', '/api/homework/not-a-task/restore', []);

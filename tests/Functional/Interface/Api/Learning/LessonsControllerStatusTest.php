@@ -8,6 +8,7 @@ use App\Context\Learning\Domain\Entity\Lesson;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
@@ -20,7 +21,7 @@ final class LessonsControllerStatusTest extends ApiTestCase
     public function testTaughtStartsAtMidnightInBerlinAndEveryStepCanBeUndone(): void
     {
         $lesson = $this->lesson();
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         self::mockTime('2026-11-14T22:55:00Z');
         $this->change($lesson, 'ready');
@@ -49,7 +50,7 @@ final class LessonsControllerStatusTest extends ApiTestCase
     {
         self::mockTime('2026-11-16T10:00:00+01:00');
         $lesson = $this->lesson();
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
         $this->change($lesson, 'ready');
         $updatedAt = $this->updatedAt($lesson);
 
@@ -65,7 +66,7 @@ final class LessonsControllerStatusTest extends ApiTestCase
         self::mockTime('2026-11-16T10:00:00+01:00');
         $lesson = $this->lesson();
         $database = new Database(self::getContainer())->connection();
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->change($lesson, 'taught');
         $this->assertFieldError('status', 'validation.invalidChoice', ['choices' => '"draft", "ready", "completed"']);

@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Interface\Api\Learning;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Database;
 use App\Tests\Support\Interface\Api\Learning\LessonRequests;
 use App\Tests\Support\JsonBody;
@@ -22,7 +23,11 @@ final class LessonsControllerEditTest extends ApiTestCase
         self::mockTime('2026-11-08T10:00:00+01:00');
         $requests = new LessonRequests(self::getContainer());
         [$third, $class] = $requests->thirdClass();
-        $leader = $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        $leader = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest(
             'POST',
@@ -44,7 +49,7 @@ final class LessonsControllerEditTest extends ApiTestCase
             ->connection()
             ->executeStatement('DELETE FROM identity.user_role');
 
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('PUT', '/api/lessons/' . $id, LessonRequests::body($class, '2026-11-22', $leader, [
             'details' => ['title' => 'The Lost Sheep'],
@@ -60,7 +65,11 @@ final class LessonsControllerEditTest extends ApiTestCase
         self::mockTime('2026-11-08T10:00:00+01:00');
         [$third, $class] = new LessonRequests(self::getContainer())->thirdClass();
         new Lessons(self::getContainer())->stored($third, $class, '2026-11-29', 'Creation');
-        $daniel = $this->signInWithRoles('daniel@example.org', 'servant');
+
+        $daniel = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'daniel@example.org',
+            'servant',
+        ));
 
         $this->jsonRequest(
             'POST',
@@ -93,7 +102,11 @@ final class LessonsControllerEditTest extends ApiTestCase
             ['id' => $id],
         );
 
-        $daniel = $this->signInWithRoles('daniel@example.org', 'servant');
+        $daniel = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'daniel@example.org',
+            'servant',
+        ));
+
         $path = '/api/lessons/' . $id;
 
         $this->jsonRequest('PUT', $path, LessonRequests::body($class, '2026-11-15', $daniel));

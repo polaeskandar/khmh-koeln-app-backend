@@ -14,6 +14,7 @@ use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Meetings\Domain\ValueObject\PlannedDate;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Workflow\Learning\Model\LessonOptions;
+use App\Workflow\Organization\Model\StructureGroup;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
 
@@ -33,6 +34,8 @@ final readonly class ListLessonOptionsWorkflow
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.prepareStageOnly');
 
         $stage = $this->structure->stage($stageId);
+        $group = StructureGroup::ofStage($stage);
+        $this->access->requireIn(Action::Update, Resource::Lessons, $group, missing: 'stage');
         $edited = $this->lessons->edited($stage->id(), $lessonId);
         $window = $this->lessons->windowFor($edited);
         $archived = ArchivedStructure::of($this->structure->archivedIds());
@@ -42,7 +45,7 @@ final readonly class ListLessonOptionsWorkflow
             $window,
             $dates,
             $this->lessons->takenIn(self::scheduleIdsOf($dates), $window, $edited),
-            $this->accounts->activeAllowedTo(Action::Update, Resource::Lessons),
+            $this->accounts->activeAllowedIn(Action::Update, Resource::Lessons, $group),
         );
     }
 

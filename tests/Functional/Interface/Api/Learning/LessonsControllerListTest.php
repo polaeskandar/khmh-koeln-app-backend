@@ -15,6 +15,7 @@ use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
@@ -38,7 +39,7 @@ final class LessonsControllerListTest extends ApiTestCase
         $lessons->stored($third, $class, '2026-10-25', 'Noah');
         $lessons->stored($third, $class, '2026-11-01', 'Abraham');
         $this->archive($lessons->stored($third, $class, '2026-10-18', 'Moses'));
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('GET', $this->path($third));
 
@@ -82,7 +83,7 @@ final class LessonsControllerListTest extends ApiTestCase
             ->connection()
             ->update('learning.lesson', ['responsible_id' => $gone], ['id' => $lesson->id()->toRfc4122()]);
 
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
         $this->jsonRequest('GET', $this->path($third));
 
         $this->assertJsonPath('items.0.homework', ['total' => 2, 'published' => 1, 'drafts' => 1]);
@@ -103,7 +104,7 @@ final class LessonsControllerListTest extends ApiTestCase
                 ['id' => $third->id()->toRfc4122()],
             );
 
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
         $this->jsonRequest('GET', $this->path($third));
         $this->assertJsonPath('archived', true);
 
@@ -123,7 +124,7 @@ final class LessonsControllerListTest extends ApiTestCase
         [$third, $class] = $this->thirdClass();
         $lessons = new Lessons(self::getContainer());
         $this->task($lessons->stored($third, $class, '2026-11-08'), '');
-        $this->signInWithRoles('daniel@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 
         $this->jsonRequest('GET', $this->path($third));
         $one = count(new Logs(self::getContainer())->containing('SELECT'));
