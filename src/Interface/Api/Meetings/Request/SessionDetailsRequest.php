@@ -10,9 +10,9 @@ final readonly class SessionDetailsRequest
 {
     public function __construct(
         #[Assert\NotBlank(message: 'meetings.titleRequired', normalizer: 'trim')]
-        #[Assert\Length(max: 120, maxMessage: 'validation.tooLong', normalizer: 'trim')]
+        #[Assert\Length(max: 120, normalizer: 'trim', maxMessage: 'validation.tooLong')]
         public ?string $title = null,
-        #[Assert\Length(max: 120, maxMessage: 'validation.tooLong', normalizer: 'trim')]
+        #[Assert\Length(max: 120, normalizer: 'trim', maxMessage: 'validation.tooLong')]
         public ?string $location = null,
     ) {
     }

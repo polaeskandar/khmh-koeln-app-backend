@@ -30,7 +30,7 @@ final class StructureLifecycleController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ServiceResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function archiveService(string $id, ArchiveServiceWorkflow $archiveService): JsonResponse
     {
         return $this->json(new ServiceResponse($archiveService($id)));
@@ -44,7 +44,7 @@ final class StructureLifecycleController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ServiceResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function restoreService(string $id, RestoreServiceWorkflow $restoreService): JsonResponse
     {
         return $this->json(new ServiceResponse($restoreService($id)));
@@ -53,7 +53,7 @@ final class StructureLifecycleController extends AbstractController
     #[Route('/services/{id}', name: 'api_services_delete', methods: ['DELETE'])]
     #[OA\Delete(summary: 'Services delete.')]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function deleteService(string $id, DeleteServiceWorkflow $deleteService): Response
     {
         $deleteService($id);
@@ -69,7 +69,7 @@ final class StructureLifecycleController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: StageResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function archiveStage(string $id, ArchiveStageWorkflow $archiveStage): JsonResponse
     {
         return $this->json(new StageResponse($archiveStage($id)));
@@ -83,7 +83,7 @@ final class StructureLifecycleController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: StageResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function restoreStage(string $id, RestoreStageWorkflow $restoreStage): JsonResponse
     {
         return $this->json(new StageResponse($restoreStage($id)));
@@ -92,7 +92,7 @@ final class StructureLifecycleController extends AbstractController
     #[Route('/stages/{id}', name: 'api_stages_delete', methods: ['DELETE'])]
     #[OA\Delete(summary: 'Stages delete.')]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function deleteStage(string $id, DeleteStageWorkflow $deleteStage): Response
     {
         $deleteStage($id);

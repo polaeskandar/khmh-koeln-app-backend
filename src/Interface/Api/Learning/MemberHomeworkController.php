@@ -32,7 +32,7 @@ final class MemberHomeworkController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ChildHomeworkListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(
         #[CurrentUser]
         UserInterface $viewer,
@@ -52,7 +52,7 @@ final class MemberHomeworkController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: MemberHomeworkDetailResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function show(
         string $homeworkId,
         #[CurrentUser]
@@ -77,7 +77,7 @@ final class MemberHomeworkController extends AbstractController
         description: 'Created.',
         content: new OA\JsonContent(ref: new Model(type: ReportResultResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function report(
         string $homeworkId,
         #[CurrentUser]
@@ -95,7 +95,7 @@ final class MemberHomeworkController extends AbstractController
     #[Route('/{homeworkId}/completion', name: 'api_member_homework_undo', methods: ['DELETE'])]
     #[OA\Delete(summary: 'Member homework undo.')]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function undo(
         string $homeworkId,
         #[CurrentUser]

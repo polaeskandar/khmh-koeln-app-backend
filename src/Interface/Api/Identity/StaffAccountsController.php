@@ -34,7 +34,7 @@ final class StaffAccountsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: StaffAccountListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(ListStaffAccountsWorkflow $listStaffAccounts): JsonResponse
     {
         return $this->json(StaffAccountListResponse::of($listStaffAccounts()));
@@ -49,7 +49,7 @@ final class StaffAccountsController extends AbstractController
             new OA\Property(property: 'role', ref: new Model(type: RoleSummary::class)),
         ]),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function give(
         string $id,
         #[MapRequestPayload]
@@ -64,7 +64,7 @@ final class StaffAccountsController extends AbstractController
     #[Route('/accounts/{id}/roles/{roleId}', name: 'api_account_roles_take', methods: ['DELETE'])]
     #[OA\Delete(summary: 'Account roles take.')]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function take(
         string $id,
         string $roleId,
@@ -85,7 +85,7 @@ final class StaffAccountsController extends AbstractController
         description: 'Created.',
         content: new OA\JsonContent(ref: new Model(type: IssuedPasswordLink::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function passwordLink(
         string $id,
         #[CurrentUser]

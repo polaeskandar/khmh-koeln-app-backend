@@ -34,7 +34,7 @@ final class AttendanceController extends AbstractController
         description: 'Created.',
         content: new OA\JsonContent(ref: new Model(type: MarkResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function mark(
         string $sessionId,
         string $personId,
@@ -53,7 +53,7 @@ final class AttendanceController extends AbstractController
     #[Route('', name: 'api_attendance_remove', methods: ['DELETE'])]
     #[OA\Delete(summary: 'Attendance remove.')]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function remove(
         string $sessionId,
         string $personId,

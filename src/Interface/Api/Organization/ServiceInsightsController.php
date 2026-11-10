@@ -30,7 +30,7 @@ final class ServiceInsightsController extends AbstractController
             ),
         ]),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function insights(
         ListServiceInsightsWorkflow $listServiceInsights,
         #[MapQueryParameter]
@@ -52,7 +52,7 @@ final class ServiceInsightsController extends AbstractController
             ),
         ]),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function leaders(ListServiceLeadersWorkflow $listServiceLeaders): JsonResponse
     {
         return $this->json(['items' => $listServiceLeaders()]);

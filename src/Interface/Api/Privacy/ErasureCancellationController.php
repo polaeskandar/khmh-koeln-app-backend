@@ -33,9 +33,9 @@ final class ErasureCancellationController extends AbstractController
     }
 
     #[Route('/api/auth/erasure-cancellation', name: 'api_auth_erasure_cancellation', methods: ['POST'])]
-    #[OA\Post(security: [], summary: 'Auth erasure cancellation.')]
+    #[OA\Post(summary: 'Auth erasure cancellation.', security: [])]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function cancel(
         Request $request,
         #[MapRequestPayload]

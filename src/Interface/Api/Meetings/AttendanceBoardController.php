@@ -24,7 +24,7 @@ final class AttendanceBoardController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: AttendanceBoardResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function show(string $id, ShowAttendanceBoardWorkflow $showAttendanceBoard): JsonResponse
     {
         return $this->json(new AttendanceBoardResponse($showAttendanceBoard($id)));
@@ -37,7 +37,7 @@ final class AttendanceBoardController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: AttendanceCorrectionsResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function corrections(string $id, ListAttendanceCorrectionsWorkflow $listCorrections): JsonResponse
     {
         return $this->json(new AttendanceCorrectionsResponse($listCorrections($id)));

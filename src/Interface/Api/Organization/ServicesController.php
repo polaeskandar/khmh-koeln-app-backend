@@ -30,7 +30,7 @@ final class ServicesController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ServiceListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(
         ListServicesWorkflow $listServices,
         #[MapQueryParameter]
@@ -46,7 +46,7 @@ final class ServicesController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ServiceResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function show(string $id, ShowServiceWorkflow $showService): JsonResponse
     {
         return $this->json(new ServiceResponse($showService($id)));
@@ -59,7 +59,7 @@ final class ServicesController extends AbstractController
         description: 'Created.',
         content: new OA\JsonContent(ref: new Model(type: ServiceResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function create(
         #[MapRequestPayload]
         ServiceRequest $service,
@@ -81,7 +81,7 @@ final class ServicesController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ServiceResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function edit(
         string $id,
         #[MapRequestPayload]

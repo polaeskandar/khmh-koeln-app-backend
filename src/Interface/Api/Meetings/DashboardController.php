@@ -24,7 +24,7 @@ final class DashboardController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: AgendaResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function upcoming(ShowAgendaWorkflow $showAgenda): JsonResponse
     {
         return $this->json(AgendaResponse::of($showAgenda(AgendaFilter::ahead(self::DAYS_AHEAD))));

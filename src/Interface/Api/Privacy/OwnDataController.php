@@ -38,7 +38,7 @@ final class OwnDataController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: AccountDataResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function export(
         #[CurrentUser]
         UserInterface $viewer,
@@ -66,7 +66,7 @@ final class OwnDataController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: OwnErasureStatus::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function erasureRequest(
         #[CurrentUser]
         UserInterface $viewer,
@@ -82,7 +82,7 @@ final class OwnDataController extends AbstractController
         description: 'Created.',
         content: new OA\JsonContent(ref: new Model(type: ScheduledErasureResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function requestErasure(
         #[CurrentUser]
         UserInterface $viewer,

@@ -35,7 +35,7 @@ final class PeopleController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: PeoplePageResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(
         ListPeopleWorkflow $listPeople,
         #[MapQueryString(serializationContext: [
@@ -74,7 +74,7 @@ final class PeopleController extends AbstractController
             ),
         ),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function create(
         #[MapRequestPayload]
         CreatePersonRequest $person,
@@ -90,7 +90,7 @@ final class PeopleController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: PersonResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function rename(
         string $id,
         #[MapRequestPayload]
@@ -113,7 +113,7 @@ final class PeopleController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: PersonResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function deactivate(string $id, DeactivatePersonWorkflow $deactivatePerson): JsonResponse
     {
         return $this->json(PersonResponse::of($deactivatePerson($id)));
@@ -127,7 +127,7 @@ final class PeopleController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: PersonResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function reactivate(string $id, ReactivatePersonWorkflow $reactivatePerson): JsonResponse
     {
         return $this->json(PersonResponse::of($reactivatePerson($id)));

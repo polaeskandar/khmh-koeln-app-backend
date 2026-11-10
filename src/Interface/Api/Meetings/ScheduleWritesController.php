@@ -32,7 +32,7 @@ final class ScheduleWritesController extends AbstractController
         description: 'Created.',
         content: new OA\JsonContent(ref: new Model(type: WrittenScheduleResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function create(
         #[MapRequestPayload]
         CreateScheduleRequest $schedule,
@@ -52,7 +52,7 @@ final class ScheduleWritesController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: WrittenScheduleResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function edit(
         string $id,
         #[MapRequestPayload]
@@ -69,7 +69,7 @@ final class ScheduleWritesController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: CanceledOccurrenceResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function cancelOccurrence(
         string $id,
         string $date,

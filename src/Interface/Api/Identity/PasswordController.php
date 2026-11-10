@@ -19,7 +19,7 @@ final class PasswordController extends AbstractController
     #[Route('/api/me/password', name: 'api_me_password', methods: ['POST'])]
     #[OA\Post(summary: 'Me password.')]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function change(
         #[CurrentUser]
         UserInterface $viewer,

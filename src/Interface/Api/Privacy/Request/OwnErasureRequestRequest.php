@@ -13,7 +13,7 @@ final readonly class OwnErasureRequestRequest
         #[SensitiveParameter]
         #[Assert\NotBlank(message: 'accounts.currentPasswordWrong')]
         public ?string $password = null,
-        #[Assert\Length(max: 2000, maxMessage: 'validation.tooLong', normalizer: 'trim')]
+        #[Assert\Length(max: 2000, normalizer: 'trim', maxMessage: 'validation.tooLong')]
         public ?string $note = null,
     ) {
     }

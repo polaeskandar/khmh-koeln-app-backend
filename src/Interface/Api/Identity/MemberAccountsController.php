@@ -23,7 +23,7 @@ final class MemberAccountsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: MemberAccountListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(ListMemberAccountsWorkflow $listMemberAccounts): JsonResponse
     {
         return $this->json(MemberAccountListResponse::of($listMemberAccounts()));
@@ -33,7 +33,7 @@ final class MemberAccountsController extends AbstractController
     #[OA\Post(summary: 'Member accounts unlink.')]
     #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function unlink(string $id, RemoveMemberLinkWorkflow $removeMemberLink): Response
     {
         $removeMemberLink($id);

@@ -13,13 +13,13 @@ final readonly class LessonPlanRequest
      * @param list<array<string, string|null>> $materials
      */
     public function __construct(
-        #[Assert\Length(max: 4000, maxMessage: 'validation.tooLong', normalizer: 'trim')]
+        #[Assert\Length(max: 4000, normalizer: 'trim', maxMessage: 'validation.tooLong')]
         public ?string $objectives = null,
-        #[Assert\Length(max: 4000, maxMessage: 'validation.tooLong', normalizer: 'trim')]
+        #[Assert\Length(max: 4000, normalizer: 'trim', maxMessage: 'validation.tooLong')]
         public ?string $teachingPoints = null,
-        #[Assert\Length(max: 4000, maxMessage: 'validation.tooLong', normalizer: 'trim')]
+        #[Assert\Length(max: 4000, normalizer: 'trim', maxMessage: 'validation.tooLong')]
         public ?string $activities = null,
-        #[Assert\Length(max: 4000, maxMessage: 'validation.tooLong', normalizer: 'trim')]
+        #[Assert\Length(max: 4000, normalizer: 'trim', maxMessage: 'validation.tooLong')]
         public ?string $notes = null,
         #[Assert\All([
             new Assert\Collection(fields: [

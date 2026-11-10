@@ -12,7 +12,7 @@ final readonly class ReceiptRequest
 {
     public function __construct(
         #[Assert\NotBlank(message: 'privacy.requestedByRequired', normalizer: 'trim')]
-        #[Assert\Length(max: 200, maxMessage: 'validation.tooLong', normalizer: 'trim')]
+        #[Assert\Length(max: 200, normalizer: 'trim', maxMessage: 'validation.tooLong')]
         public ?string $requestedBy = null,
         #[Assert\NotNull(message: 'validation.invalidChoice')]
         #[Assert\Choice(choices: [

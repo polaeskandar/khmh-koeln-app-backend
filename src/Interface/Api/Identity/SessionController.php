@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 final readonly class SessionController
 {
     #[Route('/sign-in', name: 'api_auth_sign_in')]
-    #[OA\Post(security: [], summary: 'Auth sign in.')]
+    #[OA\Post(summary: 'Auth sign in.', security: [])]
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(required: ['email', 'password'], properties: [
@@ -28,7 +28,7 @@ final readonly class SessionController
         ]),
     )]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function signIn(Request $request, #[CurrentUser] ?UserInterface $user): Response
     {
         if ($user === null) {
@@ -41,10 +41,10 @@ final readonly class SessionController
     }
 
     #[Route('/sign-out', name: 'api_auth_sign_out')]
-    #[OA\Post(security: [], summary: 'Auth sign out.')]
+    #[OA\Post(summary: 'Auth sign out.', security: [])]
     #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function signOut(): never
     {
         throw new LogicException('The api firewall answers sign-out requests.');

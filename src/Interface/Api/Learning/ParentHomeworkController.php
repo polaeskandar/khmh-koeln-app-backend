@@ -32,7 +32,7 @@ final class ParentHomeworkController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ChildHomeworkListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(
         string $childId,
         #[CurrentUser]
@@ -53,7 +53,7 @@ final class ParentHomeworkController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ChildHomeworkDetailResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function show(
         string $childId,
         string $homeworkId,
@@ -79,7 +79,7 @@ final class ParentHomeworkController extends AbstractController
         description: 'Created.',
         content: new OA\JsonContent(ref: new Model(type: ReportResultResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function report(
         string $childId,
         string $homeworkId,
@@ -98,7 +98,7 @@ final class ParentHomeworkController extends AbstractController
     #[Route('/{homeworkId}/completion', name: 'api_parent_homework_undo', methods: ['DELETE'])]
     #[OA\Delete(summary: 'Parent homework undo.')]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function undo(
         string $childId,
         string $homeworkId,

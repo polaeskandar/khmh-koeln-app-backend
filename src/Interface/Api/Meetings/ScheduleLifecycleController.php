@@ -26,7 +26,7 @@ final class ScheduleLifecycleController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: WrittenScheduleResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function activate(string $id, ActivateScheduleWorkflow $activateSchedule): JsonResponse
     {
         return $this->json(WrittenScheduleResponse::of($activateSchedule($id)));
@@ -42,7 +42,7 @@ final class ScheduleLifecycleController extends AbstractController
             new OA\Property(property: 'id', type: 'string', format: 'uuid'),
         ]),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function deactivate(string $id, DeactivateScheduleWorkflow $deactivateSchedule): JsonResponse
     {
         return $this->json(['id' => $deactivateSchedule($id)]);
@@ -51,7 +51,7 @@ final class ScheduleLifecycleController extends AbstractController
     #[Route('', name: 'api_schedules_delete', methods: ['DELETE'])]
     #[OA\Delete(summary: 'Schedules delete.')]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function delete(string $id, DeleteScheduleWorkflow $deleteSchedule): Response
     {
         $deleteSchedule($id);

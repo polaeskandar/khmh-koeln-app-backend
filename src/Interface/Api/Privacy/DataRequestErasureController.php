@@ -31,7 +31,7 @@ final class DataRequestErasureController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ErasureReviewResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function review(
         string $id,
         #[CurrentUser]
@@ -55,7 +55,7 @@ final class DataRequestErasureController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: DataRequestRowResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function erase(
         string $id,
         #[CurrentUser]

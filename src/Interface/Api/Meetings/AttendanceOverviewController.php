@@ -27,7 +27,7 @@ final class AttendanceOverviewController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: AttendanceOverviewResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function show(ShowAttendanceOverviewWorkflow $showAttendanceOverview): JsonResponse
     {
         return $this->json(new AttendanceOverviewResponse($showAttendanceOverview()));
@@ -40,7 +40,7 @@ final class AttendanceOverviewController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: AttendanceCountsResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function counts(
         ShowAttendanceCountsWorkflow $showAttendanceCounts,
         #[MapQueryString(validationFailedStatusCode: Response::HTTP_UNPROCESSABLE_ENTITY)]

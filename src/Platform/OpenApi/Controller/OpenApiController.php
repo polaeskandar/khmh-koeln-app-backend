@@ -21,9 +21,9 @@ final class OpenApiController extends AbstractController
     ) {
     }
 
-    #[OA\Get(security: [], summary: 'OpenAPI document.')]
+    #[OA\Get(summary: 'OpenAPI document.', security: [])]
     #[OA\Response(response: 200, description: 'The result.', content: new OA\JsonContent(type: 'object'))]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function __invoke(Request $request): JsonResponse
     {
         return ($this->documentation)($request);

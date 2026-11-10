@@ -22,7 +22,7 @@ final class StageAttendanceController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: AttendanceHistory::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function history(string $id, ShowStageAttendanceHistoryWorkflow $showStageAttendanceHistory): JsonResponse
     {
         return $this->json(AttendanceHistoryResponse::of($showStageAttendanceHistory($id)));

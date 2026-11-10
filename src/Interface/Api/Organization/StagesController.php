@@ -31,7 +31,7 @@ final class StagesController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: StageListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(string $id, ListStagesWorkflow $listStages): JsonResponse
     {
         return $this->json(StageListResponse::of($listStages($id)));
@@ -44,7 +44,7 @@ final class StagesController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: StageListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function reorder(
         string $id,
         #[MapRequestPayload]
@@ -61,7 +61,7 @@ final class StagesController extends AbstractController
         description: 'Created.',
         content: new OA\JsonContent(ref: new Model(type: StageResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function add(string $id, #[MapRequestPayload] StageRequest $stage, AddStageWorkflow $addStage): JsonResponse
     {
         $added = $addStage($id, $stage->name ?? '', $stage->description);
@@ -80,7 +80,7 @@ final class StagesController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: StageResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function show(string $id, ShowStageWorkflow $showStage): JsonResponse
     {
         return $this->json(new StageResponse($showStage($id)));
@@ -93,7 +93,7 @@ final class StagesController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: StageResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function edit(
         string $id,
         #[MapRequestPayload]

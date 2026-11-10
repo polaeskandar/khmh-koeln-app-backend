@@ -11,7 +11,7 @@ final readonly class ForgotPasswordRequest
     public function __construct(
         #[Assert\NotBlank(message: 'accounts.emailRequired', normalizer: 'trim')]
         #[Assert\Email(message: 'accounts.emailInvalid', normalizer: 'trim')]
-        #[Assert\Length(max: 254, maxMessage: 'validation.tooLong', normalizer: 'trim')]
+        #[Assert\Length(max: 254, normalizer: 'trim', maxMessage: 'validation.tooLong')]
         public ?string $email = null,
     ) {
     }

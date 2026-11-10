@@ -45,12 +45,12 @@ final class DataCopiesController extends AbstractController
     }
 
     #[Route('/api/data-copies', name: 'api_data_copies', methods: ['POST'])]
-    #[OA\Post(security: [], summary: 'Data copies.')]
+    #[OA\Post(summary: 'Data copies.', security: [])]
     #[OA\Response(response: 200, description: 'The copy, as an attachment.', content: new OA\JsonContent(oneOf: [
         new OA\Schema(ref: new Model(type: AccountDataResponse::class)),
         new OA\Schema(ref: new Model(type: MemberDataResponse::class)),
     ]))]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function download(
         Request $request,
         #[MapRequestPayload]

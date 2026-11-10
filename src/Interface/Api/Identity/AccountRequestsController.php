@@ -34,7 +34,7 @@ final class AccountRequestsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: AccountRequestListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(ListAccountRequestsWorkflow $listAccountRequests): JsonResponse
     {
         return $this->json(AccountRequestListResponse::of($listAccountRequests()));
@@ -47,7 +47,7 @@ final class AccountRequestsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: MemberCandidateListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function memberCandidates(
         ListMemberCandidatesWorkflow $listMemberCandidates,
         #[MapQueryParameter]
@@ -63,7 +63,7 @@ final class AccountRequestsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: AccountSummary::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function approve(
         string $id,
         #[CurrentUser]
@@ -86,7 +86,7 @@ final class AccountRequestsController extends AbstractController
     #[OA\Post(summary: 'Account requests decline.')]
     #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function decline(string $id, DeclineAccountRequestWorkflow $declineAccountRequest): Response
     {
         $declineAccountRequest($id);

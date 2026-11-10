@@ -31,7 +31,7 @@ final class SessionsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: SessionDetailResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function show(string $id, ShowSessionWorkflow $showSession): JsonResponse
     {
         return $this->json(SessionDetailResponse::of($showSession($id)));
@@ -45,7 +45,7 @@ final class SessionsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: SessionStateResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function open(string $id, #[CurrentUser] UserInterface $user, OpenSessionWorkflow $openSession): JsonResponse
     {
         return $this->json(SessionStateResponse::of($openSession($id, $user->getUserIdentifier())));
@@ -59,7 +59,7 @@ final class SessionsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: SessionStateResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function close(
         string $id,
         #[CurrentUser]
@@ -76,7 +76,7 @@ final class SessionsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: SessionStateResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function reopen(
         string $id,
         #[CurrentUser]
@@ -95,7 +95,7 @@ final class SessionsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: SessionStateResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function cancel(
         string $id,
         #[CurrentUser]

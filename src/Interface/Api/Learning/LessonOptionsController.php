@@ -24,7 +24,7 @@ final class LessonOptionsController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: LessonOptionsResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(
         string $stageId,
         ListLessonOptionsWorkflow $listLessonOptions,

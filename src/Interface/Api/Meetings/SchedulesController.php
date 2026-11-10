@@ -25,7 +25,7 @@ final class SchedulesController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ScheduleListResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function list(
         ListSchedulesWorkflow $listSchedules,
         #[MapQueryParameter]
@@ -43,7 +43,7 @@ final class SchedulesController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: DatedScheduleResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function show(string $id, ShowScheduleWorkflow $showSchedule): JsonResponse
     {
         return $this->json(DatedScheduleResponse::of($showSchedule($id)));

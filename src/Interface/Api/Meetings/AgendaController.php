@@ -24,7 +24,7 @@ final class AgendaController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: AgendaResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function show(
         ShowAgendaWorkflow $showAgenda,
         #[MapQueryString(validationFailedStatusCode: Response::HTTP_UNPROCESSABLE_ENTITY)]

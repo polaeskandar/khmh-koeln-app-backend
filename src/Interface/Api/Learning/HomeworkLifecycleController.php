@@ -27,7 +27,7 @@ final class HomeworkLifecycleController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ChangedHomeworkResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function unpublish(string $id, UnpublishHomeworkWorkflow $unpublishHomework): JsonResponse
     {
         return $this->json(ChangedHomeworkResponse::of($unpublishHomework($id)));
@@ -41,7 +41,7 @@ final class HomeworkLifecycleController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ChangedHomeworkResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function archive(string $id, ArchiveHomeworkWorkflow $archiveHomework): JsonResponse
     {
         return $this->json(ChangedHomeworkResponse::of($archiveHomework($id)));
@@ -55,7 +55,7 @@ final class HomeworkLifecycleController extends AbstractController
         description: 'The result.',
         content: new OA\JsonContent(ref: new Model(type: ChangedHomeworkResponse::class)),
     )]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function restore(string $id, RestoreHomeworkWorkflow $restoreHomework): JsonResponse
     {
         return $this->json(ChangedHomeworkResponse::of($restoreHomework($id)));
@@ -64,7 +64,7 @@ final class HomeworkLifecycleController extends AbstractController
     #[Route('', name: 'api_homework_delete', methods: ['DELETE'])]
     #[OA\Delete(summary: 'Homework delete.')]
     #[OA\Response(response: 204, description: 'Done; no body.')]
-    #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
+    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
     public function delete(string $id, DeleteHomeworkWorkflow $deleteHomework): Response
     {
         $deleteHomework($id);
