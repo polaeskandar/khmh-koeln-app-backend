@@ -47,12 +47,11 @@ final class CalendarTest extends TestCase
         }
     }
 
-    public function testNowAndTomorrowFollowTheClockInBerlin(): void
+    public function testNowFollowsTheClockInBerlin(): void
     {
         $calendar = self::calendarAt('2026-11-07T23:05:00Z');
 
         self::assertSame('2026-11-08T00:05:00+01:00', $calendar->now()->toRfc3339String());
-        self::assertSame('2026-11-09', $calendar->tomorrow()->toString());
     }
 
     #[DataProvider('instants')]
@@ -80,25 +79,6 @@ final class CalendarTest extends TestCase
         $lateSaturday = $calendar->instantAt(LocalDate::of('2026-11-07'), LocalTime::of('23:30'));
 
         self::assertSame('2026-11-07', $calendar->localDateOf($lateSaturday->setTimezone('UTC'))->toString());
-    }
-
-    #[DataProvider('dayLengths')]
-    public function testADayRunsFromItsMidnightToTheNext(string $date, string $start, int $hours): void
-    {
-        $bounds = self::calendarAt('2026-11-07T12:00:00Z')->dayBounds(LocalDate::of($date));
-
-        self::assertSame($start, $bounds->start->toRfc3339String());
-        self::assertSame($hours, (int) $bounds->start->diffInHours($bounds->end));
-    }
-
-    /**
-     * @return iterable<string, array{string, string, int}>
-     */
-    public static function dayLengths(): iterable
-    {
-        yield 'ordinary' => ['2026-11-08', '2026-11-08T00:00:00+01:00', 24];
-        yield 'clocks go back' => ['2026-10-25', '2026-10-25T00:00:00+02:00', 25];
-        yield 'clocks go forward' => ['2027-03-28', '2027-03-28T00:00:00+01:00', 23];
     }
 
     private static function calendarAt(string $now): Calendar

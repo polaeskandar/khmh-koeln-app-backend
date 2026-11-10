@@ -6,7 +6,6 @@ namespace App\Library\Time\Client;
 
 use App\Library\Time\Model\LocalDate;
 use App\Library\Time\Model\LocalTime;
-use App\Library\Time\Model\Period;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Psr\Clock\ClockInterface;
@@ -31,11 +30,6 @@ final readonly class Calendar
         return $this->localDateOf($this->clock->now());
     }
 
-    public function tomorrow(): LocalDate
-    {
-        return $this->today()->addDays(1);
-    }
-
     public function instantAt(LocalDate $date, LocalTime $time): CarbonImmutable
     {
         return CarbonImmutable::parse($date->toString() . ' ' . $time->toString(), $this->timeZone);
@@ -54,13 +48,5 @@ final readonly class Calendar
     public function monthAfter(LocalDate $date): LocalDate
     {
         return LocalDate::of(CarbonImmutable::parse($date->toString(), 'UTC')->addMonthNoOverflow()->toDateString());
-    }
-
-    public function dayBounds(LocalDate $date): Period
-    {
-        return new Period(
-            start: $this->instantAt($date, LocalTime::midnight()),
-            end: $this->instantAt($date->addDays(1), LocalTime::midnight()),
-        );
     }
 }

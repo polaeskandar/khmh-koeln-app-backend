@@ -35,11 +35,6 @@ final readonly class LocalTime implements JsonSerializable
         return CarbonImmutable::createFromTime($instant->hour, $instant->minute, timezone: 'UTC') |> self::create(...);
     }
 
-    public static function midnight(): self
-    {
-        return self::of('00:00');
-    }
-
     public function isAfter(self $other): bool
     {
         return $this->toString() > $other->toString();

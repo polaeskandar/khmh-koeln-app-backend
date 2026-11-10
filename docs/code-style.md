@@ -159,7 +159,7 @@ like an unknown one, with the same `notFound.stage`; where a malformed id gets t
 answer instead, the workflow takes `Ids::toUuidOrNull()` and the context decides. The workflow parses an id where
 the id was first used, after the permission check, so the order of the answers stays the same. Only `<Subject>Choices`
 take the request's strings, because resolving them is their job. Free text stays `string`. A value object exists when a value has rules or a meaning its type
-can't carry (`Email`, `LocalDate`, `Period`), not for every scalar. No boolean flags (Mago
+can't carry (`Email`, `LocalDate`, `Tenure`), not for every scalar. No boolean flags (Mago
 `no-boolean-flag-parameter`), no callback that stands in for one, and no sentinel values (`''` for "none"): a
 choice between behaviours is two methods or an enum.
 

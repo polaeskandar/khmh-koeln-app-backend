@@ -15,7 +15,7 @@ final class LocalTimeTest extends TestCase
     public function testAValidTimeKeepsItsText(): void
     {
         self::assertSame('18:30', LocalTime::of('18:30')->toString());
-        self::assertSame('"00:00"', json_encode(LocalTime::midnight(), JSON_THROW_ON_ERROR));
+        self::assertSame('"00:00"', json_encode(LocalTime::of('00:00'), JSON_THROW_ON_ERROR));
         self::assertSame('23:59', LocalTime::of('23:59')->toString());
     }
 
