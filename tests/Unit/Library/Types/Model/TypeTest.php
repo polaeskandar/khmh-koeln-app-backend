@@ -32,6 +32,20 @@ final class TypeTest extends TestCase
         Type::of(1)->toString();
     }
 
+    public function testAStringIsRequiredAtAKeyOfAMap(): void
+    {
+        self::assertSame('privacy.notOpen', Type::of(['done' => 'privacy.notOpen'])->toStringAt('done'));
+
+        $this->expectException(\UnexpectedValueException::class);
+        Type::of(['done' => 'privacy.notOpen'])->toStringAt('open');
+    }
+
+    public function testAStringIsRequiredAtAKeyOnlyOfAMap(): void
+    {
+        $this->expectException(\UnexpectedValueException::class);
+        Type::of('privacy.notOpen')->toStringAt('done');
+    }
+
     public function testAnInstanceIsRequiredWhereOneMustBe(): void
     {
         $date = new \DateTimeImmutable('2026-11-08');
