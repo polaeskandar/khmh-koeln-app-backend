@@ -141,6 +141,7 @@ final class RolesControllerTest extends ApiTestCase
             [
                 'id' => self::SERVANT_ROLE,
                 'name' => 'Servant',
+                'scope' => 'assignedGroups',
                 'permissions' => self::SERVANT_PERMISSIONS,
                 'createdAt' => '2026-11-01T01:00:00+01:00',
                 'updatedAt' => '2026-11-01T01:00:00+01:00',

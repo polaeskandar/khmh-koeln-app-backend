@@ -46,6 +46,7 @@ final class RolesControllerWritesTest extends ApiTestCase
             [
                 'id' => $id,
                 'name' => 'Choir leader',
+                'scope' => 'church',
                 'permissions' => [self::READ_SERVICES, ['action' => 'create', 'resource' => 'attendance']],
                 'createdAt' => '2026-11-08T10:00:00+01:00',
                 'updatedAt' => '2026-11-08T10:00:00+01:00',
@@ -145,13 +146,18 @@ final class RolesControllerWritesTest extends ApiTestCase
 
         self::assertResponseIsSuccessful();
         $this->assertJsonPath('permissions', [self::READ_SERVICES, ['action' => 'read', 'resource' => 'lessons']]);
+        $this->assertJsonPath('scope', 'assignedGroups');
         $this->assertJsonPath('updatedAt', '2026-11-08T11:00:00+01:00');
 
         $this->browser()->getCookieJar()->clear();
         $this->signInAs('bishoy@example.org', SignInAccounts::TYPED);
         $this->jsonRequest('GET', '/api/me');
         $this->assertJsonPath('roles', [['id' => self::SERVANT_ROLE, 'name' => 'Helper']]);
-        $this->assertJsonPath('permissions', [self::READ_SERVICES, ['action' => 'read', 'resource' => 'lessons']]);
+
+        $this->assertJsonPath('permissions', [
+            [...self::READ_SERVICES, 'scope' => 'assignedGroups'],
+            ['action' => 'read', 'resource' => 'lessons', 'scope' => 'assignedGroups'],
+        ]);
     }
 
     public function testTheLastWayToChangeRolesIsNeitherTakenAwayNorDeleted(): void
@@ -223,8 +229,8 @@ final class RolesControllerWritesTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/me');
         $this->assertJsonPath('roles', [['id' => self::SERVANT_ROLE, 'name' => 'Servant']]);
         $permissions = JsonBody::asArray($this->responseJson()['permissions'] ?? null, 'permissions');
-        self::assertNotContains(['action' => 'update', 'resource' => 'services'], $permissions);
-        self::assertContains(self::READ_SERVICES, $permissions);
+        self::assertNotContains(['action' => 'update', 'resource' => 'services', 'scope' => 'church'], $permissions);
+        self::assertContains([...self::READ_SERVICES, 'scope' => 'assignedGroups'], $permissions);
     }
 
     /**

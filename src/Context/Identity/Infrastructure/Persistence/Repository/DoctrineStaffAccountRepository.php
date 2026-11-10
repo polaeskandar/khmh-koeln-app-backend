@@ -19,7 +19,7 @@ final readonly class DoctrineStaffAccountRepository implements StaffAccountRepos
         FROM identity.app_user u
         WHERE u.approved_at IS NOT NULL
           AND (
-            NOT EXISTS (SELECT 1 FROM identity.user_role ur WHERE ur.user_id = u.id)
+            (u.person_id IS NULL AND NOT EXISTS (SELECT 1 FROM identity.user_role ur WHERE ur.user_id = u.id))
             OR EXISTS (
               SELECT 1 FROM identity.user_role ur
               JOIN identity.role_permission rp ON rp.role_id = ur.role_id

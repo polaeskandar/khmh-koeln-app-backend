@@ -26,7 +26,11 @@ final class MeControllerMemberTest extends ApiTestCase
 
         $this->jsonRequest('GET', '/api/me');
 
-        self::assertSame(['account', 'roles', 'permissions', 'today', 'member'], array_keys($this->responseJson()));
+        self::assertSame(
+            ['account', 'roles', 'permissions', 'assignments', 'today', 'member'],
+            array_keys($this->responseJson()),
+        );
+
         $this->assertJsonPath('member', ['personId' => $nevine->id()->toRfc4122(), 'groupCount' => 2]);
         $this->assertJsonPath('roles', []);
 

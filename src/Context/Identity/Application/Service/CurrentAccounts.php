@@ -9,7 +9,7 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
-use App\Context\Identity\Domain\ValueObject\Access;
+use App\Context\Identity\Domain\ValueObject\Grant;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
@@ -37,7 +37,7 @@ final readonly class CurrentAccounts
     }
 
     /**
-     * @return list<Access>
+     * @return list<Grant>
      */
     public function grantsOf(User $user): array
     {
@@ -45,17 +45,19 @@ final readonly class CurrentAccounts
     }
 
     /**
-     * @return iterable<int, Access>
+     * @return iterable<int, Grant>
      */
     private static function grants(User $user): iterable
     {
         foreach (Resource::cases() as $resource) {
             foreach (Action::cases() as $action) {
-                if (!RolePermissions::accountHas($user, $action, $resource)) {
+                $scope = PermissionScopes::of($user, $action, $resource);
+
+                if ($scope === null) {
                     continue;
                 }
 
-                yield new Access($action, $resource);
+                yield new Grant($action, $resource, $scope);
             }
         }
     }

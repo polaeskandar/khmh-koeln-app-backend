@@ -61,7 +61,7 @@ final class RolesController extends AbstractController
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function create(#[MapRequestPayload] RoleRequest $role, CreateRoleWorkflow $createRole): JsonResponse
     {
-        $id = $createRole($role->name ?? '', $role->permissionChoices());
+        $id = $createRole($role->name ?? '', $role->scope, $role->permissionChoices());
 
         return $this->json(
             ['id' => $id],
@@ -80,7 +80,12 @@ final class RolesController extends AbstractController
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function edit(string $id, #[MapRequestPayload] RoleRequest $role, EditRoleWorkflow $editRole): JsonResponse
     {
-        return $this->json(new RoleDetailsResponse($editRole($id, $role->name ?? '', $role->permissionChoices())));
+        return $this->json(new RoleDetailsResponse($editRole(
+            $id,
+            $role->name ?? '',
+            $role->scope,
+            $role->permissionChoices(),
+        )));
     }
 
     #[Route('/{id}', name: 'api_roles_delete', methods: ['DELETE'])]

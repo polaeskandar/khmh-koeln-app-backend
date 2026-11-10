@@ -7,11 +7,13 @@ namespace App\Context\Identity\Application\Service;
 use App\Context\Identity\Domain\Entity\Role;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Identity\Domain\Enum\RoleScope;
 use App\Context\Identity\Domain\Interface\AdministrationLockInterface;
 use App\Context\Identity\Domain\Repository\PermissionRepositoryInterface;
 use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\PermissionSelection;
 use App\Context\Identity\Domain\ValueObject\RoleName;
+use App\Context\Identity\Domain\ValueObject\ScopeChoice;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\RuleViolation;
 
@@ -29,10 +31,10 @@ final readonly class RoleDefinitions
     /**
      * @param list<array{action: string|null, resource: string|null}> $permissions
      */
-    public function create(string $name, array $permissions): Role
+    public function create(string $name, ?string $scope, array $permissions): Role
     {
-        self::check($name, $permissions);
-        $role = new Role(RoleName::of($name));
+        self::check($name, $scope, $permissions);
+        $role = new Role(RoleName::of($name), ScopeChoice::of($scope)->orElse(RoleScope::Church));
         $selection = PermissionSelection::of($permissions);
 
         $this->administration->whileLocked(function () use ($role, $selection): void {
@@ -47,11 +49,11 @@ final readonly class RoleDefinitions
     /**
      * @param list<array{action: string|null, resource: string|null}> $permissions
      */
-    public function change(string $id, string $name, array $permissions): void
+    public function change(string $id, string $name, ?string $scope, array $permissions): void
     {
-        $this->administration->whileLocked(function () use ($id, $name, $permissions): void {
+        $this->administration->whileLocked(function () use ($id, $name, $scope, $permissions): void {
             $role = $this->catalog->find($id);
-            self::check($name, $permissions);
+            self::check($name, $scope, $permissions);
             $roleName = RoleName::of($name);
             $selection = PermissionSelection::of($permissions);
             $this->ensureFree($roleName, $role);
@@ -61,6 +63,7 @@ final readonly class RoleDefinitions
             }
 
             $role->rename($roleName);
+            $role->changeScope(ScopeChoice::of($scope)->orElse($role->scope()));
             $role->replacePermissions($selection->permissionsIn($this->permissions->catalog()));
             $this->roles->save($role);
         });
@@ -82,10 +85,11 @@ final readonly class RoleDefinitions
     /**
      * @param list<array{action: string|null, resource: string|null}> $permissions
      */
-    private static function check(string $name, array $permissions): void
+    private static function check(string $name, ?string $scope, array $permissions): void
     {
         InvalidInput::all(
             static fn (): RoleName => RoleName::of($name),
+            static fn (): ScopeChoice => ScopeChoice::of($scope),
             static fn (): PermissionSelection => PermissionSelection::of($permissions),
         );
     }

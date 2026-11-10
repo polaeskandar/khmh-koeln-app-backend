@@ -6,6 +6,7 @@ namespace App\Workflow\Identity\Model;
 
 use App\Context\Identity\Domain\Entity\Role;
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\Enum\RoleScope;
 use App\Context\Identity\Domain\ValueObject\Access;
 use Doctrine\Common\Collections\ReadableCollection;
 
@@ -16,6 +17,7 @@ final readonly class RoleDetails
      */
     public function __construct(
         public RoleDefinition $role,
+        public RoleScope $scope,
         public array $holders,
         public bool $onlyWayToChangeRoles,
     ) {
@@ -29,6 +31,7 @@ final readonly class RoleDetails
     {
         return new self(
             RoleDefinition::of($role, $grants),
+            $role->scope(),
             $holders->map(RoleHolder::of(...))->getValues(),
             $onlyWayToChangeRoles,
         );

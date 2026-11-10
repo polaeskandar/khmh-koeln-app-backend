@@ -6,32 +6,36 @@ namespace App\Workflow\Identity\Model;
 
 use App\Context\Identity\Domain\ValueObject\HeldRole;
 use App\Context\Identity\Domain\ValueObject\StaffMember;
+use App\Workflow\Organization\Model\AssignmentView;
 use Doctrine\Common\Collections\ArrayCollection;
 
 final readonly class StaffAccount
 {
-    /**
-     * @param list<RoleSummary> $roles
-     */
     public function __construct(
         public string $id,
         public string $displayName,
         public string $email,
         public bool $disabled,
-        public array $roles,
+        public StaffDuties $duties,
     ) {
     }
 
-    public static function of(StaffMember $member): self
+    /**
+     * @param list<AssignmentView> $assignments
+     */
+    public static function of(StaffMember $member, array $assignments): self
     {
         return new self(
             $member->id,
             $member->displayName,
             $member->email,
             $member->disabled,
-            new ArrayCollection($member->roles)->map(
-                static fn (HeldRole $role): RoleSummary => new RoleSummary($role->id, $role->name),
-            )->getValues(),
+            new StaffDuties(
+                new ArrayCollection($member->roles)->map(
+                    static fn (HeldRole $role): RoleSummary => new RoleSummary($role->id, $role->name),
+                )->getValues(),
+                $assignments,
+            ),
         );
     }
 }

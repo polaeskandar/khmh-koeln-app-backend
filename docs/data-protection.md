@@ -6,7 +6,8 @@ the church's data protection adviser can complete the Art. 30 record and the DPI
 
 ## Inventory
 
-One row per table. "Who sees it" follows D7: roles are global; parents see only their own approved children.
+One row per table. "Who sees it" follows D7: a role holds church-wide or only in the groups (services and stages) the
+account is assigned to; parents see only their own approved children.
 "Retention" is `open` until the church decides, with the owner who decides.
 
 | Table | Personal fields | Purpose | Who sees it | Retention | On erasure |
@@ -19,6 +20,7 @@ One row per table. "Who sees it" follows D7: roles are global; parents see only 
 | `identity.password_token` | hashed one-time token, its account, who created it | Password links | Nobody (hashes only) | 24 h, then unusable | Deleted with the account |
 | `organization.service`, `organization.stage` | none | Services and classes | Staff | Permanent | – |
 | `organization.registration_service` | which services a registering servant chose | Approving registrations | Administrators | Until the request is decided | Deleted with the account |
+| `organization.staff_assignment` | which account serves in which service or stage, since when | Limiting servants and service leaders to the groups they serve in | Administrators; service leaders for their services; the account itself (`GET /api/me`) | While the account serves there; removed by an administrator or a service leader | Deleted with the account |
 | `people.person` | names, display name, status, birth date, address | Members (children, youth, servants as members) | Staff (`members: read`); parents for their own children | While a member; open (service leaders) | `erase-person`: deleted |
 | `people.membership` | which person is in which service or stage, from, until | Rosters | Staff | With the person | Deleted with the person |
 | `people.guardian_relationship` | which account is a parent of which person, link status | Parent portal access | Administrators; the parent | While the link is approved | Deleted with the person or the account |

@@ -21,7 +21,7 @@ final class MeControllerTest extends ApiTestCase
 
         self::assertResponseIsSuccessful();
         $body = $this->responseJson();
-        self::assertSame(['account', 'roles', 'permissions', 'today', 'member'], array_keys($body));
+        self::assertSame(['account', 'roles', 'permissions', 'assignments', 'today', 'member'], array_keys($body));
         self::assertNull($body['member'] ?? null);
 
         self::assertSame(
@@ -33,9 +33,15 @@ final class MeControllerTest extends ApiTestCase
         $this->assertJsonPath('roles.1.name', 'Servant');
 
         $permissions = JsonBody::asArray($body['permissions'] ?? null, 'permissions');
-        self::assertContains(['action' => 'read', 'resource' => 'services'], $permissions);
-        self::assertContains(['action' => 'read', 'resource' => 'parentPortal'], $permissions);
-        self::assertNotContains(['action' => 'update', 'resource' => 'services'], $permissions);
+        self::assertContains(['action' => 'read', 'resource' => 'services', 'scope' => 'assignedGroups'], $permissions);
+        self::assertContains(['action' => 'read', 'resource' => 'parentPortal', 'scope' => 'church'], $permissions);
+
+        self::assertNotContains(
+            ['action' => 'update', 'resource' => 'services', 'scope' => 'assignedGroups'],
+            $permissions,
+        );
+
+        $this->assertJsonPath('assignments', []);
     }
 
     public function testAnAccountWithoutRolesHasEmptyLists(): void
@@ -46,6 +52,7 @@ final class MeControllerTest extends ApiTestCase
 
         $this->assertJsonPath('roles', []);
         $this->assertJsonPath('permissions', []);
+        $this->assertJsonPath('assignments', []);
     }
 
     public function testTodayIsTheChurchDate(): void

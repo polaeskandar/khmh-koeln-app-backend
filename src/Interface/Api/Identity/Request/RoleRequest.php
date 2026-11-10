@@ -14,6 +14,7 @@ final readonly class RoleRequest
      */
     public function __construct(
         public ?string $name = null,
+        public ?string $scope = null,
         #[Assert\Valid]
         public array $permissions = [],
     ) {

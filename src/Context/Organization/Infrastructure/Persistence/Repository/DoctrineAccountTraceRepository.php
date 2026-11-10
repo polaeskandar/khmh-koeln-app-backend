@@ -15,6 +15,7 @@ final readonly class DoctrineAccountTraceRepository implements AccountTraceRepos
 
     private const array OWNED_ROWS = [
         ['organization.registration_service', 'account_id'],
+        ['organization.staff_assignment',     'account_id'],
     ];
 
     public function __construct(

@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Interface\Api\Identity;
 
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\MemberLinks;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
+use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\JsonBody;
 use App\Tests\Support\Logs;
 use Symfony\Bundle\FrameworkBundle\Test\MailerAssertionsTrait;
@@ -57,6 +59,12 @@ final class StaffAccountsControllerTest extends ApiTestCase
         $this->account('adel@example.org', 'Adel Fahmy', ['disabled_at' => '2026-11-01 10:00:00+01'], 'servant');
         $this->account('hoda@example.org', 'Hoda Farag', [], 'parent');
         $this->account('mina@example.org', 'Mina Wassef', ['approved_at' => null]);
+        $nevine = $this->account('nevine@example.org', 'Nevine Boulos', []);
+        $marina = $this->account('marina@example.org', 'Marina Tawfik', [], 'servant');
+        $member = new Rosters(self::getContainer())->person('Nevine', 'Boulos');
+        $memberToo = new Rosters(self::getContainer())->person('Marina', 'Tawfik');
+        new MemberLinks(self::getContainer())->link($nevine, $member->id()->toRfc4122());
+        new MemberLinks(self::getContainer())->link($marina, $memberToo->id()->toRfc4122());
         $this->signInWithRoles('admin@example.org', 'administrator');
 
         $this->jsonRequest('GET', '/api/staff-accounts');
@@ -66,10 +74,11 @@ final class StaffAccountsControllerTest extends ApiTestCase
 
         self::assertSame(
             [
-                ['Bishoy Adel',  false],
-                ['Sara Hanna',   false],
-                ['Zeina Gerges', false],
-                ['Adel Fahmy',   true],
+                ['Bishoy Adel',   false],
+                ['Marina Tawfik', false],
+                ['Sara Hanna',    false],
+                ['Zeina Gerges',  false],
+                ['Adel Fahmy',    true],
             ],
             array_map(static fn (array $item): array => [
                 $item['displayName'] ?? null,
@@ -83,7 +92,8 @@ final class StaffAccountsControllerTest extends ApiTestCase
         ]);
 
         $this->assertJsonPath('items.0.email', 'bishoy@example.org');
-        $this->assertJsonPath('items.2.roles', []);
+        $this->assertJsonPath('items.0.assignments', []);
+        $this->assertJsonPath('items.3.roles', []);
     }
 
     public function testAPasswordLinkIsEmailedForADayAndWorksOnce(): void

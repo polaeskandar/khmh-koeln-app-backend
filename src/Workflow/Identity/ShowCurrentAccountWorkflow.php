@@ -6,15 +6,18 @@ namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\CurrentAccounts;
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Organization\Application\Service\StaffAssignments;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\MemberRecords;
 use App\Library\Collections\Model\Collections;
 use App\Library\Time\Client\Calendar;
+use App\Workflow\Identity\Model\AccountAccess;
+use App\Workflow\Identity\Model\AccountPermission;
 use App\Workflow\Identity\Model\AccountSummary;
 use App\Workflow\Identity\Model\CurrentAccount;
 use App\Workflow\Identity\Model\MemberSummary;
-use App\Workflow\Identity\Model\PermissionGrant;
 use App\Workflow\Identity\Model\RoleSummary;
+use App\Workflow\Organization\Model\AssignedGroup;
 use App\Workflow\People\Model\MemberRoster;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
@@ -27,6 +30,7 @@ final readonly class ShowCurrentAccountWorkflow
         private Calendar $calendar,
         private MemberRecords $records,
         private StructureLookup $structure,
+        private StaffAssignments $assignments,
     ) {
     }
 
@@ -36,10 +40,16 @@ final readonly class ShowCurrentAccountWorkflow
 
         return new CurrentAccount(
             account: AccountSummary::of($user),
-            roles: self::rolesOf($user),
-            permissions: new ArrayCollection($this->accounts->grantsOf($user))->map(
-                PermissionGrant::of(...),
-            )->getValues(),
+            access: new AccountAccess(
+                roles: self::rolesOf($user),
+                permissions: new ArrayCollection($this->accounts->grantsOf($user))->map(
+                    AccountPermission::of(...),
+                )->getValues(),
+                assignments: $this->assignments
+                    ->ofAccounts([$user->id()])
+                    ->map(AssignedGroup::of(...))
+                    ->getValues(),
+            ),
             today: $this->calendar->today()->toString(),
             member: $this->memberOf($user),
         );
