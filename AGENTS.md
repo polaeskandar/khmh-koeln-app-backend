@@ -98,6 +98,15 @@ Three specifics worth spelling out, because they are easy to get wrong:
   (git-ignored) or the secrets vault (`bin/console secrets:set`), read via
   `%env(...)%`.
 
+## Feature docs
+
+Every feature and the architecture is documented in `docs/features/`: one `<context>.md` per context and
+`architecture.md`, mirrored with the frontend's `docs/features/`. A pull request updates the doc of what it
+changes in the same PR: Features (the behaviour and rules), Where (the code paths) and a History row (date ·
+change · issue · PR), so each doc records what was done and where. A change without new behaviour (a refactor,
+tests, tooling) adds only the History row; an architectural change updates `architecture.md`. Until a doc
+exists, its issue (#339–#345) lists what it covers.
+
 ## Testing
 
 Install `symfony/test-pack` if it isn't already. Functional/HTTP tests extend
