@@ -30,6 +30,12 @@ final class InputTextTest extends TestCase
         self::assertSame(4, InputText::of('أحد ')->length());
     }
 
+    public function testLengthCountsABrokenByteAsOneCharacter(): void
+    {
+        self::assertSame(6, InputText::of("Chor \xFF")->length());
+        self::assertSame(8, InputText::of("M\xC3\xBCller \xFF")->length());
+    }
+
     public function testOnlyNoTextIsEmpty(): void
     {
         self::assertTrue(InputText::of(null)->isEmpty());
