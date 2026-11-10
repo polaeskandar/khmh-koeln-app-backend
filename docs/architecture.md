@@ -41,9 +41,9 @@ namespaces, and calls go one way: **Interface → Workflow → Context**.
 | --- | --- |
 | `App\Interface` | Entry points and the shapes they exchange, nothing else: `Api/<Area>/<Name>Controller`, `Api/<Area>/Request/<Name>Request` (the `#[MapRequestPayload]` DTOs with their `#[Assert]` constraints, strings and lists only), `Api/<Area>/Response/<Name>Response` (the JSON an endpoint answers, built with `::of()` from a workflow model), `Console/<Area>/<Name>Command` and `Console/<Area>/Request/<Name>Request`. An `<Area>` is the context the endpoint or command belongs to, so `Api/` and `Console/` mirror `Context/`: the parent and member portals' homework is in `Api/Learning`, their children and groups in `Api/People`. Interface calls workflows only; of a context it names nothing but the enums in `Domain/Enum`, so a response can type a field with the enum its values come from. A dry run wraps the workflow in the `Transactions` platform contract. |
 | `App\Workflow` | One class per process: `<Area>/<Verb><Subject>Workflow`, its `<Area>` the context it mainly serves (the same folders as `Context/`), run through its only public method `__invoke()`. A workflow sequences the application services of one or more contexts, holds the transaction when several writes must succeed together, checks access, and maps what the contexts return to its models in `<Area>/Model/` (final readonly, scalars, the contexts' enums, lists and other models). It is the only code that uses the contexts. |
-| `App\Context` | The bounded contexts: `Identity`, `Organization`, `People`, `Meetings` (schedules, sessions and their attendance marks), `Learning`, `Privacy` (data protection requests). Each has `Application/Service` (the business logic), `Domain` (the model: `Entity`, `ValueObject`, `Enum`, `Repository` interfaces, the `Query` interfaces workflows read through, the `Interface` contracts that its `Infrastructure` or its own rule classes implement, `Exception`, `Attribute`) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations). |
+| `App\Context` | The bounded contexts: `Identity`, `Organization`, `People`, `Meetings` (schedules, sessions and their attendance marks), `Learning`, `Privacy` (data protection requests). Each has `Application/Service` (the business logic), `Domain` (the model: `Entity`, `ValueObject`, `Enum`, `Repository` interfaces, the `Query` interfaces workflows read through, the `Interface` contracts that its `Infrastructure` or its own rule classes implement, `Exception`, `Attribute`) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations such as `Lifecycle`, the marking stores and guards of the context's state machines). |
 | `App\Library` | Business-agnostic packages, each split into `Client`, `Model` and `Exception` (and `Mapping` for Doctrine mapped superclasses that entities extend); they wrap PHP's native functions once for the rest of the application where no library class covers them (see [Code style](code-style.md#8-libraries-and-native-functions)): `Strings` (`Text`, `InputText`, `NameKey`, `ComposedForm`), `Types` (`Type`), `Collections` (`Collections`, next to Doctrine's collections), `Files` (`CsvFiles`, `PrivateFiles`), `Console` (`HiddenPrompt`), `Problem` (the coded exceptions), `Time` (`LocalDate`, `LocalTime`, `Calendar`, on Carbon), `Persistence` (the `CreatedAtEntity` and `TimestampedEntity` mapped superclasses). Packages never use each other (`mago guard`); a package keeps only the methods something uses, and missing ones are added with their first caller. |
-| `App\Platform` | The runtime: `Kernel`, `Migration`, `Health` (the `/api/health` probes with their own `Controller` and `Response`), `Http`, `Logging`, `OpenApi` (describes the response classes for `docs/openapi.json`, which its `Controller` serves at `/api/openapi.json` in the dev and test environments), and the contracts the contexts share, such as `Privacy`'s `AccountReferences` (every context forgets an erased account through it). Each module splits into `Contract` (interfaces the rest may use), `Service`, `Model` and `Command`. |
+| `App\Platform` | The runtime: `Kernel`, `Migration`, `Health` (the `/api/health` probes with their own `Controller` and `Response`), `Http`, `Logging`, `OpenApi` (describes the response classes for `docs/openapi.json`, which its `Controller` serves at `/api/openapi.json` in the dev and test environments), `Lifecycle` (the `Transitions` contract that applies a state machine's transition and turns a refusal into its code), and the contracts the contexts share, such as `Privacy`'s `AccountReferences` (every context forgets an erased account through it). Each module splits into `Contract` (interfaces the rest may use), `Service`, `Model` and `Command`. |
 
 Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
 
@@ -83,6 +83,9 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   (`ServiceName::of()`) and may compute from it (`Tenure::endedFrom()`). `EntitiesHoldOnlyStateTest` fails on
   control flow, closures, static factories and `::of()`/`::from()` calls in an entity.
 - `Domain` and `Library` don't depend on `Platform`; outside `Platform`, code uses only `Platform/*/Contract`.
+- Symfony Workflow is used by a context's application services (its `<Subject>Lifecycle`), its
+  `Infrastructure/Lifecycle` and `Platform/Lifecycle` only (`mago guard`): a workflow or controller never applies a
+  transition itself ([Code style](code-style.md#11-state-transitions)).
 - Every application route lives under `/api` (class-level `#[Route]`).
 - Code follows [Code style](code-style.md).
 
@@ -109,6 +112,8 @@ Naming:
 | Entity | `Context/<C>/Domain/Entity/` | a noun | final, state only: no factories, rules or checks (`EntitiesHoldOnlyStateTest`) |
 | Value object | `Context/<C>/Domain/ValueObject/` | a noun | final readonly |
 | Attribute | `Context/<C>/Domain/Attribute/` | what it declares | final readonly |
+| Marking store | `Context/<C>/Infrastructure/Lifecycle/` | `<Subject>MarkingStore` | final readonly, implements Symfony's `MarkingStoreInterface` |
+| Guards | `Context/<C>/Infrastructure/Lifecycle/` | `<Subject>Guards` | final readonly, `#[AsGuardListener]` methods `block<Condition>()` |
 
 Persistence (ADR 0004 of `bisort-console`):
 
@@ -354,6 +359,33 @@ protection stay church-wide by permission, and so does the people directory, a n
 with `$personId = $this->member->require($viewerId)` (`MemberCheck`): it reloads the account and returns its own
 member record, or refuses with 403 `forbidden` when the account is inactive or not linked. The record always
 comes from the account, never from the request.
+
+### State machines for business states
+
+Three subjects move through a Symfony Workflow `state_machine`, defined in `config/packages/workflow.yaml` and
+applied by the subject's `<Subject>Lifecycle` service ([Code style](code-style.md#11-state-transitions)).
+`bin/console workflow:dump <name> --dump-format=mermaid` draws one.
+
+| Machine | Places | Transitions | Repeats that change nothing | Guards |
+| --- | --- | --- | --- | --- |
+| `session_lifecycle` | scheduled, active, completed, canceled | open: scheduled → active; close: active → completed; reopen: completed → active; cancel: scheduled → canceled | open and reopen in active, close in completed | `SessionGuards`: open not before the session's day |
+| `homework_lifecycle` | draft, published, archived | publish: draft → published; unpublish: published → draft; archive: draft or published → archived; restore_as_draft and restore_as_published: archived → draft or published | publish in published, archive in archived | `HomeworkGuards`: publish and restore not under an archived lesson, unpublish not once reported |
+| `data_request_lifecycle` | open, done, withdrawn, declined | complete: open → done; withdraw: open → withdrawn | none | none |
+
+- A restored task returns to where its history left it: `HomeworkLifecycle` restores a task that was ever
+  published (`published_at` set) as published, any other as a draft, so one unpublished and then archived comes
+  back published.
+- Opening a session first checks, under the session's lock, that its service and stage are not archived. That
+  rule reads Organization, so the workflow hands it to `SessionLifecycle::open()` and it refuses before any status.
+- `declined` is a stored value of data requests that nothing reaches yet; it stays a place without a transition.
+- A lesson's status has no machine. Draft, ready and completed may follow each other in any order, so a machine
+  would list every pair and refuse nothing. Its one rule, completed only from the teaching date on, stays in
+  `LessonState::isCompletedAfter()`, checked when the status changes and when a completed lesson moves to another
+  date; archiving is a separate date, not a status.
+- An account's state has no machine either. It has no status column: awaiting confirmation, pending, active and
+  disabled are derived from `email_confirmed_at`, `approved_at` and `disabled_at` in `AccountStatus`, a declined
+  registration is deleted, and each change has its own effect on `auth_version`. A machine would need a new
+  column, a backfill and a CHECK to say what the dates already say; `AccountStatusTransitionsTest` pins the table.
 
 ### Sessions are created the day before
 

@@ -195,6 +195,8 @@ A docblock never starts with a sentence. Names are camelCase, classes are nouns,
 | A domain rule across values or entities | `<Rule>Rule` in `Domain/Validation/` |
 | A read-only port a workflow may use | `<Subject>QueryInterface` in `Domain/Query/` |
 | A Symfony state machine | `<subject>_lifecycle` |
+| Reads and writes a subject's status for its machine | `<Subject>MarkingStore` (`Infrastructure/Lifecycle/`) |
+| Guards a machine's transitions | `<Subject>Guards` (`Infrastructure/Lifecycle/`), methods `block<Condition>()` |
 
 Application services never end in `Service`, `Manager`, `Helper` or `Processor` (`WorkflowLayoutTest`); where
 each layer's classes live and how they are shaped is in [Architecture](architecture.md#code-layout).
@@ -207,6 +209,7 @@ each layer's classes live and how they are shaped is in [Architecture](architect
 | Query | `find…` (null when missing), `get…` (throws `NotFound`), `list…`, `count…`, `exists…` | a value, never a change |
 | Predicate | `is…`, `has…`, `can…`, `should…` | `bool` |
 | Guard | `ensure…` (throws the rule's code), `require…` (access) | nothing |
+| Guard listener of a state machine | `block<Condition>` | nothing; adds a `TransitionBlocker` |
 | Transformation | `normalize`, `convert`, `calculate`, `format`, `build`, `to<Type>` | a new value |
 | Factory | `of()` from raw values, `from<Source>()` from another model, a state for a starting value (`draft()`) | a new value object |
 | Locked call | repositories `with<Kind>Lock()`, services `while<Condition>()` | what the callback returns |
@@ -297,22 +300,32 @@ Each rule has one authoritative place, in the layer that owns it:
 
 ## 11. State transitions
 
-- A subject with a stored status and transitions whose rules differ per state is a Symfony Workflow
-  `state_machine` (one place at a time) named `<subject>_lifecycle`, never `*_workflow`: `App\Workflow` is the
-  process layer. Its places are the stored enum values, its transitions are verbs (`open`, `close`, `reopen`,
-  `cancel`), and its definition in `config/packages/workflow.yaml` is the only list of them.
-- One mechanism: no entity or value object implements the same graph next to the machine.
-- A guard decides whether a transition may happen now and blocks with the API's code (`meetings.opensOnTheDay`).
-  The `<Subject>Lifecycle` service applies transitions, throws a blocked one as `RuleViolation` in the order
-  `docs/api.md` documents, and keeps the subject's write lock and transaction around the change and its effects.
-- Effects of a transition (timestamps, the audit row) happen in that service or in a listener of the transition
-  (`#[AsTransitionListener]`, `#[AsCompletedListener]`); no chain of listeners for a trivial step.
-- A transition into the place the subject is already in is a no-op where the API says so (no timestamp, no audit
-  row); otherwise the machine refuses it.
-- A status any state may move to freely, a two-state flag (active, archived) or a state derived from dates (an
-  account's) needs no machine.
+- A subject with a stored status whose transitions have rules of their own is a Symfony Workflow `state_machine`
+  named `<subject>_lifecycle`, never `*_workflow` (`App\Workflow` is the process layer). The machines and why
+  lessons and accounts have none are in [Architecture](architecture.md#state-machines-for-business-states).
+- `config/packages/workflow.yaml` is the only list of places and transitions. The places are the status enum's
+  values (`places: App\Context\Meetings\Domain\Enum\SessionStatus::*`), the transitions are verbs. No entity or
+  value object implements the graph next to it: a value object only holds the state (`Progress::withOpened()`),
+  and only the machine writes the status.
+- Every transition answers every place (`tests/Architecture/StateMachinesAnswerEveryPlaceTest`): it starts from
+  the place, or its `refusals` metadata names the API code for that place. A repeat the API answers with 200 and
+  no change (opening an active session, publishing a published task) is a transition from a place back to
+  itself; a repeat the API refuses (cancelling a canceled session) is a refusal.
+- A guard decides what the place alone cannot: an `#[AsGuardListener]` method `block<Condition>()` of
+  `<Subject>Guards` in `Infrastructure/Lifecycle` adds a `TransitionBlocker` whose code is the API code
+  (`meetings.opensOnTheDay`). The place is checked before the guards, which is the order `docs/api.md` documents.
+- The `<Subject>Lifecycle` application service is the only caller of its machine (`#[Target('<subject>_lifecycle')]`,
+  `mago guard`). It applies a transition with the platform's `Transitions::apply()`, which throws a refusal as
+  `RuleViolation` and answers whether the subject moved, and then applies the effects of a move: timestamps, the
+  audit row, the save. A repeat gets none. The service keeps the subject's lock and transaction around both; a
+  check that needs another context runs under that lock before the transition, handed over by the workflow
+  (the archived service when a session opens).
+- `<Subject>MarkingStore` in `Infrastructure/Lifecycle` reads and writes the status column. Its `setMarking()` and
+  `$context` are Symfony's interface, so PHP Insights' setter and unused-parameter checks skip the marking stores
+  (`phpinsights.php`). The machines dispatch guard events only (`events_to_dispatch: []`), so no listener chain
+  runs after a transition.
 - Tests cover every state against every transition: the result or the code, the timestamps, the audit rows and
-  the no-ops.
+  the repeats.
 
 ## 12. Attributes
 
