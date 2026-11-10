@@ -7,12 +7,13 @@ namespace App\Workflow\Organization;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Meetings\Application\Service\StructureUsage;
+use App\Context\Meetings\Domain\Query\StructureUsageQueryInterface;
 use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Application\Service\ServiceWrites;
 use App\Context\Organization\Domain\Entity\Stage;
-use App\Context\People\Application\Service\Rosters;
+use App\Context\People\Domain\Query\RosterQueryInterface;
 use App\Library\Problem\Model\Ids;
+use App\Library\Time\Client\Calendar;
 use App\Workflow\Organization\Model\StageList;
 use App\Workflow\Organization\Model\StructureGroup;
 use Symfony\Component\Uid\Uuid;
@@ -23,8 +24,9 @@ final readonly class ListStagesWorkflow
         private AccessCheck $access,
         private ServiceWrites $services,
         private ServiceStages $stages,
-        private Rosters $rosters,
-        private StructureUsage $usage,
+        private RosterQueryInterface $rosters,
+        private StructureUsageQueryInterface $usage,
+        private Calendar $calendar,
     ) {
     }
 
@@ -37,7 +39,13 @@ final readonly class ListStagesWorkflow
 
         $stages = $scope->filter($this->stages->ofService($service), StructureGroup::ofStage(...));
         $ids = $stages->map(static fn (Stage $stage): Uuid => $stage->id())->getValues();
+        $today = $this->calendar->today();
 
-        return StageList::of($service, $stages, $this->rosters->stageMembersToday($ids), $this->usage->ofStages($ids));
+        return StageList::of(
+            $service,
+            $stages,
+            $this->rosters->countStageMembers($ids, $today),
+            $this->usage->listImpactOfStages($ids, $today),
+        );
     }
 }

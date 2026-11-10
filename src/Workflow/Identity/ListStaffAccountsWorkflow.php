@@ -9,8 +9,8 @@ use App\Context\Identity\Application\Service\StaffAccounts;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\ValueObject\StaffMember;
-use App\Context\Organization\Application\Service\StaffAssignments;
 use App\Context\Organization\Domain\Entity\StaffAssignment;
+use App\Context\Organization\Domain\Query\StaffAssignmentQueryInterface;
 use App\Library\Time\Client\Calendar;
 use App\Workflow\Identity\Model\StaffAccount;
 use App\Workflow\Identity\Model\StaffAccountList;
@@ -24,7 +24,7 @@ final readonly class ListStaffAccountsWorkflow
         private AccessCheck $access,
         private StaffAccounts $accounts,
         private Calendar $calendar,
-        private StaffAssignments $assignments,
+        private StaffAssignmentQueryInterface $assignments,
     ) {
     }
 
@@ -34,7 +34,7 @@ final readonly class ListStaffAccountsWorkflow
 
         $members = new ArrayCollection($this->accounts->listed());
 
-        $assignments = $this->assignments->ofAccounts(
+        $assignments = $this->assignments->listOfAccounts(
             $members->map(static fn (StaffMember $member): Uuid => Uuid::fromString($member->id))->getValues(),
         );
 

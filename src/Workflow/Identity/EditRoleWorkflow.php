@@ -7,10 +7,12 @@ namespace App\Workflow\Identity;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\LastAdministrator;
 use App\Context\Identity\Application\Service\PermissionCatalog;
-use App\Context\Identity\Application\Service\RoleLookup;
 use App\Context\Identity\Application\Service\RoleWrites;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Identity\Domain\Query\RoleHolderQueryInterface;
+use App\Context\Identity\Domain\Query\RoleQueryInterface;
+use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Model\Ids;
 use App\Workflow\Identity\Model\RoleDetails;
 
@@ -19,7 +21,8 @@ final readonly class EditRoleWorkflow
     public function __construct(
         private AccessCheck $access,
         private RoleWrites $definitions,
-        private RoleLookup $catalog,
+        private RoleQueryInterface $roles,
+        private RoleHolderQueryInterface $holders,
         private LastAdministrator $lastAdministrator,
     ) {
     }
@@ -33,12 +36,12 @@ final readonly class EditRoleWorkflow
 
         $roleId = Ids::toUuid($id, notFound: 'role');
         $this->definitions->edit($roleId, $name, $scope, $permissions);
-        $role = $this->catalog->get($roleId);
+        $role = $this->roles->find($roleId) ?? throw NotFound::of('role');
 
         return RoleDetails::of(
             $role,
             PermissionCatalog::grantsOf($role),
-            $this->catalog->holdersOf($role),
+            $this->holders->listHoldersOf($role),
             onlyWayToChangeRoles: $this->lastAdministrator->isKeptOnlyByRole($role),
         );
     }

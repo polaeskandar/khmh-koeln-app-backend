@@ -43,7 +43,7 @@ final readonly class ParentAccess
         $today = $this->calendar->today();
 
         return $this->people
-            ->membershipsOf($children)
+            ->listMembershipsOf($children)
             ->filter(static fn (Membership $membership): bool => $membership->tenure()->includes($today));
     }
 

@@ -6,14 +6,13 @@ namespace App\Context\People\Domain\Repository;
 
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\Query\PersonQueryInterface;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
-interface PersonRepositoryInterface
+interface PersonRepositoryInterface extends PersonQueryInterface
 {
     public function save(Person $person, Membership ...$memberships): void;
-
-    public function find(Uuid $id): ?Person;
 
     /**
      * @template T
@@ -34,13 +33,6 @@ interface PersonRepositoryInterface
     public function withShareLock(Uuid $id, callable $work): mixed;
 
     /**
-     * @param list<Uuid> $ids
-     *
-     * @return ReadableCollection<int, Person>
-     */
-    public function findByIds(array $ids): ReadableCollection;
-
-    /**
      * @return ReadableCollection<int, Person>
      */
     public function withNameKey(string $key): ReadableCollection;
@@ -51,11 +43,4 @@ interface PersonRepositoryInterface
      * @return ReadableCollection<int, Person>
      */
     public function searchActive(array $words, int $limit): ReadableCollection;
-
-    /**
-     * @param ReadableCollection<int, Person> $people
-     *
-     * @return ReadableCollection<int, Membership>
-     */
-    public function membershipsOf(ReadableCollection $people): ReadableCollection;
 }

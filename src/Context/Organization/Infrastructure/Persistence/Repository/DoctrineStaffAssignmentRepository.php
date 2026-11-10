@@ -57,7 +57,7 @@ final readonly class DoctrineStaffAssignmentRepository implements StaffAssignmen
      * @param list<Uuid> $accountIds
      */
     #[Override]
-    public function ofAccounts(array $accountIds): ReadableCollection
+    public function listOfAccounts(array $accountIds): ReadableCollection
     {
         if ($accountIds === []) {
             return new ArrayCollection();
@@ -69,7 +69,7 @@ final readonly class DoctrineStaffAssignmentRepository implements StaffAssignmen
     }
 
     #[Override]
-    public function ofService(Uuid $serviceId): ReadableCollection
+    public function listOfService(Uuid $serviceId): ReadableCollection
     {
         return $this->listed($this->ordered()->where('s.id = :service')->setParameter('service', $serviceId));
     }
@@ -79,7 +79,7 @@ final readonly class DoctrineStaffAssignmentRepository implements StaffAssignmen
      * @param list<Uuid> $stageIds
      */
     #[Override]
-    public function covering(array $serviceIds, array $stageIds): ReadableCollection
+    public function listCovering(array $serviceIds, array $stageIds): ReadableCollection
     {
         if ($serviceIds === [] && $stageIds === []) {
             return new ArrayCollection();

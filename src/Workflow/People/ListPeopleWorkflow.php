@@ -14,6 +14,7 @@ use App\Context\People\Application\Service\PersonLists;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\PersonStatusFilter;
+use App\Context\People\Domain\Query\PersonQueryInterface;
 use App\Context\People\Domain\ValueObject\PersonFilter;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Model\Ids;
@@ -31,6 +32,7 @@ final readonly class ListPeopleWorkflow
         private AccessCheck $access,
         private RosterChoices $scopes,
         private PersonLists $lists,
+        private PersonQueryInterface $people,
         private StructureLookup $structure,
     ) {
     }
@@ -44,7 +46,7 @@ final readonly class ListPeopleWorkflow
 
         $filter = $this->filterOf($query, $roster);
         $people = $this->lists->page($filter, $query->page, $scope);
-        $memberships = $this->lists->membershipsOf($people);
+        $memberships = $this->people->listMembershipsOf($people);
 
         $placements = Placements::of(
             $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),

@@ -6,9 +6,9 @@ namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\MemberCheck;
 use App\Context\Identity\Application\Service\ServingAccounts;
-use App\Context\Organization\Application\Service\StaffAssignments;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\StaffAssignment;
+use App\Context\Organization\Domain\Query\StaffAssignmentQueryInterface;
 use App\Context\People\Application\Service\MemberRecords;
 use App\Workflow\Identity\Model\GroupServant;
 use App\Workflow\Identity\Model\GroupServants;
@@ -23,7 +23,7 @@ final readonly class ListMemberServantsWorkflow
         private MemberCheck $member,
         private MemberRecords $records,
         private StructureLookup $structure,
-        private StaffAssignments $assignments,
+        private StaffAssignmentQueryInterface $assignments,
         private ServingAccounts $accounts,
     ) {
     }
@@ -36,7 +36,7 @@ final readonly class ListMemberServantsWorkflow
         $record = $this->records->ownRecord($this->member->require(Uuid::fromString($viewerId)));
         $serviceIds = MemberRoster::serviceIdsOf($record);
         $stageIds = MemberRoster::stageIdsOf($record);
-        $covering = $this->assignments->covering($serviceIds, $stageIds);
+        $covering = $this->assignments->listCovering($serviceIds, $stageIds);
 
         $staff = $this->accounts->activeAmong(
             $covering->map(static fn (StaffAssignment $assignment): Uuid => $assignment->accountId())->getValues(),

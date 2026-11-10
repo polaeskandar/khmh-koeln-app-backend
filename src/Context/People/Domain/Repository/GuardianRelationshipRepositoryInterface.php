@@ -6,10 +6,11 @@ namespace App\Context\People\Domain\Repository;
 
 use App\Context\People\Domain\Entity\GuardianRelationship;
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\Query\GuardianRelationshipQueryInterface;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
-interface GuardianRelationshipRepositoryInterface
+interface GuardianRelationshipRepositoryInterface extends GuardianRelationshipQueryInterface
 {
     public function save(GuardianRelationship $relationship): void;
 
@@ -35,14 +36,4 @@ interface GuardianRelationshipRepositoryInterface
      * @return ReadableCollection<int, GuardianRelationship>
      */
     public function approvedForChildren(array $childIds): ReadableCollection;
-
-    /**
-     * @return ReadableCollection<int, GuardianRelationship>
-     */
-    public function allForChild(Person $child): ReadableCollection;
-
-    /**
-     * @return ReadableCollection<int, GuardianRelationship>
-     */
-    public function allOfAccount(Uuid $accountId): ReadableCollection;
 }

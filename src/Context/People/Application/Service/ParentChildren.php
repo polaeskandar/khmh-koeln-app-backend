@@ -31,7 +31,7 @@ final readonly class ParentChildren
         );
 
         $current = $this->people
-            ->membershipsOf($children)
+            ->listMembershipsOf($children)
             ->filter(static fn (Membership $membership): bool => $membership->tenure()->includes($today));
 
         return new Family($today, $children->getValues(), $current);

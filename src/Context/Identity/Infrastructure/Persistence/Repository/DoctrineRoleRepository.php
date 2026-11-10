@@ -56,7 +56,7 @@ final readonly class DoctrineRoleRepository implements RoleRepositoryInterface
     }
 
     #[Override]
-    public function byName(): ReadableCollection
+    public function listByName(): ReadableCollection
     {
         return new ArrayCollection($this->entityManager->getRepository(Role::class)->findBy([], [
             'name.key' => 'ASC',

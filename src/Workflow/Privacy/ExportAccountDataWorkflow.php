@@ -6,7 +6,8 @@ namespace App\Workflow\Privacy;
 
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Learning\Application\Service\HomeworkReports;
-use App\Context\People\Application\Service\PeopleExports;
+use App\Context\People\Domain\Query\GuardianRelationshipQueryInterface;
+use App\Context\People\Domain\Query\PersonQueryInterface;
 use App\Library\Time\Client\Calendar;
 use App\Workflow\Privacy\Model\AccountData;
 use App\Workflow\Privacy\Model\AccountRecord;
@@ -19,7 +20,8 @@ final readonly class ExportAccountDataWorkflow
 {
     public function __construct(
         private AccountLookup $accounts,
-        private PeopleExports $people,
+        private PersonQueryInterface $people,
+        private GuardianRelationshipQueryInterface $guardians,
         private HomeworkReports $homework,
         private Calendar $calendar,
     ) {
@@ -38,8 +40,8 @@ final readonly class ExportAccountDataWorkflow
         return new AccountData(
             exportedAt: $this->calendar->now(),
             account: AccountRecord::of($user),
-            children: LinkRow::childrenOf($this->people->linksOfAccount($user->id())),
-            homeworkReports: ReportByRow::listOf($reports, $this->people->people(ReportByRow::childIdsOf($reports))),
+            children: LinkRow::childrenOf($this->guardians->listOfAccount($user->id())),
+            homeworkReports: ReportByRow::listOf($reports, $this->people->findByIds(ReportByRow::childIdsOf($reports))),
             member: MemberLinkView::of($user->member()),
         );
     }

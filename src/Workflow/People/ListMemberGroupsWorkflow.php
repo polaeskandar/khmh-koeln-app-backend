@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\People;
 
 use App\Context\Identity\Application\Service\MemberCheck;
-use App\Context\Learning\Application\Service\RecentLessons;
+use App\Context\Learning\Domain\Query\RecentLessonQueryInterface;
 use App\Context\Meetings\Application\Service\MeetingSchedules;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Application\Service\StructureLookup;
@@ -22,7 +22,7 @@ final readonly class ListMemberGroupsWorkflow
         private MemberRecords $records,
         private StructureLookup $structure,
         private MeetingSchedules $schedules,
-        private RecentLessons $lessons,
+        private RecentLessonQueryInterface $lessons,
     ) {
     }
 
@@ -41,7 +41,7 @@ final readonly class ListMemberGroupsWorkflow
             $this->schedules
                 ->recurring(serviceId: null, stageId: null)
                 ->filter(static fn (Schedule $schedule): bool => self::isCurrent($schedule, $roster->today)),
-            $this->lessons->lastTaughtIn($roster->stageIds(), $roster->today),
+            $this->lessons->listLastTaughtIn($roster->stageIds(), $roster->today),
         );
     }
 

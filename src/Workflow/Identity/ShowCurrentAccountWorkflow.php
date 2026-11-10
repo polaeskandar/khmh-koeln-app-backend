@@ -6,8 +6,8 @@ namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\CurrentAccounts;
 use App\Context\Identity\Domain\Entity\User;
-use App\Context\Organization\Application\Service\StaffAssignments;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Context\Organization\Domain\Query\StaffAssignmentQueryInterface;
 use App\Context\People\Application\Service\MemberRecords;
 use App\Library\Collections\Model\Collections;
 use App\Library\Time\Client\Calendar;
@@ -31,7 +31,7 @@ final readonly class ShowCurrentAccountWorkflow
         private Calendar $calendar,
         private MemberRecords $records,
         private StructureLookup $structure,
-        private StaffAssignments $assignments,
+        private StaffAssignmentQueryInterface $assignments,
     ) {
     }
 
@@ -47,7 +47,7 @@ final readonly class ShowCurrentAccountWorkflow
                     AccountPermission::of(...),
                 )->getValues(),
                 assignments: $this->assignments
-                    ->ofAccounts([$user->id()])
+                    ->listOfAccounts([$user->id()])
                     ->map(AssignedGroup::of(...))
                     ->getValues(),
             ),

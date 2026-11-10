@@ -115,7 +115,7 @@ final readonly class DoctrineGuardianRelationshipRepository implements GuardianR
     }
 
     #[Override]
-    public function allForChild(Person $child): ReadableCollection
+    public function listForChild(Person $child): ReadableCollection
     {
         return new ArrayCollection($this->entityManager->getRepository(GuardianRelationship::class)->findBy([
             'child' => $child,
@@ -123,7 +123,7 @@ final readonly class DoctrineGuardianRelationshipRepository implements GuardianR
     }
 
     #[Override]
-    public function allOfAccount(Uuid $accountId): ReadableCollection
+    public function listOfAccount(Uuid $accountId): ReadableCollection
     {
         return new ArrayCollection($this->entityManager->getRepository(GuardianRelationship::class)->findBy([
             'accountId' => $accountId,

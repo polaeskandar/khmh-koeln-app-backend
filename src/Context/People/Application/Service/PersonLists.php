@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Context\People\Application\Service;
 
-use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\PersonStatusFilter;
 use App\Context\People\Domain\Repository\PersonListRepositoryInterface;
@@ -75,16 +74,6 @@ final readonly class PersonLists
     public function count(PersonFilter $filter, GroupScope $scope): int
     {
         return $this->list->count($filter, self::coveredBy($scope));
-    }
-
-    /**
-     * @param ReadableCollection<int, Person> $people
-     *
-     * @return ReadableCollection<int, Membership>
-     */
-    public function membershipsOf(ReadableCollection $people): ReadableCollection
-    {
-        return $this->people->membershipsOf($people);
     }
 
     private static function coveredBy(GroupScope $scope): CoveredRosters

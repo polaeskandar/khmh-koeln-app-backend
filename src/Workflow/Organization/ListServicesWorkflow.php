@@ -12,8 +12,9 @@ use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Enum\ServiceFilter;
-use App\Context\People\Application\Service\Rosters;
+use App\Context\People\Domain\Query\RosterQueryInterface;
 use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Time\Client\Calendar;
 use App\Workflow\Organization\Model\MemberCounts;
 use App\Workflow\Organization\Model\ServiceList;
 use App\Workflow\Organization\Model\ServiceOverview;
@@ -26,7 +27,8 @@ final readonly class ListServicesWorkflow
         private AccessCheck $access,
         private StructureLookup $services,
         private ServiceStages $stages,
-        private Rosters $rosters,
+        private RosterQueryInterface $rosters,
+        private Calendar $calendar,
     ) {
     }
 
@@ -42,8 +44,9 @@ final readonly class ListServicesWorkflow
 
         $stages = $scope->filter($this->stages->activeIn($services), StructureGroup::ofStage(...));
 
-        $members = $this->rosters->serviceMembersToday(
+        $members = $this->rosters->countServiceMembers(
             $services->map(static fn (Service $service): Uuid => $service->id())->getValues(),
+            $this->calendar->today(),
         );
 
         return new ServiceList(

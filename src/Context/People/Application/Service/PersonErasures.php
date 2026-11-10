@@ -109,7 +109,7 @@ final readonly class PersonErasures
                     new ArrayCollection([$person->name()->firstName, $person->name()->displayName]),
                     static fn (?string $named): ?string => $named,
                 )->getValues(),
-                $this->people->membershipsOf(new ArrayCollection([$person])),
+                $this->people->listMembershipsOf(new ArrayCollection([$person])),
             ),
         );
     }

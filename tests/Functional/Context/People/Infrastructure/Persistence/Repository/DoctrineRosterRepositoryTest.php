@@ -32,8 +32,8 @@ final class DoctrineRosterRepositoryTest extends KernelTestCase
 
         foreach (['2026-11-07', '2026-11-08'] as $day) {
             $on = LocalDate::of($day);
-            $stageCounts = $this->repository()->stageMemberCounts([$third->id()], $on);
-            $serviceCounts = $this->repository()->serviceMemberCounts([$service->id()], $on);
+            $stageCounts = $this->repository()->countStageMembers([$third->id()], $on);
+            $serviceCounts = $this->repository()->countServiceMembers([$service->id()], $on);
 
             self::assertSame(1, $stageCounts->get($third->id()->toRfc4122()), $day);
 
@@ -128,14 +128,14 @@ final class DoctrineRosterRepositoryTest extends KernelTestCase
 
         self::assertSame(
             ['members' => 1, 'serviceLevel' => 1],
-            $this->repository()->serviceMemberCounts([$service->id()], $day)->get($service->id()->toRfc4122()),
+            $this->repository()->countServiceMembers([$service->id()], $day)->get($service->id()->toRfc4122()),
         );
 
         self::assertSame(
             1,
             $this
                 ->repository()
-                ->stageMemberCounts([$third->id(), $fourth->id()], $day)
+                ->countStageMembers([$third->id(), $fourth->id()], $day)
                 ->get($fourth->id()->toRfc4122()),
         );
     }

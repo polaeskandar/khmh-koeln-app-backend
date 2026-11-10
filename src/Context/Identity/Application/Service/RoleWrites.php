@@ -15,6 +15,7 @@ use App\Context\Identity\Domain\ValueObject\PermissionSelection;
 use App\Context\Identity\Domain\ValueObject\RoleName;
 use App\Context\Identity\Domain\ValueObject\ScopeChoice;
 use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use Symfony\Component\Uid\Uuid;
 
@@ -23,7 +24,6 @@ final readonly class RoleWrites
     public function __construct(
         private RoleRepositoryInterface $roles,
         private PermissionRepositoryInterface $permissions,
-        private RoleLookup $catalog,
         private LastAdministrator $lastAdministrator,
         private AdministrationLockInterface $administration,
     ) {
@@ -53,7 +53,7 @@ final readonly class RoleWrites
     public function edit(Uuid $id, string $name, ?string $scope, array $permissions): void
     {
         $this->administration->whileLocked(function () use ($id, $name, $scope, $permissions): void {
-            $role = $this->catalog->get($id);
+            $role = $this->role($id);
             self::check($name, $scope, $permissions);
             $roleName = RoleName::of($name);
             $selection = PermissionSelection::of($permissions);
@@ -76,7 +76,7 @@ final readonly class RoleWrites
     public function remove(Uuid $id): void
     {
         $this->administration->whileLocked(function () use ($id): void {
-            $role = $this->catalog->get($id);
+            $role = $this->role($id);
 
             if ($this->lastAdministrator->isKeptOnlyByRole($role)) {
                 throw new RuleViolation('roles.lastAdministrator');
@@ -84,6 +84,11 @@ final readonly class RoleWrites
 
             $this->roles->remove($role);
         });
+    }
+
+    private function role(Uuid $id): Role
+    {
+        return $this->roles->find($id) ?? throw NotFound::of('role');
     }
 
     /**

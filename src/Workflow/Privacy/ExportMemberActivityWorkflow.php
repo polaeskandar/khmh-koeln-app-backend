@@ -7,15 +7,16 @@ namespace App\Workflow\Privacy;
 use App\Context\Learning\Application\Service\HomeworkReports;
 use App\Context\Meetings\Application\Service\AttendanceMarks;
 use App\Context\Meetings\Application\Service\MeetingLookup;
-use App\Context\People\Application\Service\PeopleExports;
+use App\Context\People\Domain\Query\PersonQueryInterface;
 use App\Workflow\Privacy\Model\AttendanceRow;
 use App\Workflow\Privacy\Model\MemberActivity;
 use App\Workflow\Privacy\Model\ReportAboutRow;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class ExportMemberActivityWorkflow
 {
     public function __construct(
-        private PeopleExports $people,
+        private PersonQueryInterface $people,
         private AttendanceMarks $attendance,
         private MeetingLookup $meetings,
         private HomeworkReports $homework,
@@ -24,7 +25,7 @@ final readonly class ExportMemberActivityWorkflow
 
     public function __invoke(?string $personId): ?MemberActivity
     {
-        $person = $personId === null ? null : $this->people->person($personId);
+        $person = $personId === null ? null : $this->people->find(Uuid::fromString($personId));
 
         if ($person === null) {
             return null;

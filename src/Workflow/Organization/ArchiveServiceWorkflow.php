@@ -11,8 +11,9 @@ use App\Context\Meetings\Application\Service\SchedulePauses;
 use App\Context\Organization\Application\Service\ServiceLifecycle;
 use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Domain\Entity\Service;
-use App\Context\People\Application\Service\Rosters;
+use App\Context\People\Domain\Query\RosterQueryInterface;
 use App\Library\Problem\Model\Ids;
+use App\Library\Time\Client\Calendar;
 use App\Workflow\Organization\Model\MemberCounts;
 use App\Workflow\Organization\Model\ServiceOverview;
 use App\Workflow\Organization\Model\StructureGroup;
@@ -24,7 +25,8 @@ final readonly class ArchiveServiceWorkflow
         private ServiceLifecycle $lifecycle,
         private SchedulePauses $pauses,
         private ServiceStages $stages,
-        private Rosters $rosters,
+        private RosterQueryInterface $rosters,
+        private Calendar $calendar,
     ) {
     }
 
@@ -46,7 +48,7 @@ final readonly class ArchiveServiceWorkflow
         return ServiceOverview::of(
             $service,
             $this->stages->activeOf($service),
-            MemberCounts::in($this->rosters->serviceMembersToday([$service->id()]), $service),
+            MemberCounts::in($this->rosters->countServiceMembers([$service->id()], $this->calendar->today()), $service),
         );
     }
 }

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Context\Learning\Domain\Repository;
+namespace App\Context\Learning\Domain\Query;
 
 use App\Context\Learning\Domain\ValueObject\TaughtLesson;
 use App\Library\Time\Model\LocalDate;
 use Symfony\Component\Uid\Uuid;
 
-interface RecentLessonRepositoryInterface
+interface RecentLessonQueryInterface
 {
     /**
      * @param list<Uuid> $stageIds
@@ -16,5 +16,5 @@ interface RecentLessonRepositoryInterface
      * @return array<string, TaughtLesson> each stage's latest lesson on or before today that is neither a draft nor
      *     archived, by stage id
      */
-    public function lastTaughtIn(array $stageIds, LocalDate $today): array;
+    public function listLastTaughtIn(array $stageIds, LocalDate $today): array;
 }

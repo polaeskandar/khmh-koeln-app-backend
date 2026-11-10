@@ -8,7 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\People\Application\Service\PeopleExports;
+use App\Context\People\Domain\Query\PersonQueryInterface;
 use App\Context\Privacy\Application\Service\DataRequests;
 use App\Context\Privacy\Domain\ValueObject\ReceiptDraft;
 use App\Context\Privacy\Domain\ValueObject\RequestDraft;
@@ -21,7 +21,7 @@ final readonly class RecordDataRequestWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private PeopleExports $people,
+        private PersonQueryInterface $people,
         private AccountLookup $accounts,
         private DataRequests $requests,
     ) {
@@ -47,7 +47,7 @@ final readonly class RecordDataRequestWorkflow
 
     private function subjectOf(DataRequestDetails $details): RequestSubject
     {
-        $person = $details->personId === null ? null : $this->people->person($details->personId);
+        $person = $details->personId === null ? null : $this->people->find(Uuid::fromString($details->personId));
 
         $account = $details->accountId === null
             ? null

@@ -6,8 +6,9 @@ namespace App\Workflow\Privacy;
 
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Organization\Application\Service\StructureLookup;
-use App\Context\People\Application\Service\PeopleExports;
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\Query\GuardianRelationshipQueryInterface;
+use App\Context\People\Domain\Query\PersonQueryInterface;
 use App\Library\Time\Client\Calendar;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\Placements;
@@ -15,11 +16,14 @@ use App\Workflow\Privacy\Model\LinkRow;
 use App\Workflow\Privacy\Model\MemberData;
 use App\Workflow\Privacy\Model\MemberRecord;
 use App\Workflow\Privacy\Model\MembershipRow;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class ExportMemberDataWorkflow
 {
     public function __construct(
-        private PeopleExports $people,
+        private PersonQueryInterface $people,
+        private GuardianRelationshipQueryInterface $guardians,
         private StructureLookup $structure,
         private AccountLookup $accounts,
         private Calendar $calendar,
@@ -28,7 +32,7 @@ final readonly class ExportMemberDataWorkflow
 
     public function __invoke(?string $personId): ?MemberData
     {
-        $person = $personId === null ? null : $this->people->person($personId);
+        $person = $personId === null ? null : $this->people->find(Uuid::fromString($personId));
 
         return $person === null
             ? null
@@ -45,7 +49,7 @@ final readonly class ExportMemberDataWorkflow
      */
     private function membershipsOf(Person $person): array
     {
-        $memberships = $this->people->membershipsOf($person);
+        $memberships = $this->people->listMembershipsOf(new ArrayCollection([$person]));
 
         return MembershipRow::listOf($memberships, Placements::of(
             $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
@@ -58,7 +62,7 @@ final readonly class ExportMemberDataWorkflow
      */
     private function parentsOf(Person $person): array
     {
-        $links = $this->people->linksOfChild($person);
+        $links = $this->guardians->listForChild($person);
 
         return LinkRow::parentsOf($links, $this->accounts->accounts(LinkRow::accountIdsOf($links)));
     }

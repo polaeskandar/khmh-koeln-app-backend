@@ -119,7 +119,7 @@ final readonly class DoctrinePersonRepository implements PersonRepositoryInterfa
     }
 
     #[Override]
-    public function membershipsOf(ReadableCollection $people): ReadableCollection
+    public function listMembershipsOf(ReadableCollection $people): ReadableCollection
     {
         if ($people->isEmpty()) {
             return new ArrayCollection();

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Context\Learning\Infrastructure\Persistence\Repository;
 
 use App\Context\Learning\Domain\Enum\LessonStatus;
-use App\Context\Learning\Domain\Repository\RecentLessonRepositoryInterface;
+use App\Context\Learning\Domain\Query\RecentLessonQueryInterface;
 use App\Context\Learning\Domain\ValueObject\TaughtLesson;
 use App\Library\Collections\Model\Collections;
 use App\Library\Time\Model\LocalDate;
@@ -16,7 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class DoctrineRecentLessonRepository implements RecentLessonRepositoryInterface
+final readonly class DoctrineRecentLessonRepository implements RecentLessonQueryInterface
 {
     private const string LAST = <<<'SQL'
         SELECT DISTINCT ON (stage_id) stage_id::text AS stage, title, teaching_date::text AS date, passage, memory_verse
@@ -36,7 +36,7 @@ final readonly class DoctrineRecentLessonRepository implements RecentLessonRepos
      * @return array<string, TaughtLesson>
      */
     #[Override]
-    public function lastTaughtIn(array $stageIds, LocalDate $today): array
+    public function listLastTaughtIn(array $stageIds, LocalDate $today): array
     {
         $rows = $this->entityManager->getConnection()->fetchAllAssociative(
             self::LAST,
