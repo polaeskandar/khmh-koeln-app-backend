@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Domain\Entity;
 
+use App\Context\Identity\Domain\Enum\RoleScope;
 use App\Context\Identity\Domain\ValueObject\RoleName;
 use App\Library\Persistence\Mapping\TimestampedEntity;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -25,6 +26,9 @@ final class Role extends TimestampedEntity
     #[ORM\Embedded(RoleName::class, columnPrefix: false)]
     private RoleName $name;
 
+    #[ORM\Column(length: 14, enumType: RoleScope::class, options: ['default' => 'church'])]
+    private RoleScope $scope;
+
     /**
      * @var Collection<int, Permission>
      */
@@ -34,10 +38,11 @@ final class Role extends TimestampedEntity
     #[ORM\InverseJoinColumn(name: 'permission_id', onDelete: 'CASCADE')]
     private Collection $permissions;
 
-    public function __construct(RoleName $name)
+    public function __construct(RoleName $name, RoleScope $scope)
     {
         $this->id = Uuid::v7();
         $this->name = $name;
+        $this->scope = $scope;
         $this->permissions = new ArrayCollection();
     }
 
@@ -54,6 +59,16 @@ final class Role extends TimestampedEntity
     public function rename(RoleName $name): void
     {
         $this->name = $name;
+    }
+
+    public function scope(): RoleScope
+    {
+        return $this->scope;
+    }
+
+    public function changeScope(RoleScope $scope): void
+    {
+        $this->scope = $scope;
     }
 
     /**

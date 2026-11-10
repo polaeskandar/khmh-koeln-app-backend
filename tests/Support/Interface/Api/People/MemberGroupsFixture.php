@@ -12,6 +12,7 @@ use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -55,8 +56,8 @@ final readonly class MemberGroupsFixture
                 ['id' => $taught->id()->toRfc4122()],
             );
 
-        $this->servant('irene@example.org', 'Irene Wahba', 'service_leader');
-        $this->servant('youssef@example.org', 'Youssef Nashed', 'servant');
+        $this->servant('irene@example.org', 'Irene Wahba', 'service_leader', $bible, null);
+        $this->servant('youssef@example.org', 'Youssef Nashed', 'servant', $coptic, $level1);
 
         return $this->member('nevine@example.org', 'Nevine', 'Boulos', [[$bible, null], [$coptic, $level1]]);
     }
@@ -79,9 +80,10 @@ final readonly class MemberGroupsFixture
         return $person;
     }
 
-    private function servant(string $email, string $name, string $role): void
+    private function servant(string $email, string $name, string $role, Service $service, ?Stage $stage): void
     {
         $id = new SignInAccounts($this->container)->add($email, ['display_name' => $name]);
         new RoleGrants($this->container)->grant($id, $role);
+        new ServedGroups($this->container)->assign($id, $service->id()->toRfc4122(), $stage?->id()->toRfc4122());
     }
 }

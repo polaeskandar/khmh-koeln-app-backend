@@ -20,6 +20,7 @@ final readonly class ApprovalRequest
     /**
      * @param list<string> $childIds
      * @param list<string> $roleIds
+     * @param list<ApprovalAssignmentRequest> $assignments
      */
     public function __construct(
         #[Assert\NotBlank(message: 'validation.invalidChoice')]
@@ -31,6 +32,8 @@ final readonly class ApprovalRequest
         public array $roleIds = [],
         #[Assert\Valid]
         public MemberApprovalRequest $member = new MemberApprovalRequest(),
+        #[Assert\Valid]
+        public array $assignments = [],
     ) {
     }
 
@@ -41,7 +44,15 @@ final readonly class ApprovalRequest
 
     public function choice(): ApprovalChoice
     {
-        return new ApprovalChoice($this->as ?? '', $this->roleIds, $this->childIds);
+        return new ApprovalChoice(
+            $this->as ?? '',
+            $this->roleIds,
+            $this->childIds,
+            new ArrayCollection($this->assignments)->map(static fn (ApprovalAssignmentRequest $assignment): array => [
+                'serviceId' => $assignment->serviceId,
+                'stageId' => $assignment->stageId,
+            ])->getValues(),
+        );
     }
 
     public function memberApproval(): MemberApproval

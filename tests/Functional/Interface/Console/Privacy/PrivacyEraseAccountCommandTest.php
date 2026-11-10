@@ -10,6 +10,8 @@ use App\Context\People\Infrastructure\Persistence\Repository\DoctrineAccountTrac
 use App\Context\Privacy\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as PrivacyTraces;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
+use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
 use App\Tests\Support\Database;
 use App\Tests\Support\Interface\Console\Privacy\PrivacyFixture;
@@ -27,6 +29,7 @@ final class PrivacyEraseAccountCommandTest extends KernelTestCase
     private const array OWNED = [
         'people.guardian_relationship.user_id',
         'organization.registration_service.account_id',
+        'organization.staff_assignment.account_id',
         'learning.lesson_collaborator.user_id',
     ];
 
@@ -67,6 +70,22 @@ final class PrivacyEraseAccountCommandTest extends KernelTestCase
 
         self::assertSame($before, $this->rowCounts());
         self::assertSame(0, $connection->fetchOne('SELECT count(*) FROM identity.app_user WHERE id = ?', [$servant]));
+    }
+
+    public function testTheServantsAssignmentsGoWithTheAccount(): void
+    {
+        self::mockTime('2026-11-08T12:00:00+01:00');
+        $servant = new Families(self::getContainer())->account('daniel@example.org');
+        new RoleGrants(self::getContainer())->grant($servant, 'servant');
+        $service = Structure::service('Choir');
+        new Database(self::getContainer())->persisted($service);
+        new ServedGroups(self::getContainer())->assign($servant, $service->id()->toRfc4122());
+
+        self::assertSame(Command::SUCCESS, $this->erase($servant));
+
+        self::assertSame(0, new Database(self::getContainer())
+            ->connection()
+            ->fetchOne('SELECT count(*) FROM organization.staff_assignment WHERE account_id = ?', [$servant]));
     }
 
     public function testAParentsReportsStayButItsRolesLinksAndPasswordLinksGo(): void

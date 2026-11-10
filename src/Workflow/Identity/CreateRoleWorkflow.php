@@ -20,10 +20,10 @@ final readonly class CreateRoleWorkflow
     /**
      * @param list<array{action: string|null, resource: string|null}> $permissions
      */
-    public function __invoke(string $name, array $permissions): string
+    public function __invoke(string $name, ?string $scope, array $permissions): string
     {
         $this->access->require(Action::Create, Resource::Roles, refusal: 'roles.adminOnly');
 
-        return $this->definitions->create($name, $permissions)->id()->toRfc4122();
+        return $this->definitions->create($name, $scope, $permissions)->id()->toRfc4122();
     }
 }

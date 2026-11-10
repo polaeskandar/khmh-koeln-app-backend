@@ -13,7 +13,6 @@ use App\Workflow\Identity\IssuePasswordLinkWorkflow;
 use App\Workflow\Identity\ListStaffAccountsWorkflow;
 use App\Workflow\Identity\Model\IssuedPasswordLink;
 use App\Workflow\Identity\Model\RoleSummary;
-use App\Workflow\Identity\Model\StaffAccountList;
 use App\Workflow\Identity\TakeAccountRoleWorkflow;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
@@ -33,7 +32,7 @@ final class StaffAccountsController extends AbstractController
     #[OA\Response(
         response: 200,
         description: 'The result.',
-        content: new OA\JsonContent(ref: new Model(type: StaffAccountList::class)),
+        content: new OA\JsonContent(ref: new Model(type: StaffAccountListResponse::class)),
     )]
     #[OA\Response(response: 'default', ref: '#/components/responses/Problem')]
     public function list(ListStaffAccountsWorkflow $listStaffAccounts): JsonResponse

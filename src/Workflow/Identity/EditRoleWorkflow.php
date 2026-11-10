@@ -26,11 +26,11 @@ final readonly class EditRoleWorkflow
     /**
      * @param list<array{action: string|null, resource: string|null}> $permissions
      */
-    public function __invoke(string $id, string $name, array $permissions): RoleDetails
+    public function __invoke(string $id, string $name, ?string $scope, array $permissions): RoleDetails
     {
         $this->access->require(Action::Update, Resource::Roles, refusal: 'roles.adminOnly');
 
-        $this->definitions->change($id, $name, $permissions);
+        $this->definitions->change($id, $name, $scope, $permissions);
         $role = $this->catalog->find($id);
 
         return RoleDetails::of(

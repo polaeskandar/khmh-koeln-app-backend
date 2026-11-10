@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Identity\Response;
 
+use App\Context\Identity\Domain\Enum\RoleScope;
 use App\Workflow\Identity\Model\RoleDetails;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -21,6 +22,7 @@ final readonly class RoleDetailsResponse implements JsonSerializable
      * @return array{
      *     id: string,
      *     name: string,
+     *     scope: RoleScope,
      *     permissions: list<PermissionResponse>,
      *     createdAt: DateTimeImmutable,
      *     updatedAt: DateTimeImmutable,
@@ -36,6 +38,7 @@ final readonly class RoleDetailsResponse implements JsonSerializable
         return [
             'id' => $role->id,
             'name' => $role->name,
+            'scope' => $this->details->scope,
             'permissions' => new ArrayCollection($role->permissions)->map(PermissionResponse::of(...))->getValues(),
             'createdAt' => $role->createdAt,
             'updatedAt' => $role->updatedAt,

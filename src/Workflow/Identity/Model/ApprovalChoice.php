@@ -11,11 +11,13 @@ final readonly class ApprovalChoice
     /**
      * @param list<string> $roleIds
      * @param list<string> $childIds
+     * @param list<array{serviceId: ?string, stageId: ?string}> $assignments
      */
     public function __construct(
         public string $as,
         public array $roleIds,
         public array $childIds,
+        public array $assignments,
     ) {
     }
 

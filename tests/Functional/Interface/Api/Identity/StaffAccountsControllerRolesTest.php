@@ -31,7 +31,11 @@ final class StaffAccountsControllerRolesTest extends ApiTestCase
         $this->signInAs('bishoy@example.org', SignInAccounts::TYPED);
         $this->jsonRequest('GET', '/api/me');
         $permissions = JsonBody::asArray($this->responseJson()['permissions'] ?? null, 'permissions');
-        self::assertContains(['action' => 'create', 'resource' => 'attendance'], $permissions);
+
+        self::assertContains(
+            ['action' => 'create', 'resource' => 'attendance', 'scope' => 'assignedGroups'],
+            $permissions,
+        );
     }
 
     public function testEveryRefusalKeepsItsCodeAndStoresNothing(): void
