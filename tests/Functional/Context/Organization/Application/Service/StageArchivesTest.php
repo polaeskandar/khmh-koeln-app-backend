@@ -19,7 +19,7 @@ final class StageArchivesTest extends KernelTestCase
 
         $this->expectExceptionObject(new RuleViolation('stages.alreadyArchived', ['name' => '3rd Class']));
 
-        $this->archives()->archive($stage->id(), pause: static fn (): bool => true);
+        $this->archives()->archive($stage->id(), pauseSchedules: static fn (): null => null);
     }
 
     public function testARestoreReadsTheStageAgainOnceTheServiceIsLocked(): void

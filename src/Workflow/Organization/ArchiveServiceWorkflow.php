@@ -40,8 +40,8 @@ final readonly class ArchiveServiceWorkflow
             missing: 'service',
         );
 
-        $pause = fn (Service $service): bool => $this->pauses->pauseService($service->id());
-        $service = $this->archives->archive($serviceId, pause: $pause);
+        $pause = fn (Service $service) => $this->pauses->pauseService($service->id(), $service->name()->value);
+        $service = $this->archives->archive($serviceId, pauseSchedules: $pause);
 
         return ServiceOverview::of(
             $service,

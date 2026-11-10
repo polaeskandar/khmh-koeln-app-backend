@@ -33,9 +33,8 @@ final readonly class ArchiveStageWorkflow
         $found = $this->stages->find(Ids::toUuid($id, notFound: 'stage'));
         $this->access->requireIn(Action::Update, Resource::Stages, StructureGroup::ofStage($found), missing: 'stage');
 
-        $stage = $this->archives->archive($found->id(), pause: fn (Stage $stage): bool => $this->pauses->pauseStage(
-            $stage->id(),
-        ));
+        $pause = fn (Stage $stage) => $this->pauses->pauseStage($stage->id(), $stage->name()->value);
+        $stage = $this->archives->archive($found->id(), pauseSchedules: $pause);
 
         return StageDetails::of($stage, $this->rosters->stageMembersToday([$stage->id()]));
     }
