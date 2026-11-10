@@ -24,7 +24,6 @@ final readonly class ScheduleWrites
     public function __construct(
         private ScheduleRepositoryInterface $schedules,
         private SessionGenerator $generator,
-        private RecurrenceRules $rules,
         private Transactions $transactions,
         private Calendar $calendar,
     ) {
@@ -34,13 +33,13 @@ final readonly class ScheduleWrites
     {
         InvalidInput::all(
             static fn (): MeetingDetails => $draft->details->details(),
-            fn (): Recurrence => $this->rules->check($draft->recurrence),
+            static fn (): Recurrence => $draft->recurrence->toRecurrence(),
             static fn (): TimeSlot => $draft->times->slot(),
         );
 
         return new SchedulePlan(
             $draft->details->details(),
-            $this->rules->check($draft->recurrence),
+            $draft->recurrence->toRecurrence(),
             $draft->times->slot(),
             $draft->rosterMode,
         );

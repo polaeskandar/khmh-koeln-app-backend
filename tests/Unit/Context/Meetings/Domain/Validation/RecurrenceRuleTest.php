@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Context\Meetings\Application\Service;
+namespace App\Tests\Unit\Context\Meetings\Domain\Validation;
 
-use App\Context\Meetings\Application\Service\RecurrenceRules;
 use App\Context\Meetings\Domain\Enum\Frequency;
+use App\Context\Meetings\Domain\Validation\RecurrenceRule;
 use App\Context\Meetings\Domain\ValueObject\DateSpan;
 use App\Context\Meetings\Domain\ValueObject\RecurrenceDraft;
 use App\Library\Problem\Exception\InvalidInput;
@@ -14,7 +14,7 @@ use App\Tests\Support\Context\Meetings\Domain\ValueObject\RecurrenceCases;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class RecurrenceRulesTest extends TestCase
+final class RecurrenceRuleTest extends TestCase
 {
     #[DataProvider('errors')]
     public function testEachBrokenRuleNamesItsCodeAndField(RecurrenceDraft $draft, string $code, string $field): void
@@ -50,7 +50,23 @@ final class RecurrenceRulesTest extends TestCase
         self::assertSame(['recurrence.interval', 'recurrence.span.endsOn'], array_keys(self::fieldErrorsOf($draft)));
     }
 
-    public function testAPassingDraftBuildsItsRecurrence(): void
+    public function testAFieldReportsOnlyItsFirstBrokenRule(): void
+    {
+        self::assertSame(
+            ['recurrence.weekdays' => ['code' => 'recurrence.weekdays']],
+            self::fieldErrorsOf(self::monthly([], monthWeek: 1)),
+        );
+
+        self::assertSame(
+            [
+                'recurrence.weekdays' => ['code' => 'recurrence.weekdayRange'],
+                'recurrence.monthWeek' => ['code' => 'recurrence.monthWeek'],
+            ],
+            self::fieldErrorsOf(self::monthly([0, 8], monthWeek: 5)),
+        );
+    }
+
+    public function testAPassingDraftIsAccepted(): void
     {
         $draft = new RecurrenceDraft(
             Frequency::Weekly,
@@ -60,7 +76,21 @@ final class RecurrenceRulesTest extends TestCase
             span: new DateSpan(LocalDate::of('2026-11-01'), null),
         );
 
-        self::assertSame(2, new RecurrenceRules()->check($draft)->interval);
+        self::assertSame([], self::fieldErrorsOf($draft));
+    }
+
+    /**
+     * @param list<int> $weekdays
+     */
+    private static function monthly(array $weekdays, int $monthWeek): RecurrenceDraft
+    {
+        return new RecurrenceDraft(
+            Frequency::Monthly,
+            interval: 1,
+            weekdays: $weekdays,
+            monthWeek: $monthWeek,
+            span: new DateSpan(LocalDate::of('2026-11-01'), null),
+        );
     }
 
     /**
@@ -69,7 +99,7 @@ final class RecurrenceRulesTest extends TestCase
     private static function fieldErrorsOf(RecurrenceDraft $draft): array
     {
         try {
-            new RecurrenceRules()->check($draft);
+            RecurrenceRule::ensureValid($draft);
         } catch (InvalidInput $invalid) {
             return $invalid->fieldErrors;
         }

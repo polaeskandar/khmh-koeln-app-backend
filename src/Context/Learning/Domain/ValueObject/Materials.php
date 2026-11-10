@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Learning\Domain\ValueObject;
 
+use App\Context\Learning\Domain\Validation\MaterialRule;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Strings\Model\Text;
@@ -51,7 +52,7 @@ final readonly class Materials
     /**
      * @param ReadableCollection<int, Material> $materials
      *
-     * @return iterable<string, array{code: string, params?: array<string, int>}>
+     * @return iterable<string, array{code: string, params?: array<string, string|int|float|bool|null>}>
      */
     private static function errorsOf(ReadableCollection $materials, string $field): iterable
     {
@@ -60,9 +61,21 @@ final readonly class Materials
         }
 
         foreach ($materials as $index => $material) {
-            foreach (MaterialProblems::of($material) as $part => $problem) {
-                yield Text::format('%s.%d.%s', $field, $index, $part)->toString() => $problem;
-            }
+            yield from self::errorsAt($material, Text::format('%s.%d', $field, $index)->toString());
         }
+    }
+
+    /**
+     * @return array<string, array{code: string, params?: array<string, string|int|float|bool|null>}>
+     */
+    private static function errorsAt(Material $material, string $path): array
+    {
+        try {
+            MaterialRule::ensureValid($material);
+        } catch (InvalidInput $invalid) {
+            return $invalid->nestedIn($path)->fieldErrors;
+        }
+
+        return [];
     }
 }

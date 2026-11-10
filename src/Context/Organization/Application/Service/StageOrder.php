@@ -8,6 +8,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
+use App\Context\Organization\Domain\Validation\ArchiveRule;
 use App\Context\Organization\Domain\ValueObject\StageSequence;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
@@ -50,7 +51,7 @@ final readonly class StageOrder
 
     private function reorderIn(Service $service, StageSequence $sequence): Service
     {
-        StageChecks::ensureOpen($service);
+        ArchiveRule::ensureStagesChangeable($service);
         $all = $this->stages->ofService($service);
 
         $active = Collections::firstPerKey(

@@ -294,7 +294,14 @@ Each rule has one authoritative place, in the layer that owns it:
 - The domain is the authority. A request may declare the same limit so the API document shows it (`maxLength`),
   never a different one, and the domain checks it again for every caller: console, import, workflow.
 - A rule in `Domain/Validation` is a final readonly class with `ensure…()` methods that throw the coded exception.
-  It is pure: the application service loads the facts and passes them in; no repository, no Symfony service.
+  It is pure: the application service loads the facts and passes them in; no repository, query interface, port or
+  application service (`mago guard`), and no Symfony service.
+- A rule about one field throws `InvalidInput` for that field. Where several fields are checked together, the caller
+  collects them with `InvalidInput::all()`, in the order the API reports them, so one answer names every broken
+  field (`HomeworkDraft` with `HomeworkRule`, `RecurrenceRule::ensureValid()` with its four fields).
+- A class goes to `Domain/Validation` when it is a rule, not a value: `ArchiveRule` holds nothing and checks a
+  service or stage it is given. A value object that checks its own value stays one (`PlainPassword`, `Email`), and
+  so does one that carries facts another context handed over and checks them (`StructureUse::ensureUnused()`).
 - A one-line check that only one place needs stays where it is (in the value object or the service).
 - Codes and their order are the API (`docs/api.md`); moving a rule keeps both.
 

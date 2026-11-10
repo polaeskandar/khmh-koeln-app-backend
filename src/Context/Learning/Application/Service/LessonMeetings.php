@@ -6,6 +6,7 @@ namespace App\Context\Learning\Application\Service;
 
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
+use App\Context\Learning\Domain\Validation\MeetingLessonRule;
 use App\Context\Learning\Domain\ValueObject\MeetingChoice;
 use App\Context\Learning\Domain\ValueObject\MeetingLink;
 use App\Context\Learning\Domain\ValueObject\OfferedMeeting;
@@ -47,11 +48,6 @@ final readonly class LessonMeetings
     private function ensureFree(MeetingLink $link, ?Lesson $editing): void
     {
         $holder = $link->scheduleId === null ? null : $this->lessons->currentAt($link->scheduleId, $link->teachingDate);
-
-        if ($holder === null || $holder === $editing) {
-            return;
-        }
-
-        throw MeetingChoice::refusal('lessons.meetingHasLesson', ['title' => $holder->text()->title]);
+        MeetingLessonRule::ensureFreeToChoose($holder, $editing);
     }
 }

@@ -41,7 +41,7 @@ namespaces, and calls go one way: **Interface → Workflow → Context**.
 | --- | --- |
 | `App\Interface` | Entry points and the shapes they exchange, nothing else: `Api/<Area>/<Name>Controller`, `Api/<Area>/Request/<Name>Request` (the `#[MapRequestPayload]` DTOs with their `#[Assert]` constraints, strings and lists only), `Api/<Area>/Response/<Name>Response` (the JSON an endpoint answers, built with `::of()` from a workflow model), `Console/<Area>/<Name>Command` and `Console/<Area>/Request/<Name>Request`. An `<Area>` is the context the endpoint or command belongs to, so `Api/` and `Console/` mirror `Context/`: the parent and member portals' homework is in `Api/Learning`, their children and groups in `Api/People`. Interface calls workflows only; of a context it names nothing but the enums in `Domain/Enum`, so a response can type a field with the enum its values come from. A dry run wraps the workflow in the `Transactions` platform contract. |
 | `App\Workflow` | One class per process: `<Area>/<Verb><Subject>Workflow`, its `<Area>` the context it mainly serves (the same folders as `Context/`), run through its only public method `__invoke()`. A workflow sequences the application services of one or more contexts, holds the transaction when several writes must succeed together, checks access, and maps what the contexts return to its models in `<Area>/Model/` (final readonly, scalars, the contexts' enums, lists and other models). It is the only code that uses the contexts. |
-| `App\Context` | The bounded contexts: `Identity`, `Organization`, `People`, `Meetings` (schedules, sessions and their attendance marks), `Learning`, `Privacy` (data protection requests). Each has `Application/Service` (the business logic), `Domain` (the model: `Entity`, `ValueObject`, `Enum`, `Repository` interfaces, the `Query` interfaces workflows read through, the `Interface` contracts that its `Infrastructure` or its own rule classes implement, `Exception`, `Attribute`) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations such as `Lifecycle`, the marking stores and guards of the context's state machines). |
+| `App\Context` | The bounded contexts: `Identity`, `Organization`, `People`, `Meetings` (schedules, sessions and their attendance marks), `Learning`, `Privacy` (data protection requests). Each has `Application/Service` (the business logic), `Domain` (the model: `Entity`, `ValueObject`, `Enum`, `Validation` (the rules that weigh values and entities against each other), `Repository` interfaces, the `Query` interfaces workflows read through, the `Interface` contracts that its `Infrastructure` implements, `Exception`, `Attribute`) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations such as `Lifecycle`, the marking stores and guards of the context's state machines). |
 | `App\Library` | Business-agnostic packages, each split into `Client`, `Model` and `Exception` (and `Mapping` for Doctrine mapped superclasses that entities extend); they wrap PHP's native functions once for the rest of the application where no library class covers them (see [Code style](code-style.md#8-libraries-and-native-functions)): `Strings` (`Text`, `InputText`, `NameKey`, `ComposedForm`), `Types` (`Type`), `Collections` (`Collections`, next to Doctrine's collections), `Files` (`CsvFiles`, `PrivateFiles`), `Console` (`HiddenPrompt`), `Problem` (the coded exceptions), `Time` (`LocalDate`, `LocalTime`, `Calendar`, on Carbon), `Persistence` (the `CreatedAtEntity` and `TimestampedEntity` mapped superclasses). Packages never use each other (`mago guard`); a package keeps only the methods something uses, and missing ones are added with their first caller. |
 | `App\Platform` | The runtime: `Kernel`, `Migration`, `Health` (the `/api/health` probes with their own `Controller` and `Response`), `Http`, `Logging`, `OpenApi` (describes the response classes for `docs/openapi.json`, which its `Controller` serves at `/api/openapi.json` in the dev and test environments), `Lifecycle` (the `Transitions` contract that applies a state machine's transition and turns a refusal into its code), and the contracts the contexts share, such as `Privacy`'s `AccountReferences` (every context forgets an erased account through it). Each module splits into `Contract` (interfaces the rest may use), `Service`, `Model` and `Command`. |
 
@@ -82,6 +82,11 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   application service does that and hands the entity finished values. A value object checks its own value
   (`ServiceName::of()`) and may compute from it (`Tenure::endedFrom()`). `EntitiesHoldOnlyStateTest` fails on
   control flow, closures, static factories and `::of()`/`::from()` calls in an entity.
+- A rule in `Domain/Validation` is pure: it checks the values and entities it is given and throws the rule's code,
+  and never uses a repository, a query interface, a port or an application service (`mago guard`). The application
+  service loads the facts under its lock and hands them over: `MeetingSessions` passes a session's status to
+  `AttendanceRule::ensureMarkable()`, `LessonArchives` passes the lesson that holds the meeting to
+  `MeetingLessonRule::ensureFreeToRestore()`.
 - `Domain` and `Library` don't depend on `Platform`; outside `Platform`, code uses only `Platform/*/Contract`.
 - Symfony Workflow is used by a context's application services (its `<Subject>Lifecycle`), its
   `Infrastructure/Lifecycle` and `Platform/Lifecycle` only (`mago guard`): a workflow or controller never applies a
@@ -111,6 +116,7 @@ Naming:
 | Enum | `Context/<C>/Domain/Enum/` | a noun | backed enum |
 | Entity | `Context/<C>/Domain/Entity/` | a noun | final, state only: no factories, rules or checks (`EntitiesHoldOnlyStateTest`) |
 | Value object | `Context/<C>/Domain/ValueObject/` | a noun | final readonly |
+| Rule | `Context/<C>/Domain/Validation/` | `<Rule>Rule` (`HomeworkRule`, `RecurrenceRule`, `ArchiveRule`), methods `ensure…()` | final readonly, pure |
 | Attribute | `Context/<C>/Domain/Attribute/` | what it declares | final readonly |
 | Marking store | `Context/<C>/Infrastructure/Lifecycle/` | `<Subject>MarkingStore` | final readonly, implements Symfony's `MarkingStoreInterface` |
 | Guards | `Context/<C>/Infrastructure/Lifecycle/` | `<Subject>Guards` | final readonly, `#[AsGuardListener]` methods `block<Condition>()` |
@@ -150,7 +156,7 @@ Errors (the contract is in [API contract](api.md#problems)):
   catalog.
 - A request checks only the shape of the input: presence, types, formats and choices. Rules that weigh values
   against each other belong to the context, which throws `InvalidInput` with the request's field path; for
-  example `RecurrenceRules` (Meetings) checks a `RecurrenceDraft` and reports `recurrence.interval`.
+  example `RecurrenceRule` (Meetings) checks a `RecurrenceDraft` and reports `recurrence.interval`.
 - Adding a code: add it to its module in the code catalog of `docs/api.md`, and its en/de/ar texts as
   `errors.<code>` in the frontend.
 

@@ -11,8 +11,8 @@ use App\Context\Meetings\Domain\Repository\RecentSessionRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\SessionListRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
+use App\Context\Meetings\Domain\Validation\AttendanceRule;
 use App\Context\Meetings\Domain\ValueObject\CoveredRosters;
-use App\Context\Meetings\Domain\ValueObject\MarkingRules;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Model\LocalDate;
@@ -122,7 +122,7 @@ final readonly class MeetingSessions
         $id = Uuid::isValid($sessionId) ? Uuid::fromString($sessionId) : throw NotFound::of('session');
 
         return $this->sessions->withWriteLock($id, static function (Session $session) use ($work): object {
-            MarkingRules::ensureMarkable($session->progress()->status);
+            AttendanceRule::ensureMarkable($session->progress()->status);
 
             return $work($session);
         });

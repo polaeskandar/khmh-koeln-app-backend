@@ -23,6 +23,7 @@ final class SourceLayoutTest extends TestCase
         'Interface',
         'Query',
         'Repository',
+        'Validation',
         'ValueObject',
     ];
 

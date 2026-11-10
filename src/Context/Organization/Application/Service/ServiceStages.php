@@ -8,6 +8,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
+use App\Context\Organization\Domain\Validation\ArchiveRule;
 use App\Context\Organization\Domain\ValueObject\Description;
 use App\Context\Organization\Domain\ValueObject\StageName;
 use App\Library\Problem\Exception\NotFound;
@@ -85,7 +86,7 @@ final readonly class ServiceStages
 
     private function editIn(Service $service, string $stageId, StageName $name, Description $description): Stage
     {
-        StageChecks::ensureOpen($service);
+        ArchiveRule::ensureStagesChangeable($service);
 
         $stage = $this->find($stageId);
 
@@ -98,7 +99,7 @@ final readonly class ServiceStages
 
     private function addTo(Service $service, StageName $name, Description $description): Stage
     {
-        StageChecks::ensureOpen($service);
+        ArchiveRule::ensureStagesChangeable($service);
         $this->checks->ensureFree($service, $name, stage: null);
 
         $existing = $this->stages->ofService($service);

@@ -8,6 +8,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
+use App\Context\Organization\Domain\Validation\ArchiveRule;
 use App\Context\Organization\Domain\ValueObject\StageLineup;
 use App\Context\Organization\Domain\ValueObject\StructureUse;
 use App\Library\Problem\Exception\NotFound;
@@ -53,7 +54,7 @@ final readonly class StructureRemovals
         $serviceId = $this->stages->serviceIdOf($stageId) ?? throw NotFound::of('stage');
 
         $this->services->withStructureLock($serviceId, function (Service $service) use ($stageId, $release): Stage {
-            StageChecks::ensureOpen($service);
+            ArchiveRule::ensureStagesChangeable($service);
             $stage = $this->stages->find($stageId) ?? throw NotFound::of('stage');
             $release($stage)->ensureUnused('stages', $stage->name()->value);
             $this->stages->remove($stage);

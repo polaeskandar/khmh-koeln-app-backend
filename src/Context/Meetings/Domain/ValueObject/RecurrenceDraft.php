@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Context\Meetings\Domain\ValueObject;
 
 use App\Context\Meetings\Domain\Enum\Frequency;
+use App\Context\Meetings\Domain\Validation\RecurrenceRule;
 use LogicException;
 
 final readonly class RecurrenceDraft
@@ -28,6 +29,7 @@ final readonly class RecurrenceDraft
 
     public function toRecurrence(): Recurrence
     {
+        RecurrenceRule::ensureValid($this);
         $interval = $this->interval ?? throw new LogicException('Check the draft before building its recurrence.');
 
         return $this->isMonthly()
