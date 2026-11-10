@@ -7,6 +7,8 @@ namespace App\Workflow\People;
 use App\Context\Identity\Application\Service\ParentAccounts;
 use App\Context\People\Application\Service\Children;
 use App\Context\People\Application\Service\Guardianship;
+use App\Context\People\Domain\Enum\GuardianKind;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Model\Ids;
 use App\Platform\Doctrine\Contract\Transactions;
 
@@ -25,8 +27,13 @@ final readonly class LinkGuardianWorkflow
         $account = $this->accounts->activeByEmail($email);
         $child = $this->children->active(Ids::toUuid($personId, notFound: 'person'));
 
-        $this->transactions->run(function () use ($account, $child, $relationship): void {
-            $this->guardianship->link($account->id(), $child, $relationship);
+        $kind = GuardianKind::tryFrom($relationship) ?? throw InvalidInput::field(
+            'relationship',
+            'validation.invalidChoice',
+        );
+
+        $this->transactions->run(function () use ($account, $child, $kind): void {
+            $this->guardianship->link($account->id(), $child, $kind);
             $this->accounts->giveParentRole($account);
         });
     }

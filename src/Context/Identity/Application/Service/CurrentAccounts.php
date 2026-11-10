@@ -11,7 +11,6 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\Grant;
 use App\Library\Collections\Model\Collections;
-use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use Symfony\Component\Uid\Uuid;
 
@@ -27,11 +26,9 @@ final readonly class CurrentAccounts
         return $this->users->find($userId) ?? throw NotFound::of('account');
     }
 
-    public function changeLanguage(Uuid $userId, string $language): void
+    public function changeLanguage(Uuid $userId, Language $language): void
     {
-        $chosen = Language::tryFrom($language) ?? throw InvalidInput::field('language', 'validation.invalidType');
-
-        $this->users->withWriteLock($userId, static fn (User $user) => $user->changeLanguage($chosen));
+        $this->users->withWriteLock($userId, static fn (User $user) => $user->changeLanguage($language));
     }
 
     /**

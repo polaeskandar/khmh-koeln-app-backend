@@ -13,7 +13,6 @@ use App\Context\Learning\Domain\ValueObject\HomeworkCounts;
 use App\Context\Learning\Domain\ValueObject\LessonListing;
 use App\Context\Learning\Domain\ValueObject\LessonReading;
 use App\Context\Learning\Domain\ValueObject\LessonTabs;
-use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -37,12 +36,11 @@ final readonly class StageLessons
         return $this->lessons->countForStages($stageIds);
     }
 
-    public function listed(Uuid $stageId, string $tab, ?string $query): LessonListing
+    public function listed(Uuid $stageId, LessonTab $tab, ?string $query): LessonListing
     {
-        $chosen = LessonTab::tryFrom($tab) ?? throw InvalidInput::field('tab', 'validation.invalidChoice');
         $today = $this->calendar->today();
         $tabs = new LessonTabs($this->lessons->ofStage($stageId), $today);
-        $shown = $tabs->shown($chosen, $query);
+        $shown = $tabs->shown($tab, $query);
         $ids = new ArrayCollection($shown)->map(static fn (Lesson $lesson): Uuid => $lesson->id())->getValues();
 
         return new LessonListing(

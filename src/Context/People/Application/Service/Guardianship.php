@@ -8,7 +8,6 @@ use App\Context\People\Domain\Entity\GuardianRelationship;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\Enum\GuardianKind;
 use App\Context\People\Domain\Repository\GuardianRelationshipRepositoryInterface;
-use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -21,13 +20,8 @@ final readonly class Guardianship
     ) {
     }
 
-    public function link(Uuid $accountId, Person $child, string $relationship): void
+    public function link(Uuid $accountId, Person $child, GuardianKind $kind): void
     {
-        $kind = GuardianKind::tryFrom($relationship) ?? throw InvalidInput::field(
-            'relationship',
-            'validation.invalidChoice',
-        );
-
         if ($this->links->approvedFor($accountId, $child) !== null) {
             return;
         }

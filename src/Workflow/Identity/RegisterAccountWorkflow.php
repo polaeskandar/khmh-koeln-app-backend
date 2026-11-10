@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\AccountRegistration;
+use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\Enum\RegisteredAs;
 use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Organization\Application\Service\RegistrationServices;
@@ -53,7 +54,12 @@ final readonly class RegisterAccountWorkflow
 
     private function profileOf(AccountDetails $account): Profile
     {
-        return $this->accounts->profile($account->firstName, $account->lastName, $account->email, $account->language);
+        return $this->accounts->profile(
+            $account->firstName,
+            $account->lastName,
+            $account->email,
+            Language::from($account->language),
+        );
     }
 
     /**

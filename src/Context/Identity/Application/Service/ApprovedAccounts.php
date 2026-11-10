@@ -34,12 +34,12 @@ final readonly class ApprovedAccounts
     public function create(
         string $email,
         string $displayName,
-        string $language,
+        Language $language,
         #[SensitiveParameter]
         ?string $password,
         ?string $role,
     ): Uuid {
-        $profile = new Profile(Email::of($email), DisplayName::of($displayName), self::language($language));
+        $profile = new Profile(Email::of($email), DisplayName::of($displayName), $language);
 
         if ($this->users->findByEmail($profile->email->value) !== null) {
             throw InvalidInput::field('email', 'accounts.emailTaken');
@@ -56,11 +56,6 @@ final readonly class ApprovedAccounts
         $this->users->save($user);
 
         return $user->id();
-    }
-
-    private static function language(string $code): Language
-    {
-        return Language::tryFrom($code) ?? throw InvalidInput::field('language', 'accounts.chooseLanguage');
     }
 
     /**

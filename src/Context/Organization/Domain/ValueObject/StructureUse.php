@@ -15,18 +15,38 @@ final readonly class StructureUse
     ) {
     }
 
-    public function ensureUnused(string $kind, string $name): void
+    public function ensureServiceUnused(string $name): void
+    {
+        $this->ensureUnused(
+            $name,
+            history: 'services.hasHistory',
+            lessons: 'services.hasLessons',
+            members: 'services.hasMembers',
+        );
+    }
+
+    public function ensureStageUnused(string $name): void
+    {
+        $this->ensureUnused(
+            $name,
+            history: 'stages.hasHistory',
+            lessons: 'stages.hasLessons',
+            members: 'stages.hasMembers',
+        );
+    }
+
+    private function ensureUnused(string $name, string $history, string $lessons, string $members): void
     {
         if ($this->sessions > 0) {
-            throw new RuleViolation($kind . '.hasHistory', ['name' => $name, 'count' => $this->sessions]);
+            throw new RuleViolation($history, ['name' => $name, 'count' => $this->sessions]);
         }
 
         if ($this->lessons > 0) {
-            throw new RuleViolation($kind . '.hasLessons', ['name' => $name, 'count' => $this->lessons]);
+            throw new RuleViolation($lessons, ['name' => $name, 'count' => $this->lessons]);
         }
 
         if ($this->members > 0) {
-            throw new RuleViolation($kind . '.hasMembers', ['name' => $name, 'count' => $this->members]);
+            throw new RuleViolation($members, ['name' => $name, 'count' => $this->members]);
         }
     }
 }

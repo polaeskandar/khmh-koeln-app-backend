@@ -9,6 +9,7 @@ use App\Context\Identity\Application\Service\AccountApprovals;
 use App\Context\Identity\Application\Service\MemberAccounts;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Action;
+use App\Context\Identity\Domain\Enum\AgeCheck;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\ValueObject\MemberRecord;
 use App\Context\Organization\Application\Service\RegistrationServices;
@@ -55,13 +56,14 @@ final readonly class ApproveMemberRequestWorkflow
     private function approved(string $id, string $actorId, Person $person, MemberApproval $member): User
     {
         $record = new MemberRecord($person->id(), $person->name()->fullName());
+        $age = AgeCheck::tryFrom($member->ageCheck) ?? throw InvalidInput::field('ageCheck', 'accounts.chooseAge');
 
         return $this->approvals->approve(
             Ids::toUuid($id, notFound: 'user'),
             Uuid::fromString($actorId),
             new ArrayCollection(),
-            function (User $user) use ($record, $member): void {
-                $this->members->link($user, $record, $member->ageCheck, $member->guardianConsentNote);
+            function (User $user) use ($record, $age, $member): void {
+                $this->members->link($user, $record, $age, $member->guardianConsentNote);
                 $this->registrations->forget($user->id());
             },
         );

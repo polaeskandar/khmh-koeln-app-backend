@@ -12,7 +12,9 @@ use App\Context\Meetings\Application\Service\StructureUsage;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\Service;
+use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\People\Application\Service\Attendees;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Workflow\Meetings\Model\SessionTallies;
 use App\Workflow\Organization\Model\RecentAttendance;
 use App\Workflow\Organization\Model\ServiceInsight;
@@ -35,6 +37,7 @@ final readonly class ListServiceInsightsWorkflow
     public function __invoke(string $status): array
     {
         $scope = $this->access->scope(Action::Read, Resource::Services);
+        $filter = ServiceFilter::tryFrom($status) ?? throw InvalidInput::field('status', 'validation.invalidChoice');
 
         $next = $this->meetings->nextByService(ArchivedStructure::of($this->structure->archivedIds()), $scope);
         $completed = $this->meetings->recentlyCompleted($scope);
@@ -48,7 +51,7 @@ final readonly class ListServiceInsightsWorkflow
         );
 
         return ServiceInsights::of(
-            $this->structure->listed($status)->filter(static fn (Service $service): bool => $scope->reaches(
+            $this->structure->listed($filter)->filter(static fn (Service $service): bool => $scope->reaches(
                 $service->id(),
             )),
             $next,

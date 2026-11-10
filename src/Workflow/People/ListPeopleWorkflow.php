@@ -13,6 +13,9 @@ use App\Context\Organization\Domain\ValueObject\ChosenPlacement;
 use App\Context\People\Application\Service\PersonLists;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
+use App\Context\People\Domain\Enum\PersonStatusFilter;
+use App\Context\People\Domain\ValueObject\PersonFilter;
+use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\StructureGroup;
 use App\Workflow\People\Model\DirectoryEntries;
@@ -38,7 +41,8 @@ final readonly class ListPeopleWorkflow
 
         $roster = $this->scopes->of(Ids::toUuidOrNull($query->serviceId), Ids::toUuidOrNull($query->stageId));
         $this->requireShown($roster);
-        $filter = $this->lists->filterOf($query->status, $roster?->service->id(), $roster?->stage?->id(), $query->text);
+
+        $filter = $this->filterOf($query, $roster);
         $people = $this->lists->page($filter, $query->page, $scope);
         $memberships = $this->lists->membershipsOf($people);
 
@@ -57,6 +61,16 @@ final readonly class ListPeopleWorkflow
             ))->getValues(),
             pages: new PageInfo($query->page, PersonLists::PAGE_SIZE, $this->lists->count($filter, $scope)),
         );
+    }
+
+    private function filterOf(PeopleQuery $query, ?ChosenPlacement $roster): PersonFilter
+    {
+        $status = PersonStatusFilter::tryFrom($query->status) ?? throw InvalidInput::field(
+            'status',
+            'validation.invalidChoice',
+        );
+
+        return $this->lists->filterOf($status, $roster?->service->id(), $roster?->stage?->id(), $query->text);
     }
 
     private function requireShown(?ChosenPlacement $roster): void
