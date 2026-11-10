@@ -65,7 +65,7 @@ final class RegistrationControllerTest extends ApiTestCase
     {
         $this->jsonRequest('POST', '/api/auth/register', Registrations::parent([
             'account' => [
-                'email' => str_repeat('a', times: 169) . '@example.org',
+                'email' => str_repeat('a', times: 243) . '@example.org',
                 'password' => str_repeat('a', times: 201),
                 'language' => 'fr',
             ],
@@ -75,7 +75,7 @@ final class RegistrationControllerTest extends ApiTestCase
         $this->assertProblem(422, 'checkFields');
 
         $this->assertJsonPath('fieldErrors', [
-            'account.email' => ['code' => 'validation.tooLong', 'params' => ['max' => 180, 'limit' => 180]],
+            'account.email' => ['code' => 'validation.tooLong', 'params' => ['max' => 254, 'limit' => 254]],
             'account.password' => [
                 'code' => 'validation.tooLong',
                 'params' => ['min' => 10, 'max' => 200, 'limit' => 200],
@@ -88,6 +88,19 @@ final class RegistrationControllerTest extends ApiTestCase
         ]);
 
         self::assertSame(0, $this->rowsIn('identity.app_user'));
+    }
+
+    public function testAnEmailOf254CharactersIsKept(): void
+    {
+        $email = str_repeat('a', times: 242) . '@example.org';
+
+        $response = $this->jsonRequest('POST', '/api/auth/register', Registrations::parent([
+            'account' => ['email' => $email],
+        ]));
+
+        self::assertSame(202, $response->getStatusCode());
+
+        self::assertSame($email, $this->database()->connection()->fetchOne('SELECT email FROM identity.app_user'));
     }
 
     public function testAnExistingEmailGetsTheSameAnswerAndChangesNothing(): void

@@ -75,6 +75,13 @@ final class RequestLimitsMatchTheDomainTest extends KernelTestCase
             $letters,
         ];
 
+        yield 'registration email' => [
+            AccountRequest::class,
+            'email',
+            Email::of(...),
+            $email,
+        ];
+
         yield 'forgotten password email' => [
             ForgotPasswordRequest::class,
             'email',

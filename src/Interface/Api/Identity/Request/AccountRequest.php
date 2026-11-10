@@ -20,7 +20,7 @@ final readonly class AccountRequest
         public ?string $lastName = null,
         #[Assert\NotBlank(message: 'accounts.emailRequired', normalizer: 'trim')]
         #[Assert\Email(message: 'accounts.emailInvalid', normalizer: 'trim')]
-        #[Assert\Length(max: 180, maxMessage: 'validation.tooLong')]
+        #[Assert\Length(max: 254, maxMessage: 'validation.tooLong')]
         public ?string $email = null,
         #[SensitiveParameter]
         #[Assert\NotBlank(message: 'accounts.passwordTooShort')]
