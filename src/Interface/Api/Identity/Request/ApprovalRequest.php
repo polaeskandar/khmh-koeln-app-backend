@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Identity\Request;
 
+use App\Context\Identity\Domain\Enum\AgeCheck;
+use App\Context\Identity\Domain\Enum\RegisteredAs;
 use App\Library\Strings\Model\InputText;
 use App\Workflow\Identity\Model\ApprovalChoice;
 use App\Workflow\Identity\Model\MemberApproval;
@@ -13,10 +15,6 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 final readonly class ApprovalRequest
 {
-    private const string MEMBER = 'member';
-
-    private const array AGE_CHECKS = ['sixteenOrOlder', 'guardianConsent'];
-
     /**
      * @param list<string> $childIds
      * @param list<string> $roleIds
@@ -24,7 +22,7 @@ final readonly class ApprovalRequest
      */
     public function __construct(
         #[Assert\NotBlank(message: 'validation.invalidChoice')]
-        #[Assert\Choice(choices: ['parent', 'servant', self::MEMBER], message: 'validation.invalidChoice')]
+        #[Assert\Choice(callback: [RegisteredAs::class, 'values'], message: 'validation.invalidChoice')]
         public ?string $as = null,
         #[Assert\All([new Assert\Type(type: 'string', message: 'accounts.childNotFound')])]
         public array $childIds = [],
@@ -39,7 +37,7 @@ final readonly class ApprovalRequest
 
     public function isMember(): bool
     {
-        return $this->as === self::MEMBER;
+        return $this->as === RegisteredAs::Member->value;
     }
 
     public function choice(): ApprovalChoice
@@ -75,7 +73,7 @@ final readonly class ApprovalRequest
             $context->buildViolation('accounts.choosePerson')->atPath('member.personId')->addViolation();
         }
 
-        if (!new ArrayCollection(self::AGE_CHECKS)->contains($this->member->ageCheck)) {
+        if (AgeCheck::tryFrom($this->member->ageCheck ?? '') === null) {
             $context->buildViolation('accounts.chooseAge')->atPath('member.ageCheck')->addViolation();
         }
     }

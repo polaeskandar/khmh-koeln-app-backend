@@ -146,7 +146,11 @@ meaning is clear from the method name stay positional (`new Problem($status, $co
 `literal-named-argument`, PHP Insights `DisallowMixedTypeHint`.
 
 Enums are backed (`enum Language: string`), so every case has a stable value for the database, JSON and
-logs. `tests/Architecture/EnumsAreBackedTest` fails on a pure enum in `src`.
+logs. `tests/Architecture/EnumsAreBackedTest` fails on a pure enum in `src`. A request's closed set of choices comes
+from the enum that holds it, `#[Assert\Choice(callback: [Language::class, 'values'])]`, or names the cases it takes
+when it accepts only some (`choices: [LessonStatus::Draft->value, LessonStatus::Ready->value]`); Nelmio reads the
+same list for the API document. PHP Insights does not parse `enum` and counts an enum's `values()` as a global
+function, so its global-helper check skips `Domain/Enum` (`phpinsights.php`).
 
 A parameter says what it carries. Interface requests hold the JSON's strings; the workflow turns them into ids
 (`Uuid`) and enums once, and the contexts take those: never a raw string for an id, status, language, kind, mode,

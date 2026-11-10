@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Meetings\Request;
 
+use App\Context\Meetings\Domain\Enum\RosterMode;
 use App\Workflow\Meetings\Model\ScheduleChanges;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -17,7 +18,7 @@ final readonly class ScheduleChangesRequest
         #[Assert\Valid]
         public TimesRequest $times = new TimesRequest(),
         #[Assert\NotBlank(message: 'meetings.chooseRosterMode')]
-        #[Assert\Choice(choices: ['expected', 'open'], message: 'meetings.chooseRosterMode')]
+        #[Assert\Choice(callback: [RosterMode::class, 'values'], message: 'meetings.chooseRosterMode')]
         public ?string $rosterMode = null,
     ) {
     }
