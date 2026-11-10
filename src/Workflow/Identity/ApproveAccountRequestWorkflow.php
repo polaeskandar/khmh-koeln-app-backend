@@ -85,7 +85,7 @@ final readonly class ApproveAccountRequestWorkflow
      */
     private function childrenOf(ApprovalChoice $choice): ReadableCollection
     {
-        return $choice->isParent() ? $this->children->of($choice->childIds) : new ArrayCollection();
+        return $choice->isParent() ? $this->children->chosen($choice->childIds) : new ArrayCollection();
     }
 
     /**

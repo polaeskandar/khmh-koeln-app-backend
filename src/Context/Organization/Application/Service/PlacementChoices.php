@@ -41,28 +41,32 @@ final readonly class PlacementChoices
         return $this->serviceRecords->withShareLock($ids->getValues(), $work);
     }
 
-    public function of(?string $serviceId, ?string $stageId, string $fieldPrefix): ChosenPlacement
+    public function chosen(?string $serviceId, ?string $stageId, string $fieldPrefix): ChosenPlacement
     {
-        $service = $this->services->of($serviceId, field: $fieldPrefix . 'serviceId');
+        $service = $this->services->chosen($serviceId, field: $fieldPrefix . 'serviceId');
 
-        return new ChosenPlacement($service, $this->stages->of($stageId, $service, field: $fieldPrefix . 'stageId'));
+        return new ChosenPlacement($service, $this->stages->chosen(
+            $stageId,
+            $service,
+            field: $fieldPrefix . 'stageId',
+        ));
     }
 
-    public function inService(string $serviceId, ?string $stageId, string $field): ChosenPlacement
+    public function chosenInService(string $serviceId, ?string $stageId, string $field): ChosenPlacement
     {
-        $service = $this->services->of($serviceId, field: $field);
+        $service = $this->services->chosen($serviceId, field: $field);
 
-        return new ChosenPlacement($service, $this->stages->of($stageId, $service, field: $field));
+        return new ChosenPlacement($service, $this->stages->chosen($stageId, $service, field: $field));
     }
 
-    public function named(string $serviceName, string $stageName): ChosenPlacement
+    public function chosenByName(string $serviceName, string $stageName): ChosenPlacement
     {
         $found = $this->serviceRecords->findByNameKey(NameKey::of($serviceName)) ?? throw InvalidInput::field(
             'service',
             'meetings.chooseService',
         );
 
-        $service = $this->services->of($found->id()->toRfc4122(), field: 'service');
+        $service = $this->services->chosen($found->id()->toRfc4122(), field: 'service');
 
         return new ChosenPlacement($service, $this->stageNamed($service, $stageName));
     }
@@ -78,6 +82,6 @@ final readonly class PlacementChoices
             'meetings.chooseStage',
         );
 
-        return $this->stages->of($found->id()->toRfc4122(), $service, field: 'stage');
+        return $this->stages->chosen($found->id()->toRfc4122(), $service, field: 'stage');
     }
 }

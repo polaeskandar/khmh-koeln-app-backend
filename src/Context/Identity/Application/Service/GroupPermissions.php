@@ -26,15 +26,15 @@ final readonly class GroupPermissions
     ) {
     }
 
-    public function ofViewer(Action $action, Resource $resource): GroupScope
+    public function scopeOfViewer(Action $action, Resource $resource): GroupScope
     {
         $id = $this->signedIn->id();
         $viewer = $id === null ? null : $this->users->find($id);
 
-        return $viewer === null ? GroupScope::assigned([]) : $this->of($viewer, $action, $resource);
+        return $viewer === null ? GroupScope::assigned([]) : $this->scopeOf($viewer, $action, $resource);
     }
 
-    public function of(User $user, Action $action, Resource $resource): GroupScope
+    public function scopeOf(User $user, Action $action, Resource $resource): GroupScope
     {
         return match ($user->status()->isActive() ? PermissionScopes::of($user, $action, $resource) : null) {
             RoleScope::Church => GroupScope::churchWide(),

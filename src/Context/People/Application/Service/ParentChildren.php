@@ -22,7 +22,7 @@ final readonly class ParentChildren
     ) {
     }
 
-    public function of(Uuid $accountId): Family
+    public function familyOf(Uuid $accountId): Family
     {
         $today = $this->calendar->today();
 

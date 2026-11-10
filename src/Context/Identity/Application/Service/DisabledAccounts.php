@@ -27,7 +27,7 @@ final readonly class DisabledAccounts
         $this->administration->whileLocked(function () use ($email): void {
             $user = $this->account($email);
 
-            if ($this->lastAdministrator->is($user)) {
+            if ($this->lastAdministrator->isKeptOnlyByAccount($user)) {
                 throw new RuleViolation('roles.lastAdministrator');
             }
 

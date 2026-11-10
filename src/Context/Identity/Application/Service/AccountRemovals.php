@@ -39,7 +39,7 @@ final readonly class AccountRemovals
 
     private function removed(User $user): AccountErased
     {
-        if ($this->lastAdministrator->is($user)) {
+        if ($this->lastAdministrator->isKeptOnlyByAccount($user)) {
             throw new RuleViolation('roles.lastAdministrator');
         }
 

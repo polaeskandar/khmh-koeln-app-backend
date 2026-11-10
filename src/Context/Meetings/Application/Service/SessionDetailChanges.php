@@ -22,7 +22,7 @@ final readonly class SessionDetailChanges
     ) {
     }
 
-    public function change(Uuid $sessionId, Uuid $accountId, ?string $title, ?string $location): Session
+    public function edit(Uuid $sessionId, Uuid $accountId, ?string $title, ?string $location): Session
     {
         $name = InputText::of($title)->collapsed()->toString();
         $place = InputText::of($location)->trimmed()->toStringOrNull();

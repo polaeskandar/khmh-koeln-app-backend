@@ -39,7 +39,7 @@ final readonly class ListPeopleWorkflow
     {
         $scope = $this->access->scope(Action::Read, Resource::Members);
 
-        $roster = $this->scopes->of(Ids::toUuidOrNull($query->serviceId), Ids::toUuidOrNull($query->stageId));
+        $roster = $this->scopes->chosen(Ids::toUuidOrNull($query->serviceId), Ids::toUuidOrNull($query->stageId));
         $this->requireShown($roster);
 
         $filter = $this->filterOf($query, $roster);

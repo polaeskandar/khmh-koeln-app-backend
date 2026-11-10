@@ -51,7 +51,7 @@ final readonly class ServiceStages
         return $this->stages->ofService($service);
     }
 
-    public function find(Uuid $id): Stage
+    public function get(Uuid $id): Stage
     {
         return $this->stages->find($id) ?? throw NotFound::of('stage');
     }
@@ -84,7 +84,7 @@ final readonly class ServiceStages
     {
         ArchiveRule::ensureStagesChangeable($service);
 
-        $stage = $this->find($stageId);
+        $stage = $this->get($stageId);
 
         $this->checks->ensureFree($service, $name, $stage);
         $stage->edit($name, $description);

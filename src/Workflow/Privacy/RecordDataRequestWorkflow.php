@@ -51,7 +51,7 @@ final readonly class RecordDataRequestWorkflow
 
         $account = $details->accountId === null
             ? null
-            : $this->accounts->account(Uuid::fromString($details->accountId));
+            : $this->accounts->findAccount(Uuid::fromString($details->accountId));
 
         return RequestSubjects::of($person, $account);
     }

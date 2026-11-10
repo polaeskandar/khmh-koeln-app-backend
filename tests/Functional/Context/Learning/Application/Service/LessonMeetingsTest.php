@@ -147,7 +147,7 @@ final class LessonMeetingsTest extends KernelTestCase
         $this->assertRefused(
             'lessons.noMeetingThatDay',
             ['name' => 'Sunday class'],
-            static fn () => $lessons->link($third->id(), $mixed, $offered),
+            static fn () => $lessons->chosenLink($third->id(), $mixed, $offered),
         );
     }
 
@@ -210,6 +210,6 @@ final class LessonMeetingsTest extends KernelTestCase
             default => null,
         };
 
-        return $lessons->link($stageId, $choice, OfferedMeetings::of($slot), $editing);
+        return $lessons->chosenLink($stageId, $choice, OfferedMeetings::of($slot), $editing);
     }
 }

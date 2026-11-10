@@ -47,7 +47,7 @@ final readonly class ShowAttendanceOverviewWorkflow
         $today = $this->calendar->today();
         $archivedIds = $this->structure->archivedIds();
         $archived = ArchivedStructure::of($archivedIds);
-        $todays = OverviewSessions::unarchived($this->sessions->on($today, $scope), $archived);
+        $todays = OverviewSessions::unarchived($this->sessions->listOn($today, $scope), $archived);
         $earlier = OverviewSessions::unarchived($this->earlierThan($today), $archived);
         $closed = OverviewSessions::unarchived($this->recentlyClosed($archivedIds), $archived);
         $all = new ArrayCollection([...$todays->getValues(), ...$earlier->getValues(), ...$closed->getValues()]);

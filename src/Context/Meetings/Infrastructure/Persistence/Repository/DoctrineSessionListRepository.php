@@ -25,7 +25,7 @@ final readonly class DoctrineSessionListRepository implements SessionListReposit
     }
 
     #[Override]
-    public function on(LocalDate $date): ReadableCollection
+    public function listOn(LocalDate $date): ReadableCollection
     {
         return $this->sessions(
             $this->withSchedules()->where('s.occurrenceDate = :date')->setParameter('date', $date, 'local_date'),

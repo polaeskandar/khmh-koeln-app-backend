@@ -15,7 +15,7 @@ interface SessionListRepositoryInterface
     /**
      * @return ReadableCollection<int, Session>
      */
-    public function on(LocalDate $date): ReadableCollection;
+    public function listOn(LocalDate $date): ReadableCollection;
 
     /**
      * @return ReadableCollection<int, Session>

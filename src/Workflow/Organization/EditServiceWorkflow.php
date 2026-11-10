@@ -29,7 +29,7 @@ final readonly class EditServiceWorkflow
     {
         $this->access->require(Action::Update, Resource::Services);
 
-        $found = $this->services->find(Ids::toUuid($id, notFound: 'service'));
+        $found = $this->services->get(Ids::toUuid($id, notFound: 'service'));
         $group = StructureGroup::ofService($found);
         $this->access->requireIn(Action::Update, Resource::Services, $group, missing: 'service');
 

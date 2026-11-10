@@ -81,7 +81,7 @@ final readonly class MeetingSchedules
         return $scheduleId === null ? $this->listed($serviceId, $stageId) : $this->schedules->findByIds([$scheduleId]);
     }
 
-    public function find(Uuid $id): Schedule
+    public function get(Uuid $id): Schedule
     {
         return RecurringSchedule::required($this->schedules->find($id));
     }

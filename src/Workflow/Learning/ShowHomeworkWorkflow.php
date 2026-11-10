@@ -69,7 +69,7 @@ final readonly class ShowHomeworkWorkflow
         $task = $reading->task;
         $reports = $reading->reports;
         $key = AudienceKeys::keyOf($stage, $reports->today);
-        $book = $this->rosters->on([$key], $reports->reporterIds());
+        $book = $this->rosters->rosterBookOn([$key], $reports->reporterIds());
 
         $counts = $task->state()->status === HomeworkStatus::Draft ? null : $this->countsOf($reading, $book, $key);
 

@@ -23,7 +23,7 @@ final readonly class RemoveAssignmentWorkflow
     {
         $this->access->requireAssigning();
 
-        $assignment = $this->assignments->find(Ids::toUuid($id, notFound: 'assignment'));
+        $assignment = $this->assignments->get(Ids::toUuid($id, notFound: 'assignment'));
         $this->access->requireAssigningIn(new Group($assignment->service()->id(), $assignment->stage()?->id()));
 
         $this->changes->remove($assignment);

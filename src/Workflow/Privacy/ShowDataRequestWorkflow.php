@@ -38,7 +38,7 @@ final readonly class ShowDataRequestWorkflow
     {
         $this->access->require(Action::Update, Resource::Users, refusal: 'privacy.adminOnly');
 
-        $request = $this->requests->find(Ids::toUuid($requestId, notFound: 'request'));
+        $request = $this->requests->get(Ids::toUuid($requestId, notFound: 'request'));
         $subject = $request->subject();
         $requests = [$request];
 
@@ -49,7 +49,7 @@ final readonly class ShowDataRequestWorkflow
         );
 
         $person = $subject->personId === null ? null : $this->people->person($subject->personId->toRfc4122());
-        $account = $subject->accountId === null ? null : $this->accounts->account($subject->accountId);
+        $account = $subject->accountId === null ? null : $this->accounts->findAccount($subject->accountId);
         $copyLink = $this->requests->copyLinkOf($request);
 
         return new DataRequestDetail(
@@ -57,7 +57,7 @@ final readonly class ShowDataRequestWorkflow
             $rows[0] ?? throw NotFound::of('request'),
             RequestMember::of($person, $person === null ? [] : $this->membershipsOf($person)),
             RequestAccount::of($account),
-            CopyLinkStatus::of($copyLink, $this->accounts->account($copyLink?->recipientId())),
+            CopyLinkStatus::of($copyLink, $this->accounts->findAccount($copyLink?->recipientId())),
         );
     }
 

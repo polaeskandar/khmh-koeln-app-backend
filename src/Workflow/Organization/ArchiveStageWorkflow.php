@@ -30,7 +30,7 @@ final readonly class ArchiveStageWorkflow
     public function __invoke(string $id): StageDetails
     {
         $this->access->require(Action::Update, Resource::Stages);
-        $found = $this->stages->find(Ids::toUuid($id, notFound: 'stage'));
+        $found = $this->stages->get(Ids::toUuid($id, notFound: 'stage'));
         $this->access->requireIn(Action::Update, Resource::Stages, StructureGroup::ofStage($found), missing: 'stage');
 
         $pause = fn (Stage $stage) => $this->pauses->pauseStage($stage->id(), $stage->name()->value);

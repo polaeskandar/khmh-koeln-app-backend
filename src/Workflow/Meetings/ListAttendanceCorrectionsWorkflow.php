@@ -35,10 +35,10 @@ final readonly class ListAttendanceCorrectionsWorkflow
     {
         $this->access->require(Action::Read, Resource::Attendance);
 
-        $session = $this->sessions->find(Ids::toUuid($sessionId, notFound: 'session'));
+        $session = $this->sessions->get(Ids::toUuid($sessionId, notFound: 'session'));
         $group = CoveredSchedules::groupOfSession($session);
         $this->access->requireIn(Action::Read, Resource::Attendance, $group, missing: 'session');
-        $removed = $this->marks->removedOf($session->id());
+        $removed = $this->marks->removedMarksOf($session->id());
 
         return Corrections::of(
             $removed,

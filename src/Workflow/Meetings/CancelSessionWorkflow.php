@@ -28,12 +28,12 @@ final readonly class CancelSessionWorkflow
     public function __invoke(string $sessionId, string $accountId, ?string $reason): SessionState
     {
         $this->access->require(Action::Update, Resource::Sessions);
-        $found = $this->sessions->find(Ids::toUuid($sessionId, notFound: 'session'));
+        $found = $this->sessions->get(Ids::toUuid($sessionId, notFound: 'session'));
         $group = CoveredSchedules::groupOfSession($found);
         $this->access->requireIn(Action::Update, Resource::Sessions, $group, missing: 'session');
 
         $session = $this->lifecycle->cancel($found->id(), Uuid::fromString($accountId), $reason);
 
-        return SessionState::of($session, $this->accounts->account($session->progress()->closed->by));
+        return SessionState::of($session, $this->accounts->findAccount($session->progress()->closed->by));
     }
 }

@@ -48,7 +48,7 @@ final readonly class AddMembershipWorkflow
 
     private function added(Person $person, PlacementChoice $choice): AddedMembership
     {
-        $chosen = $this->placements->of($choice->serviceId, $choice->stageId, fieldPrefix: '');
+        $chosen = $this->placements->chosen($choice->serviceId, $choice->stageId, fieldPrefix: '');
 
         $this->access->requireChosen(
             Action::Update,

@@ -32,14 +32,14 @@ final readonly class EditRoleWorkflow
         $this->access->require(Action::Update, Resource::Roles, refusal: 'roles.adminOnly');
 
         $roleId = Ids::toUuid($id, notFound: 'role');
-        $this->definitions->change($roleId, $name, $scope, $permissions);
-        $role = $this->catalog->find($roleId);
+        $this->definitions->edit($roleId, $name, $scope, $permissions);
+        $role = $this->catalog->get($roleId);
 
         return RoleDetails::of(
             $role,
             PermissionCatalog::grantsOf($role),
             $this->catalog->holdersOf($role),
-            onlyWayToChangeRoles: $this->lastAdministrator->isKeptOnlyBy($role),
+            onlyWayToChangeRoles: $this->lastAdministrator->isKeptOnlyByRole($role),
         );
     }
 }

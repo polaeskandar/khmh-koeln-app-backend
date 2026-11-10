@@ -26,7 +26,7 @@ final readonly class ShowStageWorkflow
     {
         $this->access->require(Action::Read, Resource::Services);
 
-        $stage = $this->stages->find(Ids::toUuid($stageId, notFound: 'stage'));
+        $stage = $this->stages->get(Ids::toUuid($stageId, notFound: 'stage'));
         $this->access->requireIn(Action::Read, Resource::Services, StructureGroup::ofStage($stage), missing: 'stage');
 
         return StageDetails::of($stage, $this->rosters->stageMembersToday([$stage->id()]));

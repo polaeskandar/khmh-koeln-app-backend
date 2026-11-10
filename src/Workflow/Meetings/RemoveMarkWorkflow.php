@@ -28,7 +28,7 @@ final readonly class RemoveMarkWorkflow
     public function __invoke(string $sessionId, string $personId, string $accountId, ?string $reason): void
     {
         $this->access->require(Action::Delete, Resource::Attendance);
-        $found = $this->sessions->find(Ids::toUuid($sessionId, notFound: 'session'));
+        $found = $this->sessions->get(Ids::toUuid($sessionId, notFound: 'session'));
         $group = CoveredSchedules::groupOfSession($found);
         $this->access->requireIn(Action::Delete, Resource::Attendance, $group, missing: 'session');
 
@@ -37,7 +37,7 @@ final readonly class RemoveMarkWorkflow
             $accountId,
             $reason,
         ): Session {
-            $person = $this->attendees->find(Ids::toUuid($personId, notFound: 'person'));
+            $person = $this->attendees->get(Ids::toUuid($personId, notFound: 'person'));
             $this->marks->remove($session->id(), $person->id(), Uuid::fromString($accountId), $reason);
 
             return $session;

@@ -19,7 +19,7 @@ final readonly class LessonMeetings
     ) {
     }
 
-    public function link(
+    public function chosenLink(
         Uuid $stageId,
         MeetingChoice $choice,
         ?OfferedMeeting $offered,

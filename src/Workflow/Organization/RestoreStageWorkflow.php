@@ -27,7 +27,7 @@ final readonly class RestoreStageWorkflow
     public function __invoke(string $id): StageDetails
     {
         $this->access->require(Action::Update, Resource::Stages);
-        $found = $this->stages->find(Ids::toUuid($id, notFound: 'stage'));
+        $found = $this->stages->get(Ids::toUuid($id, notFound: 'stage'));
         $this->access->requireIn(Action::Update, Resource::Stages, StructureGroup::ofStage($found), missing: 'stage');
 
         $stage = $this->archives->restore($found->id());

@@ -39,7 +39,7 @@ final readonly class ShowScheduleWorkflow
 
         $today = $this->calendar->today();
         $archived = ArchivedStructure::of($this->structure->archivedIds());
-        $outlook = $this->outlooks->found(Ids::toUuid($id, notFound: 'schedule'), $archived, $today);
+        $outlook = $this->outlooks->get(Ids::toUuid($id, notFound: 'schedule'), $archived, $today);
         $group = CoveredSchedules::groupOf($outlook->schedule);
         $this->access->requireIn(Action::Read, Resource::Services, $group, missing: 'schedule');
         $schedules = RosterSizes::schedulesOf([$outlook]);

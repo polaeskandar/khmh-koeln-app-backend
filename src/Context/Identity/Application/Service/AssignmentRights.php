@@ -22,11 +22,11 @@ final readonly class AssignmentRights
 
     public function require(): GroupScope
     {
-        $users = $this->groups->ofViewer(Action::Update, Resource::Users);
+        $users = $this->groups->scopeOfViewer(Action::Update, Resource::Users);
 
         $assignable = $users->isChurchWide()
             ? $users
-            : $this->groups->ofViewer(Action::Update, Resource::Stages)->serviceWide();
+            : $this->groups->scopeOfViewer(Action::Update, Resource::Stages)->serviceWide();
 
         return $assignable->serviceIds() === [] ? throw new AccessDeniedHttpException(self::REFUSAL) : $assignable;
     }

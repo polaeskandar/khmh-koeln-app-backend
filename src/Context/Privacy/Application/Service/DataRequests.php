@@ -58,7 +58,7 @@ final readonly class DataRequests
         return $this->requests->all();
     }
 
-    public function find(Uuid $id): DataRequest
+    public function get(Uuid $id): DataRequest
     {
         return $this->requests->find($id) ?? throw NotFound::of('request');
     }

@@ -47,7 +47,7 @@ final readonly class LessonWrites
 
     public function create(LessonStage $stage, LessonDraft $draft, ?OfferedMeeting $offered, TeamChoice $team): Lesson
     {
-        $link = fn (): MeetingLink => $this->meetings->link($stage->id, $draft->meeting, $offered);
+        $link = fn (): MeetingLink => $this->meetings->chosenLink($stage->id, $draft->meeting, $offered);
         $chosen = fn (): LessonTeam => $this->teams->chosen($team, lesson: null);
         $this->check($draft, $link, $chosen);
         $lessonTeam = $chosen();
@@ -64,7 +64,7 @@ final readonly class LessonWrites
         ?OfferedMeeting $offered,
         TeamChoice $team,
     ): Lesson {
-        $link = fn (): MeetingLink => $this->movable($lesson, $this->meetings->link(
+        $link = fn (): MeetingLink => $this->movable($lesson, $this->meetings->chosenLink(
             $stage->id,
             $draft->meeting,
             $offered,
@@ -90,7 +90,7 @@ final readonly class LessonWrites
 
     private function movable(Lesson $lesson, MeetingLink $link): MeetingLink
     {
-        return $lesson->state()->isCompletedAfter($link->teachingDate, $this->calendar->today())
+        return $lesson->state()->isCompletedBeforeTeachingDate($link->teachingDate, $this->calendar->today())
             ? throw MeetingChoice::refusal('lessons.taughtAfterDate')
             : $link;
     }

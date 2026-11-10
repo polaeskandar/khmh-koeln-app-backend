@@ -30,7 +30,7 @@ final readonly class MemberAccounts
         return $account->status()->isActive() ? $account : throw new RuleViolation('accounts.accountInactive');
     }
 
-    public function link(User $account, MemberRecord $record, AgeCheck $age, ?string $note): void
+    public function linkToRecord(User $account, MemberRecord $record, AgeCheck $age, ?string $note): void
     {
         if ($account->member()->isLinkedTo($record->personId)) {
             return;

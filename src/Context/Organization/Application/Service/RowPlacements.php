@@ -25,7 +25,7 @@ final readonly class RowPlacements
 
         foreach ($rows as $line => $row) {
             try {
-                $placed[$line] = $this->placements->named($row['service'] ?? '', $row['stage'] ?? '');
+                $placed[$line] = $this->placements->chosenByName($row['service'] ?? '', $row['stage'] ?? '');
             } catch (InvalidInput $invalid) {
                 $placed[$line] = $invalid;
             }

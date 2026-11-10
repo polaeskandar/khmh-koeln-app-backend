@@ -28,6 +28,6 @@ final readonly class DeactivatePersonWorkflow
         $id = Ids::toUuid($personId, notFound: 'person');
         $this->groups->requireVisible($id, $scope);
 
-        return PersonView::of($this->statuses->change($id, PersonStatus::Inactive));
+        return PersonView::of($this->statuses->changeStatus($id, PersonStatus::Inactive));
     }
 }

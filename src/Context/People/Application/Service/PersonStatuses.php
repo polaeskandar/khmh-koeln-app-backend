@@ -23,7 +23,7 @@ final readonly class PersonStatuses
     ) {
     }
 
-    public function change(Uuid $personId, PersonStatus $status): Person
+    public function changeStatus(Uuid $personId, PersonStatus $status): Person
     {
         return $this->people->withWriteLock($personId, function (Person $person) use ($status): Person {
             if ($person->status() !== $status) {

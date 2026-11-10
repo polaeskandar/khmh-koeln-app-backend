@@ -27,7 +27,7 @@ final readonly class ExportAccountDataWorkflow
 
     public function __invoke(string $accountId): ?AccountData
     {
-        $user = $this->accounts->account(Uuid::fromString($accountId));
+        $user = $this->accounts->findAccount(Uuid::fromString($accountId));
 
         if ($user === null) {
             return null;

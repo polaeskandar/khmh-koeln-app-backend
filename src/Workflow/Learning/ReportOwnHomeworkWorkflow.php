@@ -38,7 +38,7 @@ final readonly class ReportOwnHomeworkWorkflow
             Ids::toUuidOrNull($homeworkId),
         ));
 
-        return ReportResult::of($outcome, $this->accounts->account($outcome->completedBy), $viewer);
+        return ReportResult::of($outcome, $this->accounts->findAccount($outcome->completedBy), $viewer);
     }
 
     private function reportedOnLockedTask(Uuid $personId, Uuid $viewer, ?Uuid $homeworkId): CompletionOutcome
@@ -52,7 +52,7 @@ final readonly class ReportOwnHomeworkWorkflow
     private function reported(Uuid $personId, Uuid $viewer, HomeworkAssignment $task): CompletionOutcome
     {
         $record = $this->records->ownRecord($personId);
-        $own = OwnHomework::of($record, $this->homework->of(OwnHomework::pupilsOf($record)));
+        $own = OwnHomework::of($record, $this->homework->tasksOf(OwnHomework::pupilsOf($record)));
 
         return $this->completions->report($own->requireTask($task->id()), $personId, by: $viewer);
     }

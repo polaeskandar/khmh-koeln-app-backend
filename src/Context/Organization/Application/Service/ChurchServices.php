@@ -23,7 +23,7 @@ final readonly class ChurchServices
     ) {
     }
 
-    public function find(Uuid $id): Service
+    public function get(Uuid $id): Service
     {
         return $this->services->find($id) ?? throw NotFound::of('service');
     }
@@ -46,7 +46,7 @@ final readonly class ChurchServices
 
     public function edit(Uuid $id, string $name, ?string $description): Service
     {
-        $service = $this->find($id);
+        $service = $this->get($id);
         self::check($name, $description);
         $serviceName = ServiceName::of($name);
 

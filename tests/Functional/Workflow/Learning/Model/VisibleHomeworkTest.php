@@ -244,13 +244,13 @@ final class VisibleHomeworkTest extends KernelTestCase
         self::assertInstanceOf(HomeworkReportRepositoryInterface::class, $reports);
 
         $viewerId = Uuid::fromString($viewer);
-        $family = new ParentChildren($links, $people, $calendar)->of($viewerId);
+        $family = new ParentChildren($links, $people, $calendar)->familyOf($viewerId);
 
-        if ($accounts->account($viewerId)?->status()->isActive() !== true) {
+        if ($accounts->findAccount($viewerId)?->status()->isActive() !== true) {
             return VisibleHomework::none($family);
         }
 
-        $tasks = new PupilHomework($homework, $reports)->of(VisibleHomework::pupilsOf($family));
+        $tasks = new PupilHomework($homework, $reports)->tasksOf(VisibleHomework::pupilsOf($family));
 
         return VisibleHomework::forFamily($family, $tasks);
     }

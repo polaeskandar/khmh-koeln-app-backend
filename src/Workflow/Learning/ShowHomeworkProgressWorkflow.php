@@ -59,7 +59,7 @@ final readonly class ShowHomeworkProgressWorkflow
     {
         $reports = $reading->reports;
         $key = AudienceKeys::keyOf($stage, $reports->today);
-        $book = $this->rosters->on([$key], $reports->reporterIds());
+        $book = $this->rosters->rosterBookOn([$key], $reports->reporterIds());
 
         $accounts = AudienceAccounts::of(
             $book,

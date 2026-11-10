@@ -28,7 +28,7 @@ final readonly class OccurrenceCancellations
 
     public function cancelable(Uuid $scheduleId, LocalDate $date): ScheduleDate
     {
-        return ScheduleDate::cancelable($this->schedules->find($scheduleId), $date, $this->calendar->today());
+        return ScheduleDate::cancelable($this->schedules->get($scheduleId), $date, $this->calendar->today());
     }
 
     public function cancel(ScheduleDate $planned, Uuid $accountId, ?string $reason): Session

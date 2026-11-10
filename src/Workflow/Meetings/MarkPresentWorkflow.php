@@ -33,7 +33,7 @@ final readonly class MarkPresentWorkflow
     public function __invoke(string $sessionId, string $personId, string $accountId): MarkResult
     {
         $this->access->require(Action::Create, Resource::Attendance);
-        $found = $this->sessions->find(Ids::toUuid($sessionId, notFound: 'session'));
+        $found = $this->sessions->get(Ids::toUuid($sessionId, notFound: 'session'));
         $group = CoveredSchedules::groupOfSession($found);
         $this->access->requireIn(Action::Create, Resource::Attendance, $group, missing: 'session');
 
@@ -52,6 +52,9 @@ final readonly class MarkPresentWorkflow
 
         $mark = $recorded->mark;
 
-        return new MarkResult(MarkView::of($mark, $this->accounts->account($mark->recordedBy())), $recorded->created);
+        return new MarkResult(
+            MarkView::of($mark, $this->accounts->findAccount($mark->recordedBy())),
+            $recorded->created,
+        );
     }
 }

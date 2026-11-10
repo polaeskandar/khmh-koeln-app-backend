@@ -386,7 +386,7 @@ applied by the subject's `<Subject>Lifecycle` service ([Code style](code-style.m
 - `declined` is a stored value of data requests that nothing reaches yet; it stays a place without a transition.
 - A lesson's status has no machine. Draft, ready and completed may follow each other in any order, so a machine
   would list every pair and refuse nothing. Its one rule, completed only from the teaching date on, stays in
-  `LessonState::isCompletedAfter()`, checked when the status changes and when a completed lesson moves to another
+  `LessonState::isCompletedBeforeTeachingDate()`, checked when the status changes and when a completed lesson moves to another
   date; archiving is a separate date, not a status.
 - An account's state has no machine either. It has no status column: awaiting confirmation, pending, active and
   disabled are derived from `email_confirmed_at`, `approved_at` and `disabled_at` in `AccountStatus`, a declined
