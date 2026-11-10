@@ -82,19 +82,17 @@ final readonly class Attendees
      *
      * @return T
      */
-    public function whileKept(string $personId, callable $work): mixed
+    public function whileKept(Uuid $personId, callable $work): mixed
     {
-        return Uuid::isValid($personId) ? $this->people->withShareLock(Uuid::fromString($personId), $work) : $work();
+        return $this->people->withShareLock($personId, $work);
     }
 
-    public function find(string $personId): Person
+    public function find(Uuid $personId): Person
     {
-        $person = Uuid::isValid($personId) ? $this->people->find(Uuid::fromString($personId)) : null;
-
-        return $person ?? throw NotFound::of('person');
+        return $this->people->find($personId) ?? throw NotFound::of('person');
     }
 
-    public function markable(string $personId): Person
+    public function markable(Uuid $personId): Person
     {
         $person = $this->find($personId);
 

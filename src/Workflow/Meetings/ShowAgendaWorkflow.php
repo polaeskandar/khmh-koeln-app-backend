@@ -18,6 +18,7 @@ use App\Context\Meetings\Domain\ValueObject\PlannedDate;
 use App\Context\Meetings\Domain\ValueObject\TimeSlot;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\Attendees;
+use App\Library\Problem\Model\Ids;
 use App\Library\Time\Client\Calendar;
 use App\Library\Time\Model\LocalDate;
 use App\Platform\Access\Model\GroupScope;
@@ -61,9 +62,9 @@ final readonly class ShowAgendaWorkflow
         $dates = $days === null
             ? $this->schedules->agendaOf(
                 CoveredSchedules::within($scope, $this->schedules->chosen(
-                    $choice->scheduleId,
-                    $choice->serviceId,
-                    $choice->stageId,
+                    Ids::toUuidOrNull($choice->scheduleId),
+                    Ids::toUuidOrNull($choice->serviceId),
+                    Ids::toUuidOrNull($choice->stageId),
                 )),
                 $archived,
                 $range,

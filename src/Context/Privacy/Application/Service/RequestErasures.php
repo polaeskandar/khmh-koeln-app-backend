@@ -27,28 +27,20 @@ final readonly class RequestErasures
      *
      * @return T
      */
-    public function whileErasable(string $requestId, string $viewerId, callable $work): mixed
+    public function whileErasable(Uuid $requestId, Uuid $viewerId, callable $work): mixed
     {
-        $id = Uuid::isValid($requestId) ? Uuid::fromString($requestId) : throw NotFound::of('request');
+        $erasable = static fn (DataRequest $request): mixed => $work(ErasableSubject::of($request, $viewerId));
 
-        return $this->requests->withWriteLock($id, static fn (DataRequest $request): mixed => $work(ErasableSubject::of(
-            $request,
-            $viewerId,
-        )));
+        return $this->requests->withWriteLock($requestId, $erasable);
     }
 
     /**
      * @param array<string, int> $outcome
      */
-    public function complete(string $requestId, string $by, array $outcome): void
+    public function complete(Uuid $requestId, Uuid $by, array $outcome): void
     {
-        $request = $this->requests->find(Uuid::fromString($requestId)) ?? throw NotFound::of('request');
+        $request = $this->requests->find($requestId) ?? throw NotFound::of('request');
 
-        $this->lifecycle->complete(
-            $request,
-            $this->calendar->now()->toDateTimeImmutable(),
-            Uuid::fromString($by),
-            $outcome,
-        );
+        $this->lifecycle->complete($request, $this->calendar->now()->toDateTimeImmutable(), $by, $outcome);
     }
 }

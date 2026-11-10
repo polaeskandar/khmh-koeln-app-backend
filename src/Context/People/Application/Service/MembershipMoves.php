@@ -31,12 +31,14 @@ final readonly class MembershipMoves
      *
      * @return T
      */
-    public function whileMovable(string $membershipId, callable $work): mixed
+    public function whileMovable(Uuid $membershipId, callable $work): mixed
     {
-        $id = Uuid::isValid($membershipId) ? Uuid::fromString($membershipId) : throw NotFound::of('membership');
-        $personId = $this->memberships->personOf($id) ?? throw NotFound::of('membership');
+        $personId = $this->memberships->personOf($membershipId) ?? throw NotFound::of('membership');
 
-        return $this->people->withWriteLock($personId, fn (): mixed => $this->memberships->withWriteLock($id, $work));
+        return $this->people->withWriteLock($personId, fn (): mixed => $this->memberships->withWriteLock(
+            $membershipId,
+            $work,
+        ));
     }
 
     public function move(Membership $membership, Placement $target, string $placeName): Membership

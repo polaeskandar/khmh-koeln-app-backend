@@ -20,13 +20,13 @@ final readonly class LessonOptionLookup
     ) {
     }
 
-    public function edited(Uuid $stageId, ?string $lessonId): ?Lesson
+    public function edited(Uuid $stageId, ?Uuid $lessonId): ?Lesson
     {
         if ($lessonId === null) {
             return null;
         }
 
-        $lesson = $this->lessons->find(Uuid::fromString($lessonId));
+        $lesson = $this->lessons->find($lessonId);
 
         return $lesson?->stageId()->equals($stageId) === true ? $lesson : throw NotFound::of('lesson');
     }

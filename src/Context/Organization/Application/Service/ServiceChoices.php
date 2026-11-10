@@ -7,7 +7,7 @@ namespace App\Context\Organization\Application\Service;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Repository\ServiceRepositoryInterface;
 use App\Library\Problem\Exception\InvalidInput;
-use Symfony\Component\Uid\Uuid;
+use App\Library\Problem\Model\Ids;
 
 final readonly class ServiceChoices
 {
@@ -18,8 +18,8 @@ final readonly class ServiceChoices
 
     public function of(?string $serviceId, string $field): Service
     {
-        $id = $serviceId ?? '';
-        $service = Uuid::isValid($id) ? $this->services->find(Uuid::fromString($id)) : null;
+        $id = Ids::toUuidOrNull($serviceId);
+        $service = $id === null ? null : $this->services->find($id);
 
         if ($service === null) {
             throw InvalidInput::field($field, 'meetings.chooseService');

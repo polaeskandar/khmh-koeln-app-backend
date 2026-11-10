@@ -13,6 +13,7 @@ use App\Context\Learning\Application\Service\PupilHomework;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Context\People\Application\Service\ParentChildren;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\VisibleHomework;
 use Symfony\Component\Uid\Uuid;
 
@@ -32,20 +33,24 @@ final readonly class UndoHomeworkReportWorkflow
         $this->access->require(Action::Read, Resource::ParentPortal);
 
         $viewer = Uuid::fromString($viewerId);
+        $child = Ids::toUuid($childId, notFound: 'person');
 
-        $this->completions->whileLocked(
-            $homeworkId,
-            fn (HomeworkAssignment $task): VisibleTask => $this->undone($viewer, $childId, $task),
-            fn (): never => $this->visibleTo($viewer)->missingTask($childId),
+        $undone = $this->completions->whileLocked(
+            Ids::toUuidOrNull($homeworkId),
+            fn (HomeworkAssignment $task): VisibleTask => $this->undone($viewer, $child, $task),
         );
+
+        if ($undone === null) {
+            $this->visibleTo($viewer)->missingTask($child);
+        }
     }
 
-    private function undone(Uuid $viewer, string $childId, HomeworkAssignment $task): VisibleTask
+    private function undone(Uuid $viewer, Uuid $child, HomeworkAssignment $task): VisibleTask
     {
         $visible = $this->visibleTo($viewer);
-        $shown = $visible->requireTask($childId, $task->id()->toRfc4122());
+        $shown = $visible->requireTask($child, $task->id());
 
-        return $this->completions->undo($shown, $visible->requireChild($childId)->child->id(), by: $viewer);
+        return $this->completions->undo($shown, $visible->requireChild($child)->child->id(), by: $viewer);
     }
 
     private function visibleTo(Uuid $viewer): VisibleHomework

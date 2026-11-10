@@ -95,11 +95,9 @@ final readonly class MeetingSessions
         );
     }
 
-    public function find(string $id): Session
+    public function find(Uuid $id): Session
     {
-        $session = Uuid::isValid($id) ? $this->sessions->find(Uuid::fromString($id)) : null;
-
-        return $session ?? throw NotFound::of('session');
+        return $this->sessions->find($id) ?? throw NotFound::of('session');
     }
 
     /**
@@ -117,11 +115,9 @@ final readonly class MeetingSessions
      *
      * @return T
      */
-    public function whileMarkable(string $sessionId, callable $work): object
+    public function whileMarkable(Uuid $sessionId, callable $work): object
     {
-        $id = Uuid::isValid($sessionId) ? Uuid::fromString($sessionId) : throw NotFound::of('session');
-
-        return $this->sessions->withWriteLock($id, static function (Session $session) use ($work): object {
+        return $this->sessions->withWriteLock($sessionId, static function (Session $session) use ($work): object {
             AttendanceRule::ensureMarkable($session->progress()->status);
 
             return $work($session);

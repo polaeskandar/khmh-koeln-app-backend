@@ -9,7 +9,6 @@ use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkCounts;
 use App\Library\Collections\Model\Collections;
-use App\Library\Problem\Exception\NotFound;
 use App\Library\Types\Model\Integers;
 use App\Library\Types\Model\ListOf;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -60,9 +59,9 @@ final readonly class DoctrineHomeworkRepository implements HomeworkRepositoryInt
     }
 
     #[Override]
-    public function withLock(Uuid $id, callable $work): object
+    public function withLock(Uuid $id, callable $work): ?object
     {
-        return $this->entityManager->wrapInTransaction(function () use ($id, $work): object {
+        return $this->entityManager->wrapInTransaction(function () use ($id, $work): ?object {
             $loaded = $this->entityManager->getUnitOfWork()->tryGetById(['id' => $id], HomeworkAssignment::class);
 
             if ($loaded !== false) {
@@ -71,7 +70,7 @@ final readonly class DoctrineHomeworkRepository implements HomeworkRepositoryInt
 
             $assignment = $this->entityManager->find(HomeworkAssignment::class, $id, LockMode::PESSIMISTIC_WRITE);
 
-            return $work($assignment ?? throw NotFound::of('homework'));
+            return $assignment === null ? null : $work($assignment);
         });
     }
 

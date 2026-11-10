@@ -19,10 +19,9 @@ final readonly class MemberLinkRemovals
     ) {
     }
 
-    public function removeFrom(string $accountId): void
+    public function removeFrom(Uuid $accountId): void
     {
-        $id = Uuid::isValid($accountId) ? Uuid::fromString($accountId) : throw NotFound::of('user');
-        $this->users->withWriteLock($id, self::unlinked(...));
+        $this->users->withWriteLock($accountId, self::unlinked(...));
     }
 
     public function removeByEmail(string $email): void

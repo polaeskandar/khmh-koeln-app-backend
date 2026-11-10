@@ -11,6 +11,7 @@ use App\Context\Learning\Application\Service\LessonStatuses;
 use App\Context\Learning\Application\Service\LessonWrites;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Learning\Model\LessonStatusView;
 use App\Workflow\Organization\Model\StructureGroup;
@@ -29,15 +30,20 @@ final readonly class ChangeLessonStatusWorkflow
     {
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.changeStageOnly');
 
-        $lesson = $this->lessons->editable($id, version: null, ensureAllowed: $this->ensureAllowed(...));
-        LessonStages::opened($this->structure->stage($lesson->stageId()->toRfc4122()));
+        $lesson = $this->lessons->editable(
+            Ids::toUuid($id, notFound: 'lesson'),
+            version: null,
+            ensureAllowed: $this->ensureAllowed(...),
+        );
+
+        LessonStages::opened($this->structure->stage($lesson->stageId()));
 
         return LessonStatusView::of($this->statuses->change($lesson, $status));
     }
 
     private function ensureAllowed(Lesson $lesson): void
     {
-        $stage = $this->structure->stage($lesson->stageId()->toRfc4122());
+        $stage = $this->structure->stage($lesson->stageId());
         $this->access->requireIn(Action::Update, Resource::Lessons, StructureGroup::ofStage($stage), missing: 'lesson');
     }
 }

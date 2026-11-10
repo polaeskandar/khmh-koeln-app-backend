@@ -10,7 +10,12 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\OccurrenceCancellations;
 use App\Context\Organization\Application\Service\ArchiveGuard;
+use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Problem\Model\Ids;
+use App\Library\Time\Exception\InvalidLocalDate;
+use App\Library\Time\Model\LocalDate;
 use App\Workflow\Meetings\Model\CanceledOccurrence;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class CancelOccurrenceWorkflow
 {
@@ -25,7 +30,8 @@ final readonly class CancelOccurrenceWorkflow
     {
         $this->access->require(Action::Update, Resource::Sessions);
 
-        $planned = $this->cancellations->cancelable($scheduleId, $date);
+        $day = self::dateOf($date);
+        $planned = $this->cancellations->cancelable(Ids::toUuid($scheduleId, notFound: 'schedule'), $day);
 
         $this->access->requireIn(
             Action::Update,
@@ -36,6 +42,15 @@ final readonly class CancelOccurrenceWorkflow
 
         $this->archive->ensureOpen($planned->schedule->roster()->serviceId, $planned->schedule->roster()->stageId);
 
-        return CanceledOccurrence::of($this->cancellations->cancel($planned, $accountId, $reason));
+        return CanceledOccurrence::of($this->cancellations->cancel($planned, Uuid::fromString($accountId), $reason));
+    }
+
+    private static function dateOf(string $date): LocalDate
+    {
+        try {
+            return LocalDate::of($date);
+        } catch (InvalidLocalDate) {
+            throw InvalidInput::field('date', 'validation.invalidDate');
+        }
     }
 }

@@ -39,11 +39,9 @@ final readonly class Memberships
         return $this->memberships->countInStage($stageId);
     }
 
-    public function personOf(string $personId): Person
+    public function personOf(Uuid $personId): Person
     {
-        $found = Uuid::isValid($personId) ? $this->people->find(Uuid::fromString($personId)) : null;
-
-        return $found ?? throw NotFound::of('person');
+        return $this->people->find($personId) ?? throw NotFound::of('person');
     }
 
     public function add(Person $person, Placement $placement, RosterNames $names): Membership

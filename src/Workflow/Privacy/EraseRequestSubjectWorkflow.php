@@ -13,6 +13,7 @@ use App\Context\People\Application\Service\PersonErasures;
 use App\Context\People\Domain\ValueObject\ErasablePerson;
 use App\Context\Privacy\Application\Service\RequestErasures;
 use App\Context\Privacy\Domain\ValueObject\ErasableSubject;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\Placements;
 use App\Workflow\Privacy\Model\ErasedGroup;
@@ -39,10 +40,13 @@ final readonly class EraseRequestSubjectWorkflow
     {
         $this->access->require(Action::Update, Resource::Users, refusal: 'privacy.adminOnly');
 
+        $id = Ids::toUuid($requestId, notFound: 'request');
+        $viewer = Uuid::fromString($viewerId);
+
         $outcome = $this->requests->whileErasable(
-            $requestId,
-            $viewerId,
-            fn (ErasableSubject $asked): ErasureOutcome => $this->erased($asked, $choice, $requestId, $viewerId),
+            $id,
+            $viewer,
+            fn (ErasableSubject $asked): ErasureOutcome => $this->erased($asked, $choice, $id, $viewer),
         );
 
         if ($outcome->accountId !== null) {
@@ -55,8 +59,8 @@ final readonly class EraseRequestSubjectWorkflow
     private function erased(
         ErasableSubject $asked,
         ErasureChoice $choice,
-        string $requestId,
-        string $viewerId,
+        Uuid $requestId,
+        Uuid $viewerId,
     ): ErasureOutcome {
         $subject = $asked->joined(
             $this->accounts->recordOfAccount($asked->accountId),
@@ -84,7 +88,7 @@ final readonly class EraseRequestSubjectWorkflow
             return null;
         }
 
-        return PersonErasureCounts::of($this->people->erase($personId->toRfc4122(), $this->groupOf(...)));
+        return PersonErasureCounts::of($this->people->erase($personId, $this->groupOf(...)));
     }
 
     private function accountCounts(?Uuid $accountId): ?ErasureCounts

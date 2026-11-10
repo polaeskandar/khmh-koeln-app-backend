@@ -12,7 +12,6 @@ use App\Context\Learning\Domain\ValueObject\LessonText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Context\Learning\Domain\ValueObject\MeetingLink;
 use App\Context\Learning\Infrastructure\Persistence\Repository\DoctrineHomeworkRepository;
-use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Model\LocalDate;
 use App\Tests\Support\CommittedRows;
 use App\Tests\Support\Database;
@@ -129,15 +128,17 @@ final class DoctrineHomeworkRepositoryTest extends KernelTestCase
 
         $locked = $this->homework()->withLock($id, static fn (HomeworkAssignment $task): HomeworkAssignment => $task);
 
+        self::assertNotNull($locked);
         self::assertSame(HomeworkStatus::Published, $locked->state()->status);
         self::assertNotNull($locked->state()->publishedAt);
     }
 
-    public function testAnUnknownTaskIsNotFound(): void
+    public function testAnUnknownTaskIsLockedForNothing(): void
     {
-        $this->expectExceptionObject(NotFound::of('homework'));
-
-        $this->homework()->withLock(Uuid::v7(), static fn (HomeworkAssignment $task): HomeworkAssignment => $task);
+        self::assertNull($this->homework()->withLock(
+            Uuid::v7(),
+            static fn (HomeworkAssignment $task): HomeworkAssignment => $task,
+        ));
     }
 
     private function assertFree(): void

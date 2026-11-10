@@ -13,6 +13,7 @@ use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\Attendees;
+use App\Library\Problem\Model\Ids;
 use App\Library\Time\Client\Calendar;
 use App\Library\Time\Model\LocalDate;
 use App\Workflow\Meetings\Model\DatedSchedule;
@@ -38,7 +39,7 @@ final readonly class ShowScheduleWorkflow
 
         $today = $this->calendar->today();
         $archived = ArchivedStructure::of($this->structure->archivedIds());
-        $outlook = $this->outlooks->found($id, $archived, $today);
+        $outlook = $this->outlooks->found(Ids::toUuid($id, notFound: 'schedule'), $archived, $today);
         $group = CoveredSchedules::groupOf($outlook->schedule);
         $this->access->requireIn(Action::Read, Resource::Services, $group, missing: 'schedule');
         $schedules = RosterSizes::schedulesOf([$outlook]);

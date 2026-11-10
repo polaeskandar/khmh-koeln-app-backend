@@ -12,6 +12,7 @@ use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Application\Service\StageArchives;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\Rosters;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\StageDetails;
 use App\Workflow\Organization\Model\StructureGroup;
 
@@ -29,10 +30,10 @@ final readonly class ArchiveStageWorkflow
     public function __invoke(string $id): StageDetails
     {
         $this->access->require(Action::Update, Resource::Stages);
-        $group = StructureGroup::ofStage($this->stages->find($id));
-        $this->access->requireIn(Action::Update, Resource::Stages, $group, missing: 'stage');
+        $found = $this->stages->find(Ids::toUuid($id, notFound: 'stage'));
+        $this->access->requireIn(Action::Update, Resource::Stages, StructureGroup::ofStage($found), missing: 'stage');
 
-        $stage = $this->archives->archive($id, pause: fn (Stage $stage): bool => $this->pauses->pauseStage(
+        $stage = $this->archives->archive($found->id(), pause: fn (Stage $stage): bool => $this->pauses->pauseStage(
             $stage->id(),
         ));
 

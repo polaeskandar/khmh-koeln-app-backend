@@ -11,6 +11,7 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\StaffAssignments;
 use App\Context\Organization\Domain\Entity\StaffAssignment;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\ServiceServants;
 use App\Workflow\Organization\Model\StructureGroup;
 use Symfony\Component\Uid\Uuid;
@@ -29,7 +30,7 @@ final readonly class ListServiceServantsWorkflow
     {
         $this->access->require(Action::Read, Resource::Services);
 
-        $service = $this->services->find($serviceId);
+        $service = $this->services->find(Ids::toUuid($serviceId, notFound: 'service'));
         $this->access->requireReaching(Action::Read, Resource::Services, $service->id(), missing: 'service');
         $this->access->requireAssigningIn(StructureGroup::ofService($service));
 

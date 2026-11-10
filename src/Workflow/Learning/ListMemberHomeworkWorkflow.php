@@ -29,15 +29,16 @@ final readonly class ListMemberHomeworkWorkflow
 
     public function __invoke(string $viewerId, string $state): ChildHomeworkList
     {
-        $own = $this->ownOf($viewerId);
+        $viewer = Uuid::fromString($viewerId);
+        $own = $this->ownOf($viewer);
         $shown = ParentHomeworkOrder::shown($own->tasks(), $state);
 
-        return new ChildHomeworkList($own->today->toString(), $this->itemsOf($shown, $viewerId)->listOf($shown));
+        return new ChildHomeworkList($own->today->toString(), $this->itemsOf($shown, $viewer)->listOf($shown));
     }
 
-    private function ownOf(string $viewerId): OwnHomework
+    private function ownOf(Uuid $viewer): OwnHomework
     {
-        $record = $this->records->ownRecord($this->member->require($viewerId));
+        $record = $this->records->ownRecord($this->member->require($viewer));
 
         return OwnHomework::of($record, $this->homework->of(OwnHomework::pupilsOf($record)));
     }
@@ -45,12 +46,12 @@ final readonly class ListMemberHomeworkWorkflow
     /**
      * @param list<VisibleTask> $tasks
      */
-    private function itemsOf(array $tasks, string $viewerId): ParentHomeworkItems
+    private function itemsOf(array $tasks, Uuid $viewer): ParentHomeworkItems
     {
         return ParentHomeworkItems::of(
             $this->structure->stages(ParentHomeworkItems::stageIdsOf($tasks)),
             $this->accounts->accounts(ParentHomeworkItems::reporterIdsOf($tasks)),
-            Uuid::fromString($viewerId),
+            $viewer,
         );
     }
 }

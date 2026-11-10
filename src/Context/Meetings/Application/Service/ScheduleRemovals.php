@@ -26,11 +26,9 @@ final readonly class ScheduleRemovals
     /**
      * @param callable(Uuid): int $lessonsOf
      */
-    public function remove(string $id, callable $lessonsOf): void
+    public function remove(Uuid $id, callable $lessonsOf): void
     {
-        $scheduleId = Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('schedule');
-
-        $this->schedules->withWriteLock($scheduleId, function (Schedule $schedule) use ($lessonsOf): void {
+        $this->schedules->withWriteLock($id, function (Schedule $schedule) use ($lessonsOf): void {
             if ($schedule->isOneOff()) {
                 throw NotFound::of('schedule');
             }

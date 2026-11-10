@@ -14,6 +14,7 @@ use App\Context\Learning\Domain\ValueObject\LessonReading;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Identity\Model\AccountReferences;
 use App\Workflow\Learning\Model\LessonDetail;
 use App\Workflow\Learning\Model\LessonDetailView;
@@ -47,9 +48,9 @@ final readonly class ShowLessonWorkflow
     {
         $this->access->require(Action::Read, Resource::Lessons);
 
-        $reading = $this->lessons->reading($id);
+        $reading = $this->lessons->reading(Ids::toUuid($id, notFound: 'lesson'));
         $lesson = $reading->lesson;
-        $stage = $this->structure->stage($lesson->stageId()->toRfc4122());
+        $stage = $this->structure->stage($lesson->stageId());
         $group = StructureGroup::ofStage($stage);
         $this->access->requireIn(Action::Read, Resource::Lessons, $group, missing: 'lesson');
         $plan = LessonPlanView::of($lesson);

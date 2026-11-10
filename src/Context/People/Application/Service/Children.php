@@ -18,12 +18,12 @@ final readonly class Children
     ) {
     }
 
-    public function find(string $personId): ?Person
+    public function find(Uuid $personId): ?Person
     {
-        return Uuid::isValid($personId) ? $this->people->find(Uuid::fromString($personId)) : null;
+        return $this->people->find($personId);
     }
 
-    public function active(string $personId): Person
+    public function active(Uuid $personId): Person
     {
         $child = $this->find($personId) ?? throw NotFound::of('person');
 

@@ -13,6 +13,7 @@ use App\Context\People\Application\Service\PeopleExports;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\Privacy\Application\Service\DataRequests;
 use App\Library\Problem\Exception\NotFound;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\Placements;
 use App\Workflow\Privacy\Model\CopyLinkStatus;
@@ -37,7 +38,7 @@ final readonly class ShowDataRequestWorkflow
     {
         $this->access->require(Action::Update, Resource::Users, refusal: 'privacy.adminOnly');
 
-        $request = $this->requests->find($requestId);
+        $request = $this->requests->find(Ids::toUuid($requestId, notFound: 'request'));
         $subject = $request->subject();
         $requests = [$request];
 

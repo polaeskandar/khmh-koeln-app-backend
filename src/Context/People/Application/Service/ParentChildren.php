@@ -44,8 +44,8 @@ final readonly class ParentChildren
      *
      * @return T
      */
-    public function whileKept(string $childId, callable $work): mixed
+    public function whileKept(Uuid $childId, callable $work): mixed
     {
-        return Uuid::isValid($childId) ? $this->people->withShareLock(Uuid::fromString($childId), $work) : $work();
+        return $this->people->withShareLock($childId, $work);
     }
 }

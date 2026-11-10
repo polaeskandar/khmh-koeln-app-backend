@@ -15,12 +15,14 @@ use App\Context\Learning\Domain\ValueObject\OfferedMeeting;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\LessonChoice;
 use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Learning\Model\OfferedMeetings;
 use App\Workflow\Learning\Model\TeamChoices;
 use App\Workflow\Learning\Model\WrittenLesson;
 use App\Workflow\Organization\Model\StructureGroup;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class CreateLessonWorkflow
 {
@@ -37,10 +39,12 @@ final readonly class CreateLessonWorkflow
     {
         $this->access->require(Action::Create, Resource::Lessons, refusal: 'lessons.prepareStageOnly');
 
-        return $this->structure->whileStageKept($stageId, fn (): WrittenLesson => $this->created($stageId, $choice));
+        $id = Ids::toUuid($stageId, notFound: 'stage');
+
+        return $this->structure->whileStageKept($id, fn (): WrittenLesson => $this->created($id, $choice));
     }
 
-    private function created(string $stageId, LessonChoice $choice): WrittenLesson
+    private function created(Uuid $stageId, LessonChoice $choice): WrittenLesson
     {
         $found = $this->structure->stage($stageId);
         $group = StructureGroup::ofStage($found);

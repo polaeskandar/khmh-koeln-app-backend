@@ -16,11 +16,13 @@ use App\Context\People\Application\Service\ChildChoices;
 use App\Context\People\Application\Service\Guardianship;
 use App\Context\People\Domain\Entity\Person;
 use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Identity\Model\AccountSummary;
 use App\Workflow\Identity\Model\ApprovalChoice;
 use App\Workflow\Organization\Model\StructureGroup;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class ApproveAccountRequestWorkflow
 {
@@ -39,7 +41,8 @@ final readonly class ApproveAccountRequestWorkflow
     {
         $this->access->require(Action::Update, Resource::Users, refusal: 'accounts.adminOnly');
         $this->access->require(Action::Update, Resource::Roles, refusal: 'accounts.adminOnly');
-        $this->approvals->ensurePending($id);
+        $accountId = Ids::toUuid($id, notFound: 'user');
+        $this->approvals->ensurePending($accountId);
 
         InvalidInput::all(
             fn (): ReadableCollection => $this->rolesOf($choice),
@@ -47,20 +50,24 @@ final readonly class ApproveAccountRequestWorkflow
             fn (): ReadableCollection => $this->groupsOf($choice),
         );
 
+        $approved = $this->approved($accountId, Uuid::fromString($actorId), $choice);
+        $this->approvals->announce($approved);
+
+        return AccountSummary::of($approved);
+    }
+
+    private function approved(Uuid $accountId, Uuid $actor, ApprovalChoice $choice): User
+    {
         $children = $this->childrenOf($choice);
         $groups = $this->groupsOf($choice);
         $this->access->requireAssigningIn(...$groups->map(StructureGroup::ofPlacement(...))->getValues());
 
-        $approved = $this->approvals->approve($id, $actorId, $this->rolesOf($choice), fn (User $user) => $this->settle(
+        return $this->approvals->approve($accountId, $actor, $this->rolesOf($choice), fn (User $user) => $this->settle(
             $user,
             $children,
             $groups,
-            $actorId,
+            $actor,
         ));
-
-        $this->approvals->announce($approved);
-
-        return AccountSummary::of($approved);
     }
 
     /**
@@ -95,10 +102,10 @@ final readonly class ApproveAccountRequestWorkflow
      * @param ReadableCollection<int, Person> $children
      * @param ReadableCollection<int, ChosenPlacement> $groups
      */
-    private function settle(User $user, ReadableCollection $children, ReadableCollection $groups, string $actorId): void
+    private function settle(User $user, ReadableCollection $children, ReadableCollection $groups, Uuid $actor): void
     {
         foreach ($children as $child) {
-            $this->guardianship->linkParent($user->id(), $child, approvedBy: $actorId);
+            $this->guardianship->linkParent($user->id(), $child, approvedBy: $actor);
         }
 
         $this->assignments->settle($user->id(), $groups);

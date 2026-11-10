@@ -12,6 +12,7 @@ use App\Context\People\Application\Service\MembershipMoves;
 use App\Context\People\Application\Service\PersonGroups;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\ValueObject\Placement;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\StructureGroup;
 use App\Workflow\People\Model\AddedMembership;
 
@@ -28,10 +29,10 @@ final readonly class MoveMembershipWorkflow
     {
         $this->access->require(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
 
-        return $this->moves->whileMovable($membershipId, fn (Membership $membership): AddedMembership => $this->moved(
-            $membership,
-            $stageId,
-        ));
+        return $this->moves->whileMovable(
+            Ids::toUuid($membershipId, notFound: 'membership'),
+            fn (Membership $membership): AddedMembership => $this->moved($membership, $stageId),
+        );
     }
 
     private function moved(Membership $membership, ?string $stageId): AddedMembership

@@ -13,6 +13,7 @@ use App\Context\Learning\Application\Service\PupilHomework;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\ValueObject\CompletionOutcome;
 use App\Context\People\Application\Service\ParentChildren;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\ReportResult;
 use App\Workflow\Learning\Model\VisibleHomework;
 use Symfony\Component\Uid\Uuid;
@@ -33,22 +34,31 @@ final readonly class ReportHomeworkDoneWorkflow
         $this->access->require(Action::Read, Resource::ParentPortal);
 
         $viewer = Uuid::fromString($viewerId);
+        $child = Ids::toUuid($childId, notFound: 'person');
 
-        $outcome = $this->families->whileKept($childId, fn (): CompletionOutcome => $this->completions->whileLocked(
-            $homeworkId,
-            fn (HomeworkAssignment $task): CompletionOutcome => $this->reported($viewer, $childId, $task),
-            fn (): never => $this->visibleTo($viewer)->missingTask($childId),
+        $outcome = $this->families->whileKept($child, fn (): CompletionOutcome => $this->reportedOnLockedTask(
+            $viewer,
+            $child,
+            Ids::toUuidOrNull($homeworkId),
         ));
 
         return ReportResult::of($outcome, $this->accounts->account($outcome->completedBy), $viewer);
     }
 
-    private function reported(Uuid $viewer, string $childId, HomeworkAssignment $task): CompletionOutcome
+    private function reportedOnLockedTask(Uuid $viewer, Uuid $child, ?Uuid $homeworkId): CompletionOutcome
+    {
+        $report = fn (HomeworkAssignment $task): CompletionOutcome => $this->reported($viewer, $child, $task);
+        $reported = $this->completions->whileLocked($homeworkId, $report);
+
+        return $reported ?? $this->visibleTo($viewer)->missingTask($child);
+    }
+
+    private function reported(Uuid $viewer, Uuid $child, HomeworkAssignment $task): CompletionOutcome
     {
         $visible = $this->visibleTo($viewer);
-        $shown = $visible->requireTask($childId, $task->id()->toRfc4122());
+        $shown = $visible->requireTask($child, $task->id());
 
-        return $this->completions->report($shown, $visible->requireChild($childId)->child->id(), by: $viewer);
+        return $this->completions->report($shown, $visible->requireChild($child)->child->id(), by: $viewer);
     }
 
     private function visibleTo(Uuid $viewer): VisibleHomework

@@ -11,10 +11,10 @@ use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\ValueObject\Family;
 use App\Library\Problem\Exception\NotFound;
-use App\Library\Strings\Model\InputText;
 use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class VisibleHomework
 {
@@ -50,34 +50,29 @@ final readonly class VisibleHomework
         return new self($family->today, ChildHomeworks::of($family, $tasks));
     }
 
-    public function of(string $childId): ?ChildHomework
+    public function of(Uuid $childId): ?ChildHomework
     {
-        $id = InputText::of($childId)->lowered()->toString();
-
         $matching = new ArrayCollection($this->children)->filter(
-            static fn (ChildHomework $child): bool => $child->child->id()->toRfc4122() === $id,
+            static fn (ChildHomework $child): bool => $child->child->id()->equals($childId),
         );
 
         return $matching->getValues()[0] ?? null;
     }
 
-    public function requireChild(string $childId): ChildHomework
+    public function requireChild(Uuid $childId): ChildHomework
     {
         return $this->of($childId) ?? throw NotFound::of('person');
     }
 
-    public function requireTask(string $childId, string $homeworkId): VisibleTask
+    public function requireTask(Uuid $childId, ?Uuid $homeworkId): VisibleTask
     {
-        $id = InputText::of($homeworkId)->lowered()->toString();
+        $tasks = $this->requireChild($childId)->tasks;
+        $task = $homeworkId === null ? null : $tasks->task($homeworkId);
 
-        $matching = new ArrayCollection($this->requireChild($childId)->tasks->tasks)->filter(
-            static fn (VisibleTask $visible): bool => $visible->task->id()->toRfc4122() === $id,
-        );
-
-        return $matching->getValues()[0] ?? throw NotFound::coded('homework.notAvailable');
+        return $task ?? throw NotFound::coded('homework.notAvailable');
     }
 
-    public function missingTask(string $childId): never
+    public function missingTask(Uuid $childId): never
     {
         $this->requireChild($childId);
 

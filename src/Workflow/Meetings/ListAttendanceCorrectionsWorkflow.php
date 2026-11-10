@@ -12,6 +12,7 @@ use App\Context\Meetings\Application\Service\AttendanceMarks;
 use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\People\Application\Service\Attendees;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Identity\Model\AccountReferences;
 use App\Workflow\Meetings\Model\Correction;
 use App\Workflow\Meetings\Model\Corrections;
@@ -34,7 +35,7 @@ final readonly class ListAttendanceCorrectionsWorkflow
     {
         $this->access->require(Action::Read, Resource::Attendance);
 
-        $session = $this->sessions->find($sessionId);
+        $session = $this->sessions->find(Ids::toUuid($sessionId, notFound: 'session'));
         $group = CoveredSchedules::groupOfSession($session);
         $this->access->requireIn(Action::Read, Resource::Attendance, $group, missing: 'session');
         $removed = $this->marks->removedOf($session->id());

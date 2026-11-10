@@ -12,6 +12,7 @@ use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\MemberRecords;
 use App\Workflow\Meetings\Model\MemberMeetingList;
 use App\Workflow\People\Model\MemberRoster;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class ListMemberMeetingsWorkflow
 {
@@ -27,7 +28,7 @@ final readonly class ListMemberMeetingsWorkflow
 
     public function __invoke(string $viewerId): MemberMeetingList
     {
-        $record = $this->records->ownRecord($this->member->require($viewerId));
+        $record = $this->records->ownRecord($this->member->require(Uuid::fromString($viewerId)));
 
         $roster = MemberRoster::of(
             $record,

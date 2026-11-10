@@ -23,11 +23,9 @@ final readonly class LessonArchives
     ) {
     }
 
-    public function find(string $id): Lesson
+    public function find(Uuid $id): Lesson
     {
-        $lesson = Uuid::isValid($id) ? $this->lessons->find(Uuid::fromString($id)) : null;
-
-        return $lesson ?? throw NotFound::of('lesson');
+        return $this->lessons->find($id) ?? throw NotFound::of('lesson');
     }
 
     public function archive(Lesson $lesson): ArchivedLesson

@@ -36,11 +36,9 @@ final readonly class ParentAccounts
         return $account->status()->isActive() ? $account : throw new RuleViolation('guardians.accountInactive');
     }
 
-    public function active(string $id): User
+    public function active(Uuid $id): User
     {
-        $account = (Uuid::isValid($id) ? $this->users->find(Uuid::fromString($id)) : null) ?? throw NotFound::of(
-            'user',
-        );
+        $account = $this->users->find($id) ?? throw NotFound::of('user');
 
         return $account->status()->isActive() ? $account : throw new RuleViolation('guardians.accountInactive');
     }

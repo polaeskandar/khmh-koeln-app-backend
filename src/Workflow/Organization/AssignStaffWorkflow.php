@@ -9,6 +9,7 @@ use App\Context\Identity\Application\Service\ServingAccounts;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Organization\Application\Service\AssignmentChanges;
 use App\Context\Organization\Application\Service\PlacementChoices;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\AssignmentView;
 use App\Workflow\Organization\Model\StructureGroup;
 
@@ -26,7 +27,7 @@ final readonly class AssignStaffWorkflow
     {
         $this->access->requireAssigning();
 
-        $account = $this->accounts->found($accountId);
+        $account = $this->accounts->found(Ids::toUuid($accountId, notFound: 'user'));
 
         return $this->placements->whileKept([$serviceId], fn (): AssignmentView => $this->assigned(
             $account,

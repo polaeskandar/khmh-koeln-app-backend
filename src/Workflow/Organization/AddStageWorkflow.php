@@ -9,6 +9,7 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\StageDetails;
 use App\Workflow\Organization\Model\StructureGroup;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -26,10 +27,11 @@ final readonly class AddStageWorkflow
     {
         $this->access->require(Action::Create, Resource::Stages);
 
-        $group = StructureGroup::ofService($this->services->find($serviceId));
+        $service = $this->services->find(Ids::toUuid($serviceId, notFound: 'service'));
+        $group = StructureGroup::ofService($service);
         $this->access->requireIn(Action::Create, Resource::Stages, $group, missing: 'service');
 
-        $stage = $this->stages->add($serviceId, $name, $description);
+        $stage = $this->stages->add($service->id(), $name, $description);
 
         return StageDetails::of($stage, new ArrayCollection());
     }

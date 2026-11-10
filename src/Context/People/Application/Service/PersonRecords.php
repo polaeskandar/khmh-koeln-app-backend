@@ -55,10 +55,9 @@ final readonly class PersonRecords
         return new Enrolment($person, $membership);
     }
 
-    public function rename(string $id, ?string $firstName, ?string $lastName, ?string $displayName): Person
+    public function rename(Uuid $id, ?string $firstName, ?string $lastName, ?string $displayName): Person
     {
-        $person = Uuid::isValid($id) ? $this->people->find(Uuid::fromString($id)) : null;
-        $found = $person ?? throw NotFound::of('person');
+        $found = $this->people->find($id) ?? throw NotFound::of('person');
 
         $found->rename($this->nameOf($firstName, $lastName, $displayName));
 

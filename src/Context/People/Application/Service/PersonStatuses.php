@@ -10,7 +10,6 @@ use App\Context\People\Domain\Enum\MembershipEnding;
 use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\MembershipRepositoryInterface;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
-use App\Library\Problem\Exception\NotFound;
 use App\Library\Time\Client\Calendar;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
@@ -24,11 +23,9 @@ final readonly class PersonStatuses
     ) {
     }
 
-    public function change(string $personId, PersonStatus $status): Person
+    public function change(Uuid $personId, PersonStatus $status): Person
     {
-        $id = Uuid::isValid($personId) ? Uuid::fromString($personId) : throw NotFound::of('person');
-
-        return $this->people->withWriteLock($id, function (Person $person) use ($status): Person {
+        return $this->people->withWriteLock($personId, function (Person $person) use ($status): Person {
             if ($person->status() !== $status) {
                 $this->changeTo($person, $status);
             }

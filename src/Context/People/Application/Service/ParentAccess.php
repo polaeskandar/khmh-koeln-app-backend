@@ -47,17 +47,15 @@ final readonly class ParentAccess
             ->filter(static fn (Membership $membership): bool => $membership->tenure()->includes($today));
     }
 
-    public function revoke(string $id, string $accountId): void
+    public function revoke(Uuid $id, Uuid $accountId): void
     {
-        $link = (Uuid::isValid($id) ? $this->links->find(Uuid::fromString($id)) : null) ?? throw NotFound::of(
-            'guardian',
-        );
+        $link = $this->links->find($id) ?? throw NotFound::of('guardian');
 
         if ($link->revokedAt() !== null) {
             return;
         }
 
-        $link->revoke($this->calendar->now(), by: Uuid::fromString($accountId));
+        $link->revoke($this->calendar->now(), by: $accountId);
         $this->links->save($link);
     }
 }

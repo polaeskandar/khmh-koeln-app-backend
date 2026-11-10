@@ -9,10 +9,10 @@ use App\Context\People\Domain\Enum\PersonStatus;
 use App\Context\People\Domain\Repository\PersonRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Problem\Model\Ids;
 use App\Library\Strings\Model\Text;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
-use Symfony\Component\Uid\Uuid;
 
 final readonly class ChildChoices
 {
@@ -46,16 +46,11 @@ final readonly class ChildChoices
         }
 
         $children = $this->people
-            ->findByIds(Collections::mapPresent($ids, self::uuidOf(...))->getValues())
+            ->findByIds(Collections::mapPresent($ids, Ids::toUuidOrNull(...))->getValues())
             ->filter(static fn (Person $child): bool => $child->status() === PersonStatus::Active);
 
         return $children->count() === $ids->count()
             ? $children
             : throw InvalidInput::field(self::FIELD, 'accounts.childNotFound');
-    }
-
-    private static function uuidOf(string $id): ?Uuid
-    {
-        return Uuid::isValid($id) ? Uuid::fromString($id) : null;
     }
 }

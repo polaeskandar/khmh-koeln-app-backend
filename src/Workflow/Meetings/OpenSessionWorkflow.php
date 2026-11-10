@@ -13,7 +13,9 @@ use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Application\Service\SessionLifecycle;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Application\Service\ArchiveGuard;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Meetings\Model\SessionState;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class OpenSessionWorkflow
 {
@@ -29,12 +31,13 @@ final readonly class OpenSessionWorkflow
     public function __invoke(string $sessionId, string $accountId): SessionState
     {
         $this->access->require(Action::Create, Resource::Attendance);
-        $group = CoveredSchedules::groupOfSession($this->sessions->find($sessionId));
+        $found = $this->sessions->find(Ids::toUuid($sessionId, notFound: 'session'));
+        $group = CoveredSchedules::groupOfSession($found);
         $this->access->requireIn(Action::Create, Resource::Attendance, $group, missing: 'session');
 
         $session = $this->lifecycle->open(
-            $sessionId,
-            $accountId,
+            $found->id(),
+            Uuid::fromString($accountId),
             ensureOpen: fn (Schedule $schedule) => $this->archive->ensureOpen(
                 $schedule->roster()->serviceId,
                 $schedule->roster()->stageId,

@@ -16,6 +16,7 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\DriverException;
 use Override;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Uid\Uuid;
 
 #[SkipDatabaseRollback]
 final class StageOrderTest extends KernelTestCase
@@ -70,7 +71,7 @@ final class StageOrderTest extends KernelTestCase
         $sqlState = null;
 
         try {
-            $this->order()->reorder($serviceId, array_reverse($this->ids()));
+            $this->order()->reorder(Uuid::fromString($serviceId), array_reverse($this->ids()));
         } catch (DriverException $refused) {
             $sqlState = $refused->getSQLState();
         } finally {

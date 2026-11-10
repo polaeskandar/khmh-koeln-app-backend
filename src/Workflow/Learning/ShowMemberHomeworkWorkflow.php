@@ -10,6 +10,7 @@ use App\Context\Learning\Application\Service\PupilHomework;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\MemberRecords;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\HomeworkLessonView;
 use App\Workflow\Learning\Model\HomeworkTextView;
 use App\Workflow\Learning\Model\MemberHomeworkDetail;
@@ -30,20 +31,21 @@ final readonly class ShowMemberHomeworkWorkflow
 
     public function __invoke(string $viewerId, string $homeworkId): MemberHomeworkDetail
     {
-        $own = $this->ownOf($viewerId);
-        $shown = $own->requireTask($homeworkId);
+        $viewer = Uuid::fromString($viewerId);
+        $own = $this->ownOf($viewer);
+        $shown = $own->requireTask(Ids::toUuidOrNull($homeworkId));
 
         return new MemberHomeworkDetail(
             today: $own->today->toString(),
-            item: $this->itemsOf([$shown], $viewerId)->itemOf($shown),
+            item: $this->itemsOf([$shown], $viewer)->itemOf($shown),
             text: HomeworkTextView::of($shown->task),
             lesson: HomeworkLessonView::of($shown->task->lesson()),
         );
     }
 
-    private function ownOf(string $viewerId): OwnHomework
+    private function ownOf(Uuid $viewer): OwnHomework
     {
-        $record = $this->records->ownRecord($this->member->require($viewerId));
+        $record = $this->records->ownRecord($this->member->require($viewer));
 
         return OwnHomework::of($record, $this->homework->of(OwnHomework::pupilsOf($record)));
     }
@@ -51,12 +53,12 @@ final readonly class ShowMemberHomeworkWorkflow
     /**
      * @param list<VisibleTask> $tasks
      */
-    private function itemsOf(array $tasks, string $viewerId): ParentHomeworkItems
+    private function itemsOf(array $tasks, Uuid $viewer): ParentHomeworkItems
     {
         return ParentHomeworkItems::of(
             $this->structure->stages(ParentHomeworkItems::stageIdsOf($tasks)),
             $this->accounts->accounts(ParentHomeworkItems::reporterIdsOf($tasks)),
-            Uuid::fromString($viewerId),
+            $viewer,
         );
     }
 }

@@ -31,13 +31,13 @@ final readonly class OneOffSessions
     ) {
     }
 
-    public function create(OneOffDraft $draft, string $accountId): Session
+    public function create(OneOffDraft $draft, Uuid $accountId): Session
     {
         $start = $this->momentOf($draft->startsAt, field: 'startsAt');
         $end = $draft->endsAt === null ? null : $this->momentOf($draft->endsAt, field: 'endsAt');
         $slot = OneOffSlot::between($start, $end, $this->calendar->today());
         $schedule = self::scheduleFor($draft, $slot);
-        $actor = Actor::account(Uuid::fromString($accountId));
+        $actor = Actor::account($accountId);
 
         return $this->transactions->run(function () use ($schedule, $slot, $actor): Session {
             $this->schedules->save($schedule);

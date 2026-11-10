@@ -10,6 +10,8 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Application\Service\SessionDetailChanges;
+use App\Library\Problem\Model\Ids;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class RenameSessionWorkflow
 {
@@ -23,9 +25,13 @@ final readonly class RenameSessionWorkflow
     public function __invoke(string $id, string $accountId, ?string $title, ?string $location): string
     {
         $this->access->require(Action::Update, Resource::Sessions);
-        $group = CoveredSchedules::groupOfSession($this->sessions->find($id));
+        $session = $this->sessions->find(Ids::toUuid($id, notFound: 'session'));
+        $group = CoveredSchedules::groupOfSession($session);
         $this->access->requireIn(Action::Update, Resource::Sessions, $group, missing: 'session');
 
-        return $this->details->change($id, $accountId, $title, $location)->id()->toRfc4122();
+        return $this->details
+            ->change($session->id(), Uuid::fromString($accountId), $title, $location)
+            ->id()
+            ->toRfc4122();
     }
 }

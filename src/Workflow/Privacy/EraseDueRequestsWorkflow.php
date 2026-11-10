@@ -78,7 +78,7 @@ final readonly class EraseDueRequestsWorkflow
             return null;
         }
 
-        return PersonErasureCounts::of($this->people->erase($personId->toRfc4122(), $this->groupOf(...)));
+        return PersonErasureCounts::of($this->people->erase($personId, $this->groupOf(...)));
     }
 
     private function accountCounts(?Uuid $accountId): ?ErasureCounts

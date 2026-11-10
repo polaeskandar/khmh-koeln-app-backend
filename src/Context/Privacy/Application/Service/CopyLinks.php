@@ -35,12 +35,12 @@ final readonly class CopyLinks
     ) {
     }
 
-    public function subjectOf(string $requestId): CopyableSubject
+    public function subjectOf(Uuid $requestId): CopyableSubject
     {
         return CopyableSubject::of($this->request($requestId));
     }
 
-    public function issue(string $requestId, ?Uuid $recipientId): IssuedCopyLink
+    public function issue(Uuid $requestId, ?Uuid $recipientId): IssuedCopyLink
     {
         $request = $this->request($requestId);
         CopyableSubject::of($request);
@@ -68,10 +68,8 @@ final readonly class CopyLinks
         });
     }
 
-    private function request(string $id): DataRequest
+    private function request(Uuid $id): DataRequest
     {
-        $request = Uuid::isValid($id) ? $this->requests->find(Uuid::fromString($id)) : null;
-
-        return $request ?? throw NotFound::of('request');
+        return $this->requests->find($id) ?? throw NotFound::of('request');
     }
 }

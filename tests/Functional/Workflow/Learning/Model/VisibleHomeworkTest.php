@@ -125,12 +125,11 @@ final class VisibleHomeworkTest extends KernelTestCase
 
         $visible = $this->visibleTo($parent, self::TODAY);
 
-        self::assertNull($visible->of($theirs->id()->toRfc4122()));
-        self::assertNull($visible->of('not-a-uuid'));
-        self::assertSame($task, $visible->requireTask($mina->id()->toRfc4122(), $task->id()->toRfc4122())->task);
+        self::assertNull($visible->of($theirs->id()));
+        self::assertSame($task, $visible->requireTask($mina->id(), $task->id())->task);
 
         $this->expectExceptionObject(NotFound::coded('homework.notAvailable'));
-        $visible->requireTask($mina->id()->toRfc4122(), Uuid::v7()->toRfc4122());
+        $visible->requireTask($mina->id(), Uuid::v7());
     }
 
     public function testMoreChildrenAndTasksCostNoMoreStatements(): void

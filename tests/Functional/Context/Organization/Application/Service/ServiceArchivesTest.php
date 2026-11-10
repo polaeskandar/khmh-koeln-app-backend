@@ -56,7 +56,7 @@ final class ServiceArchivesTest extends KernelTestCase
         $sqlState = null;
 
         $this->archives()->archive(
-            $this->service?->id()->toRfc4122() ?? throw new LogicException('The service is set up.'),
+            $this->service?->id() ?? throw new LogicException('The service is set up.'),
             pause: function (Service $service) use ($other, $sessionId, &$sqlState): bool {
                 $paused = $this->pauses()->pauseService($service->id());
 

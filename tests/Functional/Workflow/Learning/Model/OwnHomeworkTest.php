@@ -128,7 +128,7 @@ final class OwnHomeworkTest extends KernelTestCase
         $asParent = VisibleHomework::forFamily(
             $family,
             self::service(PupilHomework::class)->of(VisibleHomework::pupilsOf($family)),
-        )->of($youssef->id()->toRfc4122());
+        )->of($youssef->id());
 
         $own = $this->own($youssef)->homework;
 
@@ -146,8 +146,8 @@ final class OwnHomeworkTest extends KernelTestCase
      */
     private function audienceOf(HomeworkAssignment $task): array
     {
-        $reports = self::service(HomeworkReports::class)->reading($task->id()->toRfc4122())->reports;
-        $stage = self::service(StructureLookup::class)->stage($task->stageId()->toRfc4122());
+        $reports = self::service(HomeworkReports::class)->reading($task->id())->reports;
+        $stage = self::service(StructureLookup::class)->stage($task->stageId());
         $key = AudienceKeys::keyOf($stage, $reports->today);
         $book = self::service(StageRosters::class)->on([$key], $reports->reporterIds());
 

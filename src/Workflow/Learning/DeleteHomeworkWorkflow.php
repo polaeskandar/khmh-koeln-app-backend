@@ -11,6 +11,7 @@ use App\Context\Learning\Application\Service\HomeworkLifecycle;
 use App\Context\Learning\Application\Service\HomeworkWrites;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Organization\Model\StructureGroup;
 
@@ -28,12 +29,12 @@ final readonly class DeleteHomeworkWorkflow
     {
         $this->access->require(Action::Update, Resource::Homework, refusal: 'homework.changeStageOnly');
 
-        $this->homework->locked($id, $this->deleted(...));
+        $this->homework->locked(Ids::toUuid($id, notFound: 'homework'), $this->deleted(...));
     }
 
     private function deleted(HomeworkAssignment $task): HomeworkAssignment
     {
-        $stage = $this->structure->stage($task->stageId()->toRfc4122());
+        $stage = $this->structure->stage($task->stageId());
 
         $this->access->requireIn(
             Action::Update,

@@ -19,7 +19,7 @@ final class StageArchivesTest extends KernelTestCase
 
         $this->expectExceptionObject(new RuleViolation('stages.alreadyArchived', ['name' => '3rd Class']));
 
-        $this->archives()->archive($stage->id()->toRfc4122(), pause: static fn (): bool => true);
+        $this->archives()->archive($stage->id(), pause: static fn (): bool => true);
     }
 
     public function testARestoreReadsTheStageAgainOnceTheServiceIsLocked(): void
@@ -32,7 +32,7 @@ final class StageArchivesTest extends KernelTestCase
 
         $this->expectExceptionObject(new RuleViolation('stages.notArchived', ['name' => '3rd Class']));
 
-        $this->archives()->restore($stage->id()->toRfc4122());
+        $this->archives()->restore($stage->id());
     }
 
     private function stageArchivedElsewhere(string $archivedAt): Stage

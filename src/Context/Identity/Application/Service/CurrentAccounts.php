@@ -22,18 +22,16 @@ final readonly class CurrentAccounts
     ) {
     }
 
-    public function find(string $userId): User
+    public function find(Uuid $userId): User
     {
-        return $this->users->find(Uuid::fromString($userId)) ?? throw NotFound::of('account');
+        return $this->users->find($userId) ?? throw NotFound::of('account');
     }
 
-    public function changeLanguage(string $userId, string $language): void
+    public function changeLanguage(Uuid $userId, string $language): void
     {
         $chosen = Language::tryFrom($language) ?? throw InvalidInput::field('language', 'validation.invalidType');
 
-        $this->users->withWriteLock(Uuid::fromString($userId), static fn (User $user) => $user->changeLanguage(
-            $chosen,
-        ));
+        $this->users->withWriteLock($userId, static fn (User $user) => $user->changeLanguage($chosen));
     }
 
     /**

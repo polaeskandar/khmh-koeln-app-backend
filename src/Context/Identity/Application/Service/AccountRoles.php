@@ -25,10 +25,14 @@ final readonly class AccountRoles
     ) {
     }
 
-    public function give(string $accountId, string $roleId): Role
+    public function give(Uuid $accountId, ?Uuid $roleId): Role
     {
         $user = $this->account($accountId);
-        $role = $this->role($roleId) ?? throw InvalidInput::field('roleId', 'roles.unknown');
+
+        $role = ($roleId === null ? null : $this->role($roleId)) ?? throw InvalidInput::field(
+            'roleId',
+            'roles.unknown',
+        );
 
         RoleChange::ensureGivable($user, $role);
         $user->assign($role);
@@ -37,12 +41,12 @@ final readonly class AccountRoles
         return $role;
     }
 
-    public function take(string $accountId, string $roleId, string $actorId): void
+    public function take(Uuid $accountId, Uuid $roleId, Uuid $actorId): void
     {
         $this->administration->whileLocked(function () use ($accountId, $roleId, $actorId): void {
             $user = $this->account($accountId);
             $role = $this->role($roleId) ?? throw NotFound::of('role');
-            OwnAdministration::ensureKept($user, $role, Uuid::fromString($actorId));
+            OwnAdministration::ensureKept($user, $role, $actorId);
 
             if ($this->lastAdministrator->wouldLoseIt($user, $role)) {
                 throw new RuleViolation('roles.lastAdministrator');
@@ -54,17 +58,13 @@ final readonly class AccountRoles
         });
     }
 
-    private function account(string $id): User
+    private function account(Uuid $id): User
     {
-        $user = Uuid::isValid($id) ? $this->users->find(Uuid::fromString($id)) : null;
-
-        return $user ?? throw NotFound::of('user');
+        return $this->users->find($id) ?? throw NotFound::of('user');
     }
 
-    private function role(string $id): ?Role
+    private function role(Uuid $id): ?Role
     {
-        $roles = Uuid::isValid($id) ? $this->roles->findByIds([Uuid::fromString($id)])->getValues() : [];
-
-        return $roles[0] ?? null;
+        return $this->roles->findByIds([$id])->getValues()[0] ?? null;
     }
 }

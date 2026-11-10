@@ -12,6 +12,7 @@ use App\Context\Organization\Application\Service\ChurchServices;
 use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\Rosters;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\StageList;
 use App\Workflow\Organization\Model\StructureGroup;
 use Symfony\Component\Uid\Uuid;
@@ -31,7 +32,7 @@ final readonly class ListStagesWorkflow
     {
         $scope = $this->access->scope(Action::Read, Resource::Services);
 
-        $service = $this->services->find($serviceId);
+        $service = $this->services->find(Ids::toUuid($serviceId, notFound: 'service'));
         $this->access->requireReaching(Action::Read, Resource::Services, $service->id(), missing: 'service');
 
         $stages = $scope->filter($this->stages->ofService($service), StructureGroup::ofStage(...));

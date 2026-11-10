@@ -8,8 +8,8 @@ use App\Context\Identity\Domain\Entity\User;
 use App\Context\Learning\Domain\ValueObject\HelperChoice;
 use App\Context\Learning\Domain\ValueObject\TeamChoice;
 use App\Library\Collections\Model\Collections;
+use App\Library\Problem\Model\Ids;
 use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Component\Uid\Uuid;
 
 final readonly class TeamChoices
 {
@@ -22,7 +22,7 @@ final readonly class TeamChoices
 
         $helpers = Collections::mapPresent(
             new ArrayCollection($choice->details->collaboratorIds),
-            static fn (string $id): ?string => Uuid::isValid($id) ? Uuid::fromString($id)->toRfc4122() : null,
+            static fn (string $id): ?string => Ids::toUuidOrNull($id)?->toRfc4122(),
         );
 
         return new TeamChoice(

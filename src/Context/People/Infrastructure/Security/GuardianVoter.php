@@ -6,6 +6,7 @@ namespace App\Context\People\Infrastructure\Security;
 
 use App\Context\People\Application\Service\Guardianship;
 use App\Context\People\Domain\Entity\Person;
+use App\Library\Problem\Model\Ids;
 use App\Library\Strings\Model\Text;
 use Doctrine\Common\Collections\ArrayCollection;
 use Override;
@@ -37,9 +38,16 @@ final readonly class GuardianVoter implements VoterInterface
             return self::ACCESS_ABSTAIN;
         }
 
-        $granted = $this->guardianship->isGuardianOf($token->getUserIdentifier(), $subject);
+        $granted = $this->isGuardian($token->getUserIdentifier(), $subject);
         $vote?->addReason(Text::format('Approved guardian link: %s.', $granted ? 'yes' : 'no')->toString());
 
         return $granted ? self::ACCESS_GRANTED : self::ACCESS_DENIED;
+    }
+
+    private function isGuardian(string $userIdentifier, Person $child): bool
+    {
+        $accountId = Ids::toUuidOrNull($userIdentifier);
+
+        return $accountId !== null && $this->guardianship->isGuardianOf($accountId, $child);
     }
 }

@@ -13,6 +13,7 @@ use App\Context\People\Application\Service\ParentAccess;
 use App\Context\People\Application\Service\ParentGrants;
 use App\Context\People\Domain\Entity\GuardianRelationship;
 use App\Context\People\Domain\ValueObject\AccessGrant;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\ParentAccessItem;
 use App\Workflow\People\Model\ParentAccessItems;
@@ -40,8 +41,8 @@ final readonly class GiveParentAccessWorkflow
     ): ParentAccessItem {
         $this->access->require(Action::Update, Resource::Users, refusal: 'guardians.adminOnlyGrant');
 
-        $parent = $this->accounts->active($userId);
-        $child = $this->grants->child($personId);
+        $parent = $this->accounts->active(Ids::toUuid($userId, notFound: 'user'));
+        $child = $this->grants->child(Ids::toUuid($personId, notFound: 'person'));
         $grant = new AccessGrant($parent->id(), $parent->profile()->displayName->value, $relationship, $approvedBy);
 
         $link = $this->grants->grant($grant, $child, alongside: fn () => $this->accounts->giveParentRole($parent));

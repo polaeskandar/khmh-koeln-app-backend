@@ -9,6 +9,7 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\LessonArchives;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\LessonArchiveState;
 use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Organization\Model\StructureGroup;
@@ -26,8 +27,8 @@ final readonly class ArchiveLessonWorkflow
     {
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.changeStageOnly');
 
-        $lesson = $this->archives->find($id);
-        $stage = $this->structure->stage($lesson->stageId()->toRfc4122());
+        $lesson = $this->archives->find(Ids::toUuid($id, notFound: 'lesson'));
+        $stage = $this->structure->stage($lesson->stageId());
         $this->access->requireIn(Action::Update, Resource::Lessons, StructureGroup::ofStage($stage), missing: 'lesson');
         LessonStages::opened($stage);
 

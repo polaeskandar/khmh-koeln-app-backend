@@ -10,6 +10,7 @@ use App\Context\Identity\Application\Service\DataCopyMails;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Privacy\Application\Service\CopyLinks;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Privacy\Model\IssuedCopyLinkView;
 
 final readonly class IssueCopyLinkWorkflow
@@ -26,9 +27,10 @@ final readonly class IssueCopyLinkWorkflow
     {
         $this->access->require(Action::Update, Resource::Users, refusal: 'privacy.adminOnly');
 
-        $subject = $this->links->subjectOf($requestId);
+        $id = Ids::toUuid($requestId, notFound: 'request');
+        $subject = $this->links->subjectOf($id);
         $recipient = $this->accounts->accountOrHolder($subject->accountId, $subject->personId);
-        $issued = $this->links->issue($requestId, $recipient?->id());
+        $issued = $this->links->issue($id, $recipient?->id());
 
         return new IssuedCopyLinkView(
             $this->mails->deliver($recipient, $issued->token, $issued->expiresAt),

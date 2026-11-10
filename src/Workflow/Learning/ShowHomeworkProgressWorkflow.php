@@ -13,6 +13,7 @@ use App\Context\Learning\Domain\ValueObject\HomeworkReading;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\StageRosters;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\Learning\Model\AlphabeticalRows;
 use App\Workflow\Learning\Model\AudienceAccounts;
 use App\Workflow\Learning\Model\AudienceKeys;
@@ -39,9 +40,9 @@ final readonly class ShowHomeworkProgressWorkflow
     {
         $this->access->require(Action::Read, Resource::Members);
 
-        $reading = $this->homework->reading($id);
+        $reading = $this->homework->reading(Ids::toUuid($id, notFound: 'homework'));
         $task = $reading->task;
-        $stage = $this->structure->stage($task->stageId()->toRfc4122());
+        $stage = $this->structure->stage($task->stageId());
         $this->access->requireIn(Action::Read, Resource::Members, StructureGroup::ofStage($stage), missing: 'homework');
         $audiences = $this->audiencesOf($reading, $stage);
 

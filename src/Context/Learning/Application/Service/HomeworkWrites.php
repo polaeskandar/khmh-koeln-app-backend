@@ -22,19 +22,18 @@ final readonly class HomeworkWrites
     ) {
     }
 
-    public function lessonToAssign(string $lessonId): Lesson
+    public function lessonToAssign(Uuid $lessonId): Lesson
     {
-        $lesson = Uuid::isValid($lessonId) ? $this->lessons->find(Uuid::fromString($lessonId)) : null;
-        $found = $lesson ?? throw NotFound::of('lesson');
+        $found = $this->lessons->find($lessonId) ?? throw NotFound::of('lesson');
         $found->state()->ensureEditable();
 
         return $found;
     }
 
-    public function create(Lesson $lesson, HomeworkDraft $draft, string $accountId): HomeworkAssignment
+    public function create(Lesson $lesson, HomeworkDraft $draft, Uuid $accountId): HomeworkAssignment
     {
         $content = $draft->contentFor($lesson, storedDueDate: null);
-        $task = new HomeworkAssignment($lesson, $content->text, $content->resources, Uuid::fromString($accountId));
+        $task = new HomeworkAssignment($lesson, $content->text, $content->resources, $accountId);
         $this->homework->save($task);
 
         return $task;
@@ -47,7 +46,7 @@ final readonly class HomeworkWrites
      *
      * @return T
      */
-    public function whileEditable(string $id, ?int $version, callable $work): object
+    public function whileEditable(Uuid $id, ?int $version, callable $work): object
     {
         return $this->locked($id, function (HomeworkAssignment $task) use ($version, $work): object {
             $this->versions->ensureCurrent($task, $version, 'homework.changedMeanwhile');
@@ -65,11 +64,9 @@ final readonly class HomeworkWrites
      *
      * @return T
      */
-    public function locked(string $id, callable $work): object
+    public function locked(Uuid $id, callable $work): object
     {
-        $taskId = Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('homework');
-
-        return $this->homework->withLock($taskId, $work);
+        return $this->homework->withLock($id, $work) ?? throw NotFound::of('homework');
     }
 
     public function edit(HomeworkAssignment $task, HomeworkDraft $draft): HomeworkAssignment

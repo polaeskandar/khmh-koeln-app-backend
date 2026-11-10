@@ -15,6 +15,7 @@ use App\Platform\Access\Model\GroupScope;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use LogicException;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class ScheduleOutlooks
 {
@@ -31,8 +32,8 @@ final readonly class ScheduleOutlooks
      * @return list<ScheduleOutlook>
      */
     public function listed(
-        ?string $serviceId,
-        ?string $stageId,
+        ?Uuid $serviceId,
+        ?Uuid $stageId,
         ArchivedStructure $archived,
         LocalDate $today,
         GroupScope $scope,
@@ -42,7 +43,7 @@ final readonly class ScheduleOutlooks
         return $this->outlooksOf($schedules, $archived, $today);
     }
 
-    public function found(string $id, ArchivedStructure $archived, LocalDate $today): ScheduleOutlook
+    public function found(Uuid $id, ArchivedStructure $archived, LocalDate $today): ScheduleOutlook
     {
         $schedules = new ArrayCollection([$this->schedules->find($id)]);
         $outlook = new ArrayCollection($this->outlooksOf($schedules, $archived, $today))->first();

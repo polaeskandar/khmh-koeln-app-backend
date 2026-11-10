@@ -42,9 +42,9 @@ final readonly class MemberRecords
      *
      * @return T
      */
-    public function whileLinkable(string $personId, callable $work): mixed
+    public function whileLinkable(?Uuid $personId, callable $work): mixed
     {
-        $id = Uuid::isValid($personId) ? Uuid::fromString($personId) : throw self::notFound();
+        $id = $personId ?? throw self::notFound();
 
         return $this->people->withShareLock($id, function () use ($id, $work): mixed {
             $person = $this->people->find($id);

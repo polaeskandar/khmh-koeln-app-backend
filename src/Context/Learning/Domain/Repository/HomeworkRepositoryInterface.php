@@ -39,7 +39,7 @@ interface HomeworkRepositoryInterface
      *
      * @param callable(HomeworkAssignment): T $work
      *
-     * @return T
+     * @return T|null null when no such task exists
      */
-    public function withLock(Uuid $id, callable $work): object;
+    public function withLock(Uuid $id, callable $work): ?object;
 }

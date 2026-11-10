@@ -29,9 +29,9 @@ final readonly class ParentGrants
     ) {
     }
 
-    public function child(string $personId): Person
+    public function child(Uuid $personId): Person
     {
-        $child = Uuid::isValid($personId) ? $this->people->find(Uuid::fromString($personId)) : null;
+        $child = $this->people->find($personId);
 
         if ($child === null) {
             throw NotFound::of('person');

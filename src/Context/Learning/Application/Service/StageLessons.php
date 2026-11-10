@@ -54,11 +54,9 @@ final readonly class StageLessons
         );
     }
 
-    public function reading(string $id): LessonReading
+    public function reading(Uuid $id): LessonReading
     {
-        $lesson = (Uuid::isValid($id) ? $this->lessons->find(Uuid::fromString($id)) : null) ?? throw NotFound::of(
-            'lesson',
-        );
+        $lesson = $this->lessons->find($id) ?? throw NotFound::of('lesson');
 
         $counts = $this->homework->countsByLesson([$lesson->id()])->get($lesson->id()->toRfc4122());
 

@@ -9,6 +9,7 @@ use App\Library\Problem\Exception\NotFound;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Uid\Uuid;
 
 final class ServiceStagesTest extends KernelTestCase
 {
@@ -17,10 +18,10 @@ final class ServiceStagesTest extends KernelTestCase
         $service = Structure::service('Sunday School');
         $stage = Structure::stage($service, '1st Class');
         $this->database()->persisted($service, $stage);
-        $id = $stage->id()->toRfc4122();
+        $id = $stage->id();
 
         $this->database()->entityManager()->clear();
-        $this->database()->connection()->update('organization.stage', ['position' => 4], ['id' => $id]);
+        $this->database()->connection()->update('organization.stage', ['position' => 4], ['id' => $id->toRfc4122()]);
 
         $edited = $this->stages()->edit($id, 'First Class', description: 'Ages six and seven');
 
@@ -34,7 +35,7 @@ final class ServiceStagesTest extends KernelTestCase
         $service = Structure::service('Sunday School');
         $stage = Structure::stage($service, '1st Class');
         $this->database()->persisted($service, $stage);
-        $id = $stage->id()->toRfc4122();
+        $id = $stage->id();
 
         self::assertSame(
             'Ages six and seven',
@@ -44,18 +45,18 @@ final class ServiceStagesTest extends KernelTestCase
         self::assertNull($this->stages()->edit($id, '1st Class', description: null)->description()->value);
     }
 
-    public function testAMalformedIdIsAnUnknownStageOrService(): void
+    public function testAnUnknownIdIsAnUnknownStage(): void
     {
         $this->expectExceptionObject(NotFound::of('stage'));
 
-        $this->stages()->edit('not-a-uuid', '1st Class', description: null);
+        $this->stages()->edit(Uuid::v7(), '1st Class', description: null);
     }
 
-    public function testAMalformedServiceIdIsAnUnknownService(): void
+    public function testAnUnknownServiceIdIsAnUnknownService(): void
     {
         $this->expectExceptionObject(NotFound::of('service'));
 
-        $this->stages()->add('not-a-uuid', '1st Class', description: null);
+        $this->stages()->add(Uuid::v7(), '1st Class', description: null);
     }
 
     private function stages(): ServiceStages

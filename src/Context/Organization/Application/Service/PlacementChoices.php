@@ -11,10 +11,10 @@ use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
 use App\Context\Organization\Domain\ValueObject\ChosenPlacement;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Problem\Model\Ids;
 use App\Library\Strings\Model\InputText;
 use App\Library\Strings\Model\NameKey;
 use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Component\Uid\Uuid;
 
 final readonly class PlacementChoices
 {
@@ -36,10 +36,7 @@ final readonly class PlacementChoices
      */
     public function whileKept(array $serviceIds, callable $work): mixed
     {
-        $ids = Collections::mapPresent(
-            new ArrayCollection($serviceIds),
-            static fn (?string $id): ?Uuid => Uuid::isValid($id ?? '') ? Uuid::fromString($id ?? '') : null,
-        );
+        $ids = Collections::mapPresent(new ArrayCollection($serviceIds), Ids::toUuidOrNull(...));
 
         return $this->serviceRecords->withShareLock($ids->getValues(), $work);
     }

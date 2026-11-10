@@ -10,7 +10,6 @@ use App\Context\Meetings\Domain\Enum\SessionEventType;
 use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\Actor;
 use App\Context\Meetings\Domain\ValueObject\SessionPlan;
-use App\Library\Problem\Exception\NotFound;
 use App\Library\Strings\Model\InputText;
 use App\Library\Time\Client\Calendar;
 use Symfony\Component\Uid\Uuid;
@@ -23,13 +22,12 @@ final readonly class SessionDetailChanges
     ) {
     }
 
-    public function change(string $sessionId, string $accountId, ?string $title, ?string $location): Session
+    public function change(Uuid $sessionId, Uuid $accountId, ?string $title, ?string $location): Session
     {
-        $id = Uuid::isValid($sessionId) ? Uuid::fromString($sessionId) : throw NotFound::of('session');
         $name = InputText::of($title)->collapsed()->toString();
         $place = InputText::of($location)->trimmed()->toStringOrNull();
 
-        return $this->sessions->withWriteLock($id, function (Session $session) use (
+        return $this->sessions->withWriteLock($sessionId, function (Session $session) use (
             $accountId,
             $name,
             $place,
@@ -46,9 +44,9 @@ final readonly class SessionDetailChanges
         });
     }
 
-    private function edited(Session $session, string $accountId): void
+    private function edited(Session $session, Uuid $accountId): void
     {
-        $actor = Actor::account(Uuid::fromString($accountId));
+        $actor = Actor::account($accountId);
 
         $this->sessions->append(
             new SessionEvent($session, SessionEventType::Edited, $this->calendar->now(), $actor, null),

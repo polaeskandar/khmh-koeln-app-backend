@@ -9,6 +9,7 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\People\Application\Service\PersonGroups;
 use App\Context\People\Application\Service\PersonRecords;
+use App\Library\Problem\Model\Ids;
 use App\Workflow\People\Model\PersonView;
 
 final readonly class RenamePersonWorkflow
@@ -23,8 +24,9 @@ final readonly class RenamePersonWorkflow
     public function __invoke(string $id, ?string $firstName, ?string $lastName, ?string $displayName): PersonView
     {
         $scope = $this->access->scope(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
-        $this->groups->requireVisible($id, $scope);
+        $personId = Ids::toUuid($id, notFound: 'person');
+        $this->groups->requireVisible($personId, $scope);
 
-        return PersonView::of($this->records->rename($id, $firstName, $lastName, $displayName));
+        return PersonView::of($this->records->rename($personId, $firstName, $lastName, $displayName));
     }
 }

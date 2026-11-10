@@ -23,11 +23,9 @@ final readonly class ChurchServices
     ) {
     }
 
-    public function find(string $id): Service
+    public function find(Uuid $id): Service
     {
-        $service = Uuid::isValid($id) ? $this->services->find(Uuid::fromString($id)) : null;
-
-        return $service ?? throw NotFound::of('service');
+        return $this->services->find($id) ?? throw NotFound::of('service');
     }
 
     public function create(string $name, ?string $description): Service
@@ -46,7 +44,7 @@ final readonly class ChurchServices
         return $service;
     }
 
-    public function edit(string $id, string $name, ?string $description): Service
+    public function edit(Uuid $id, string $name, ?string $description): Service
     {
         $service = $this->find($id);
         self::check($name, $description);
