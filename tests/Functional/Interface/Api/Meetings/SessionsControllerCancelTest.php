@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Interface\Api\Meetings;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Tests\Support\Logs;
@@ -22,7 +23,11 @@ final class SessionsControllerCancelTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         $session = $this->session('2026-11-09', 1);
-        $leader = $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        $leader = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->cancel($session, ['reason' => '  Holiday  ']);
 

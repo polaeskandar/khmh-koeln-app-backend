@@ -20,6 +20,7 @@ use App\Platform\Doctrine\Contract\Transactions;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -42,7 +43,7 @@ final class ErasePersonWorkflowTest extends ApiTestCase
         [$mina, $session] = $this->sessionWith(['Mina'], "status = 'active', opened_at = created_at");
         self::service(ErasePersonWorkflow::class)($mina);
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
         $this->jsonRequest('PUT', '/api/sessions/' . $session->id()->toRfc4122() . '/attendance/' . $mina);
         $this->assertProblem(404, 'notFound.person');
     }

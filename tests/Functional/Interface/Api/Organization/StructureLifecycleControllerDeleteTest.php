@@ -10,6 +10,7 @@ use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -84,7 +85,10 @@ final class StructureLifecycleControllerDeleteTest extends ApiTestCase
             '2026-09-01',
         );
 
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->delete('services', $service->id()->toRfc4122());
         $this->assertProblem(403, 'services.adminOnlyDelete');

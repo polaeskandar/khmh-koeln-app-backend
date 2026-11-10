@@ -13,9 +13,12 @@ use App\Context\Meetings\Domain\ValueObject\OneOffDraft;
 use App\Context\Meetings\Domain\ValueObject\Roster;
 use App\Context\Organization\Application\Service\PlacementChoices;
 use App\Workflow\Meetings\Model\OneOffChoice;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class CreateOneOffSessionWorkflow
 {
+    private const string ROSTER = 'roster.';
+
     public function __construct(
         private AccessCheck $access,
         private PlacementChoices $placements,
@@ -36,7 +39,14 @@ final readonly class CreateOneOffSessionWorkflow
     private function created(OneOffChoice $oneOff, string $accountId): string
     {
         $roster = $oneOff->roster;
-        $chosen = $this->placements->of($roster->serviceId, $roster->stageId, fieldPrefix: 'roster.');
+        $chosen = $this->placements->of($roster->serviceId, $roster->stageId, fieldPrefix: self::ROSTER);
+
+        $this->access->requireChosen(
+            Action::Create,
+            Resource::Sessions,
+            StructureGroup::ofPlacement($chosen),
+            self::ROSTER,
+        );
 
         $draft = new OneOffDraft(
             new Roster($chosen->service->id(), $chosen->stage?->id(), RosterMode::from($roster->mode ?? '')),

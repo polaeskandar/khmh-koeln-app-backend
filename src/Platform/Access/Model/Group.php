@@ -14,13 +14,13 @@ final readonly class Group
     ) {
     }
 
-    public function covers(Uuid $serviceId, ?Uuid $stageId): bool
+    public function covers(self $group): bool
     {
-        if (!$this->serviceId->equals($serviceId)) {
+        if (!$this->serviceId->equals($group->serviceId)) {
             return false;
         }
 
-        return $this->stageId === null || $stageId !== null && $this->stageId->equals($stageId);
+        return $this->stageId === null || $group->stageId !== null && $this->stageId->equals($group->stageId);
     }
 
     public function isServiceWide(): bool

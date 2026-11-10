@@ -33,11 +33,11 @@ final readonly class ListSchedulesWorkflow
 
     public function __invoke(?string $serviceId, ?string $stageId): ScheduleList
     {
-        $this->access->require(Action::Read, Resource::Services);
+        $scope = $this->access->scope(Action::Read, Resource::Services);
 
         $today = $this->calendar->today();
         $archived = ArchivedStructure::of($this->structure->archivedIds());
-        $outlooks = $this->outlooks->listed($serviceId, $stageId, $archived, $today);
+        $outlooks = $this->outlooks->listed($serviceId, $stageId, $archived, $today, $scope);
         $schedules = RosterSizes::schedulesOf($outlooks);
 
         return new ScheduleList($today->toString(), ScheduleSummary::listOf(

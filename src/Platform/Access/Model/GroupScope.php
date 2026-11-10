@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Platform\Access\Model;
 
 use App\Library\Collections\Model\Collections;
-use App\Library\Problem\Exception\NotFound;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -43,11 +42,24 @@ final readonly class GroupScope
         return new self($this->groups?->filter(static fn (Group $group): bool => $group->isServiceWide()));
     }
 
-    public function covers(Uuid $serviceId, ?Uuid $stageId): bool
+    public function covers(Group $group): bool
     {
-        $covering = $this->groups?->filter(static fn (Group $group): bool => $group->covers($serviceId, $stageId));
+        $covering = $this->groups?->filter(static fn (Group $held): bool => $held->covers($group));
 
         return $covering?->isEmpty() !== true;
+    }
+
+    /**
+     * @template T
+     *
+     * @param ReadableCollection<int, T> $items
+     * @param callable(T): Group $groupOf
+     *
+     * @return ReadableCollection<int, T>
+     */
+    public function filter(ReadableCollection $items, callable $groupOf): ReadableCollection
+    {
+        return $items->filter(fn (mixed $item): bool => $this->covers($groupOf($item)));
     }
 
     public function reaches(Uuid $serviceId): bool
@@ -55,15 +67,6 @@ final readonly class GroupScope
         $reaching = $this->groups?->filter(static fn (Group $group): bool => $group->serviceId->equals($serviceId));
 
         return $reaching?->isEmpty() !== true;
-    }
-
-    public function require(Uuid $serviceId, ?Uuid $stageId, string $thing): void
-    {
-        if ($this->covers($serviceId, $stageId)) {
-            return;
-        }
-
-        throw NotFound::of($thing);
     }
 
     /**

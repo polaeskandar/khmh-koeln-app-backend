@@ -9,6 +9,7 @@ use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\AttendanceMarks;
+use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\ValueObject\RecordedMark;
@@ -30,6 +31,8 @@ final readonly class MarkPresentWorkflow
     public function __invoke(string $sessionId, string $personId, string $accountId): MarkResult
     {
         $this->access->require(Action::Create, Resource::Attendance);
+        $group = CoveredSchedules::groupOfSession($this->sessions->find($sessionId));
+        $this->access->requireIn(Action::Create, Resource::Attendance, $group, missing: 'session');
 
         $record = fn (Session $session): RecordedMark => $this->marks->record(
             $session,

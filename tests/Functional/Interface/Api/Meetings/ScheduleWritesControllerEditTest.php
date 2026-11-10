@@ -8,6 +8,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Interface\Api\Meetings\ScheduleBodies;
 use App\Tests\Support\Interface\Api\Meetings\ScheduleRows;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
@@ -134,7 +135,11 @@ final class ScheduleWritesControllerEditTest extends ApiTestCase
 
     private function schedule(Service $service, ?Stage $stage, string $startsOn): string
     {
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
+
         $this->jsonRequest('POST', '/api/schedules', ScheduleBodies::created($service, $stage, $startsOn));
 
         return Type::of($this->responseJson()['id'] ?? null)->toString();

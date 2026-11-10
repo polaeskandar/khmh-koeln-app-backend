@@ -10,6 +10,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\People\Domain\Entity\Person;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -73,7 +74,7 @@ final class ServicesControllerTrendTest extends ApiTestCase
 
         $schedules->session($open, '2026-10-31', "status = 'canceled'");
         $choir = $this->service('Choir');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         self::assertSame(
             ['sessions' => 4, 'rate' => 0.63, 'averagePresent' => 4],
@@ -106,7 +107,7 @@ final class ServicesControllerTrendTest extends ApiTestCase
         $schedules->weekly($archived, 'Old club', 7);
         $archived->archive(Structure::now());
         new Database(self::getContainer())->persisted($archived);
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         self::assertSame(
             ['date' => '2026-11-15', 'startTime' => '18:30', 'stage' => null, 'status' => 'planned'],

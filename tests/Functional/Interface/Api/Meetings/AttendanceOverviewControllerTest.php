@@ -9,6 +9,7 @@ use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -80,7 +81,11 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
         $schedules->session($saturday, '2026-10-17');
         $schedules->session($schedules->weekly($this->service('Choir'), 'Choir', 7), '2026-10-18');
         $schedules->session($schedules->weekly($this->service('Scouts'), 'Scouts', 7), '2026-11-08');
-        $closer = $this->signInWithRoles('servant@example.org', 'servant');
+
+        $closer = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'servant@example.org',
+            'servant',
+        ));
 
         foreach ([
             '2026-09-06',
@@ -141,7 +146,7 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
         }
 
         $schedules->session($club, '2026-10-24', self::closedAt('2026-10-30'));
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/attendance/overview');
 
@@ -159,7 +164,11 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
             $schedules->session($schedules->weekly($service, 'Few ' . $number, 7), '2026-11-08');
         }
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        $servant = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'servant@example.org',
+            'servant',
+        ));
+
         $this->jsonRequest('GET', '/api/attendance/overview');
         $few = count(new Logs(self::getContainer())->containing('SELECT'));
 
@@ -169,6 +178,8 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
                 '2026-11-08',
             );
         }
+
+        new ServedGroups(self::getContainer())->everyService($servant);
 
         $this->jsonRequest('GET', '/api/attendance/overview');
 
@@ -205,7 +216,7 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
             ),
         );
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $ids = [
             $choir->id()->toRfc4122(),
@@ -236,7 +247,7 @@ final class AttendanceOverviewControllerTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/attendance/overview');
         $this->assertProblem(401, 'auth.unauthenticated');
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
         $this->jsonRequest('GET', '/api/attendance/counts?' . http_build_query(['sessionIds' => ['not-a-uuid']]));
         $this->assertFieldError('sessionIds.0', 'validation.invalidType');
 

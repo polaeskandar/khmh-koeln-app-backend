@@ -8,6 +8,7 @@ use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
@@ -29,7 +30,7 @@ final class ServicesControllerInsightsTest extends ApiTestCase
         ]), 'service_leader');
 
         $roles->grant($accounts->add('daniel@example.org', ['display_name' => 'Daniel Michael']), 'servant');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/service-leaders');
 
@@ -43,7 +44,12 @@ final class ServicesControllerInsightsTest extends ApiTestCase
         $first = Structure::service('Service 0');
         new Database(self::getContainer())->persisted($first);
         $schedules->weekly($first, 'Meeting 0', 7);
-        $this->signInWithRoles('servant@example.org', 'servant');
+
+        $servant = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'servant@example.org',
+            'servant',
+        ));
+
         $this->jsonRequest('GET', '/api/services/insights');
         $few = \count(new Logs(self::getContainer())->containing('SELECT'));
 
@@ -52,6 +58,8 @@ final class ServicesControllerInsightsTest extends ApiTestCase
             new Database(self::getContainer())->persisted($service);
             $schedules->weekly($service, 'Meeting ' . $n, 1 + ($n % 7));
         }
+
+        new ServedGroups(self::getContainer())->everyService($servant);
 
         $this->jsonRequest('GET', '/api/services/insights');
         self::assertCount(20, JsonBody::asArray($this->responseJson()['items'] ?? null, 'items'));
@@ -68,7 +76,7 @@ final class ServicesControllerInsightsTest extends ApiTestCase
         }
 
         $this->browser()->getCookieJar()->clear();
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
         $this->jsonRequest('GET', '/api/services/insights?status=closed');
         $this->assertFieldError('status', 'validation.invalidChoice');
     }

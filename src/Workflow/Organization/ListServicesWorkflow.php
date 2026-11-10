@@ -15,6 +15,7 @@ use App\Context\People\Application\Service\Rosters;
 use App\Workflow\Organization\Model\MemberCounts;
 use App\Workflow\Organization\Model\ServiceList;
 use App\Workflow\Organization\Model\ServiceOverview;
+use App\Workflow\Organization\Model\StructureGroup;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class ListServicesWorkflow
@@ -29,10 +30,13 @@ final readonly class ListServicesWorkflow
 
     public function __invoke(string $status): ServiceList
     {
-        $this->access->require(Action::Read, Resource::Services);
+        $scope = $this->access->scope(Action::Read, Resource::Services);
 
-        $services = $this->services->listed($status);
-        $stages = $this->stages->activeIn($services);
+        $services = $this->services->listed($status)->filter(static fn (Service $service): bool => $scope->reaches(
+            $service->id(),
+        ));
+
+        $stages = $scope->filter($this->stages->activeIn($services), StructureGroup::ofStage(...));
 
         $members = $this->rosters->serviceMembersToday(
             $services->map(static fn (Service $service): Uuid => $service->id())->getValues(),

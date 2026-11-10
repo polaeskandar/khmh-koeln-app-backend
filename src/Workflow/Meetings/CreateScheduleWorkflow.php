@@ -16,9 +16,12 @@ use App\Context\Organization\Domain\ValueObject\ChosenPlacement;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Workflow\Meetings\Model\NewSchedule;
 use App\Workflow\Meetings\Model\WrittenSchedule;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class CreateScheduleWorkflow
 {
+    private const string ROSTER = 'roster.';
+
     public function __construct(
         private AccessCheck $access,
         private PlacementChoices $placements,
@@ -40,11 +43,7 @@ final readonly class CreateScheduleWorkflow
     {
         $roster = $schedule->roster;
 
-        $placementOf = fn (): ChosenPlacement => $this->placements->of(
-            $roster->serviceId,
-            $roster->stageId,
-            fieldPrefix: 'roster.',
-        );
+        $placementOf = fn (): ChosenPlacement => $this->chosenRoster($roster->serviceId, $roster->stageId);
 
         $planOf = fn (): SchedulePlan => $this->writes->plan($schedule->draft());
         InvalidInput::all($placementOf, $planOf);
@@ -56,5 +55,19 @@ final readonly class CreateScheduleWorkflow
             $planOf(),
             ArchivedStructure::of($this->structure->archivedIds()),
         ));
+    }
+
+    private function chosenRoster(?string $serviceId, ?string $stageId): ChosenPlacement
+    {
+        $chosen = $this->placements->of($serviceId, $stageId, fieldPrefix: self::ROSTER);
+
+        $this->access->requireChosen(
+            Action::Create,
+            Resource::Sessions,
+            StructureGroup::ofPlacement($chosen),
+            self::ROSTER,
+        );
+
+        return $chosen;
     }
 }

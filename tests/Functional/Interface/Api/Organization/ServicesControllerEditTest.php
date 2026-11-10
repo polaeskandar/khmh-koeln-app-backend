@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Interface\Api\Organization;
 
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 
@@ -15,7 +16,11 @@ final class ServicesControllerEditTest extends ApiTestCase
         $service = Structure::service('Sunday School');
         $service->archive(Structure::now());
         $this->database()->persisted($service);
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('PUT', '/api/services/' . $service->id()->toRfc4122(), ['name' => 'sunday school']);
 
@@ -29,7 +34,11 @@ final class ServicesControllerEditTest extends ApiTestCase
     {
         $service = Structure::service('Sunday School');
         $this->database()->persisted($service);
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('PUT', '/api/services/' . $service->id()->toRfc4122(), ['name' => null]);
 
@@ -39,7 +48,10 @@ final class ServicesControllerEditTest extends ApiTestCase
 
     public function testAnEditOfAnUnknownOrMalformedIdIsNotFound(): void
     {
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('PUT', '/api/services/019a3b6e-0000-7000-8000-000000000001', ['name' => 'Kids']);
         $this->assertProblem(404, 'notFound.service');
@@ -52,7 +64,7 @@ final class ServicesControllerEditTest extends ApiTestCase
     {
         $service = Structure::service('Sunday School');
         $this->database()->persisted($service);
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('PUT', '/api/services/' . $service->id()->toRfc4122(), ['name' => 'Kids']);
 

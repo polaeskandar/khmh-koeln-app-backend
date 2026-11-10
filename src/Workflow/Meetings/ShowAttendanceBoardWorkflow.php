@@ -8,6 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\AttendanceMarks;
+use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Session;
@@ -42,6 +43,8 @@ final readonly class ShowAttendanceBoardWorkflow
         $this->access->require(Action::Read, Resource::Attendance);
 
         $session = $this->sessions->find($sessionId);
+        $group = CoveredSchedules::groupOfSession($session);
+        $this->access->requireIn(Action::Read, Resource::Attendance, $group, missing: 'session');
         $current = $this->marks->currentOf($session->id());
         $tally = $this->tallyOf($session, $current);
         $counts = AttendanceCounts::of($tally->counts);

@@ -42,12 +42,12 @@ final readonly class ShowAttendanceOverviewWorkflow
 
     public function __invoke(): AttendanceOverview
     {
-        $this->access->require(Action::Read, Resource::Attendance);
+        $scope = $this->access->scope(Action::Read, Resource::Attendance);
 
         $today = $this->calendar->today();
         $archivedIds = $this->structure->archivedIds();
         $archived = ArchivedStructure::of($archivedIds);
-        $todays = OverviewSessions::unarchived($this->sessions->on($today), $archived);
+        $todays = OverviewSessions::unarchived($this->sessions->on($today, $scope), $archived);
         $earlier = OverviewSessions::unarchived($this->earlierThan($today), $archived);
         $closed = OverviewSessions::unarchived($this->recentlyClosed($archivedIds), $archived);
         $all = new ArrayCollection([...$todays->getValues(), ...$earlier->getValues(), ...$closed->getValues()]);
@@ -68,9 +68,11 @@ final readonly class ShowAttendanceOverviewWorkflow
      */
     private function earlierThan(LocalDate $today): ReadableCollection
     {
-        return $this->access->allows(Action::Create, Resource::Attendance)
-            ? $this->sessions->openBetween($today->addDays(-self::EARLIER_DAYS), $today->addDays(-1))
-            : new ArrayCollection();
+        return $this->sessions->openBetween(
+            $today->addDays(-self::EARLIER_DAYS),
+            $today->addDays(-1),
+            $this->access->scopeOf(Action::Create, Resource::Attendance),
+        );
     }
 
     /**
@@ -80,9 +82,11 @@ final readonly class ShowAttendanceOverviewWorkflow
      */
     private function recentlyClosed(array $archivedIds): ReadableCollection
     {
-        return $this->access->allows(Action::Create, Resource::Attendance)
-            ? $this->sessions->latestClosed(self::CLOSED, $archivedIds)
-            : new ArrayCollection();
+        return $this->sessions->latestClosed(
+            self::CLOSED,
+            $archivedIds,
+            $this->access->scopeOf(Action::Create, Resource::Attendance),
+        );
     }
 
     /**

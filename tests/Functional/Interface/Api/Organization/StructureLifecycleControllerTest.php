@@ -12,6 +12,7 @@ use App\Library\Types\Model\Integers;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -87,7 +88,11 @@ final class StructureLifecycleControllerTest extends ApiTestCase
         [$school, , $first] = $this->school();
         $mina = new Rosters(self::getContainer())->person('Mina');
         new Rosters(self::getContainer())->place($mina, $school, $first, '2026-09-01');
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->post('stages', $first->id()->toRfc4122(), 'archive');
 
@@ -112,12 +117,17 @@ final class StructureLifecycleControllerTest extends ApiTestCase
         [$school, $third] = $this->school();
         $school->archive(Structure::now());
         new Database(self::getContainer())->persisted($school);
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
+
         $this->post('stages', $third->id()->toRfc4122(), 'archive');
         $this->assertProblem(409, 'services.archivedNoStageChanges', ['name' => 'Sunday School']);
 
         $this->browser()->getCookieJar()->clear();
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
         $this->post('stages', $third->id()->toRfc4122(), 'archive');
         $this->assertProblem(403, 'forbidden');
     }
@@ -139,7 +149,7 @@ final class StructureLifecycleControllerTest extends ApiTestCase
             ->connection()
             ->update('meetings.meeting_schedule', ['active' => 'false'], ['id' => $paused->id()->toRfc4122()]);
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/services/insights');
         $this->assertJsonPath('items.0.serviceId', $school->id()->toRfc4122());

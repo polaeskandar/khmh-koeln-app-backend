@@ -13,6 +13,7 @@ use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\Rosters;
 use App\Workflow\Organization\Model\StageList;
+use App\Workflow\Organization\Model\StructureGroup;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class ListStagesWorkflow
@@ -28,11 +29,12 @@ final readonly class ListStagesWorkflow
 
     public function __invoke(string $serviceId): StageList
     {
-        $this->access->require(Action::Read, Resource::Services);
+        $scope = $this->access->scope(Action::Read, Resource::Services);
 
         $service = $this->services->find($serviceId);
+        $this->access->requireReaching(Action::Read, Resource::Services, $service->id(), missing: 'service');
 
-        $stages = $this->stages->ofService($service);
+        $stages = $scope->filter($this->stages->ofService($service), StructureGroup::ofStage(...));
         $ids = $stages->map(static fn (Stage $stage): Uuid => $stage->id())->getValues();
 
         return StageList::of($service, $stages, $this->rosters->stageMembersToday($ids), $this->usage->ofStages($ids));

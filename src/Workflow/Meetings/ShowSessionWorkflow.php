@@ -8,6 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Application\Service\StructureLookup;
@@ -41,16 +42,12 @@ final readonly class ShowSessionWorkflow
         $this->access->require(Action::Read, Resource::Services);
 
         $session = $this->sessions->find($id);
-        $events = $this->sessions->historyOf($session);
-
-        $history = new ArrayCollection(HistoryEntry::listOf(
-            $events,
-            ActorReferences::of($this->accounts->accounts(ActorReferences::actorIdsOf($events))),
-        ));
-
+        $group = CoveredSchedules::groupOfSession($session);
+        $this->access->requireIn(Action::Read, Resource::Services, $group, missing: 'session');
+        $history = new ArrayCollection($this->historyOf($session));
         $progress = SessionProgress::of($session);
 
-        if (!$this->access->allows(Action::Read, Resource::Attendance)) {
+        if (!$this->access->scopeOf(Action::Read, Resource::Attendance)->covers($group)) {
             $history = $history->map(static fn (HistoryEntry $entry): HistoryEntry => $entry->withoutNote());
             $progress = $progress->withoutCancelReason();
         }
@@ -61,6 +58,19 @@ final readonly class ShowSessionWorkflow
             state: SessionState::of($session, $this->accounts->account($session->progress()->closed->by)),
             schedule: ScheduleBrief::ofRecurring($session->schedule()),
             history: $history->getValues(),
+        );
+    }
+
+    /**
+     * @return list<HistoryEntry>
+     */
+    private function historyOf(Session $session): array
+    {
+        $events = $this->sessions->historyOf($session);
+
+        return HistoryEntry::listOf(
+            $events,
+            ActorReferences::of($this->accounts->accounts(ActorReferences::actorIdsOf($events))),
         );
     }
 

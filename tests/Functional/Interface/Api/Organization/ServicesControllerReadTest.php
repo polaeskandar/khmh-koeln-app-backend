@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Interface\Api\Organization;
 
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
@@ -30,7 +31,7 @@ final class ServicesControllerReadTest extends ApiTestCase
             $old,
         );
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/services');
 
@@ -80,7 +81,7 @@ final class ServicesControllerReadTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/services');
         $this->assertProblem(403, 'forbidden');
 
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
         $this->jsonRequest('GET', '/api/services/019a3b6e-0000-7000-8000-000000000001');
         $this->assertProblem(404, 'notFound.service');
 

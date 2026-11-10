@@ -12,6 +12,7 @@ use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\People\Application\Service\Rosters;
 use App\Workflow\Organization\Model\MemberCounts;
 use App\Workflow\Organization\Model\ServiceOverview;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class EditServiceWorkflow
 {
@@ -26,6 +27,9 @@ final readonly class EditServiceWorkflow
     public function __invoke(string $id, string $name, ?string $description): ServiceOverview
     {
         $this->access->require(Action::Update, Resource::Services);
+
+        $group = StructureGroup::ofService($this->services->find($id));
+        $this->access->requireIn(Action::Update, Resource::Services, $group, missing: 'service');
 
         $service = $this->services->edit($id, $name, $description);
 

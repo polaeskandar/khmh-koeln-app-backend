@@ -33,10 +33,7 @@ final readonly class AssignmentRights
 
     public function requireIn(Group ...$groups): void
     {
-        $outside = new ArrayCollection($groups)->filter(fn (Group $group): bool => !$this->require()->covers(
-            $group->serviceId,
-            $group->stageId,
-        ));
+        $outside = new ArrayCollection($groups)->filter(fn (Group $group): bool => !$this->require()->covers($group));
 
         if ($outside->isEmpty()) {
             return;

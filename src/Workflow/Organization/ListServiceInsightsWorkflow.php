@@ -11,6 +11,7 @@ use App\Context\Meetings\Application\Service\ServiceMeetings;
 use App\Context\Meetings\Application\Service\StructureUsage;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
+use App\Context\Organization\Domain\Entity\Service;
 use App\Context\People\Application\Service\Attendees;
 use App\Workflow\Meetings\Model\SessionTallies;
 use App\Workflow\Organization\Model\RecentAttendance;
@@ -33,10 +34,10 @@ final readonly class ListServiceInsightsWorkflow
      */
     public function __invoke(string $status): array
     {
-        $this->access->require(Action::Read, Resource::Services);
+        $scope = $this->access->scope(Action::Read, Resource::Services);
 
-        $next = $this->meetings->nextByService(ArchivedStructure::of($this->structure->archivedIds()));
-        $completed = $this->meetings->recentlyCompleted();
+        $next = $this->meetings->nextByService(ArchivedStructure::of($this->structure->archivedIds()), $scope);
+        $completed = $this->meetings->recentlyCompleted($scope);
         $keys = SessionTallies::rosterKeysOf($completed->sessions, $completed->schedules);
 
         $tallies = SessionTallies::of(
@@ -47,7 +48,9 @@ final readonly class ListServiceInsightsWorkflow
         );
 
         return ServiceInsights::of(
-            $this->structure->listed($status),
+            $this->structure->listed($status)->filter(static fn (Service $service): bool => $scope->reaches(
+                $service->id(),
+            )),
             $next,
             $this->structure->stages(ServiceInsights::stageIdsOf($next)),
             new RecentAttendance($completed->sessions, $tallies),

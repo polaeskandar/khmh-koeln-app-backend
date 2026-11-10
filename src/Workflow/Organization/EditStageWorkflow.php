@@ -10,6 +10,7 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\People\Application\Service\Rosters;
 use App\Workflow\Organization\Model\StageDetails;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class EditStageWorkflow
 {
@@ -23,6 +24,9 @@ final readonly class EditStageWorkflow
     public function __invoke(string $stageId, string $name, ?string $description): StageDetails
     {
         $this->access->require(Action::Update, Resource::Stages);
+
+        $group = StructureGroup::ofStage($this->stages->find($stageId));
+        $this->access->requireIn(Action::Update, Resource::Stages, $group, missing: 'stage');
 
         $stage = $this->stages->edit($stageId, $name, $description);
 

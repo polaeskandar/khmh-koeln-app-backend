@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Interface\Api\Meetings;
 
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Interface\Api\Meetings\ScheduleBodies;
 use App\Tests\Support\Interface\Api\Meetings\ScheduleRows;
 use App\Tests\Support\JsonBody;
@@ -22,7 +23,11 @@ final class ScheduleWritesControllerTest extends ApiTestCase
         self::mockTime('2026-11-08T10:00:00+01:00');
         $rows = new ScheduleRows(self::getContainer());
         [$service] = $rows->structure();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('POST', '/api/schedules', ScheduleBodies::created($service, null, '2026-11-08'));
         self::assertResponseStatusCodeSame(201);
@@ -53,7 +58,11 @@ final class ScheduleWritesControllerTest extends ApiTestCase
         array $params = [],
     ): void {
         [$service, $stage] = new ScheduleRows(self::getContainer())->structure();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest(
             'POST',
@@ -105,7 +114,11 @@ final class ScheduleWritesControllerTest extends ApiTestCase
     public function testTheErrorsOfEveryPartAreReportedTogether(): void
     {
         [$service] = new ScheduleRows(self::getContainer())->structure();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $broken = [
             'details' => ['name' => null],

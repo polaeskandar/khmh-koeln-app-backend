@@ -7,9 +7,11 @@ namespace App\Workflow\Organization;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Application\Service\StageArchives;
 use App\Context\People\Application\Service\Rosters;
 use App\Workflow\Organization\Model\StageDetails;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class RestoreStageWorkflow
 {
@@ -17,12 +19,15 @@ final readonly class RestoreStageWorkflow
         private AccessCheck $access,
         private StageArchives $archives,
         private Rosters $rosters,
+        private ServiceStages $stages,
     ) {
     }
 
     public function __invoke(string $id): StageDetails
     {
         $this->access->require(Action::Update, Resource::Stages);
+        $group = StructureGroup::ofStage($this->stages->find($id));
+        $this->access->requireIn(Action::Update, Resource::Stages, $group, missing: 'stage');
 
         $stage = $this->archives->restore($id);
 

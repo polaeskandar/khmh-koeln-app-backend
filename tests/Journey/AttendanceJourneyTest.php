@@ -10,6 +10,7 @@ use App\Context\People\Domain\Entity\Person;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
@@ -32,7 +33,7 @@ final class AttendanceJourneyTest extends ApiTestCase
         $mina = $rosters->person('Mina', 'Hanna');
         $kiro = $rosters->person('Kiro', 'Nashed');
         $rosters->place($rosters->person('Mimi', 'Gerges'), $school, $first, '2026-09-01');
-        $this->signInWithRoles(self::DANIEL, 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(self::DANIEL, 'servant'));
         $this->signInWithRoles('hoda@example.org', 'parent');
 
         $this->planOnFriday($school, $third, [$mina, $kiro, $rosters->person('Lydia', 'Rizk')]);
@@ -52,7 +53,7 @@ final class AttendanceJourneyTest extends ApiTestCase
     private function planOnFriday(Service $school, Stage $third, array $children): void
     {
         self::mockTime('2026-11-13T10:00:00+01:00');
-        $this->signInWithRoles(self::CHRISTINE, 'service_leader');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(self::CHRISTINE, 'service_leader'));
         $this->jsonRequest('POST', '/api/schedules', JourneyStructure::schedule($school, $third));
         self::assertResponseStatusCodeSame(201);
         $this->assertJsonPath('createdSessions', 0);

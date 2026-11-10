@@ -12,6 +12,7 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Domain\Entity\Person;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -44,7 +45,11 @@ final class StageAttendanceControllerTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T12:00:00+01:00');
         [$third, $lastSession, $mina, $kiro] = $this->history();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->jsonRequest('GET', '/api/stages/' . $third->id()->toRfc4122() . '/attendance-history');
 
@@ -86,7 +91,7 @@ final class StageAttendanceControllerTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T12:00:00+01:00');
         [$third, , , , $service, $schedule] = $this->history();
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
         $path = '/api/stages/' . $third->id()->toRfc4122() . '/attendance-history';
 
         $this->jsonRequest('GET', $path);
@@ -118,7 +123,7 @@ final class StageAttendanceControllerTest extends ApiTestCase
         $this->assertProblem(403, 'forbidden');
 
         $this->browser()->getCookieJar()->clear();
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
         $this->jsonRequest('GET', '/api/stages/' . Uuid::v7()->toRfc4122() . '/attendance-history');
         $this->assertProblem(404, 'notFound.stage');
         $this->jsonRequest('GET', '/api/stages/not-a-stage/attendance-history');
@@ -146,7 +151,7 @@ final class StageAttendanceControllerTest extends ApiTestCase
             ->update('meetings.meeting_schedule', ['start_time' => '09:00:00'], ['id' => $early->id()->toRfc4122()]);
 
         $morning = $schedules->session($early, '2026-11-01', self::DONE);
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('GET', '/api/stages/' . $third->id()->toRfc4122() . '/attendance-history');
 

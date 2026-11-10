@@ -8,6 +8,7 @@ use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Workflow\Meetings\GenerateSessionsWorkflow;
@@ -50,7 +51,11 @@ final class ScheduleWritesControllerOccurrenceTest extends ApiTestCase
         self::mockTime('2026-11-07T10:00:00+01:00');
         $schedule = $this->schedule();
         $this->generate();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->cancel($schedule, '2026-11-08', []);
         self::assertResponseIsSuccessful();

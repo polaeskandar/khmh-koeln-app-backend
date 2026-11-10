@@ -12,6 +12,7 @@ use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\People\Application\Service\Rosters;
 use App\Workflow\Organization\Model\MemberCounts;
 use App\Workflow\Organization\Model\ServiceOverview;
+use App\Workflow\Organization\Model\StructureGroup;
 
 final readonly class ShowServiceWorkflow
 {
@@ -25,13 +26,14 @@ final readonly class ShowServiceWorkflow
 
     public function __invoke(string $id): ServiceOverview
     {
-        $this->access->require(Action::Read, Resource::Services);
+        $scope = $this->access->scope(Action::Read, Resource::Services);
 
         $service = $this->services->find($id);
+        $this->access->requireReaching(Action::Read, Resource::Services, $service->id(), missing: 'service');
 
         return ServiceOverview::of(
             $service,
-            $this->stages->activeOf($service),
+            $scope->filter($this->stages->activeOf($service), StructureGroup::ofStage(...)),
             MemberCounts::in($this->rosters->serviceMembersToday([$service->id()]), $service),
         );
     }

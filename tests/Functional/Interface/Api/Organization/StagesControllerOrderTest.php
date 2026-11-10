@@ -9,6 +9,7 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Library\Types\Model\Integers;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
@@ -20,7 +21,12 @@ final class StagesControllerOrderTest extends ApiTestCase
     public function testALeaderReversesTheActiveStagesAndTheArchivedFollow(): void
     {
         [$service, $first, $second, $third] = $this->structure();
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
+
         $reversed = [$third->id()->toRfc4122(), $second->id()->toRfc4122(), $first->id()->toRfc4122()];
 
         $this->reorder($service, $reversed);
@@ -53,7 +59,11 @@ final class StagesControllerOrderTest extends ApiTestCase
             default => [],
         };
 
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
+
         $this->reorder($service, $sent);
 
         $this->assertProblem(409, 'stages.reorderStale');
@@ -75,7 +85,11 @@ final class StagesControllerOrderTest extends ApiTestCase
     {
         $service = Structure::service();
         new Database(self::getContainer())->persisted($service);
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->reorder($service, []);
 
@@ -97,7 +111,11 @@ final class StagesControllerOrderTest extends ApiTestCase
             $this->browser()->getCookieJar()->clear();
         }
 
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
+
         $this->reorder($archived, []);
         $this->assertProblem(409, 'services.archivedNoStageChanges', ['name' => 'Old choir']);
         $this->reorder($service, ['not-a-uuid']);

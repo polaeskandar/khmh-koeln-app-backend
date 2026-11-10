@@ -8,6 +8,7 @@ use App\Context\Meetings\Domain\Entity\Session;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Database;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
@@ -22,7 +23,7 @@ final class SessionsControllerTransitionsTest extends ApiTestCase
         self::mockTime('2026-11-08T10:00:00+01:00');
         $today = $this->session('2026-11-08');
         $lastWeek = $this->session('2026-11-01');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->post($today, 'open');
         $this->post($today, 'open');
@@ -38,7 +39,7 @@ final class SessionsControllerTransitionsTest extends ApiTestCase
     {
         self::mockTime('2026-11-07T23:59:00+01:00');
         $session = $this->session('2026-11-08');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->post($session, 'open');
         $this->assertProblem(409, 'meetings.opensOnTheDay');
@@ -52,7 +53,7 @@ final class SessionsControllerTransitionsTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         $session = $this->session('2026-11-08');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->post($session, 'close');
         $this->assertProblem(409, 'meetings.onlyActiveCanClose');
@@ -70,7 +71,11 @@ final class SessionsControllerTransitionsTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         $session = $this->session('2026-11-08');
-        $this->signInWithRoles('leader@example.org', 'service_leader');
+
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(
+            'leader@example.org',
+            'service_leader',
+        ));
 
         $this->post($session, 'reopen');
         $this->assertProblem(409, 'meetings.onlyCompletedCanReopen');
@@ -103,7 +108,7 @@ final class SessionsControllerTransitionsTest extends ApiTestCase
         $canceled = $this->session('2026-11-01', set: "status = 'canceled', cancel_reason = 'Storm'");
 
         $closed = $this->session('2026-11-08');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
         $this->post($closed, 'open');
         $this->post($closed, 'close');
 
@@ -118,7 +123,7 @@ final class SessionsControllerTransitionsTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         $session = $this->session('2026-11-08');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
         $this->post($session, 'open');
         $this->post($session, 'close');
         $this->post($session, 'reopen');
@@ -136,7 +141,7 @@ final class SessionsControllerTransitionsTest extends ApiTestCase
     public function testAMalformedOrUnknownSessionIdIsNotFound(): void
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
-        $this->signInWithRoles('servant@example.org', 'servant');
+        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
         $this->jsonRequest('POST', '/api/sessions/not-a-uuid/open');
         $this->assertProblem(404, 'notFound.session');

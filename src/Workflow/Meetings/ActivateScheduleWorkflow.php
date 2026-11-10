@@ -7,6 +7,7 @@ namespace App\Workflow\Meetings;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSchedules;
 use App\Context\Meetings\Application\Service\ScheduleWrites;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
@@ -30,6 +31,14 @@ final readonly class ActivateScheduleWorkflow
         $this->access->require(Action::Update, Resource::Sessions);
 
         $schedule = $this->schedules->find($id);
+
+        $this->access->requireIn(
+            Action::Update,
+            Resource::Sessions,
+            CoveredSchedules::groupOf($schedule),
+            missing: 'schedule',
+        );
+
         $this->archive->ensureOpen($schedule->roster()->serviceId, $schedule->roster()->stageId);
 
         return WrittenSchedule::of($this->writes->activate(
