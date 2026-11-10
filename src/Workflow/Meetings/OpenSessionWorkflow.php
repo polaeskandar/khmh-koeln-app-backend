@@ -9,8 +9,8 @@ use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\CoveredSchedules;
-use App\Context\Meetings\Application\Service\MeetingSessions;
 use App\Context\Meetings\Application\Service\SessionLifecycle;
+use App\Context\Meetings\Application\Service\SessionLookup;
 use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Application\Service\ArchiveGuard;
 use App\Library\Problem\Model\Ids;
@@ -23,7 +23,7 @@ final readonly class OpenSessionWorkflow
         private AccessCheck $access,
         private SessionLifecycle $lifecycle,
         private AccountLookup $accounts,
-        private MeetingSessions $sessions,
+        private SessionLookup $sessions,
         private ArchiveGuard $archive,
     ) {
     }

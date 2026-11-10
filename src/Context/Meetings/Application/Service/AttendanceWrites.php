@@ -7,52 +7,36 @@ namespace App\Context\Meetings\Application\Service;
 use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\Repository\AttendanceRepositoryInterface;
+use App\Context\Meetings\Domain\Repository\SessionRepositoryInterface;
+use App\Context\Meetings\Domain\Validation\AttendanceRule;
 use App\Context\Meetings\Domain\ValueObject\RecordedMark;
 use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Library\Time\Client\Calendar;
-use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class AttendanceMarks
+final readonly class AttendanceWrites
 {
     public function __construct(
         private AttendanceRepositoryInterface $attendance,
+        private SessionRepositoryInterface $sessions,
         private Calendar $calendar,
     ) {
     }
 
     /**
-     * @param list<Uuid> $sessionIds
+     * @template T of object
      *
-     * @return ReadableCollection<string, list<string>>
+     * @param callable(Session): T $work
+     *
+     * @return T
      */
-    public function presentBySession(array $sessionIds): ReadableCollection
+    public function whileMarkable(Uuid $sessionId, callable $work): object
     {
-        return $this->attendance->presentBySession($sessionIds);
-    }
+        return $this->sessions->withWriteLock($sessionId, static function (Session $session) use ($work): object {
+            AttendanceRule::ensureMarkable($session->progress()->status);
 
-    /**
-     * @return ReadableCollection<int, Attendance>
-     */
-    public function currentMarksOf(Uuid $sessionId): ReadableCollection
-    {
-        return $this->attendance->currentMarksOf($sessionId);
-    }
-
-    /**
-     * @return ReadableCollection<int, Attendance>
-     */
-    public function removedMarksOf(Uuid $sessionId): ReadableCollection
-    {
-        return $this->attendance->removedMarksOf($sessionId);
-    }
-
-    /**
-     * @return ReadableCollection<int, Attendance>
-     */
-    public function ofPerson(Uuid $personId): ReadableCollection
-    {
-        return $this->attendance->ofPerson($personId);
+            return $work($session);
+        });
     }
 
     public function record(Session $session, Uuid $personId, Uuid $accountId): RecordedMark
@@ -78,7 +62,6 @@ final readonly class AttendanceMarks
         }
 
         $current->remove(Removal::of($this->calendar->now(), $accountId, $reason));
-
         $this->attendance->save($current);
     }
 }

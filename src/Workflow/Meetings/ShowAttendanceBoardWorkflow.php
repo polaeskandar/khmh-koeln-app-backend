@@ -7,11 +7,11 @@ namespace App\Workflow\Meetings;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Meetings\Application\Service\AttendanceMarks;
 use App\Context\Meetings\Application\Service\CoveredSchedules;
-use App\Context\Meetings\Application\Service\MeetingSessions;
+use App\Context\Meetings\Application\Service\SessionLookup;
 use App\Context\Meetings\Domain\Entity\Attendance;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\Query\AttendanceQueryInterface;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\Attendees;
 use App\Library\Problem\Model\Ids;
@@ -32,9 +32,9 @@ final readonly class ShowAttendanceBoardWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private MeetingSessions $sessions,
+        private SessionLookup $sessions,
         private Attendees $attendees,
-        private AttendanceMarks $marks,
+        private AttendanceQueryInterface $marks,
         private StructureLookup $structure,
     ) {
     }
@@ -46,7 +46,7 @@ final readonly class ShowAttendanceBoardWorkflow
         $session = $this->sessions->get(Ids::toUuid($sessionId, notFound: 'session'));
         $group = CoveredSchedules::groupOfSession($session);
         $this->access->requireIn(Action::Read, Resource::Attendance, $group, missing: 'session');
-        $current = $this->marks->currentMarksOf($session->id());
+        $current = $this->marks->listCurrentMarksOf($session->id());
         $tally = $this->tallyOf($session, $current);
         $counts = AttendanceCounts::of($tally->counts);
 
@@ -61,7 +61,7 @@ final readonly class ShowAttendanceBoardWorkflow
     private function tallyOf(Session $session, ReadableCollection $current): SessionTally
     {
         $sessions = new ArrayCollection([$session]);
-        $schedules = $this->sessions->schedulesOf($sessions);
+        $schedules = $this->sessions->listSchedulesOf($sessions);
         $rosters = $this->attendees->rostersOn(SessionTallies::rosterKeysOf($sessions, $schedules));
         $tallies = SessionTallies::of($rosters, BoardLists::presentOf($current), $sessions, $schedules);
 

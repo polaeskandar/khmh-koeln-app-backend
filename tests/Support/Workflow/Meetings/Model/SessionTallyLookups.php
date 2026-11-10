@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Workflow\Meetings\Model;
 
-use App\Context\Meetings\Application\Service\AttendanceMarks;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Meetings\Domain\Query\AttendanceQueryInterface;
 use App\Context\People\Application\Service\Attendees;
 use App\Workflow\Meetings\Model\SessionTallies;
 use App\Workflow\Meetings\Model\SessionTally;
@@ -32,7 +32,9 @@ final readonly class SessionTallyLookups
 
         return SessionTallies::of(
             $this->service(Attendees::class)->rostersOn(SessionTallies::rosterKeysOf($sessions, $schedules)),
-            $this->service(AttendanceMarks::class)->presentBySession(SessionTallies::sessionIdsOf($sessions)),
+            $this->service(AttendanceQueryInterface::class)->listPresentBySession(SessionTallies::sessionIdsOf(
+                $sessions,
+            )),
             $sessions,
             $schedules,
         );

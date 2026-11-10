@@ -87,7 +87,7 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   control flow, closures, static factories and `::of()`/`::from()` calls in an entity.
 - A rule in `Domain/Validation` is pure: it checks the values and entities it is given and throws the rule's code,
   and never uses a repository, a query interface, a port or an application service (`mago guard`). The application
-  service loads the facts under its lock and hands them over: `MeetingSessions` passes a session's status to
+  service loads the facts under its lock and hands them over: `AttendanceWrites` passes a session's status to
   `AttendanceRule::ensureMarkable()`, `LessonLifecycle` passes the lesson that holds the meeting to
   `MeetingLessonRule::ensureFreeToRestore()`.
 - `Domain` and `Library` don't depend on `Platform`; outside `Platform`, code uses only `Platform/*/Contract`.

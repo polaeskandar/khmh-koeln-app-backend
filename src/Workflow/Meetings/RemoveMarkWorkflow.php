@@ -7,9 +7,9 @@ namespace App\Workflow\Meetings;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Meetings\Application\Service\AttendanceMarks;
+use App\Context\Meetings\Application\Service\AttendanceWrites;
 use App\Context\Meetings\Application\Service\CoveredSchedules;
-use App\Context\Meetings\Application\Service\MeetingSessions;
+use App\Context\Meetings\Application\Service\SessionLookup;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\People\Application\Service\Attendees;
 use App\Library\Problem\Model\Ids;
@@ -19,9 +19,9 @@ final readonly class RemoveMarkWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private MeetingSessions $sessions,
+        private SessionLookup $sessions,
         private Attendees $attendees,
-        private AttendanceMarks $marks,
+        private AttendanceWrites $marks,
     ) {
     }
 
@@ -32,7 +32,7 @@ final readonly class RemoveMarkWorkflow
         $group = CoveredSchedules::groupOfSession($found);
         $this->access->requireIn(Action::Delete, Resource::Attendance, $group, missing: 'session');
 
-        $this->sessions->whileMarkable($found->id(), function (Session $session) use (
+        $this->marks->whileMarkable($found->id(), function (Session $session) use (
             $personId,
             $accountId,
             $reason,

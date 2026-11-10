@@ -8,7 +8,7 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Meetings\Application\Service\MeetingSessions;
+use App\Context\Meetings\Application\Service\SessionLookup;
 use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
@@ -33,7 +33,7 @@ final readonly class ShowAttendanceOverviewWorkflow
 
     public function __construct(
         private AccessCheck $access,
-        private MeetingSessions $sessions,
+        private SessionLookup $sessions,
         private StructureLookup $structure,
         private AccountLookup $accounts,
         private Calendar $calendar,
@@ -68,7 +68,7 @@ final readonly class ShowAttendanceOverviewWorkflow
      */
     private function earlierThan(LocalDate $today): ReadableCollection
     {
-        return $this->sessions->openBetween(
+        return $this->sessions->listOpenBetween(
             $today->addDays(-self::EARLIER_DAYS),
             $today->addDays(-1),
             $this->access->scopeOf(Action::Create, Resource::Attendance),
@@ -82,7 +82,7 @@ final readonly class ShowAttendanceOverviewWorkflow
      */
     private function recentlyClosed(array $archivedIds): ReadableCollection
     {
-        return $this->sessions->latestClosed(
+        return $this->sessions->listLatestClosed(
             self::CLOSED,
             $archivedIds,
             $this->access->scopeOf(Action::Create, Resource::Attendance),

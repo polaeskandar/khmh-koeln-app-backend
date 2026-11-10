@@ -8,9 +8,9 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Meetings\Application\Service\AttendanceMarks;
 use App\Context\Meetings\Application\Service\CoveredSchedules;
-use App\Context\Meetings\Application\Service\MeetingSessions;
+use App\Context\Meetings\Application\Service\SessionLookup;
+use App\Context\Meetings\Domain\Query\AttendanceQueryInterface;
 use App\Context\People\Application\Service\Attendees;
 use App\Library\Problem\Model\Ids;
 use App\Workflow\Identity\Model\AccountReferences;
@@ -21,8 +21,8 @@ final readonly class ListAttendanceCorrectionsWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private MeetingSessions $sessions,
-        private AttendanceMarks $marks,
+        private SessionLookup $sessions,
+        private AttendanceQueryInterface $marks,
         private Attendees $attendees,
         private AccountLookup $accounts,
     ) {
@@ -38,7 +38,7 @@ final readonly class ListAttendanceCorrectionsWorkflow
         $session = $this->sessions->get(Ids::toUuid($sessionId, notFound: 'session'));
         $group = CoveredSchedules::groupOfSession($session);
         $this->access->requireIn(Action::Read, Resource::Attendance, $group, missing: 'session');
-        $removed = $this->marks->removedMarksOf($session->id());
+        $removed = $this->marks->listRemovedMarksOf($session->id());
 
         return Corrections::of(
             $removed,
