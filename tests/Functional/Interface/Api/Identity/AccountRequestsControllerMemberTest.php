@@ -82,6 +82,13 @@ final class AccountRequestsControllerMemberTest extends ApiTestCase
             'member.ageCheck' => ['code' => 'accounts.chooseAge', 'params' => []],
         ]);
 
+        $this->approve($mina, ['personId' => $nevine, 'ageCheck' => 'SixteenOrOlder']);
+        self::assertResponseStatusCodeSame(422);
+
+        $this->assertJsonPath('fieldErrors', [
+            'member.ageCheck' => ['code' => 'accounts.chooseAge', 'params' => []],
+        ]);
+
         $this->approve($mina, ['personId' => $child, 'ageCheck' => 'sixteenOrOlder']);
         $this->assertFieldError('member.personId', 'accounts.personNotFound');
         $this->approve($mina, ['personId' => $nevine, 'ageCheck' => 'sixteenOrOlder']);

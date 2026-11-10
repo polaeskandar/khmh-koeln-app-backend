@@ -61,6 +61,35 @@ final class RegistrationControllerTest extends ApiTestCase
         self::assertSame(0, $this->rowsIn('identity.app_user'));
     }
 
+    public function testUnknownChoicesAndOverlongValuesAreReportedTogether(): void
+    {
+        $this->jsonRequest('POST', '/api/auth/register', Registrations::parent([
+            'account' => [
+                'email' => str_repeat('a', times: 169) . '@example.org',
+                'password' => str_repeat('a', times: 201),
+                'language' => 'fr',
+            ],
+            'registration' => ['registeredAs' => 'guest'],
+        ]));
+
+        $this->assertProblem(422, 'checkFields');
+
+        $this->assertJsonPath('fieldErrors', [
+            'account.email' => ['code' => 'validation.tooLong', 'params' => ['max' => 180, 'limit' => 180]],
+            'account.password' => [
+                'code' => 'validation.tooLong',
+                'params' => ['min' => 10, 'max' => 200, 'limit' => 200],
+            ],
+            'account.language' => ['code' => 'accounts.chooseLanguage', 'params' => ['choices' => '"en", "de", "ar"']],
+            'registration.registeredAs' => [
+                'code' => 'accounts.chooseRegisteredAs',
+                'params' => ['choices' => '"parent", "servant", "member"'],
+            ],
+        ]);
+
+        self::assertSame(0, $this->rowsIn('identity.app_user'));
+    }
+
     public function testAnExistingEmailGetsTheSameAnswerAndChangesNothing(): void
     {
         new SignInAccounts(self::getContainer())->add('mariam.hanna@example.org');

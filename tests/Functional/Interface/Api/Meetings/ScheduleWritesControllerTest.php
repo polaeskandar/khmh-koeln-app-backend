@@ -109,6 +109,12 @@ final class ScheduleWritesControllerTest extends ApiTestCase
         yield 'empty start time' => [['times' => ['startTime' => '']], 'times.startTime', 'validation.chooseTime'];
         yield 'end before start' => [['times' => ['endTime' => '11:00']], 'times.endTime', 'meetings.endAfterStart'];
         yield 'no interval' => [['recurrence' => ['interval' => 0]], 'recurrence.interval', 'recurrence.interval'];
+        yield 'unknown frequency' => [
+            ['recurrence' => ['frequency' => 'daily']],
+            'recurrence.frequency',
+            'validation.invalidChoice',
+            ['choices' => '"weekly", "monthly"'],
+        ];
     }
 
     public function testTheErrorsOfEveryPartAreReportedTogether(): void

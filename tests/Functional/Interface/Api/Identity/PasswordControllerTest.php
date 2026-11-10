@@ -69,6 +69,52 @@ final class PasswordControllerTest extends ApiTestCase
         self::assertSame($hash, $this->hashOf($account));
     }
 
+    public function testAWrongCurrentPasswordIsTheOnlyFieldError(): void
+    {
+        $this->signInWithRoles('christine@example.org', 'servant');
+
+        $this->change(SignInAccounts::MISTYPED, self::NEW);
+
+        $this->assertProblem(422, 'checkFields');
+
+        $this->assertJsonPath('fieldErrors', [
+            'currentPassword' => ['code' => 'accounts.currentPasswordWrong', 'params' => []],
+        ]);
+    }
+
+    public function testAnInvalidNewPasswordIsReportedFirstAndCostsNoAttempt(): void
+    {
+        $this->browser()->disableReboot();
+        $account = $this->signInWithRoles('christine@example.org', 'servant');
+        $hash = $this->hashOf($account);
+
+        foreach (range(start: 1, end: 6) as $attempt) {
+            $this->change('wrong password ' . $attempt, 'short');
+            $this->assertProblem(422, 'checkFields');
+
+            $this->assertJsonPath('fieldErrors', [
+                'newPassword' => ['code' => 'accounts.passwordTooShort', 'params' => ['min' => 10]],
+            ]);
+        }
+
+        $this->change(SignInAccounts::MISTYPED, self::NEW);
+        $this->assertFieldError('currentPassword', 'accounts.currentPasswordWrong');
+        self::assertSame($hash, $this->hashOf($account));
+    }
+
+    public function testAThrottledAccountIsRefusedBeforeTheNewPasswordIsChecked(): void
+    {
+        $this->browser()->disableReboot();
+        $this->signInWithRoles('christine@example.org', 'servant');
+
+        foreach (range(start: 1, end: 5) as $attempt) {
+            $this->change('wrong password ' . $attempt, self::NEW);
+        }
+
+        $this->change(SignInAccounts::TYPED, 'short');
+        $this->assertProblem(429, 'auth.tooManyAttempts');
+    }
+
     public function testTheNewPasswordNeedsTenToTwoHundredCharacters(): void
     {
         $this->signInWithRoles('christine@example.org', 'servant');

@@ -16,6 +16,8 @@ final class OwnDataControllerErasureTest extends ApiTestCase
 {
     use ClockSensitiveTrait;
 
+    private const string REPLACEMENT = 'a brand new secret';
+
     public function testTheRightPasswordSchedulesTheErasureAndEndsTheSession(): void
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
@@ -64,6 +66,35 @@ final class OwnDataControllerErasureTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/me/erasure-request');
         $this->assertJsonPath('erasureRequested', null);
         self::assertSame(0, $this->numberOf('SELECT count(*) FROM privacy.data_request'));
+    }
+
+    public function testAWrongPasswordIsTheOnlyFieldErrorAndCountsAgainstPasswordChanges(): void
+    {
+        $this->browser()->disableReboot();
+        $this->signInWithRoles('hoda@example.org', 'parent');
+
+        $this->requestErasure(['password' => SignInAccounts::MISTYPED, 'note' => str_repeat('a', times: 2001)]);
+        $this->assertProblem(422, 'checkFields');
+
+        $this->assertJsonPath('fieldErrors', [
+            'note' => ['code' => 'validation.tooLong', 'params' => ['max' => 2000, 'limit' => 2000]],
+        ]);
+
+        foreach (range(start: 1, end: 5) as $attempt) {
+            $this->requestErasure(['password' => SignInAccounts::MISTYPED . $attempt]);
+            $this->assertProblem(422, 'checkFields');
+
+            $this->assertJsonPath('fieldErrors', [
+                'password' => ['code' => 'accounts.currentPasswordWrong', 'params' => []],
+            ]);
+        }
+
+        $this->jsonRequest('POST', '/api/me/password', [
+            'currentPassword' => SignInAccounts::TYPED,
+            'newPassword' => self::REPLACEMENT,
+        ]);
+
+        $this->assertProblem(429, 'auth.tooManyAttempts');
     }
 
     public function testTheAccountsTokensEndAtOnce(): void
