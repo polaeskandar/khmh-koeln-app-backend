@@ -195,7 +195,8 @@ command that runs the workflow, with its lock, is #53.
 | Table | Purpose | Key rules |
 | --- | --- | --- |
 | `app_user` | A sign-in account: email, display name, password hash, language (`en`, `de`, `ar`), optional link to the person's own member record (`person_id`), optional `birth_date` and postal address (`street`, `postal_code`, `city`, all three or none; visible to the person and administrators). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. `approved_at`/`approved_by` stay null until an administrator approves the account; until then it can't sign in. While waiting it keeps what the person wrote when registering (`registered_as` parent, servant or member, `registration_note`, and for servants the services they serve in, `organization.registration_service`); these are cleared once an administrator decides. Declining deletes the row. Disabled accounts (`disabled_at`) can't sign in and keep their history. `erases_on` is set while an erasure the account asked for in the app waits: it can't sign in (`auth.erasureScheduled`), its sessions ended when it was set, and it doesn't count as another administrator for `roles.lastAdministrator`. |
-| `role` | A named set of permissions. Administrators create, rename and delete roles and choose their permissions from the catalog; the defaults are Administrator, Service leader, Servant and Parent. | Name unique, ignoring case and extra spaces. |
+| `role` | A named set of permissions with a `scope`: `church` (the permissions hold everywhere) or `assignedGroups` (they hold in the holder's assigned groups). Administrators create, rename and delete roles and choose their permissions and scope; the defaults are Administrator, Service leader, Servant and Parent. | Name unique, ignoring case and extra spaces. `scope` defaults to `church` (CHECK); Service leader and Servant are seeded with `assignedGroups`. |
+| `organization.staff_assignment` | A group an account serves in: `account_id`, `service_id`, `stage_id` (null for the service's own roster and all its stages), `created_at`. | Once per account and group (partial UNIQUE `(account_id, service_id) WHERE stage_id IS NULL` and `(account_id, stage_id) WHERE stage_id IS NOT NULL`). `service_id` and `stage_id` reference `service` and `stage` with `ON DELETE CASCADE`; `account_id` is a plain id of an Identity account, deleted with it. |
 | `permission` | One action (`create`, `read`, `update`, `delete`) on one resource (`users`, `roles`, `services`, `stages`, `sessions`, `attendance`, `members`, `lessons`, `homework`, `parentPortal`). | One row per action and resource; seeded. |
 
 `app_user` lives in the `identity` schema. The email is stored trimmed and in lower case (CHECK `email =
@@ -221,8 +222,10 @@ Roles are dynamic (RBAC), in the `identity` schema: a user has roles (`user_role
 (`role_permission`), and a permission is an action on a resource, `{"action": "update", "resource": "sessions"}`.
 `permission` holds the catalog, one row per action and resource (UNIQUE), with CHECKs against the enums in code
 (`Action`, `Resource`). `role` has a name (≤80, cleaned, unique by `name_key`). Deleting a user or a role removes
-its links (`ON DELETE CASCADE`); deleting a role keeps the permissions. `User::can($action, $resource)` is true when
-any of the user's roles has that permission. The catalog and the defaults Administrator (everything but the
+its links (`ON DELETE CASCADE`); deleting a role keeps the permissions. An account has a permission when any of
+its roles has it; it holds church-wide when one of those roles has the `church` scope, else only in the groups of
+the account's `organization.staff_assignment` rows: a service's own roster and its stages for a service assignment,
+the stage for a stage assignment (see [Who may do what](architecture.md#who-may-do-what)). The catalog and the defaults Administrator (everything but the
 parent portal), Service leader, Servant and Parent (`parentPortal:read`) are seeded by a migration; the roles
 are ordinary roles. `app:user:create --role=<name>` writes the account with that role in one transaction.
 `app:user:role:add <email> <role>` and `app:user:role:remove <email> <role>` give and take a role by its name
@@ -253,7 +256,7 @@ can't take.
 
 Account states: registered (waiting) → approved → disabled. Approving a parent creates approved
 `guardian_relationship` rows for the children the administrator chose; approving a servant gives them their
-roles. A parent account without any approved child sees an empty portal.
+roles and the groups they serve in (`staff_assignment`), and deletes the services they named. A parent account without any approved child sees an empty portal.
 
 ## Lessons, homework and parent access
 
@@ -421,8 +424,8 @@ Writers that add data about a person hold a share lock on the person row before 
 homework task or the account: marking someone present, a parent reporting homework done, and linking an account
 to its member record. So none of these writes can slip in after the erasure has cleaned up.
 
-For an **account** (`app_user`): the account, its roles and guardian links, with its link to a member record, the
-age check and the agreement note. `app:privacy:erase-account` keeps the member record and the reports about it,
+For an **account** (`app_user`): the account, its roles, the groups it serves in (`staff_assignment`) and guardian
+links, with its link to a member record, the age check and the agreement note. `app:privacy:erase-account` keeps the member record and the reports about it,
 with `completed_by` null. What the account did for the
 church stays, without saying who: attendance it recorded, sessions it closed, history entries, homework
 reports it made for a child (they are about the child), lessons and homework it prepared. The columns that

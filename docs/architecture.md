@@ -226,7 +226,7 @@ part in), after accepting the privacy notice.
 The account exists from then on but can't be used: signing in with the right password only shows that it
 is waiting. An administrator approves it in Settings › Account requests, and the approval is where access
 is decided: a parent's account is linked to the children the office has checked (approved guardian links),
-a servant gets the servant role, a member's account is linked to their own member record (see "Members can have
+a servant gets the servant role and the services or stages it serves in, a member's account is linked to their own member record (see "Members can have
 an account of their own"). Declining deletes the account and everything the person entered. Accounts the office
 creates itself are approved at once.
 
@@ -275,7 +275,7 @@ The inventory, processors, measures and the office's procedures are in [data-pro
 
 The app stores as little as the work needs: names, groups, attendance, homework reports, and for members
 and accounts an optional birth date and postal address. No photos and no grades. Staff see a member's
-birth date and address only within their services (administrators everywhere), parents their own
+birth date and address only within their groups (administrators everywhere), parents their own
 children's; an account's own are visible to the person and to administrators. The data protection adviser
 confirms the purpose of birth dates and addresses before launch. Because belonging
 to a church's groups reveals a religious affiliation, all of it is treated as special-category data
@@ -303,13 +303,17 @@ also has to confirm the legal bases and the retention periods (see open question
 
 ### Who may do what
 
-Access is role-based and global (RBAC). A user has roles, a role has permissions, and a permission is one
-action (`create`, `read`, `update`, `delete`) on one resource. Roles are not tied to a service or a stage: a
-servant may record attendance in every service. Administrators manage roles and their permissions; the
-seeded defaults are:
+Access is role-based (RBAC) and limited to groups. A user has roles, a role has permissions, and a permission is
+one action (`create`, `read`, `update`, `delete`) on one resource. Each role holds either church-wide (`church`)
+or only in the groups its holder is assigned to (`assignedGroups`): a servant records attendance, edits members and
+prepares lessons only in the services and stages it serves in. A group is a service's own roster or one of its
+stages; an assignment to a service (`organization.staff_assignment` without a stage) covers the service and all its
+stages, one to a stage that stage only. Administrators manage roles, their permissions and scope, and the
+assignments; a service leader assigns servants within the services it leads. The seeded defaults are:
 
 | Resource | Administrator | Service leader | Servant | Parent |
 | --- | --- | --- | --- | --- |
+| Scope | `church` | `assignedGroups` | `assignedGroups` | `church` |
 | `users`, `roles` | create, read, update, delete | – | – | – |
 | `services` | create, read, update, delete | read, update | read | – |
 | `stages`, `sessions` | create, read, update, delete | create, read, update, delete | – | – |
@@ -328,8 +332,21 @@ their sessions on the next request.
 A workflow that needs a permission states it as its first step:
 `$this->access->require(Action::Update, Resource::Services)` (`Context\Identity\Application\Service\AccessCheck`).
 `AccessCheck` asks Symfony's authorization checker, and `AccessVoter` grants the `Access` when the account,
-reloaded on every request, is active and one of its roles has the permission; otherwise 403 `forbidden`. A role
-or permission change applies on the next request, without a new sign-in. A member workflow starts the same way
+reloaded on every request, is active and one of its roles has the permission; otherwise 403 `forbidden`. A role,
+permission or assignment change applies on the next request, without a new sign-in.
+
+Data of a group is checked against the group too, and `AccessCheck` is the one place that does it.
+`scope(Action, Resource)` answers a `GroupScope` (`Platform\Access\Model`): church-wide when a church role grants
+the permission, else the account's assigned groups, which Identity reads through the Platform contract
+`StaffGroups` that Organization implements, so neither context uses the other. `GroupScope::covers()` is the only
+rule for whether a group is covered. Workflows use it three ways: `requireIn()` answers 404 for a single item
+outside the groups (as the parent portal does for other families), `requireChosen()` refuses a group named in a
+body as if it were unknown, and lists pass the scope to the contexts, which keep the covered groups (the people
+list and the latest closed sessions in their queries, since they are paged or cut). A person belongs to the groups
+of its memberships that have not ended; a person without one is reachable only through a church role. Who may
+assign is decided there as well: a church role with `users: update` anywhere, otherwise `stages: update` with a
+service assignment for that service and its stages. Users, roles, account requests, parent access and data
+protection stay church-wide by permission, and so does the people directory, a name search for pickers. A member workflow starts the same way
 with `$personId = $this->member->require($viewerId)` (`MemberCheck`): it reloads the account and returns its own
 member record, or refuses with 403 `forbidden` when the account is inactive or not linked. The record always
 comes from the account, never from the request.

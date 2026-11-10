@@ -14,7 +14,7 @@ final class UserCreateRequest
     #[Option(description: 'Read the password from stdin')]
     public bool $passwordStdin = false;
 
-    #[Option(description: 'Assign this role everywhere')]
+    #[Option(description: 'Assign this role (in the groups the account is assigned to, for a role limited to them)')]
     public ?string $role = null;
 
     #[Option(description: 'en, de or ar')]

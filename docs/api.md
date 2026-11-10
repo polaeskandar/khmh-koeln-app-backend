@@ -68,10 +68,37 @@ stays the agreed contract (D5): its conventions, code catalog and endpoint secti
 
 ### What the viewer may do
 
-Read models carry no permission flags. Roles are global, so a permission holds for every item, and
-`GET /api/me` lists the account's `permissions` once. The apps decide from them which actions to offer, for
-example editing a service for `services: update`. The API checks every request again and answers 403 when the
-role does not allow it.
+Read models carry no permission flags. `GET /api/me` lists the account's `permissions` once, each with the
+`scope` it holds in, and the account's `assignments`. The apps decide from them which actions to offer, for
+example editing a service for `services: update`. The API checks every request again and answers 403 when no
+role allows it.
+
+### Assigned groups
+
+A group is a service's own roster or one of its stages. Every role holds either church-wide (`scope: church`) or
+only in the groups its holder is assigned to (`scope: assignedGroups`); the seeded Service leader and Servant roles
+hold in assigned groups, Administrator and Parent church-wide. An assignment to a service covers the service's own
+roster and all its stages, one to a stage that stage only. A permission applies to a group when a church role
+grants it, or a role limited to assigned groups grants it and an assignment covers the group; an account with only
+such roles and no assignment sees no group and none of its data.
+
+Every endpoint that reads or changes data of a group checks the group, not only the permission:
+
+- **Lists** leave out what lies outside the viewer's groups. A service is listed when any of its groups is covered,
+  with only the covered stages in `stages`; schedules, the agenda, the dashboard, the attendance overview and
+  counts, the service insights (`next` and `trend`) and the people list keep the covered groups.
+- **Single items** outside the viewer's groups answer the same 404 as an unknown id: a service (a covered stage
+  of it is enough to read it, changing it needs the service itself), a stage, a schedule, a session and its
+  attendance, a person, a membership, a lesson, a homework task. A person is in a group through a membership
+  that has not ended; a person without one is reachable only through a church role.
+- **A group named in a body** outside the viewer's groups is refused as unknown: `…serviceId`
+  `meetings.chooseService`, or `…stageId` `meetings.chooseStage` when the service has covered stages but not the
+  chosen one.
+- Cancel reasons, session notes and lesson notes follow the same rule for their own permission
+  (`attendance: read`, `members: read`) in the item's group.
+
+Users, roles, account requests, member accounts, parent access, data protection requests and the people directory
+(`GET /api/people/directory`, names and current groups only, for pickers) stay church-wide by permission.
 
 ### Lists
 
@@ -336,7 +363,8 @@ Any signed-in account, parents included. 401 `auth.unauthenticated` without a va
 | --- | --- |
 | `account` | `{id, email, displayName, language}`; `language` is `en`, `de` or `ar` |
 | `roles` | `[{id, name}]`, by name |
-| `permissions` | `[{action, resource}]`, every permission the account's roles grant, once each, by resource and action in the order of the catalog |
+| `permissions` | `[{action, resource, scope}]`, every permission the account's roles grant, once each, by resource and action in the order of the catalog; `scope` is `church` when a church role grants it, else `assignedGroups` |
+| `assignments` | `[{service: ServiceRef, stage: StageRef \| null}]`, the groups the account serves in (see [Assigned groups](#assigned-groups)), by service name, the service itself first, then by stage position |
 | `today` | date |
 | `member` | `null`, or `{personId, groupCount}` for an account linked to its own member record: `groupCount` counts the record's current memberships (church-today) in services and stages that are not archived, 0 while the record is inactive |
 
@@ -368,11 +396,17 @@ A servant (its `members`, `lessons` and `homework` permissions left out):
   },
   "roles": [{"id": "019a3f00-0000-7000-8000-000000000003", "name": "Servant"}],
   "permissions": [
-    {"action": "read", "resource": "services"},
-    {"action": "create", "resource": "attendance"},
-    {"action": "read", "resource": "attendance"},
-    {"action": "update", "resource": "attendance"},
-    {"action": "delete", "resource": "attendance"}
+    {"action": "read", "resource": "services", "scope": "assignedGroups"},
+    {"action": "create", "resource": "attendance", "scope": "assignedGroups"},
+    {"action": "read", "resource": "attendance", "scope": "assignedGroups"},
+    {"action": "update", "resource": "attendance", "scope": "assignedGroups"},
+    {"action": "delete", "resource": "attendance", "scope": "assignedGroups"}
+  ],
+  "assignments": [
+    {
+      "service": {"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f10", "name": "Sunday School", "tone": 1, "archived": false},
+      "stage": {"id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f20", "name": "3rd Class", "position": 2, "archived": false}
+    }
   ],
   "today": "2026-11-08",
   "member": null
@@ -390,7 +424,8 @@ A parent:
     "language": "ar"
   },
   "roles": [{"id": "019a3f00-0000-7000-8000-000000000004", "name": "Parent"}],
-  "permissions": [{"action": "read", "resource": "parentPortal"}],
+  "permissions": [{"action": "read", "resource": "parentPortal", "scope": "church"}],
+  "assignments": [],
   "today": "2026-11-08",
   "member": null
 }
@@ -627,7 +662,7 @@ the endpoint, and a well-formed one gets the endpoint's 403.
 | 403 | `forbidden` | The role does not allow it, or a foreign `Origin` |
 | 403 | `auth.unconfirmed`, `auth.pending`, `auth.disabled`, `auth.erasureScheduled` | Sign-in and token issuing with the right password |
 | 403 | specific codes | Where a section names why, e.g. `services.adminOnlyCreate` |
-| 404 | `notFound.<thing>` | Unknown, deleted, or non-UUID id |
+| 404 | `notFound.<thing>` | Unknown, deleted, or non-UUID id, or an item outside the viewer's groups |
 | 404 | `notFound.route` | No such route under `/api` |
 | 404 | `homework.notAvailable` | Parent portal: anything that is not the parent's, always the same (D10) |
 | 405 | `invalidRequest` | The route has no such method |
@@ -748,6 +783,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `notFound.homework` | – | This homework does not exist or was deleted. |
 | `notFound.user` | – | This account does not exist or was deleted. |
 | `notFound.role` | – | **New.** This role does not exist or was deleted. |
+| `notFound.assignment` | – | **New.** This assignment does not exist or was removed. |
 | `notFound.guardian` | – | This parent link does not exist or was removed. |
 | `notFound.request` | – | This request does not exist or was deleted. |
 | `notFound.route` | – | **New.** 404: no such route under `/api`. |
@@ -893,6 +929,13 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `roles.chooseRole` | – | **New.** Field error on `roleIds`: choose at least one role. |
 | `roles.notHeld` | `name` | **New.** 409: {name} doesn't have this role. |
 | `roles.accountPending` | – | **New.** 409: an account that waits for approval gets its roles when it is approved. |
+
+### `assignments`
+
+| Code | Params | Meaning (English reference text) |
+| --- | --- | --- |
+| `assignments.alreadyAssigned` | `name`, `where` | **New.** 409: {name} already serves in {where}. |
+| `assignments.notAllowed` | – | **New.** 403: Only administrators and the service's leaders can choose where someone serves. |
 
 ### `materials`
 
@@ -1129,13 +1172,16 @@ Nothing else: no password hash and no privacy fields.
 #### `POST /api/account-requests/{id}/approve`
 
 `users: update` and `roles: update` (it grants roles), else 403 `accounts.adminOnly`. Body `{as: "parent",
-childIds, roleIds}`, `{as: "servant", roleIds}` or `{as: "member", member: {personId, ageCheck,
-guardianConsentNote?}}`. Roles hold everywhere, so a servant gets roles and nothing else; children come from the
+childIds, roleIds}`, `{as: "servant", roleIds, assignments?: [{serviceId, stageId | null}]}` or `{as: "member",
+member: {personId, ageCheck, guardianConsentNote?}}`. A servant gets the roles and the groups it serves in
+(see [Assigned groups](#assigned-groups)), each group once; the approver must be allowed to assign each of them as
+for `POST /api/accounts/{id}/assignments` (else 403 `assignments.notAllowed`, and the account stays pending).
+Parents ignore `assignments`. Children come from the
 people directory (`GET /api/people/directory?q=`), a member's record from `GET
 /api/account-requests/member-candidates?q=`. A member gets no role: the account is linked to its own record with
 the age check (`sixteenOrOlder`, or `guardianConsent` for under 16 with the parent's or guardian's agreement), and
 `guardianConsentNote` is kept only with `guardianConsent`. In one transaction, with the account locked: the roles
-are given (a parent also gets the Parent role), a parent gets approved guardian links to the children
+are given (a parent also gets the Parent role), a servant's assignments are stored, a parent gets approved guardian links to the children
 (`approved_by` = the administrator), a member's account is linked to its record, the account is approved, and the
 registration's note, its `registeredAs` and the services the person named are deleted. A member's approval holds a
 share lock on the record first, as `app:member:link` does, so an erasure can't remove it in between. Any failure
@@ -1152,6 +1198,7 @@ stands. Declining sends nothing.
 | `member.guardianConsentNote` (members) | `validation.tooLong {max: 200}` |
 | `roleIds` | `roles.chooseRole` (none), `roles.unknown` (an id no role has); duplicates are ignored, in any letter case |
 | `childIds` (parents) | `accounts.chooseChild` (none), `validation.tooMany {max: 20}`, `accounts.childNotFound` (unknown or inactive); duplicates are ignored, in any letter case |
+| `assignments` (servants) | `validation.tooMany {max: 50}`; `assignments.N.serviceId` `meetings.chooseService` (missing or unknown), `meetings.serviceArchived {name}`; `assignments.N.stageId` `meetings.chooseStage` (unknown or another service's), `meetings.stageArchived {name}`; a member of the wrong JSON type `validation.invalidType` |
 
 404 `notFound.user`, also for an id that is not a UUID; 409 `accounts.alreadyApproved`; 409
 `accounts.requestDisabled` for a disabled request, which can still be declined. A refused approval leaves the
@@ -1174,14 +1221,36 @@ account, which stays.
 
 ### Staff accounts
 
-Settings for administrators: staff accounts, their roles and password links. Roles are global (D7), so an
-assignment is just the role.
+Settings for administrators: staff accounts, their roles, the groups they serve in and password links.
 
 #### `GET /api/staff-accounts`
 
-`users: read`, else 403 `forbidden`. `{items: [{id, displayName, email, disabled, roles: [{id, name}]}], today}`:
-approved accounts with a staff role (one that grants a permission outside `parentPortal`) or with no role,
-disabled ones last, then by name, at most 500; roles by name. Parent-only and pending accounts are left out.
+`users: read`, else 403 `forbidden`. `{items: [{id, displayName, email, disabled, roles: [{id, name}], assignments:
+[{id, service: ServiceRef, stage: StageRef | null}]}], today}`: approved accounts with a staff role (one that grants
+a permission outside `parentPortal`) or with no role, disabled ones last, then by name, at most 500; roles by name,
+assignments as in `GET /api/me`. Parent-only, member-only (no role and linked to a member record) and pending
+accounts are left out.
+
+#### `POST /api/accounts/{id}/assignments`
+
+Body `{serviceId, stageId | null}` → 201 `{id, service: ServiceRef, stage: StageRef | null}`, without `Location`:
+the account serves in that group from now on (see [Assigned groups](#assigned-groups)). Who may assign: a church
+role with `users: update`, anywhere; otherwise `stages: update` with a service assignment, for that service and its
+stages. Anyone else → 403 `assignments.notAllowed`, also for a group the caller may not assign.
+
+| Case | Answer |
+| --- | --- |
+| Unknown account, or an id that is not a UUID | 404 `notFound.user` |
+| `serviceId` missing or unknown; `stageId` unknown or another service's | 422 `serviceId` `meetings.chooseService`; `stageId` `meetings.chooseStage` |
+| An archived service or stage | 422 `serviceId` `meetings.serviceArchived {name}` / `stageId` `meetings.stageArchived {name}` |
+| The account already serves in that group (also when the unique index catches a race) | 409 `assignments.alreadyAssigned {name, where}`, `name` the account's, `where` the stage's or the service's |
+
+The service row is share-locked while the assignment is written, so a deletion of the service waits.
+
+#### `DELETE /api/assignments/{id}`
+
+Body `{}` → 204. The same rule as above decides who may remove it (403 `assignments.notAllowed`); 404
+`notFound.assignment`, also for an id that is not a UUID. The account loses the group from its next request.
 
 #### `POST /api/accounts/{id}/roles`
 
@@ -1210,18 +1279,19 @@ nobody to manage roles.
 The role catalog for administrators: roles with their permissions, as the roles list, the role page and the staff
 accounts' role choices show them. A permission is one action (`create`, `read`, `update`, `delete`) on one resource
 of the catalog (`users`, `roles`, `services`, `stages`, `sessions`, `attendance`, `members`, `lessons`, `homework`,
-`parentPortal`); roles are global (D7). Each endpoint needs its own `roles` permission, else 403 `roles.adminOnly`.
-`permissions` are `[{action, resource}]` in the order of the catalog, as in `GET /api/me`.
+`parentPortal`). A role's `scope` is `church` (its permissions hold everywhere) or `assignedGroups` (they hold in
+its holders' assigned groups, see [Assigned groups](#assigned-groups)). Each endpoint needs its own `roles`
+permission, else 403 `roles.adminOnly`. `permissions` are `[{action, resource}]` in the order of the catalog.
 
 #### `GET /api/roles`
 
-`roles: read`. `{items: [{id, name, permissions, holderCount}]}`: every role, by name ignoring case. `holderCount`
+`roles: read`. `{items: [{id, name, scope, permissions, holderCount}]}`: every role, by name ignoring case. `holderCount`
 counts the accounts that have the role, disabled ones included.
 
 #### `GET /api/roles/{id}`
 
-`roles: read`. `{id, name, permissions, createdAt, updatedAt, holders: [{id, displayName, email, disabled}],
-onlyWayToChangeRoles}`. `createdAt` and `updatedAt` are instants. `holders` are the accounts that have the role, by
+`roles: read`. `{id, name, scope, permissions, createdAt, updatedAt, holders: [{id, displayName, email,
+disabled}], onlyWayToChangeRoles}`. `createdAt` and `updatedAt` are instants. `holders` are the accounts that have the role, by
 name ignoring case, disabled ones included. `onlyWayToChangeRoles` is true when no active account could change roles
 without this role's `roles: update`: taking that permission from the role, or deleting it, answers 409
 `roles.lastAdministrator`. 404 `notFound.role`, also for an id that is not a UUID.
@@ -1230,6 +1300,7 @@ without this role's `roles: update`: taking that permission from the role, or de
 {
   "id": "019a3f00-0000-7000-8000-000000000003",
   "name": "Servant",
+  "scope": "assignedGroups",
   "permissions": [{"action": "read", "resource": "services"}, {"action": "create", "resource": "attendance"}],
   "createdAt": "2026-11-01T01:00:00+01:00",
   "updatedAt": "2026-11-01T01:00:00+01:00",
@@ -1242,19 +1313,21 @@ without this role's `roles: update`: taking that permission from the role, or de
 
 #### `POST /api/roles`
 
-`roles: create`. Body `{name, permissions: [{action, resource}]}` → 201 `{id}` with `Location`. The role has no
+`roles: create`. Body `{name, scope?, permissions: [{action, resource}]}` → 201 `{id}` with `Location`; `scope`
+defaults to `church`. The role has no
 holders yet; `POST /api/accounts/{id}/roles` gives it. Every field error comes back at once, and a refusal stores
 nothing.
 
 | Field | Codes |
 | --- | --- |
 | `name` | `roles.nameRequired` (missing or blank), `validation.tooLong {max: 80}`, `roles.nameTaken {name}` (another role has this name, ignoring case and spacing; `name` is that role's name). The name is trimmed and inner spaces are collapsed. |
+| `scope` | `validation.invalidChoice` (not `church` or `assignedGroups`), `validation.invalidType` (not a string) |
 | `permissions` | `validation.invalidChoice` (an action or resource outside the catalog, or the same permission twice) |
 
 #### `PUT /api/roles/{id}`
 
-`roles: update`. The same body, the whole role: the name and the permissions replace the old ones → 200 with the role
-as `GET /api/roles/{id}` answers it. The holders have the new permissions from their next request. The same field
+`roles: update`. The same body, the whole role: the name and the permissions replace the old ones, and `scope` when
+it is sent (left out, the role keeps its scope) → 200 with the role as `GET /api/roles/{id}` answers it. The holders have the new permissions from their next request. The same field
 errors as `POST`; 404 `notFound.role`, also for an id that is not a UUID; 409 `roles.lastAdministrator` when the role
 loses `roles: update` and no other active account could change roles (`onlyWayToChangeRoles`). The administration
 lock serialises the change with the role removals, disables and erasures. A refusal stores nothing.
@@ -1388,8 +1461,8 @@ order; anything else → 422 field error `status`: `validation.invalidChoice`. A
 
 #### `GET /api/service-leaders`
 
-`services: read`. `{items: [AccountRef]}`, the approved, enabled accounts with the Service leader role, by name.
-Roles are global (D7), so the list is the same for every service.
+`services: read`. `{items: [AccountRef]}`, the approved, enabled accounts with the Service leader role, by name,
+the same for every viewer and every service: it lists accounts, not group data.
 
 #### `POST /api/services`
 
@@ -1495,16 +1568,17 @@ UTF-8 → `validation.invalidType`. `%` and `_` match themselves.
 
 `members: read`. `{today, items: [PersonRow], page, pageSize: 25, total}`, by last, then first name
 (German order). A `PersonRow` is `{person: PersonView, placements: [Placement], pastPlacements: [Placement]}`; a `Placement` is `{membershipId, service: ServiceRef, stage: StageRef | null, startsOn, endsOn}`,
-current ones (`endsOn` null or from today) under `placements`, ended ones under `pastPlacements`. Roles hold
-everywhere, so every person is listed.
+current ones (`endsOn` null or from today) under `placements`, ended ones under `pastPlacements`. Only the people
+in the viewer's groups are listed (see [Assigned groups](#assigned-groups)), filtered in the query, so `total` and
+the pages count them alone; a row shows all of a listed person's placements.
 
 - `status` defaults to `active`; anything other than `active`, `inactive` or `all` → 422 `validation.invalidChoice
   {choices}`. Every query error comes back at once, except `page`, which is checked after them.
   With the default, inactive people on a roster are left out (a roster itself ignores status, so `memberCount`
   can be higher); `status=all` lists the whole roster.
 - `stageId` keeps the stage's roster today; `serviceId` everyone currently in the service, at any stage or the
-  service level. With `stageId`, `serviceId` is ignored. Unknown → 404 `notFound.stage` / `notFound.service`; an id
-  that is not a UUID → 422 `validation.invalidType` on that filter.
+  service level. With `stageId`, `serviceId` is ignored. Unknown, or outside the viewer's groups → 404
+  `notFound.stage` / `notFound.service`; an id that is not a UUID → 422 `validation.invalidType` on that filter.
 - `q`: every word (folded like the directory search) appears in the first, last or display name; at most 100
   characters (`validation.tooLong {max: 100}`), and text that is not UTF-8 → `validation.invalidType`.
 - `page` from 1 to 10000; `page=0` → 422 `validation.tooSmall {min: 1}`, beyond → `validation.tooLarge {max:
@@ -1522,7 +1596,8 @@ stageId?}, confirmDuplicate?}`. Names are cleaned first (spaces collapsed): `peo
 comes back at once. A placement puts the person on a roster from church-today: `placement.serviceId`
 `meetings.chooseService` (unknown) or `meetings.serviceArchived {name}`; `placement.stageId`
 `meetings.chooseStage` (unknown or another service's) or `meetings.stageArchived {name}`. Without a placement the
-person is on no roster.
+person is on no roster; only a church role may add such a person, anyone else needs a placement in one of its
+groups (`placement.serviceId` `meetings.chooseService` without one, and a group outside them is refused as unknown).
 
 Anyone with the same cleaned full name (first and last name together, so the split between them doesn't matter),
 ignoring case and display names, in any status, is a namesake: 409 `people.duplicate {count, name}` with
@@ -1877,8 +1952,8 @@ has a session, or on a day its recurrence covers while it is active and neither 
 archived. Another non-archived lesson already there → `lessons.meetingHasLesson {title}`. An existing link stays
 valid when the lesson is edited, even if its session was canceled or its schedule no longer meets that day.
 
-Lesson preparers (`responsibleId` choices) are the active accounts whose roles grant `lessons: update`, by name
-in German collation.
+Lesson preparers (`responsibleId` choices and helpers) are the active accounts whose `lessons: update` holds in
+the lesson's stage (see [Assigned groups](#assigned-groups)), by name in German collation.
 
 ### Lessons
 
@@ -2182,9 +2257,10 @@ groups.
 
 #### `GET /api/member/servants`
 
-→ 200 `{items: [{id, name, role}]}`, `role` `service_leader` or `servant`: the active accounts holding those roles,
-leaders first, then by name. Roles are global, so these are the servants of every group; the app shows them with
-each group.
+→ 200 `{items: [{id, name, role}]}`: the active staff accounts with a role limited to assigned groups whose
+assignments cover one of the member's current groups. `role` is `service_leader` for an account with a service
+assignment that covers one of them, else `servant`; leaders first, then by name. The app shows them with each
+group.
 
 #### `GET /api/member/meetings`
 
