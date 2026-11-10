@@ -29,4 +29,20 @@ final class NameKeyTest extends TestCase
     {
         self::assertSame('مدارس_الأحد', NameKey::of('مدارس  الأحد'));
     }
+
+    public function testSharpSIsKeptAndTheCapitalOneLowered(): void
+    {
+        self::assertSame('straße_groß', NameKey::of('STRAẞE Groß'));
+    }
+
+    public function testArabicVowelMarksAndTheZeroWidthNonJoinerStayInTheKey(): void
+    {
+        self::assertSame('مِينَا_حَنَّا', NameKey::of(" مِينَا\u{3000}حَنَّا "));
+        self::assertSame("می\u{200C}خواهم", NameKey::of("می\u{200C}خواهم"));
+    }
+
+    public function testAByteOrderMarkIsNotSpace(): void
+    {
+        self::assertSame("\u{FEFF}choir", NameKey::of(" \u{FEFF}Choir"));
+    }
 }

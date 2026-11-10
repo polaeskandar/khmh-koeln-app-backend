@@ -18,4 +18,12 @@ final class WholeWordTest extends TestCase
         self::assertFalse(WholeWord::in('Mikiro came', 'Kiro'));
         self::assertFalse(WholeWord::in('aab', 'a+b'));
     }
+
+    public function testUmlautsAndSharpSMatchInAnyCase(): void
+    {
+        self::assertTrue(WholeWord::in('Frau MÜLLER kam', 'Müller'));
+        self::assertTrue(WholeWord::in('Haus an der Straße', 'straße'));
+        self::assertFalse(WholeWord::in('Müllers Haus', 'Müller'));
+        self::assertTrue(WholeWord::in('سأل مِينَا', 'مِينَا'));
+    }
 }
