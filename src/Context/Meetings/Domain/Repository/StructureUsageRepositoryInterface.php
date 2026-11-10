@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Domain\Repository;
 
+use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Context\Meetings\Domain\ValueObject\StructureImpact;
 use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -26,7 +27,7 @@ interface StructureUsageRepositoryInterface
     /**
      * @param list<Uuid> $scheduleIds
      *
-     * @return list<string>
+     * @return list<SessionStatus>
      */
     public function lockUnfinished(array $scheduleIds): array;
 

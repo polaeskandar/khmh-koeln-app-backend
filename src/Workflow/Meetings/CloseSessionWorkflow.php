@@ -10,14 +10,14 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\CoveredSchedules;
 use App\Context\Meetings\Application\Service\MeetingSessions;
-use App\Context\Meetings\Application\Service\SessionTransitions;
+use App\Context\Meetings\Application\Service\SessionLifecycle;
 use App\Workflow\Meetings\Model\SessionState;
 
 final readonly class CloseSessionWorkflow
 {
     public function __construct(
         private AccessCheck $access,
-        private SessionTransitions $transitions,
+        private SessionLifecycle $lifecycle,
         private AccountLookup $accounts,
         private MeetingSessions $sessions,
     ) {
@@ -29,7 +29,7 @@ final readonly class CloseSessionWorkflow
         $group = CoveredSchedules::groupOfSession($this->sessions->find($sessionId));
         $this->access->requireIn(Action::Create, Resource::Attendance, $group, missing: 'session');
 
-        $session = $this->transitions->close($sessionId, $accountId);
+        $session = $this->lifecycle->close($sessionId, $accountId);
 
         return SessionState::of($session, $this->accounts->account($session->progress()->closed->by));
     }

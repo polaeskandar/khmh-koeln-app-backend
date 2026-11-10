@@ -6,7 +6,6 @@ namespace App\Context\Meetings\Domain\ValueObject;
 
 use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Library\Problem\Exception\RuleViolation;
-use App\Library\Time\Model\LocalDate;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Embeddable]
@@ -29,45 +28,24 @@ final readonly class Progress
         return new self(SessionStatus::Scheduled, cancelReason: null, opened: Stamp::none(), closed: Stamp::none());
     }
 
-    public function opened(Stamp $stamp, LocalDate $occurrenceDate, LocalDate $today): self
+    public function withStatus(SessionStatus $status): self
     {
-        return match (true) {
-            $this->status === SessionStatus::Active => $this,
-            $this->status === SessionStatus::Canceled => throw new RuleViolation('meetings.sessionCanceled'),
-            $this->status === SessionStatus::Completed => throw new RuleViolation('meetings.attendanceClosed'),
-            $today->isBefore($occurrenceDate) => throw new RuleViolation('meetings.opensOnTheDay'),
-            default => new self(SessionStatus::Active, $this->cancelReason, $stamp, Stamp::none()),
-        };
+        return new self($status, $this->cancelReason, $this->opened, $this->closed);
     }
 
-    public function closed(Stamp $stamp): self
+    public function withOpened(Stamp $opened): self
     {
-        return match ($this->status) {
-            SessionStatus::Completed => $this,
-            SessionStatus::Active => new self(SessionStatus::Completed, $this->cancelReason, $this->opened, $stamp),
-            default => throw new RuleViolation('meetings.onlyActiveCanClose'),
-        };
+        return new self($this->status, $this->cancelReason, $opened, $this->closed);
     }
 
-    public function reopened(): self
+    public function withClosed(Stamp $closed): self
     {
-        return match ($this->status) {
-            SessionStatus::Active => $this,
-            SessionStatus::Completed => new self(
-                SessionStatus::Active,
-                $this->cancelReason,
-                $this->opened,
-                Stamp::none(),
-            ),
-            default => throw new RuleViolation('meetings.onlyCompletedCanReopen'),
-        };
+        return new self($this->status, $this->cancelReason, $this->opened, $closed);
     }
 
-    public function canceled(?string $reason): self
+    public function withCancelReason(?string $reason): self
     {
-        return $this->status === SessionStatus::Scheduled
-            ? new self(SessionStatus::Canceled, $reason, $this->opened, $this->closed)
-            : throw new RuleViolation('meetings.onlyScheduledCanCancel');
+        return new self($this->status, $reason, $this->opened, $this->closed);
     }
 
     public function ensureNotCanceled(): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Meetings\Infrastructure\Persistence\Repository;
 
+use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Context\Meetings\Domain\Repository\StructureUsageRepositoryInterface;
 use App\Context\Meetings\Domain\ValueObject\StructureImpact;
 use App\Library\Collections\Model\Collections;
@@ -22,7 +23,7 @@ final readonly class DoctrineStructureUsageRepository implements StructureUsageR
     private const string BY_SERVICE = <<<'SQL'
         SELECT sc.service_id::text AS owner,
                count(DISTINCT sc.id) FILTER (WHERE sc.active) AS schedules,
-               count(se.id) FILTER (WHERE se.status = 'scheduled' AND se.occurrence_date >= :today) AS sessions
+               count(se.id) FILTER (WHERE se.status = :scheduled AND se.occurrence_date >= :today) AS sessions
         FROM meetings.meeting_schedule sc
         LEFT JOIN meetings.meeting_session se ON se.schedule_id = sc.id
         GROUP BY sc.service_id
@@ -31,7 +32,7 @@ final readonly class DoctrineStructureUsageRepository implements StructureUsageR
     private const string OF_STAGES = <<<'SQL'
         SELECT sc.stage_id::text AS owner,
                count(DISTINCT sc.id) FILTER (WHERE sc.active) AS schedules,
-               count(se.id) FILTER (WHERE se.status = 'scheduled' AND se.occurrence_date >= :today) AS sessions
+               count(se.id) FILTER (WHERE se.status = :scheduled AND se.occurrence_date >= :today) AS sessions
         FROM meetings.meeting_schedule sc
         LEFT JOIN meetings.meeting_session se ON se.schedule_id = sc.id
         WHERE sc.stage_id IN (:owners)
@@ -40,7 +41,7 @@ final readonly class DoctrineStructureUsageRepository implements StructureUsageR
 
     private const string UNFINISHED = <<<'SQL'
         SELECT status FROM meetings.meeting_session
-        WHERE schedule_id IN (:schedules) AND status IN ('scheduled', 'active')
+        WHERE schedule_id IN (:schedules) AND status IN (:unfinished)
         ORDER BY id
         FOR UPDATE
         SQL;
@@ -61,7 +62,11 @@ final readonly class DoctrineStructureUsageRepository implements StructureUsageR
     #[Override]
     public function byService(LocalDate $today): ReadableCollection
     {
-        return $this->impactsFrom(self::BY_SERVICE, ['today' => $today->toString()], types: []);
+        return $this->impactsFrom(
+            self::BY_SERVICE,
+            ['scheduled' => SessionStatus::Scheduled->value, 'today' => $today->toString()],
+            types: [],
+        );
     }
 
     /**
@@ -76,7 +81,11 @@ final readonly class DoctrineStructureUsageRepository implements StructureUsageR
 
         return $this->impactsFrom(
             self::OF_STAGES,
-            ['owners' => self::strings($stageIds), 'today' => $today->toString()],
+            [
+                'owners' => self::strings($stageIds),
+                'scheduled' => SessionStatus::Scheduled->value,
+                'today' => $today->toString(),
+            ],
             types: ['owners' => ArrayParameterType::STRING],
         );
     }
@@ -84,7 +93,7 @@ final readonly class DoctrineStructureUsageRepository implements StructureUsageR
     /**
      * @param list<Uuid> $scheduleIds
      *
-     * @return list<string>
+     * @return list<SessionStatus>
      */
     #[Override]
     public function lockUnfinished(array $scheduleIds): array
@@ -95,13 +104,16 @@ final readonly class DoctrineStructureUsageRepository implements StructureUsageR
 
         $statuses = $this->entityManager->getConnection()->fetchFirstColumn(
             self::UNFINISHED,
-            ['schedules' => self::strings($scheduleIds)],
-            ['schedules' => ArrayParameterType::STRING],
+            [
+                'schedules' => self::strings($scheduleIds),
+                'unfinished' => [SessionStatus::Scheduled->value, SessionStatus::Active->value],
+            ],
+            ['schedules' => ArrayParameterType::STRING, 'unfinished' => ArrayParameterType::STRING],
         );
 
         return new ArrayCollection($statuses)
             ->map(Type::of(...))
-            ->map(static fn (Type $status): string => $status->toString())
+            ->map(static fn (Type $status): SessionStatus => SessionStatus::from($status->toString()))
             ->getValues();
     }
 

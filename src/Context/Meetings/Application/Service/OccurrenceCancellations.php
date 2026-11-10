@@ -22,7 +22,7 @@ final readonly class OccurrenceCancellations
     public function __construct(
         private MeetingSchedules $schedules,
         private SessionRepositoryInterface $sessions,
-        private SessionTransitions $transitions,
+        private SessionLifecycle $lifecycle,
         private Transactions $transactions,
         private Calendar $calendar,
     ) {
@@ -42,7 +42,7 @@ final readonly class OccurrenceCancellations
 
         $this->transactions->run(function () use ($planned, $accountId, $note, &$canceled): void {
             $session = $this->materialized($planned, $accountId);
-            $canceled = $this->transitions->cancel($session->id()->toRfc4122(), $accountId, $note);
+            $canceled = $this->lifecycle->cancel($session->id()->toRfc4122(), $accountId, $note);
         });
 
         return $canceled ?? throw NotFound::of('session');
