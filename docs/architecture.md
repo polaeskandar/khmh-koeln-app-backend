@@ -59,8 +59,8 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   controllers and context services never use `AccessCheck`, neither injected nor passed as an argument
   (`mago guard`). Read models carry no permission flags: clients take what the viewer may do from the
   `permissions` of `GET /api/me`.
-- A workflow takes at most five collaborators, like any other constructor; one that needs more is split, never
-  suppressed. A workflow never runs another workflow: when two processes share steps, both call the same context
+- A workflow takes at most seven collaborators, like any other constructor ([Code style](code-style.md#5-classes-one-responsibility-final-and-immutable));
+  one that needs more is split by responsibility, never suppressed. A workflow never runs another workflow: when two processes share steps, both call the same context
   services, and a context takes over the steps that only fan out to the others through a platform contract. A
   dry run is the real workflow inside `Transactions::rehearse()`, called by the entry point.
 - Erasure fans out through the tagged contracts in `Platform\Privacy\Contract`: People's `PersonErasures` hands

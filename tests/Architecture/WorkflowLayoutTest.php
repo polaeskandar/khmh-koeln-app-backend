@@ -17,7 +17,7 @@ final class WorkflowLayoutTest extends TestCase
 
     private const string APPLICATION_SERVICES = '/src/Context/*/Application/Service/*.php';
 
-    private const string VAGUE_SERVICE_NAME = '/(Service|Manager|Helper)\.php$/';
+    private const string VAGUE_SERVICE_NAME = '/(Service|Manager|Helper|Processor)\.php$/';
 
     public function testAWorkflowAreaHoldsOnlyWorkflowsAndTheirModels(): void
     {
@@ -67,7 +67,11 @@ final class WorkflowLayoutTest extends TestCase
             static fn (string $path): bool => preg_match(self::VAGUE_SERVICE_NAME, $path) === 1,
         );
 
-        self::assertSame([], array_values($vague), 'Application services never end in Service, Manager or Helper.');
+        self::assertSame(
+            [],
+            array_values($vague),
+            'Application services never end in Service, Manager, Helper or Processor.',
+        );
     }
 
     /**
