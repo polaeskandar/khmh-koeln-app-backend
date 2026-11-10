@@ -8,6 +8,7 @@ use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Meetings\Domain\Enum\SessionStatus;
 use App\Context\Meetings\Domain\Repository\ScheduleRepositoryInterface;
 use App\Context\Meetings\Domain\Repository\StructureUsageRepositoryInterface;
+use App\Library\Problem\Exception\RuleViolation;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
@@ -20,14 +21,18 @@ final readonly class SchedulePauses
     ) {
     }
 
-    public function pauseService(Uuid $serviceId): bool
+    public function pauseService(Uuid $serviceId, string $name): void
     {
-        return $this->paused($this->schedules->listed($serviceId, stageId: null));
+        if (!$this->paused($this->schedules->listed($serviceId, stageId: null))) {
+            throw new RuleViolation('services.takingAttendance', ['name' => $name]);
+        }
     }
 
-    public function pauseStage(Uuid $stageId): bool
+    public function pauseStage(Uuid $stageId, string $name): void
     {
-        return $this->paused($this->schedules->listed(serviceId: null, stageId: $stageId));
+        if (!$this->paused($this->schedules->listed(serviceId: null, stageId: $stageId))) {
+            throw new RuleViolation('stages.takingAttendance', ['name' => $name]);
+        }
     }
 
     /**

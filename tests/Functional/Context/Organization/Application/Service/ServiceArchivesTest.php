@@ -57,8 +57,8 @@ final class ServiceArchivesTest extends KernelTestCase
 
         $this->archives()->archive(
             $this->service?->id() ?? throw new LogicException('The service is set up.'),
-            pause: function (Service $service) use ($other, $sessionId, &$sqlState): bool {
-                $paused = $this->pauses()->pauseService($service->id());
+            pauseSchedules: function (Service $service) use ($other, $sessionId, &$sqlState): void {
+                $this->pauses()->pauseService($service->id(), $service->name()->value);
 
                 try {
                     $other->beginTransaction();
@@ -68,8 +68,6 @@ final class ServiceArchivesTest extends KernelTestCase
                 } finally {
                     $other->rollBack();
                 }
-
-                return $paused;
             },
         );
 

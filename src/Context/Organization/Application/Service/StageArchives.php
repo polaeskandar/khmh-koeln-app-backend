@@ -11,7 +11,6 @@ use App\Context\Organization\Domain\Repository\StageRepositoryInterface;
 use App\Context\Organization\Domain\Validation\ArchiveRule;
 use App\Context\Organization\Domain\ValueObject\StageLineup;
 use App\Library\Problem\Exception\NotFound;
-use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Time\Client\Calendar;
 use Symfony\Component\Uid\Uuid;
 
@@ -26,17 +25,13 @@ final readonly class StageArchives
     }
 
     /**
-     * @param callable(Stage): bool $pause
+     * @param callable(Stage): void $pauseSchedules
      */
-    public function archive(Uuid $id, callable $pause): Stage
+    public function archive(Uuid $id, callable $pauseSchedules): Stage
     {
-        return $this->whileStructureLocked($id, function (Stage $stage) use ($pause): Stage {
+        return $this->whileStructureLocked($id, function (Stage $stage) use ($pauseSchedules): Stage {
             ArchiveRule::ensureStageOpen($stage);
-
-            if (!$pause($stage)) {
-                throw new RuleViolation('stages.takingAttendance', ['name' => $stage->name()->value]);
-            }
-
+            $pauseSchedules($stage);
             $stage->archive($this->calendar->now());
 
             return $this->placed($stage);
