@@ -50,7 +50,9 @@ No other processor receives personal data. Logs leave the server only without pe
 - **Transport:** TLS only; HSTS; the session cookie is `__Host-`, `Secure`, `HttpOnly`, `SameSite=Lax`.
 - **Backups:** daily, encrypted with age before leaving the database host; the private key is offline with two
   named people; restores only at the provider ([operations.md § Backups](operations.md#backups)).
-- **Access:** every workflow checks its permission (`AccessCheck`) before it reads or writes; parent routes deny
+- **Access:** every workflow checks its permission (`AccessCheck`) before it reads or writes, and for data of a
+  service or stage also the group: servants and service leaders reach only the groups they are assigned to
+  (`organization.staff_assignment`), anything else answers as if it did not exist; parent routes deny
   by default and answer the same 404 for anything that is not the parent's; servant notes and cancel reasons need
   extra permissions.
 - **Passwords:** hashed with Symfony's `auto` hasher; set through one-time links valid 24 h; sign-in is throttled.
@@ -70,7 +72,7 @@ No other processor receives personal data. Logs leave the server only without pe
 | **Rectification** (Art. 16) | Service leader (members), administrator (accounts) | One month | Correct the record in the app; tell the requester. |
 | **Objection** (Art. 21) | Office with the adviser | One month | Weigh the church's legitimate interest; record the decision. |
 | **Breach** (Art. 33) | Administrator, then the adviser | 72 h after becoming aware | Contain, assess, report to the authority; inform families when the risk is high. |
-| **Servant leaves** | Service leader | The same week | `app:user:disable <email>`; take the role. |
+| **Servant leaves** | Service leader | The same week | `app:user:disable <email>`; take the role and remove the assignments (`DELETE /api/assignments/{id}`). |
 | **Password link** | Administrator | – | Check the person's identity before sending one (`app:user:password-link`). |
 | **Restore** | Operator | Before the app is reopened | Replay every [erasure ledger](#erasure-ledger) entry made after the backup was taken. |
 
