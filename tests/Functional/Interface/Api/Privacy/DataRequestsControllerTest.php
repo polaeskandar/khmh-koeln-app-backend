@@ -138,6 +138,13 @@ final class DataRequestsControllerTest extends ApiTestCase
             'privacy.receivedInFuture',
         ];
 
+        yield 'unknown kind' => [
+            ['kind' => 'rectification'],
+            'kind',
+            'validation.invalidChoice',
+            ['choices' => '"erasure", "copy"'],
+        ];
+
         yield 'app channel' => [
             ['receipt' => ['channel' => 'app']],
             'receipt.channel',
