@@ -35,7 +35,7 @@ final readonly class CopyLinks
     ) {
     }
 
-    public function subjectOf(Uuid $requestId): CopyableSubject
+    public function getSubjectOf(Uuid $requestId): CopyableSubject
     {
         return CopyableSubject::of($this->request($requestId));
     }

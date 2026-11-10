@@ -52,7 +52,7 @@ final class TaskAudiencesTest extends KernelTestCase
         self::assertSame(2, AudienceSize::of(
             new TaskAudienceLookups(self::getContainer())
                 ->rosters()
-                ->rosterBookOn([$key], alsoPersonIds: []),
+                ->getRosterBookOn([$key], alsoPersonIds: []),
             $key,
         ));
 

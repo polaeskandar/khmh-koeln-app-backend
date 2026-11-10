@@ -32,7 +32,7 @@ final readonly class ServiceStages
      *
      * @return ReadableCollection<int, Stage>
      */
-    public function activeIn(ReadableCollection $services): ReadableCollection
+    public function listActiveIn(ReadableCollection $services): ReadableCollection
     {
         return $this->stages->activeIn($services);
     }
@@ -40,7 +40,7 @@ final readonly class ServiceStages
     /**
      * @return ReadableCollection<int, Stage>
      */
-    public function activeOf(Service $service): ReadableCollection
+    public function listActiveOf(Service $service): ReadableCollection
     {
         return $this->stages->activeIn(new ArrayCollection([$service]));
     }
@@ -48,7 +48,7 @@ final readonly class ServiceStages
     /**
      * @return ReadableCollection<int, Stage>
      */
-    public function ofService(Service $service): ReadableCollection
+    public function listOfService(Service $service): ReadableCollection
     {
         return $this->stages->ofService($service);
     }

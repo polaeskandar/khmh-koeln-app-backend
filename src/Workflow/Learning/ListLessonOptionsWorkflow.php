@@ -40,7 +40,7 @@ final readonly class ListLessonOptionsWorkflow
     {
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.prepareStageOnly');
 
-        $stage = $this->structure->stage(Ids::toUuid($stageId, notFound: 'stage'));
+        $stage = $this->structure->getStage(Ids::toUuid($stageId, notFound: 'stage'));
         $group = StructureGroup::ofStage($stage);
         $this->access->requireIn(Action::Update, Resource::Lessons, $group, missing: 'stage');
 
@@ -48,13 +48,13 @@ final readonly class ListLessonOptionsWorkflow
 
         $window = LessonWindow::around($this->calendar->today(), $edited);
         $archived = ArchivedStructure::of($this->structure->archivedIds());
-        $dates = $this->meetings->datesOfStage($stage->id(), $archived, $window->from, $window->to);
+        $dates = $this->meetings->listDatesOfStage($stage->id(), $archived, $window->from, $window->to);
 
         return LessonOptions::of(
             $window,
             $dates,
             $this->takenIn(self::scheduleIdsOf($dates), $window, $edited),
-            $this->accounts->activeAllowedIn(Action::Update, Resource::Lessons, $group),
+            $this->accounts->listActiveAllowedIn(Action::Update, Resource::Lessons, $group),
         );
     }
 

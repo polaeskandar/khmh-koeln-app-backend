@@ -36,7 +36,7 @@ final readonly class ListSchedulesWorkflow
 
     public function __invoke(?string $serviceId, ?string $stageId): ScheduleList
     {
-        $scope = $this->access->scope(Action::Read, Resource::Services);
+        $scope = $this->access->requireScope(Action::Read, Resource::Services);
 
         $today = $this->calendar->today();
         $archived = ArchivedStructure::of($this->structure->archivedIds());
@@ -73,8 +73,8 @@ final readonly class ListSchedulesWorkflow
     private function rosterReferencesOf(ReadableCollection $schedules): RosterReferences
     {
         return RosterReferences::of(
-            $this->structure->services(RosterReferences::serviceIdsOf($schedules)),
-            $this->structure->stages(RosterReferences::stageIdsOf($schedules)),
+            $this->structure->listServices(RosterReferences::serviceIdsOf($schedules)),
+            $this->structure->listStages(RosterReferences::stageIdsOf($schedules)),
         );
     }
 
@@ -83,6 +83,6 @@ final readonly class ListSchedulesWorkflow
      */
     private function sizesOf(ReadableCollection $schedules, LocalDate $today): RosterSizes
     {
-        return new RosterSizes($this->attendees->rostersOn(RosterSizes::keysOf($schedules, $today)), $today);
+        return new RosterSizes($this->attendees->listRostersOn(RosterSizes::keysOf($schedules, $today)), $today);
     }
 }

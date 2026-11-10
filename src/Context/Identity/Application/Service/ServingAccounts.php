@@ -35,7 +35,7 @@ final readonly class ServingAccounts
      *
      * @return list<User> the active ones with a role that holds in assigned groups, by name
      */
-    public function activeAmong(array $ids): array
+    public function listActiveAmong(array $ids): array
     {
         return self::byName(
             $this->users
@@ -53,7 +53,7 @@ final readonly class ServingAccounts
     /**
      * @return list<User> the active accounts with a role that holds in assigned groups, by name
      */
-    public function active(): array
+    public function listActive(): array
     {
         return self::byName($this->holders->activeHoldersIn(RoleScope::AssignedGroups));
     }

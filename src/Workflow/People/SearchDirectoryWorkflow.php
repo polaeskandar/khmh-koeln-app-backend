@@ -44,13 +44,13 @@ final readonly class SearchDirectoryWorkflow
      */
     private function entriesOf(ReadableCollection $people): array
     {
-        $memberships = $this->directory->currentMembershipsOf($people);
+        $memberships = $this->directory->listCurrentMembershipsOf($people);
 
         return DirectoryEntries::of(
             $people,
             $memberships,
-            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
-            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+            $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->listStages(DirectoryEntries::stageIdsOf($memberships)),
         );
     }
 }

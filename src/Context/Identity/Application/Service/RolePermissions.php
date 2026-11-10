@@ -12,7 +12,7 @@ use App\Context\Identity\Domain\Enum\Resource;
 
 final readonly class RolePermissions
 {
-    public static function roleAllows(Role $role, Action $action, Resource $resource): bool
+    public static function isGrantedToRole(Role $role, Action $action, Resource $resource): bool
     {
         $granting = $role->permissions()->filter(
             static fn (Permission $permission): bool => self::grants($permission, $action, $resource),
@@ -21,22 +21,24 @@ final readonly class RolePermissions
         return !$granting->isEmpty();
     }
 
-    public static function accountHas(User $user, Action $action, Resource $resource): bool
+    public static function isGrantedToAccount(User $user, Action $action, Resource $resource): bool
     {
-        $granting = $user->roles()->filter(static fn (Role $role): bool => self::roleAllows($role, $action, $resource));
+        $granting = $user->roles()->filter(
+            static fn (Role $role): bool => self::isGrantedToRole($role, $action, $resource),
+        );
 
         return !$granting->isEmpty();
     }
 
-    public static function activeAccountHas(User $user, Action $action, Resource $resource): bool
+    public static function isGrantedToActiveAccount(User $user, Action $action, Resource $resource): bool
     {
-        return $user->status()->isActive() && self::accountHas($user, $action, $resource);
+        return $user->status()->isActive() && self::isGrantedToAccount($user, $action, $resource);
     }
 
-    public static function accountHasWithout(User $user, Role $left, Action $action, Resource $resource): bool
+    public static function isGrantedToAccountWithout(User $user, Role $left, Action $action, Resource $resource): bool
     {
         $granting = $user->roles()->filter(
-            static fn (Role $role): bool => $role !== $left && self::roleAllows($role, $action, $resource),
+            static fn (Role $role): bool => $role !== $left && self::isGrantedToRole($role, $action, $resource),
         );
 
         return !$granting->isEmpty();

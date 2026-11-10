@@ -33,8 +33,12 @@ final readonly class PersonLists
     ) {
     }
 
-    public function filterOf(PersonStatusFilter $status, ?Uuid $serviceId, ?Uuid $stageId, string $text): PersonFilter
-    {
+    public function buildFilter(
+        PersonStatusFilter $status,
+        ?Uuid $serviceId,
+        ?Uuid $stageId,
+        string $text,
+    ): PersonFilter {
         $words = new ArrayCollection(Text::of(InputText::of($text)->folded()->toString())->split(' '));
 
         return new PersonFilter(
@@ -49,7 +53,7 @@ final readonly class PersonLists
     /**
      * @return ReadableCollection<int, Person>
      */
-    public function page(PersonFilter $filter, int $page, GroupScope $scope): ReadableCollection
+    public function listPage(PersonFilter $filter, int $page, GroupScope $scope): ReadableCollection
     {
         if ($page < 1) {
             throw InvalidInput::field('page', 'validation.tooSmall', ['min' => 1]);

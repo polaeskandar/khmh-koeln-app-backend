@@ -42,10 +42,10 @@ final readonly class ShowStageAttendanceHistoryWorkflow
     {
         $this->access->require(Action::Read, Resource::Members);
 
-        $stage = $this->structure->stage(Ids::toUuid($stageId, notFound: 'stage'));
+        $stage = $this->structure->getStage(Ids::toUuid($stageId, notFound: 'stage'));
         $this->access->requireIn(Action::Read, Resource::Members, StructureGroup::ofStage($stage), missing: 'stage');
         $today = $this->calendar->today();
-        $tallied = $this->talliedOf($this->history->latestCompleted($stage->id(), self::SESSIONS));
+        $tallied = $this->talliedOf($this->history->listLatestCompleted($stage->id(), self::SESSIONS));
 
         return new AttendanceHistory(
             $today->toString(),
@@ -62,7 +62,7 @@ final readonly class ShowStageAttendanceHistoryWorkflow
         return new TalliedSessions(
             $marked->sessions,
             SessionTallies::of(
-                $this->attendees->rostersOn(SessionTallies::rosterKeysOf($marked->sessions, $marked->schedules)),
+                $this->attendees->listRostersOn(SessionTallies::rosterKeysOf($marked->sessions, $marked->schedules)),
                 $marked->present,
                 $marked->sessions,
                 $marked->schedules,
@@ -88,7 +88,7 @@ final readonly class ShowStageAttendanceHistoryWorkflow
     private function rowsOf(Stage $stage, LocalDate $today, TalliedSessions $tallied): array
     {
         $key = new RosterKey($stage->service()->id(), $stage->id(), $today);
-        $members = $this->attendees->peopleOf($this->attendees->rostersOn([$key])->get($key->id()) ?? []);
+        $members = $this->attendees->listPeopleOf($this->attendees->listRostersOn([$key])->get($key->id()) ?? []);
 
         return HistoryRows::of($members, $tallied->inOrder());
     }

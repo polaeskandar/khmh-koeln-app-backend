@@ -62,7 +62,7 @@ final readonly class ShowAttendanceBoardWorkflow
     {
         $sessions = new ArrayCollection([$session]);
         $schedules = $this->sessions->listSchedulesOf($sessions);
-        $rosters = $this->attendees->rostersOn(SessionTallies::rosterKeysOf($sessions, $schedules));
+        $rosters = $this->attendees->listRostersOn(SessionTallies::rosterKeysOf($sessions, $schedules));
         $tallies = SessionTallies::of($rosters, BoardLists::presentOf($current), $sessions, $schedules);
 
         return $tallies->get($session->id()->toRfc4122()) ?? throw new LogicException('Every session has a tally.');
@@ -78,15 +78,15 @@ final readonly class ShowAttendanceBoardWorkflow
     ): AttendanceBoard {
         $byPerson = BoardLists::byPerson($current);
         $visitors = BoardLists::visitorsOf($tally, $byPerson);
-        $people = $this->attendees->peopleOf(BoardLists::personIdsOf($tally, $current));
-        $memberships = $this->attendees->currentMembershipsOf(BoardLists::peopleOf($visitors, $people));
+        $people = $this->attendees->listPeopleOf(BoardLists::personIdsOf($tally, $current));
+        $memberships = $this->attendees->listCurrentMembershipsOf(BoardLists::peopleOf($visitors, $people));
 
         $placements = Placements::of(
-            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
-            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+            $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->listStages(DirectoryEntries::stageIdsOf($memberships)),
         );
 
-        $byName = $this->attendees->byName(BoardLists::visitorIdsOf($visitors));
+        $byName = $this->attendees->listByName(BoardLists::visitorIdsOf($visitors));
 
         return new AttendanceBoard(
             $counts,

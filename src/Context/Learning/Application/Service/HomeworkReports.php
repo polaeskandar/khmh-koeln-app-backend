@@ -38,7 +38,7 @@ final readonly class HomeworkReports
         return new TaskReports($this->calendar->today(), $tasks, $reports->getValues());
     }
 
-    public function reading(Uuid $id): HomeworkReading
+    public function getReading(Uuid $id): HomeworkReading
     {
         $found = $this->homework->find($id) ?? throw NotFound::of('homework');
 
@@ -56,7 +56,7 @@ final readonly class HomeworkReports
     /**
      * @return ReadableCollection<int, HomeworkCompletion>
      */
-    public function about(Uuid $personId): ReadableCollection
+    public function listAbout(Uuid $personId): ReadableCollection
     {
         return $this->completions->allAbout($personId);
     }
@@ -64,7 +64,7 @@ final readonly class HomeworkReports
     /**
      * @return ReadableCollection<int, HomeworkCompletion>
      */
-    public function madeBy(Uuid $accountId): ReadableCollection
+    public function listMadeBy(Uuid $accountId): ReadableCollection
     {
         return $this->completions->allBy($accountId);
     }

@@ -24,7 +24,7 @@ final readonly class ReactivatePersonWorkflow
 
     public function __invoke(string $personId): PersonView
     {
-        $scope = $this->access->scope(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
+        $scope = $this->access->requireScope(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
         $id = Ids::toUuid($personId, notFound: 'person');
         $this->groups->requireVisible($id, $scope);
 

@@ -38,15 +38,15 @@ final readonly class ListServiceInsightsWorkflow
      */
     public function __invoke(string $status): array
     {
-        $scope = $this->access->scope(Action::Read, Resource::Services);
+        $scope = $this->access->requireScope(Action::Read, Resource::Services);
         $filter = ServiceFilter::tryFrom($status) ?? throw InvalidInput::field('status', 'validation.invalidChoice');
 
-        $next = $this->meetings->nextByService(ArchivedStructure::of($this->structure->archivedIds()), $scope);
-        $completed = $this->meetings->recentlyCompleted($scope);
+        $next = $this->meetings->listNextByService(ArchivedStructure::of($this->structure->archivedIds()), $scope);
+        $completed = $this->meetings->listRecentlyCompleted($scope);
         $keys = SessionTallies::rosterKeysOf($completed->sessions, $completed->schedules);
 
         $tallies = SessionTallies::of(
-            $this->attendees->rostersOn($keys),
+            $this->attendees->listRostersOn($keys),
             $completed->present,
             $completed->sessions,
             $completed->schedules,
@@ -57,7 +57,7 @@ final readonly class ListServiceInsightsWorkflow
                 $service->id(),
             )),
             $next,
-            $this->structure->stages(ServiceInsights::stageIdsOf($next)),
+            $this->structure->listStages(ServiceInsights::stageIdsOf($next)),
             new RecentAttendance($completed->sessions, $tallies),
             $this->usage->listImpactByService($this->calendar->today()),
         );

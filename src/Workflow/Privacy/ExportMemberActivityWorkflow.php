@@ -34,8 +34,11 @@ final readonly class ExportMemberActivityWorkflow
         $marks = $this->attendance->listMarksOfPerson($person->id());
 
         return new MemberActivity(
-            attendance: AttendanceRow::listOf($marks, $this->meetings->sessions(AttendanceRow::sessionIdsOf($marks))),
-            homeworkReports: ReportAboutRow::listOf($this->homework->about($person->id())),
+            attendance: AttendanceRow::listOf(
+                $marks,
+                $this->meetings->listSessions(AttendanceRow::sessionIdsOf($marks)),
+            ),
+            homeworkReports: ReportAboutRow::listOf($this->homework->listAbout($person->id())),
         );
     }
 }

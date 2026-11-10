@@ -39,18 +39,18 @@ final readonly class ListPeopleWorkflow
 
     public function __invoke(PeopleQuery $query): PeoplePage
     {
-        $scope = $this->access->scope(Action::Read, Resource::Members);
+        $scope = $this->access->requireScope(Action::Read, Resource::Members);
 
         $roster = $this->scopes->chosen(Ids::toUuidOrNull($query->serviceId), Ids::toUuidOrNull($query->stageId));
         $this->requireShown($roster);
 
         $filter = $this->filterOf($query, $roster);
-        $people = $this->lists->page($filter, $query->page, $scope);
+        $people = $this->lists->listPage($filter, $query->page, $scope);
         $memberships = $this->people->listMembershipsOf($people);
 
         $placements = Placements::of(
-            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
-            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+            $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->listStages(DirectoryEntries::stageIdsOf($memberships)),
         );
 
         return new PeoplePage(
@@ -72,7 +72,7 @@ final readonly class ListPeopleWorkflow
             'validation.invalidChoice',
         );
 
-        return $this->lists->filterOf($status, $roster?->service->id(), $roster?->stage?->id(), $query->text);
+        return $this->lists->buildFilter($status, $roster?->service->id(), $roster?->stage?->id(), $query->text);
     }
 
     private function requireShown(?ChosenPlacement $roster): void

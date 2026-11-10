@@ -142,7 +142,11 @@ final class LessonMeetingsTest extends KernelTestCase
             date: $monday->toString(),
         );
 
-        $offered = OfferedMeetings::of($meetings->slotOfSchedule($sunday->id(), $monday, ArchivedStructure::of([])));
+        $offered = OfferedMeetings::of($meetings->findSlotOfSchedule(
+            $sunday->id(),
+            $monday,
+            ArchivedStructure::of([]),
+        ));
 
         $this->assertRefused(
             'lessons.noMeetingThatDay',
@@ -201,8 +205,8 @@ final class LessonMeetingsTest extends KernelTestCase
         self::assertInstanceOf(LessonMeetings::class, $lessons);
 
         $slot = match (true) {
-            $choice->sessionId !== null => $meetings->slotOfSession($choice->session()),
-            $choice->scheduleId !== null => $meetings->slotOfSchedule(
+            $choice->sessionId !== null => $meetings->findSlotOfSession($choice->session()),
+            $choice->scheduleId !== null => $meetings->findSlotOfSchedule(
                 $choice->schedule(),
                 $choice->day(),
                 ArchivedStructure::of($archived),

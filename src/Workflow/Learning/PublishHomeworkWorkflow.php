@@ -38,7 +38,7 @@ final readonly class PublishHomeworkWorkflow
 
     private function published(HomeworkAssignment $task): HomeworkAssignment
     {
-        $stage = $this->structure->stage($task->stageId());
+        $stage = $this->structure->getStage($task->stageId());
 
         $this->access->requireIn(
             Action::Update,

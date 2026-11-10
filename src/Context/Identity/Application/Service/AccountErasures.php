@@ -20,7 +20,7 @@ final readonly class AccountErasures
     ) {
     }
 
-    public function accountOfRecord(?Uuid $personId): ?Uuid
+    public function findAccountOfRecord(?Uuid $personId): ?Uuid
     {
         return $personId === null ? null : $this->people->accountOf($personId);
     }

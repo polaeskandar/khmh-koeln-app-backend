@@ -22,7 +22,7 @@ final readonly class LinkGuardianWorkflow
 
     public function __invoke(string $email, string $personId, string $relationship): void
     {
-        $account = $this->accounts->activeByEmail($email);
+        $account = $this->accounts->getActiveByEmail($email);
         $child = $this->guardianship->getActiveChild(Ids::toUuid($personId, notFound: 'person'));
 
         $kind = GuardianKind::tryFrom($relationship) ?? throw InvalidInput::field(

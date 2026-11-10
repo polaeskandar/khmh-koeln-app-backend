@@ -27,7 +27,7 @@ final readonly class StageRosters
      * @param list<RosterKey> $keys
      * @param list<Uuid> $alsoPersonIds
      */
-    public function rosterBookOn(array $keys, array $alsoPersonIds): RosterBook
+    public function getRosterBookOn(array $keys, array $alsoPersonIds): RosterBook
     {
         $rosters = $this->rosters->rostersOn($keys);
         $ids = [...self::idsIn($rosters), ...$alsoPersonIds];

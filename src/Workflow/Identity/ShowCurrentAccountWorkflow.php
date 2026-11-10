@@ -64,12 +64,12 @@ final readonly class ShowCurrentAccountWorkflow
             return null;
         }
 
-        $record = $this->records->ownRecord($personId);
+        $record = $this->records->getOwnRecord($personId);
 
         return MemberSummary::of($personId, MemberRoster::of(
             $record,
-            $this->structure->services(MemberRoster::serviceIdsOf($record)),
-            $this->structure->stages(MemberRoster::stageIdsOf($record)),
+            $this->structure->listServices(MemberRoster::serviceIdsOf($record)),
+            $this->structure->listStages(MemberRoster::stageIdsOf($record)),
         ));
     }
 

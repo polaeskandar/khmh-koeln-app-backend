@@ -24,7 +24,7 @@ final readonly class PersonWrites
     ) {
     }
 
-    public function nameOf(?string $firstName, ?string $lastName, ?string $displayName): PersonName
+    public function buildName(?string $firstName, ?string $lastName, ?string $displayName): PersonName
     {
         return PersonName::of($firstName ?? '', $lastName ?? '', $displayName);
     }
@@ -32,7 +32,7 @@ final readonly class PersonWrites
     /**
      * @return ReadableCollection<int, Person>
      */
-    public function namesakesOf(PersonName $name): ReadableCollection
+    public function listNamesakesOf(PersonName $name): ReadableCollection
     {
         return $this->people->withNameKey($name->key);
     }
@@ -59,7 +59,7 @@ final readonly class PersonWrites
     {
         $found = $this->people->find($id) ?? throw NotFound::of('person');
 
-        $found->rename($this->nameOf($firstName, $lastName, $displayName));
+        $found->rename($this->buildName($firstName, $lastName, $displayName));
 
         $this->people->save($found);
 

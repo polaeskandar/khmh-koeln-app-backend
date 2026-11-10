@@ -47,9 +47,9 @@ final class MeetingViewsTest extends KernelTestCase
             $this->lesson(null, '2026-12-06'),
         ]);
 
-        $found = $this->meetings()->schedules(MeetingViews::scheduleIdsOf($lessons));
+        $found = $this->meetings()->listSchedules(MeetingViews::scheduleIdsOf($lessons));
 
-        $sessions = $this->meetings()->sessionsOn($found, MeetingViews::datesOf($lessons));
+        $sessions = $this->meetings()->listSessionsOn($found, MeetingViews::datesOf($lessons));
         $views = MeetingViews::of($found, $sessions, $lessons, ArchivedStructure::of([]));
         $archived = MeetingViews::of($found, $sessions, $lessons, ArchivedStructure::of([$school->id()]));
 

@@ -51,8 +51,8 @@ final readonly class ReportOwnHomeworkWorkflow
 
     private function reported(Uuid $personId, Uuid $viewer, HomeworkAssignment $task): CompletionOutcome
     {
-        $record = $this->records->ownRecord($personId);
-        $own = OwnHomework::of($record, $this->homework->tasksOf(OwnHomework::pupilsOf($record)));
+        $record = $this->records->getOwnRecord($personId);
+        $own = OwnHomework::of($record, $this->homework->listTasksOf(OwnHomework::pupilsOf($record)));
 
         return $this->completions->report($own->requireTask($task->id()), $personId, by: $viewer);
     }

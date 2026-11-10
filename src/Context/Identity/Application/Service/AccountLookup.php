@@ -34,7 +34,7 @@ final readonly class AccountLookup
      *
      * @return ReadableCollection<string, string> the approved, enabled account linked to each person's own record
      */
-    public function ownAccountsOf(array $personIds): ReadableCollection
+    public function listOwnAccountsOf(array $personIds): ReadableCollection
     {
         return new ArrayCollection($this->members->activeAccountsOf($personIds));
     }
@@ -42,7 +42,7 @@ final readonly class AccountLookup
     /**
      * @return ReadableCollection<int, User>
      */
-    public function activeHoldersOf(string $roleNameKey): ReadableCollection
+    public function listActiveHoldersOf(string $roleNameKey): ReadableCollection
     {
         return $this->roleHolders->activeHolders($roleNameKey);
     }
@@ -52,7 +52,7 @@ final readonly class AccountLookup
      *
      * @return ReadableCollection<int, User>
      */
-    public function accounts(array $ids): ReadableCollection
+    public function listByIds(array $ids): ReadableCollection
     {
         return $this->users->findByIds($ids);
     }
@@ -62,7 +62,7 @@ final readonly class AccountLookup
         return $id === null ? null : $this->users->find($id);
     }
 
-    public function accountOrHolder(?Uuid $accountId, ?Uuid $personId): ?User
+    public function findAccountOrHolder(?Uuid $accountId, ?Uuid $personId): ?User
     {
         if ($accountId !== null) {
             return $this->users->find($accountId);
@@ -74,7 +74,7 @@ final readonly class AccountLookup
     /**
      * @return list<User>
      */
-    public function activeAllowedTo(Action $action, Resource $resource): array
+    public function listActiveAllowedTo(Action $action, Resource $resource): array
     {
         $collator = new Collator(self::COLLATION);
 
@@ -87,16 +87,16 @@ final readonly class AccountLookup
     /**
      * @return list<User> by name
      */
-    public function activeAllowedIn(Action $action, Resource $resource, Group $group): array
+    public function listActiveAllowedIn(Action $action, Resource $resource, Group $group): array
     {
-        $allowed = $this->groups->allowedIn(
+        $allowed = $this->groups->listAllowedIn(
             $this->users->activeThatCan($action, $resource),
             $action,
             $resource,
             $group,
         );
 
-        return new ArrayCollection($this->activeAllowedTo($action, $resource))
+        return new ArrayCollection($this->listActiveAllowedTo($action, $resource))
             ->filter($allowed->contains(...))
             ->getValues();
     }

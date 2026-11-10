@@ -29,13 +29,13 @@ final readonly class MeetingLookup
     /**
      * @return list<PlannedDate>
      */
-    public function datesOfStage(Uuid $stageId, ArchivedStructure $archived, LocalDate $from, LocalDate $to): array
+    public function listDatesOfStage(Uuid $stageId, ArchivedStructure $archived, LocalDate $from, LocalDate $to): array
     {
         $schedules = $this->schedules
             ->listed(serviceId: null, stageId: $stageId)
             ->filter(static fn (Schedule $schedule): bool => $schedule->isActive());
 
-        return $this->plannedDates->between($schedules, $archived, $from, $to);
+        return $this->plannedDates->listBetween($schedules, $archived, $from, $to);
     }
 
     /**
@@ -43,7 +43,7 @@ final readonly class MeetingLookup
      *
      * @return ReadableCollection<string, Session>
      */
-    public function sessions(array $ids): ReadableCollection
+    public function listSessions(array $ids): ReadableCollection
     {
         $found = Collections::mapPresent(new ArrayCollection($ids), fn (Uuid $id): ?Session => $this->sessions->find(
             $id,
@@ -52,14 +52,14 @@ final readonly class MeetingLookup
         return Collections::firstPerKey($found, keyOf: self::sessionKey(...));
     }
 
-    public function slotOfSession(Uuid $sessionId): ?MeetingSlot
+    public function findSlotOfSession(Uuid $sessionId): ?MeetingSlot
     {
         $session = $this->sessions->find($sessionId);
 
         return $session === null ? null : MeetingSlot::ofSession($session);
     }
 
-    public function slotOfSchedule(Uuid $scheduleId, LocalDate $date, ArchivedStructure $archived): ?MeetingSlot
+    public function findSlotOfSchedule(Uuid $scheduleId, LocalDate $date, ArchivedStructure $archived): ?MeetingSlot
     {
         $schedule = $this->schedules->find($scheduleId);
 
@@ -73,7 +73,7 @@ final readonly class MeetingLookup
      *
      * @return ReadableCollection<int, Schedule>
      */
-    public function schedules(array $ids): ReadableCollection
+    public function listSchedules(array $ids): ReadableCollection
     {
         return $this->schedules->findByIds($ids);
     }
@@ -84,7 +84,7 @@ final readonly class MeetingLookup
      *
      * @return ReadableCollection<int, Session>
      */
-    public function sessionsOn(ReadableCollection $schedules, array $dates): ReadableCollection
+    public function listSessionsOn(ReadableCollection $schedules, array $dates): ReadableCollection
     {
         return $this->sessions->ofSchedulesOn($schedules, $dates);
     }

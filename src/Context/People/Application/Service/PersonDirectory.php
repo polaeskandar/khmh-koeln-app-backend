@@ -50,7 +50,7 @@ final readonly class PersonDirectory
      *
      * @return ReadableCollection<int, Membership>
      */
-    public function currentMembershipsOf(ReadableCollection $people): ReadableCollection
+    public function listCurrentMembershipsOf(ReadableCollection $people): ReadableCollection
     {
         $today = $this->calendar->today();
 

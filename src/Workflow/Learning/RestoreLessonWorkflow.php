@@ -28,7 +28,7 @@ final readonly class RestoreLessonWorkflow
         $this->access->require(Action::Update, Resource::Lessons, refusal: 'lessons.changeStageOnly');
 
         $lesson = $this->lifecycle->get(Ids::toUuid($id, notFound: 'lesson'));
-        $stage = $this->structure->stage($lesson->stageId());
+        $stage = $this->structure->getStage($lesson->stageId());
         $this->access->requireIn(Action::Update, Resource::Lessons, StructureGroup::ofStage($stage), missing: 'lesson');
         LessonStages::opened($stage);
 

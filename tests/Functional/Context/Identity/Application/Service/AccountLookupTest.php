@@ -30,7 +30,7 @@ final class AccountLookupTest extends KernelTestCase
             ['Bishoy Fahmy', 'Christine Adel', 'Daniel Michael', 'Ölga Bishara'],
             array_map(
                 static fn (User $account): string => $account->profile()->displayName->value,
-                $this->lookup()->activeAllowedTo(Action::Update, Resource::Lessons),
+                $this->lookup()->listActiveAllowedTo(Action::Update, Resource::Lessons),
             ),
         );
     }

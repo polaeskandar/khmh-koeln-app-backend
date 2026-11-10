@@ -40,13 +40,13 @@ final readonly class ListMemberCandidatesWorkflow
         $ids = $people->map(static fn (Person $person): Uuid => $person->id())->getValues();
         $linked = new ArrayCollection($this->members->linkedAmong($ids));
 
-        $memberships = $this->directory->currentMembershipsOf($people);
+        $memberships = $this->directory->listCurrentMembershipsOf($people);
 
         $entries = DirectoryEntries::of(
             $people,
             $memberships,
-            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
-            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+            $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->listStages(DirectoryEntries::stageIdsOf($memberships)),
         );
 
         return new ArrayCollection($entries)->map(

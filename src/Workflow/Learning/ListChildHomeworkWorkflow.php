@@ -47,10 +47,10 @@ final readonly class ListChildHomeworkWorkflow
 
     private function visibleTo(Uuid $viewer): VisibleHomework
     {
-        $family = $this->families->familyOf($viewer);
+        $family = $this->families->getFamilyOf($viewer);
 
         return $this->accounts->findAccount($viewer)?->status()->isActive() === true
-            ? VisibleHomework::forFamily($family, $this->homework->tasksOf(VisibleHomework::pupilsOf($family)))
+            ? VisibleHomework::forFamily($family, $this->homework->listTasksOf(VisibleHomework::pupilsOf($family)))
             : VisibleHomework::none($family);
     }
 
@@ -60,8 +60,8 @@ final readonly class ListChildHomeworkWorkflow
     private function itemsOf(array $tasks, Uuid $viewer): ParentHomeworkItems
     {
         return ParentHomeworkItems::of(
-            $this->structure->stages(ParentHomeworkItems::stageIdsOf($tasks)),
-            $this->accounts->accounts(ParentHomeworkItems::reporterIdsOf($tasks)),
+            $this->structure->listStages(ParentHomeworkItems::stageIdsOf($tasks)),
+            $this->accounts->listByIds(ParentHomeworkItems::reporterIdsOf($tasks)),
             $viewer,
         );
     }

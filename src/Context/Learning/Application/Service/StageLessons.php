@@ -52,7 +52,7 @@ final readonly class StageLessons
         );
     }
 
-    public function reading(Uuid $id): LessonReading
+    public function getReading(Uuid $id): LessonReading
     {
         $lesson = $this->lessons->find($id) ?? throw NotFound::of('lesson');
 

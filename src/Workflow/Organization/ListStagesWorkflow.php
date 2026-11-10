@@ -32,12 +32,12 @@ final readonly class ListStagesWorkflow
 
     public function __invoke(string $serviceId): StageList
     {
-        $scope = $this->access->scope(Action::Read, Resource::Services);
+        $scope = $this->access->requireScope(Action::Read, Resource::Services);
 
         $service = $this->services->get(Ids::toUuid($serviceId, notFound: 'service'));
         $this->access->requireReaching(Action::Read, Resource::Services, $service->id(), missing: 'service');
 
-        $stages = $scope->filter($this->stages->ofService($service), StructureGroup::ofStage(...));
+        $stages = $scope->filter($this->stages->listOfService($service), StructureGroup::ofStage(...));
         $ids = $stages->map(static fn (Stage $stage): Uuid => $stage->id())->getValues();
         $today = $this->calendar->today();
 

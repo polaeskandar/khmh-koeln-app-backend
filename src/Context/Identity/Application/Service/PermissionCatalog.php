@@ -19,7 +19,7 @@ final readonly class PermissionCatalog
     {
         return Collections::of(
             self::everyAccess(),
-        )->filter(static fn (Access $access): bool => RolePermissions::roleAllows(
+        )->filter(static fn (Access $access): bool => RolePermissions::isGrantedToRole(
             $role,
             $access->action,
             $access->resource,

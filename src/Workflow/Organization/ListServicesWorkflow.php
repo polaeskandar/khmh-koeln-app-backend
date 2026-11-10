@@ -34,7 +34,7 @@ final readonly class ListServicesWorkflow
 
     public function __invoke(string $status): ServiceList
     {
-        $scope = $this->access->scope(Action::Read, Resource::Services);
+        $scope = $this->access->requireScope(Action::Read, Resource::Services);
 
         $filter = ServiceFilter::tryFrom($status) ?? throw InvalidInput::field('status', 'validation.invalidChoice');
 
@@ -42,7 +42,7 @@ final readonly class ListServicesWorkflow
             $service->id(),
         ));
 
-        $stages = $scope->filter($this->stages->activeIn($services), StructureGroup::ofStage(...));
+        $stages = $scope->filter($this->stages->listActiveIn($services), StructureGroup::ofStage(...));
 
         $members = $this->rosters->countServiceMembers(
             $services->map(static fn (Service $service): Uuid => $service->id())->getValues(),

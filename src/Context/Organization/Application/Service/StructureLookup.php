@@ -34,7 +34,7 @@ final readonly class StructureLookup
      *
      * @return ReadableCollection<int, Service>
      */
-    public function services(array $ids): ReadableCollection
+    public function listServices(array $ids): ReadableCollection
     {
         return $this->services->findByIds($ids);
     }
@@ -44,12 +44,12 @@ final readonly class StructureLookup
      *
      * @return ReadableCollection<int, Stage>
      */
-    public function stages(array $ids): ReadableCollection
+    public function listStages(array $ids): ReadableCollection
     {
         return $this->stages->findByIds($ids);
     }
 
-    public function stage(Uuid $id): Stage
+    public function getStage(Uuid $id): Stage
     {
         return $this->stages->find($id) ?? throw NotFound::of('stage');
     }

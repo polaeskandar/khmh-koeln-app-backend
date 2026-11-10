@@ -48,7 +48,7 @@ final readonly class ShowAgendaWorkflow
 
     public function __invoke(AgendaFilter $filter): Agenda
     {
-        $scope = $this->access->scope(Action::Read, Resource::Services);
+        $scope = $this->access->requireScope(Action::Read, Resource::Services);
 
         $today = $this->calendar->today();
         $archived = ArchivedStructure::of($this->structure->archivedIds());
@@ -60,7 +60,7 @@ final readonly class ShowAgendaWorkflow
             : AgendaRange::ahead($today, $days);
 
         $dates = $days === null
-            ? $this->schedules->agendaOf(
+            ? $this->schedules->getAgendaOf(
                 CoveredSchedules::within($scope, $this->schedules->chosen(
                     Ids::toUuidOrNull($choice->scheduleId),
                     Ids::toUuidOrNull($choice->serviceId),
@@ -69,7 +69,7 @@ final readonly class ShowAgendaWorkflow
                 $archived,
                 $range,
             )
-            : $this->schedules->upcomingOf($archived, $range, $scope);
+            : $this->schedules->getUpcomingOf($archived, $range, $scope);
 
         return Agenda::of($range, $this->itemsOf($dates, $this->referencesOf($dates->schedules)));
     }
@@ -79,7 +79,7 @@ final readonly class ShowAgendaWorkflow
      */
     private function itemsOf(AgendaDates $dates, RosterReferences $references): array
     {
-        $attendance = $this->access->scopeOf(Action::Read, Resource::Attendance);
+        $attendance = $this->access->getScope(Action::Read, Resource::Attendance);
         $tallies = $this->talliesOf($dates);
 
         $sessionOf = fn (Session $session): AgendaItem => AgendaItem::session(
@@ -110,7 +110,7 @@ final readonly class ShowAgendaWorkflow
     private function talliesOf(AgendaDates $dates): ReadableCollection
     {
         $opened = $dates->opened();
-        $rosters = $this->attendees->rostersOn(SessionTallies::rosterKeysOf($opened, $dates->schedules));
+        $rosters = $this->attendees->listRostersOn(SessionTallies::rosterKeysOf($opened, $dates->schedules));
 
         return SessionTallies::of($rosters, $dates->present, $opened, $dates->schedules);
     }
@@ -136,8 +136,8 @@ final readonly class ShowAgendaWorkflow
     private function referencesOf(ReadableCollection $schedules): RosterReferences
     {
         return RosterReferences::of(
-            $this->structure->services(RosterReferences::serviceIdsOf($schedules)),
-            $this->structure->stages(RosterReferences::stageIdsOf($schedules)),
+            $this->structure->listServices(RosterReferences::serviceIdsOf($schedules)),
+            $this->structure->listStages(RosterReferences::stageIdsOf($schedules)),
         );
     }
 }

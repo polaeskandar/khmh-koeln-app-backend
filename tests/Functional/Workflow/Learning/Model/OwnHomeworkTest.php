@@ -123,11 +123,11 @@ final class OwnHomeworkTest extends KernelTestCase
         $families->link($hoda, $youssef);
         $course->report('greeting', $youssef, 'hoda@example.org');
 
-        $family = self::service(ParentChildren::class)->familyOf(Uuid::fromString($hoda));
+        $family = self::service(ParentChildren::class)->getFamilyOf(Uuid::fromString($hoda));
 
         $asParent = VisibleHomework::forFamily(
             $family,
-            self::service(PupilHomework::class)->tasksOf(VisibleHomework::pupilsOf($family)),
+            self::service(PupilHomework::class)->listTasksOf(VisibleHomework::pupilsOf($family)),
         )->of($youssef->id());
 
         $own = $this->own($youssef)->homework;
@@ -146,10 +146,10 @@ final class OwnHomeworkTest extends KernelTestCase
      */
     private function audienceOf(HomeworkAssignment $task): array
     {
-        $reports = self::service(HomeworkReports::class)->reading($task->id())->reports;
-        $stage = self::service(StructureLookup::class)->stage($task->stageId());
+        $reports = self::service(HomeworkReports::class)->getReading($task->id())->reports;
+        $stage = self::service(StructureLookup::class)->getStage($task->stageId());
         $key = AudienceKeys::keyOf($stage, $reports->today);
-        $book = self::service(StageRosters::class)->rosterBookOn([$key], $reports->reporterIds());
+        $book = self::service(StageRosters::class)->getRosterBookOn([$key], $reports->reporterIds());
 
         $audiences = TaskAudiences::of(
             $reports,
@@ -157,8 +157,8 @@ final class OwnHomeworkTest extends KernelTestCase
             $book,
             AudienceAccounts::of(
                 $book,
-                self::service(AccountLookup::class)->accounts(TaskAudiences::accountIdsOf($book, $reports)),
-                self::service(AccountLookup::class)->ownAccountsOf($book->personIds()),
+                self::service(AccountLookup::class)->listByIds(TaskAudiences::accountIdsOf($book, $reports)),
+                self::service(AccountLookup::class)->listOwnAccountsOf($book->personIds()),
             ),
         );
 
@@ -180,9 +180,12 @@ final class OwnHomeworkTest extends KernelTestCase
 
     private function own(Person $member): OwnHomework
     {
-        $record = self::service(MemberRecords::class)->ownRecord($member->id());
+        $record = self::service(MemberRecords::class)->getOwnRecord($member->id());
 
-        return OwnHomework::of($record, self::service(PupilHomework::class)->tasksOf(OwnHomework::pupilsOf($record)));
+        return OwnHomework::of(
+            $record,
+            self::service(PupilHomework::class)->listTasksOf(OwnHomework::pupilsOf($record)),
+        );
     }
 
     /**

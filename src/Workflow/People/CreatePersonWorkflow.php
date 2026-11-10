@@ -44,11 +44,11 @@ final readonly class CreatePersonWorkflow
         $this->access->require(Action::Create, Resource::Members, refusal: 'people.addNotAllowed');
 
         InvalidInput::all(
-            fn (): PersonName => $this->records->nameOf($draft->firstName, $draft->lastName, $draft->displayName),
+            fn (): PersonName => $this->records->buildName($draft->firstName, $draft->lastName, $draft->displayName),
             fn (): ?Placement => $this->placementOf($draft->placement),
         );
 
-        $name = $this->records->nameOf($draft->firstName, $draft->lastName, $draft->displayName);
+        $name = $this->records->buildName($draft->firstName, $draft->lastName, $draft->displayName);
         $placement = $this->placementOf($draft->placement);
 
         if (!$draft->confirmDuplicate) {
@@ -80,13 +80,13 @@ final readonly class CreatePersonWorkflow
 
     private function refuseNamesakesOf(PersonName $name): void
     {
-        $namesakes = $this->records->namesakesOf($name);
+        $namesakes = $this->records->listNamesakesOf($name);
 
         if ($namesakes->isEmpty()) {
             return;
         }
 
-        $mayRead = $this->access->allows(Action::Read, Resource::Members);
+        $mayRead = $this->access->isAllowed(Action::Read, Resource::Members);
         $shown = $namesakes
             ->filter(static fn (Person $person): bool => $person->status() === PersonStatus::Active)
             ->filter(static fn (): bool => $mayRead);
@@ -108,13 +108,13 @@ final readonly class CreatePersonWorkflow
      */
     private function entriesOf(ReadableCollection $people): array
     {
-        $memberships = $this->directory->currentMembershipsOf($people);
+        $memberships = $this->directory->listCurrentMembershipsOf($people);
 
         return DirectoryEntries::of(
             $people,
             $memberships,
-            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
-            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+            $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->listStages(DirectoryEntries::stageIdsOf($memberships)),
         );
     }
 }

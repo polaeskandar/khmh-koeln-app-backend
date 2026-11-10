@@ -40,9 +40,9 @@ final readonly class ShowHomeworkProgressWorkflow
     {
         $this->access->require(Action::Read, Resource::Members);
 
-        $reading = $this->homework->reading(Ids::toUuid($id, notFound: 'homework'));
+        $reading = $this->homework->getReading(Ids::toUuid($id, notFound: 'homework'));
         $task = $reading->task;
-        $stage = $this->structure->stage($task->stageId());
+        $stage = $this->structure->getStage($task->stageId());
         $this->access->requireIn(Action::Read, Resource::Members, StructureGroup::ofStage($stage), missing: 'homework');
         $audiences = $this->audiencesOf($reading, $stage);
 
@@ -59,12 +59,12 @@ final readonly class ShowHomeworkProgressWorkflow
     {
         $reports = $reading->reports;
         $key = AudienceKeys::keyOf($stage, $reports->today);
-        $book = $this->rosters->rosterBookOn([$key], $reports->reporterIds());
+        $book = $this->rosters->getRosterBookOn([$key], $reports->reporterIds());
 
         $accounts = AudienceAccounts::of(
             $book,
-            $this->accounts->accounts(TaskAudiences::accountIdsOf($book, $reports)),
-            $this->accounts->ownAccountsOf($book->personIds()),
+            $this->accounts->listByIds(TaskAudiences::accountIdsOf($book, $reports)),
+            $this->accounts->listOwnAccountsOf($book->personIds()),
         );
 
         return TaskAudiences::of($reports, new ArrayCollection([$stage->id()->toRfc4122() => $key]), $book, $accounts);

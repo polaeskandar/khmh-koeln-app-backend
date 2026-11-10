@@ -53,7 +53,7 @@ final readonly class DataRequests
     /**
      * @return list<DataRequest>
      */
-    public function all(): array
+    public function listAll(): array
     {
         return $this->requests->all();
     }
@@ -63,14 +63,9 @@ final readonly class DataRequests
         return $this->requests->find($id) ?? throw NotFound::of('request');
     }
 
-    public function copyLinkOf(DataRequest $request): ?CopyLink
+    public function findCopyLinkOf(DataRequest $request): ?CopyLink
     {
         return $this->copyLinks->latestOf($request->id());
-    }
-
-    public function today(): string
-    {
-        return $this->calendar->today()->toString();
     }
 
     private function receivedOn(ReceiptDraft $receipt): LocalDate

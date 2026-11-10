@@ -36,10 +36,10 @@ final readonly class ListServiceServantsWorkflow
 
         $assignments = $this->assignments->listOfService($service->id());
 
-        $servants = $this->accounts->activeAmong(
+        $servants = $this->accounts->listActiveAmong(
             $assignments->map(static fn (StaffAssignment $assignment): Uuid => $assignment->accountId())->getValues(),
         );
 
-        return ServiceServants::of($servants, $assignments, $this->accounts->active());
+        return ServiceServants::of($servants, $assignments, $this->accounts->listActive());
     }
 }

@@ -33,12 +33,12 @@ final readonly class ListMemberServantsWorkflow
      */
     public function __invoke(string $viewerId): array
     {
-        $record = $this->records->ownRecord($this->member->require(Uuid::fromString($viewerId)));
+        $record = $this->records->getOwnRecord($this->member->require(Uuid::fromString($viewerId)));
         $serviceIds = MemberRoster::serviceIdsOf($record);
         $stageIds = MemberRoster::stageIdsOf($record);
         $covering = $this->assignments->listCovering($serviceIds, $stageIds);
 
-        $staff = $this->accounts->activeAmong(
+        $staff = $this->accounts->listActiveAmong(
             $covering->map(static fn (StaffAssignment $assignment): Uuid => $assignment->accountId())->getValues(),
         );
 
@@ -46,8 +46,8 @@ final readonly class ListMemberServantsWorkflow
             new ArrayCollection($staff),
             ServantGroups::of(
                 $record->currentMemberships(),
-                $this->structure->services($serviceIds),
-                $this->structure->stages($stageIds),
+                $this->structure->listServices($serviceIds),
+                $this->structure->listStages($stageIds),
                 $covering,
             ),
         );

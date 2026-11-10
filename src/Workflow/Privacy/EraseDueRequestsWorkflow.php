@@ -54,13 +54,13 @@ final readonly class EraseDueRequestsWorkflow
     {
         $subject = $asked->joined(
             $this->accounts->recordOfAccount($asked->accountId),
-            $this->accounts->accountOfRecord($asked->personId),
+            $this->accounts->findAccountOfRecord($asked->personId),
         );
 
         $outcome = new ErasureOutcome(
             $subject->personId === null
                 ? 0
-                : $this->people->clearMentions($this->people->mentionsOf($subject->personId)),
+                : $this->people->clearMentions($this->people->listMentionsOf($subject->personId)),
             $this->personCounts($subject->personId),
             $this->accountCounts($subject->accountId),
             $subject->accountId,
@@ -87,7 +87,7 @@ final readonly class EraseDueRequestsWorkflow
             return null;
         }
 
-        $guardianLinks = $this->people->guardianLinksOf($accountId);
+        $guardianLinks = $this->people->countGuardianLinksOf($accountId);
 
         return ErasureCounts::of($this->accounts->erase($accountId), $guardianLinks);
     }
@@ -97,8 +97,8 @@ final readonly class EraseDueRequestsWorkflow
         $memberships = $person->memberships;
 
         return ErasedGroup::of($memberships, Placements::of(
-            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
-            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+            $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->listStages(DirectoryEntries::stageIdsOf($memberships)),
         ));
     }
 }

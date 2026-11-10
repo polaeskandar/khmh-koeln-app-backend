@@ -36,8 +36,8 @@ final readonly class ErasePersonWorkflow
         $memberships = $person->memberships;
 
         return ErasedGroup::of($memberships, Placements::of(
-            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
-            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+            $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->listStages(DirectoryEntries::stageIdsOf($memberships)),
         ));
     }
 }

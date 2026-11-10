@@ -29,14 +29,14 @@ final readonly class ShowServiceWorkflow
 
     public function __invoke(string $id): ServiceOverview
     {
-        $scope = $this->access->scope(Action::Read, Resource::Services);
+        $scope = $this->access->requireScope(Action::Read, Resource::Services);
 
         $service = $this->services->get(Ids::toUuid($id, notFound: 'service'));
         $this->access->requireReaching(Action::Read, Resource::Services, $service->id(), missing: 'service');
 
         return ServiceOverview::of(
             $service,
-            $scope->filter($this->stages->activeOf($service), StructureGroup::ofStage(...)),
+            $scope->filter($this->stages->listActiveOf($service), StructureGroup::ofStage(...)),
             MemberCounts::in($this->rosters->countServiceMembers([$service->id()], $this->calendar->today()), $service),
         );
     }

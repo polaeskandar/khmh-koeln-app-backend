@@ -23,7 +23,7 @@ final readonly class StageHistory
     /**
      * @param positive-int $limit
      */
-    public function latestCompleted(Uuid $stageId, int $limit): MarkedSessions
+    public function listLatestCompleted(Uuid $stageId, int $limit): MarkedSessions
     {
         $schedules = $this->schedules->listed(serviceId: null, stageId: $stageId);
         $sessions = $this->recent->latestCompleted($schedules, $limit);

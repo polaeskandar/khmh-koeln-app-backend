@@ -38,7 +38,7 @@ final readonly class ChangeLessonStatusWorkflow
             ensureAllowed: $this->ensureAllowed(...),
         );
 
-        LessonStages::opened($this->structure->stage($lesson->stageId()));
+        LessonStages::opened($this->structure->getStage($lesson->stageId()));
 
         $chosen = LessonStatus::tryFrom($status) ?? throw InvalidInput::field('status', 'validation.invalidChoice');
 
@@ -47,7 +47,7 @@ final readonly class ChangeLessonStatusWorkflow
 
     private function ensureAllowed(Lesson $lesson): void
     {
-        $stage = $this->structure->stage($lesson->stageId());
+        $stage = $this->structure->getStage($lesson->stageId());
         $this->access->requireIn(Action::Update, Resource::Lessons, StructureGroup::ofStage($stage), missing: 'lesson');
     }
 }

@@ -61,7 +61,7 @@ final readonly class PersonErasures
     /**
      * @return list<FoundNote>
      */
-    public function mentionsOf(Uuid $personId): array
+    public function listMentionsOf(Uuid $personId): array
     {
         $person = $this->erasedOf($this->erasable($personId), group: null);
 
@@ -94,7 +94,7 @@ final readonly class PersonErasures
         return new ArrayCollection($refs)->count();
     }
 
-    public function guardianLinksOf(Uuid $accountId): int
+    public function countGuardianLinksOf(Uuid $accountId): int
     {
         return $this->traces->guardianLinksOf($accountId);
     }

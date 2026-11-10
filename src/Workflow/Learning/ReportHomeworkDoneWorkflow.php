@@ -63,10 +63,10 @@ final readonly class ReportHomeworkDoneWorkflow
 
     private function visibleTo(Uuid $viewer): VisibleHomework
     {
-        $family = $this->families->familyOf($viewer);
+        $family = $this->families->getFamilyOf($viewer);
 
         return $this->accounts->findAccount($viewer)?->status()->isActive() === true
-            ? VisibleHomework::forFamily($family, $this->homework->tasksOf(VisibleHomework::pupilsOf($family)))
+            ? VisibleHomework::forFamily($family, $this->homework->listTasksOf(VisibleHomework::pupilsOf($family)))
             : VisibleHomework::none($family);
     }
 }

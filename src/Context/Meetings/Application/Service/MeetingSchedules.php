@@ -28,39 +28,39 @@ final readonly class MeetingSchedules
     /**
      * @param ReadableCollection<int, Schedule> $schedules
      */
-    public function agendaOf(
+    public function getAgendaOf(
         ReadableCollection $schedules,
         ArchivedStructure $archived,
         AgendaRange $range,
     ): AgendaDates {
-        return $this->withPresent($this->plannedDates->agendaOf($schedules, $archived, $range));
+        return $this->withPresent($this->plannedDates->getAgendaOf($schedules, $archived, $range));
     }
 
     /**
      * @param ReadableCollection<int, Schedule> $schedules
      */
-    public function agendaFor(
+    public function getAgendaFor(
         ReadableCollection $schedules,
         ArchivedStructure $archived,
         AgendaRange $range,
     ): AgendaDates {
-        return $this->plannedDates->agendaOf($schedules, $archived, $range);
+        return $this->plannedDates->getAgendaOf($schedules, $archived, $range);
     }
 
-    public function upcomingOf(ArchivedStructure $archived, AgendaRange $range, GroupScope $scope): AgendaDates
+    public function getUpcomingOf(ArchivedStructure $archived, AgendaRange $range, GroupScope $scope): AgendaDates
     {
         $schedules = CoveredSchedules::within(
             $scope,
             $archived->inOpenServices($this->schedules->listed(serviceId: null, stageId: null)),
         );
 
-        return $this->withPresent($this->plannedDates->agendaOf($schedules, $archived, $range)->withoutCompleted());
+        return $this->withPresent($this->plannedDates->getAgendaOf($schedules, $archived, $range)->withoutCompleted());
     }
 
     /**
      * @return ReadableCollection<int, Schedule>
      */
-    public function listed(?Uuid $serviceId, ?Uuid $stageId): ReadableCollection
+    public function listFor(?Uuid $serviceId, ?Uuid $stageId): ReadableCollection
     {
         return $this->schedules->listed($serviceId, $stageId);
     }
@@ -68,9 +68,9 @@ final readonly class MeetingSchedules
     /**
      * @return ReadableCollection<int, Schedule>
      */
-    public function recurring(?Uuid $serviceId, ?Uuid $stageId): ReadableCollection
+    public function listRecurring(?Uuid $serviceId, ?Uuid $stageId): ReadableCollection
     {
-        return $this->listed($serviceId, $stageId)->filter(RecurringSchedule::is(...));
+        return $this->listFor($serviceId, $stageId)->filter(RecurringSchedule::is(...));
     }
 
     /**
@@ -78,7 +78,7 @@ final readonly class MeetingSchedules
      */
     public function chosen(?Uuid $scheduleId, ?Uuid $serviceId, ?Uuid $stageId): ReadableCollection
     {
-        return $scheduleId === null ? $this->listed($serviceId, $stageId) : $this->schedules->findByIds([$scheduleId]);
+        return $scheduleId === null ? $this->listFor($serviceId, $stageId) : $this->schedules->findByIds([$scheduleId]);
     }
 
     public function get(Uuid $id): Schedule

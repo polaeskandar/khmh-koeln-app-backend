@@ -55,7 +55,7 @@ final class PersonErasuresTest extends KernelTestCase
         self::assertInstanceOf(PersonErasures::class, $erasures);
         $structure = self::getContainer()->get(StructureLookup::class);
         self::assertInstanceOf(StructureLookup::class, $structure);
-        $found = $erasures->mentionsOf($person->id());
+        $found = $erasures->listMentionsOf($person->id());
 
         return array_map(
             static fn (Mention $mention): array => [
@@ -64,7 +64,7 @@ final class PersonErasuresTest extends KernelTestCase
                 $mention->date,
                 $mention->group,
             ],
-            Mentions::of($found, $structure->stages(Mentions::stageIdsOf($found))),
+            Mentions::of($found, $structure->listStages(Mentions::stageIdsOf($found))),
         );
     }
 }

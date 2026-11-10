@@ -23,7 +23,7 @@ final readonly class ListRegistrationServicesWorkflow
     public function __invoke(): array
     {
         return $this->services
-            ->active(self::LIMIT)
+            ->listActive(self::LIMIT)
             ->map(
                 static fn (Service $service): ServiceOption => new ServiceOption(
                     $service->id()->toRfc4122(),
