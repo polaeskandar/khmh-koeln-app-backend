@@ -9,8 +9,6 @@ use App\Interface\Api\Privacy\Response\AccountDataResponse;
 use App\Interface\Api\Privacy\Response\MemberDataResponse;
 use App\Interface\Api\Privacy\Response\OwnErasureStatusResponse;
 use App\Interface\Api\Privacy\Response\ScheduledErasureResponse;
-use App\Library\Problem\Exception\InvalidInput;
-use App\Library\Time\Client\Calendar;
 use App\Workflow\Privacy\ExportAccountDataWorkflow;
 use App\Workflow\Privacy\ExportMemberActivityWorkflow;
 use App\Workflow\Privacy\ExportMemberDataWorkflow;
@@ -20,13 +18,10 @@ use App\Workflow\Privacy\ShowOwnErasureRequestWorkflow;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
-use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
-use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
@@ -35,13 +30,6 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 final class OwnDataController extends AbstractController
 {
     private const string FILE = 'khmk-my-data.json';
-
-    public function __construct(
-        #[Autowire(service: 'limiter.password_change')]
-        private readonly RateLimiterFactoryInterface $passwordChecks,
-        private readonly Calendar $calendar,
-    ) {
-    }
 
     #[Route('/personal-data', name: 'api_me_personal_data', methods: ['GET'])]
     #[OA\Get(summary: 'Me personal data.')]
@@ -102,23 +90,7 @@ final class OwnDataController extends AbstractController
         OwnErasureRequestRequest $request,
         RequestOwnErasureWorkflow $requestOwnErasure,
     ): JsonResponse {
-        $accountId = $viewer->getUserIdentifier();
-        $attempts = $this->passwordChecks->create($accountId);
-        $left = $attempts->consume(0);
-
-        if ($left->getRemainingTokens() === 0) {
-            $seconds = $left->getRetryAfter()->getTimestamp() - $this->calendar->now()->getTimestamp();
-
-            throw new TooManyRequestsHttpException($seconds, 'auth.tooManyAttempts');
-        }
-
-        $scheduled = $requestOwnErasure($accountId, $request->password ?? '', $request->note);
-
-        if ($scheduled === null) {
-            $attempts->consume();
-
-            throw InvalidInput::field('password', 'accounts.currentPasswordWrong');
-        }
+        $scheduled = $requestOwnErasure($viewer->getUserIdentifier(), $request->password ?? '', $request->note);
 
         return $this->json(ScheduledErasureResponse::of($scheduled), status: Response::HTTP_CREATED);
     }
