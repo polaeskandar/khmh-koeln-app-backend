@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Library\Strings\Model;
 
-use InvalidArgumentException;
 use Override;
 use Stringable;
+use Symfony\Component\String\ByteString;
 
 final readonly class Text implements Stringable
 {
@@ -39,9 +39,9 @@ final readonly class Text implements Stringable
     public function replaceMatches(string $pattern, string $replacement): self
     {
         return new self(
-            preg_replace($pattern, $replacement, $this->value) ?? throw new InvalidArgumentException(
-                'The pattern could not be applied.',
-            ),
+            new ByteString($this->value)
+                ->replaceMatches($pattern, $replacement)
+                ->toString(),
         );
     }
 
@@ -52,7 +52,7 @@ final readonly class Text implements Stringable
 
     public function isUtf8(): bool
     {
-        return mb_check_encoding($this->value, encoding: 'UTF-8');
+        return new ByteString($this->value)->isUtf8();
     }
 
     public function isDigits(): bool

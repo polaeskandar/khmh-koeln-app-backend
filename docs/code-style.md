@@ -250,6 +250,13 @@ Text follows these rules:
 | Ids, codes, paths, headers, patterns | `Text` (on `ByteString` where equal) | `u()`/`b()` are functions |
 | A length limit | `InputText::length()`, code points like Validator's `Length` | graphemes count fewer |
 
+`Text::replaceMatches()` and `isUtf8()` run on `ByteString`. The rest stays native because symfony/string differs:
+`ByteString::match()` throws on broken bytes where `Text::matches()` answers no (a field error, not a 500),
+`ByteString::startsWith('')` is false, `split()` returns objects, `ByteString::lower()` is ASCII-only and
+`UnicodeString::lower()` composes. `CodePointString` refuses broken bytes that `InputText::length()` counts (a
+password typed on a Latin-1 console), and `UnicodeString::slice()` takes a grapheme where `Initials` takes the first
+code point (Arabic initials without vowel marks).
+
 New operations go on the fitting model, or into a new package `src/Library/<Package>/Model/` when none fits.
 Packages never use each other (`mago guard`).
 
