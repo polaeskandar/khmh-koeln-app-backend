@@ -48,7 +48,7 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
     }
 
     #[Override]
-    public function pending(int $limit): ReadableCollection
+    public function listPending(int $limit): ReadableCollection
     {
         $confirmed = Criteria::create()
             ->where(Criteria::expr()->isNull('status.approvedAt'))

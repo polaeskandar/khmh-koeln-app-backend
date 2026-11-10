@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\AccessCheck;
-use App\Context\Identity\Application\Service\AccountApprovals;
+use App\Context\Identity\Application\Service\AccountLifecycle;
+use App\Context\Identity\Application\Service\ApprovalNotices;
 use App\Context\Identity\Application\Service\MemberAccounts;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Action;
@@ -28,10 +29,11 @@ final readonly class ApproveMemberRequestWorkflow
 
     public function __construct(
         private AccessCheck $access,
-        private AccountApprovals $approvals,
+        private AccountLifecycle $accounts,
         private MemberAccounts $members,
         private MemberRecords $records,
         private RegistrationServices $registrations,
+        private ApprovalNotices $notices,
     ) {
     }
 
@@ -48,7 +50,7 @@ final readonly class ApproveMemberRequestWorkflow
             throw $invalid->nestedIn(self::FIELDS);
         }
 
-        $this->approvals->announce($approved);
+        $this->notices->send($approved);
 
         return AccountSummary::of($approved);
     }
@@ -58,7 +60,7 @@ final readonly class ApproveMemberRequestWorkflow
         $record = new MemberRecord($person->id(), $person->name()->fullName());
         $age = AgeCheck::tryFrom($member->ageCheck) ?? throw InvalidInput::field('ageCheck', 'accounts.chooseAge');
 
-        return $this->approvals->approve(
+        return $this->accounts->approve(
             Ids::toUuid($id, notFound: 'user'),
             Uuid::fromString($actorId),
             new ArrayCollection(),
