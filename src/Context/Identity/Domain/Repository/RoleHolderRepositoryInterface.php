@@ -9,9 +9,10 @@ use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\Enum\RoleScope;
+use App\Context\Identity\Domain\Query\RoleHolderQueryInterface;
 use Doctrine\Common\Collections\ReadableCollection;
 
-interface RoleHolderRepositoryInterface
+interface RoleHolderRepositoryInterface extends RoleHolderQueryInterface
 {
     /**
      * @return ReadableCollection<int, User>
@@ -22,16 +23,6 @@ interface RoleHolderRepositoryInterface
      * @return ReadableCollection<int, User> the approved, enabled accounts with a role of that scope
      */
     public function activeHoldersIn(RoleScope $scope): ReadableCollection;
-
-    /**
-     * @return ReadableCollection<int, User>
-     */
-    public function holdersOf(Role $role): ReadableCollection;
-
-    /**
-     * @return array<string, int>
-     */
-    public function holderCounts(): array;
 
     public function hasActiveAccountThatCanWithout(Role $role, Action $action, Resource $resource): bool;
 }

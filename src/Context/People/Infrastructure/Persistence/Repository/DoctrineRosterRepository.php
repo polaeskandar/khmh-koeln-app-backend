@@ -78,7 +78,7 @@ final readonly class DoctrineRosterRepository implements RosterRepositoryInterfa
      * @param list<Uuid> $serviceIds
      */
     #[Override]
-    public function serviceMemberCounts(array $serviceIds, LocalDate $on): ReadableCollection
+    public function countServiceMembers(array $serviceIds, LocalDate $on): ReadableCollection
     {
         if ($serviceIds === []) {
             return new ArrayCollection();
@@ -102,7 +102,7 @@ final readonly class DoctrineRosterRepository implements RosterRepositoryInterfa
      * @param list<Uuid> $stageIds
      */
     #[Override]
-    public function stageMemberCounts(array $stageIds, LocalDate $on): ReadableCollection
+    public function countStageMembers(array $stageIds, LocalDate $on): ReadableCollection
     {
         if ($stageIds === []) {
             return new ArrayCollection();

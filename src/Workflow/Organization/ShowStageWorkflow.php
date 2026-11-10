@@ -8,8 +8,9 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ServiceStages;
-use App\Context\People\Application\Service\Rosters;
+use App\Context\People\Domain\Query\RosterQueryInterface;
 use App\Library\Problem\Model\Ids;
+use App\Library\Time\Client\Calendar;
 use App\Workflow\Organization\Model\StageDetails;
 use App\Workflow\Organization\Model\StructureGroup;
 
@@ -18,7 +19,8 @@ final readonly class ShowStageWorkflow
     public function __construct(
         private AccessCheck $access,
         private ServiceStages $stages,
-        private Rosters $rosters,
+        private RosterQueryInterface $rosters,
+        private Calendar $calendar,
     ) {
     }
 
@@ -29,6 +31,6 @@ final readonly class ShowStageWorkflow
         $stage = $this->stages->get(Ids::toUuid($stageId, notFound: 'stage'));
         $this->access->requireIn(Action::Read, Resource::Services, StructureGroup::ofStage($stage), missing: 'stage');
 
-        return StageDetails::of($stage, $this->rosters->stageMembersToday([$stage->id()]));
+        return StageDetails::of($stage, $this->rosters->countStageMembers([$stage->id()], $this->calendar->today()));
     }
 }

@@ -9,8 +9,8 @@ use App\Context\Identity\Application\Service\ServingAccounts;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ServiceWrites;
-use App\Context\Organization\Application\Service\StaffAssignments;
 use App\Context\Organization\Domain\Entity\StaffAssignment;
+use App\Context\Organization\Domain\Query\StaffAssignmentQueryInterface;
 use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\ServiceServants;
 use App\Workflow\Organization\Model\StructureGroup;
@@ -21,7 +21,7 @@ final readonly class ListServiceServantsWorkflow
     public function __construct(
         private AccessCheck $access,
         private ServiceWrites $services,
-        private StaffAssignments $assignments,
+        private StaffAssignmentQueryInterface $assignments,
         private ServingAccounts $accounts,
     ) {
     }
@@ -34,7 +34,7 @@ final readonly class ListServiceServantsWorkflow
         $this->access->requireReaching(Action::Read, Resource::Services, $service->id(), missing: 'service');
         $this->access->requireAssigningIn(StructureGroup::ofService($service));
 
-        $assignments = $this->assignments->ofService($service->id());
+        $assignments = $this->assignments->listOfService($service->id());
 
         $servants = $this->accounts->activeAmong(
             $assignments->map(static fn (StaffAssignment $assignment): Uuid => $assignment->accountId())->getValues(),

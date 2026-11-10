@@ -9,8 +9,9 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ServiceStages;
 use App\Context\Organization\Application\Service\StageLifecycle;
-use App\Context\People\Application\Service\Rosters;
+use App\Context\People\Domain\Query\RosterQueryInterface;
 use App\Library\Problem\Model\Ids;
+use App\Library\Time\Client\Calendar;
 use App\Workflow\Organization\Model\StageDetails;
 use App\Workflow\Organization\Model\StructureGroup;
 
@@ -19,8 +20,9 @@ final readonly class RestoreStageWorkflow
     public function __construct(
         private AccessCheck $access,
         private StageLifecycle $lifecycle,
-        private Rosters $rosters,
+        private RosterQueryInterface $rosters,
         private ServiceStages $stages,
+        private Calendar $calendar,
     ) {
     }
 
@@ -32,6 +34,6 @@ final readonly class RestoreStageWorkflow
 
         $stage = $this->lifecycle->restore($found->id());
 
-        return StageDetails::of($stage, $this->rosters->stageMembersToday([$stage->id()]));
+        return StageDetails::of($stage, $this->rosters->countStageMembers([$stage->id()], $this->calendar->today()));
     }
 }

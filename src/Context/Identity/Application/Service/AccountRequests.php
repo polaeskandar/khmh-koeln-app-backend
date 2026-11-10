@@ -30,7 +30,7 @@ final readonly class AccountRequests
      */
     public function roleChoices(): ReadableCollection
     {
-        return $this->roles->byName();
+        return $this->roles->listByName();
     }
 
     /**

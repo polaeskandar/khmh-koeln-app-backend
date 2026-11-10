@@ -29,7 +29,7 @@ final readonly class MemberRecords
         $own = new ArrayCollection($person?->status() === PersonStatus::Active ? [$person] : []);
 
         $current = $this->people
-            ->membershipsOf($own)
+            ->listMembershipsOf($own)
             ->filter(static fn (Membership $membership): bool => $membership->tenure()->includes($today));
 
         return new Family($today, $own->getValues(), $current);

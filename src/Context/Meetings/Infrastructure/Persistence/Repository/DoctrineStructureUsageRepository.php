@@ -60,7 +60,7 @@ final readonly class DoctrineStructureUsageRepository implements StructureUsageR
     }
 
     #[Override]
-    public function byService(LocalDate $today): ReadableCollection
+    public function listImpactByService(LocalDate $today): ReadableCollection
     {
         return $this->impactsFrom(
             self::BY_SERVICE,
@@ -73,7 +73,7 @@ final readonly class DoctrineStructureUsageRepository implements StructureUsageR
      * @param list<Uuid> $stageIds
      */
     #[Override]
-    public function ofStages(array $stageIds, LocalDate $today): ReadableCollection
+    public function listImpactOfStages(array $stageIds, LocalDate $today): ReadableCollection
     {
         if ($stageIds === []) {
             return new ArrayCollection();

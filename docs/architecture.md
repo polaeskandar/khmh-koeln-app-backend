@@ -55,7 +55,10 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   through a context's query interfaces (`Domain/Query/<Subject>QueryInterface`, read-only methods that the
   context's Doctrine repository implements) or its application services, and it writes only through application
   services, which own the rules, locks and effects of a write (`mago guard`, `QueryInterfacesOnlyReadTest`). A
-  service that would only forward a read to its repository is not written; the query interface replaces it.
+  service that would only forward a read to its repository is not written; the query interface replaces it. The
+  repository interface extends the query interface, so each read is declared once and the services use the same
+  method (`PersonRepositoryInterface extends PersonQueryInterface`). A read that needs no rule takes its day from
+  the workflow (`RosterQueryInterface::countStageMembers($ids, $calendar->today())`).
 - Workflow models are built from values. The workflow calls the contexts' services and clients such as the
   `Calendar` and passes what they return; a model never receives a service (`mago guard`).
 - Only workflows manage access. A workflow injects `AccessCheck` and calls `require()` itself. Models,

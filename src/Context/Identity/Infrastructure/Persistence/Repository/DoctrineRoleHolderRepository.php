@@ -87,7 +87,7 @@ final readonly class DoctrineRoleHolderRepository implements RoleHolderRepositor
     }
 
     #[Override]
-    public function holdersOf(Role $role): ReadableCollection
+    public function listHoldersOf(Role $role): ReadableCollection
     {
         $query = $this->entityManager->createQuery(self::HOLDERS_OF)->setParameter('role', $role);
 
@@ -98,7 +98,7 @@ final readonly class DoctrineRoleHolderRepository implements RoleHolderRepositor
      * @return array<string, int>
      */
     #[Override]
-    public function holderCounts(): array
+    public function countHolders(): array
     {
         $rows = new ArrayCollection(
             $this->entityManager->getConnection()->fetchAllAssociative(self::COUNTS),

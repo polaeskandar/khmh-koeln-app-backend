@@ -8,13 +8,14 @@ use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Meetings\Application\Service\ServiceMeetings;
-use App\Context\Meetings\Application\Service\StructureUsage;
+use App\Context\Meetings\Domain\Query\StructureUsageQueryInterface;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\People\Application\Service\Attendees;
 use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Time\Client\Calendar;
 use App\Workflow\Meetings\Model\SessionTallies;
 use App\Workflow\Organization\Model\RecentAttendance;
 use App\Workflow\Organization\Model\ServiceInsight;
@@ -27,7 +28,8 @@ final readonly class ListServiceInsightsWorkflow
         private StructureLookup $structure,
         private ServiceMeetings $meetings,
         private Attendees $attendees,
-        private StructureUsage $usage,
+        private StructureUsageQueryInterface $usage,
+        private Calendar $calendar,
     ) {
     }
 
@@ -57,7 +59,7 @@ final readonly class ListServiceInsightsWorkflow
             $next,
             $this->structure->stages(ServiceInsights::stageIdsOf($next)),
             new RecentAttendance($completed->sessions, $tallies),
-            $this->usage->byService(),
+            $this->usage->listImpactByService($this->calendar->today()),
         );
     }
 }

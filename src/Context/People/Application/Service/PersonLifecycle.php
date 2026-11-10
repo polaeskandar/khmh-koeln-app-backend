@@ -49,7 +49,7 @@ final readonly class PersonLifecycle
         $today = $this->calendar->today();
 
         $open = $this->people
-            ->membershipsOf(new ArrayCollection([$person]))
+            ->listMembershipsOf(new ArrayCollection([$person]))
             ->filter(static fn (Membership $membership): bool => $membership->tenure()->endsOn === null);
 
         foreach ($open as $membership) {

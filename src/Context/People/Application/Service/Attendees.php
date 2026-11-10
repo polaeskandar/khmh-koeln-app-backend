@@ -71,7 +71,7 @@ final readonly class Attendees
         $today = $this->calendar->today();
 
         return $this->people
-            ->membershipsOf($people)
+            ->listMembershipsOf($people)
             ->filter(static fn (Membership $membership): bool => $membership->tenure()->includes($today));
     }
 
