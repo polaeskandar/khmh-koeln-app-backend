@@ -1,2 +1,27 @@
 framework:
-    workflows: null
+    workflows:
+        data_request_lifecycle:
+            type: state_machine
+            supports: App\Context\Privacy\Domain\Entity\DataRequest
+            marking_store:
+                service: App\Context\Privacy\Infrastructure\Lifecycle\DataRequestMarkingStore
+            events_to_dispatch: []
+            initial_marking: open
+            places: App\Context\Privacy\Domain\Enum\RequestStatus::*
+            transitions:
+                complete:
+                    from: open
+                    to: done
+                    metadata:
+                        refusals:
+                            done: privacy.notOpen
+                            withdrawn: privacy.notOpen
+                            declined: privacy.notOpen
+                withdraw:
+                    from: open
+                    to: withdrawn
+                    metadata:
+                        refusals:
+                            done: privacy.nothingScheduled
+                            withdrawn: privacy.nothingScheduled
+                            declined: privacy.nothingScheduled

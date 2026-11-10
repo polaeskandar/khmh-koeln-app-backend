@@ -6,6 +6,7 @@ namespace App\Context\Privacy\Infrastructure\Persistence\Repository;
 
 use App\Context\Privacy\Domain\Entity\CopyLink;
 use App\Context\Privacy\Domain\Entity\DataRequest;
+use App\Context\Privacy\Domain\Enum\RequestStatus;
 use App\Context\Privacy\Domain\Repository\CopyLinkRepositoryInterface;
 use App\Library\Types\Model\Type;
 use DateTimeImmutable;
@@ -23,7 +24,7 @@ final readonly class DoctrineCopyLinkRepository implements CopyLinkRepositoryInt
         FROM privacy.data_request r
         WHERE r.id = l.data_request_id
           AND l.token_hash = :hash AND l.used_at IS NULL AND l.expires_at > :at
-          AND r.status = 'open' AND (r.person_id IS NOT NULL OR r.app_user_id IS NOT NULL)
+          AND r.status = :open AND (r.person_id IS NOT NULL OR r.app_user_id IS NOT NULL)
         RETURNING r.id::text
         SQL;
 
@@ -82,7 +83,11 @@ final readonly class DoctrineCopyLinkRepository implements CopyLinkRepositoryInt
         $requestId = Type::of(
             $this->entityManager
                 ->getConnection()
-                ->executeQuery(self::SPEND, ['hash' => $tokenHash, 'at' => $at], ['at' => Types::DATETIMETZ_IMMUTABLE])
+                ->executeQuery(
+                    self::SPEND,
+                    ['hash' => $tokenHash, 'at' => $at, 'open' => RequestStatus::Open->value],
+                    ['at' => Types::DATETIMETZ_IMMUTABLE],
+                )
                 ->fetchOne(),
         )->toStringOrNull();
 

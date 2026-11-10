@@ -15,6 +15,7 @@ final readonly class RequestErasures
 {
     public function __construct(
         private DataRequestRepositoryInterface $requests,
+        private DataRequestLifecycle $lifecycle,
         private Calendar $calendar,
     ) {
     }
@@ -42,7 +43,12 @@ final readonly class RequestErasures
     public function complete(string $requestId, string $by, array $outcome): void
     {
         $request = $this->requests->find(Uuid::fromString($requestId)) ?? throw NotFound::of('request');
-        $request->complete($this->calendar->now()->toDateTimeImmutable(), Uuid::fromString($by), $outcome);
-        $this->requests->save($request);
+
+        $this->lifecycle->complete(
+            $request,
+            $this->calendar->now()->toDateTimeImmutable(),
+            Uuid::fromString($by),
+            $outcome,
+        );
     }
 }

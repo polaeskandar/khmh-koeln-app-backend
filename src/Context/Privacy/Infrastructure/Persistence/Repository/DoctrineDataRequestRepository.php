@@ -23,7 +23,7 @@ final readonly class DoctrineDataRequestRepository implements DataRequestReposit
 
     private const string DUE = <<<'SQL'
         SELECT id::text FROM privacy.data_request
-        WHERE status = 'open' AND kind = 'erasure' AND erases_on <= :day
+        WHERE status = :open AND kind = :erasure AND erases_on <= :day
         ORDER BY erases_on, id
         SQL;
 
@@ -78,7 +78,11 @@ final readonly class DoctrineDataRequestRepository implements DataRequestReposit
     {
         $ids = $this->entityManager
             ->getConnection()
-            ->executeQuery(self::DUE, ['day' => $day->toString()])
+            ->executeQuery(self::DUE, [
+                'open' => RequestStatus::Open->value,
+                'erasure' => RequestKind::Erasure->value,
+                'day' => $day->toString(),
+            ])
             ->fetchFirstColumn();
 
         return new ArrayCollection($ids)->map(static fn (mixed $id): Uuid => Uuid::fromString(

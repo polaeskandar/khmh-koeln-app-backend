@@ -12,7 +12,6 @@ use App\Context\Privacy\Domain\ValueObject\Receipt;
 use App\Context\Privacy\Domain\ValueObject\RequestClosing;
 use App\Context\Privacy\Domain\ValueObject\RequestSubject;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
-use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -146,19 +145,21 @@ final class DataRequest extends CreatedAtEntity
         return $this->erasedSubject;
     }
 
+    public function changeStatus(RequestStatus $status): void
+    {
+        $this->status = $status;
+    }
+
+    public function changeClosing(RequestClosing $closing): void
+    {
+        $this->closing = $closing;
+    }
+
     /**
      * @param array<string, int>|null $outcome
      */
-    public function complete(DateTimeImmutable $at, ?Uuid $by, ?array $outcome): void
+    public function changeOutcome(?array $outcome): void
     {
-        $this->status = RequestStatus::Done;
-        $this->closing = new RequestClosing($at, $by);
         $this->outcome = $outcome;
-    }
-
-    public function withdraw(DateTimeImmutable $at): void
-    {
-        $this->status = RequestStatus::Withdrawn;
-        $this->closing = new RequestClosing($at);
     }
 }

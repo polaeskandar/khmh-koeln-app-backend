@@ -240,7 +240,7 @@ reason = "Workflows manage access; models, controllers and context services neve
 
 [[guard.perimeter.restrictions]]
 dependency = "Symfony\\Component\\Workflow\\**"
-allow-from = ["App\\Context\\*\\Application\\Service\\*Lifecycle", "App\\Context\\*\\Infrastructure\\Lifecycle\\**", "App\\Platform\\Lifecycle\\**", "App\\Tests\\**"]
+allow-from = ["App\\Context\\*\\Application\\Service", "App\\Context\\*\\Infrastructure\\Lifecycle\\**", "App\\Platform\\Lifecycle\\**", "App\\Tests\\**"]
 reason = "A subject's lifecycle service applies its state machine; its marking store and guards plug into it."
 
 [[guard.structural.rules]]
