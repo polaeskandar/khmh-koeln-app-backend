@@ -96,13 +96,6 @@ final readonly class AccountRegistration
         return $this->confirmations->confirmByHand($this->users->findByEmail($email) ?? throw NotFound::of('account'));
     }
 
-    public function markEmailConfirmed(Uuid $accountId): void
-    {
-        $user = $this->account($accountId);
-        $user->changeStatus($user->status()->emailConfirmedOn($user->createdAt()));
-        $this->users->save($user);
-    }
-
     private function account(Uuid $accountId): User
     {
         return $this->users->find($accountId) ?? throw NotFound::of('user');

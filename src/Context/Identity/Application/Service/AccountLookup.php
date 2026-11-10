@@ -100,11 +100,4 @@ final readonly class AccountLookup
             ->filter($allowed->contains(...))
             ->getValues();
     }
-
-    public function isActiveAndAllowedTo(Uuid $accountId, Action $action, Resource $resource): bool
-    {
-        $user = $this->users->find($accountId);
-
-        return $user !== null && RolePermissions::activeAccountHas($user, $action, $resource);
-    }
 }
