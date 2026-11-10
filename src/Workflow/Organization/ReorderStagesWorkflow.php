@@ -46,7 +46,7 @@ final readonly class ReorderStagesWorkflow
         );
 
         $service = $this->order->reorder($id, $stageIds);
-        $stages = $this->stages->ofService($service);
+        $stages = $this->stages->listOfService($service);
         $ids = $stages->map(static fn (Stage $stage): Uuid => $stage->id())->getValues();
         $today = $this->calendar->today();
 

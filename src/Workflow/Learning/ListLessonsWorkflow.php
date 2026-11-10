@@ -45,13 +45,13 @@ final readonly class ListLessonsWorkflow
     {
         $this->access->require(Action::Read, Resource::Lessons);
 
-        $stage = $this->structure->stage(Ids::toUuid($stageId, notFound: 'stage'));
+        $stage = $this->structure->getStage(Ids::toUuid($stageId, notFound: 'stage'));
         $group = StructureGroup::ofStage($stage);
         $this->access->requireIn(Action::Read, Resource::Lessons, $group, missing: 'stage');
         $chosen = LessonTab::tryFrom($tab) ?? throw InvalidInput::field('tab', 'validation.invalidChoice');
         $listing = $this->lessons->listed($stage->id(), $chosen, $query);
         $shown = new ArrayCollection($listing->shown);
-        $preparers = $this->accounts->activeAllowedIn(Action::Update, Resource::Lessons, $group);
+        $preparers = $this->accounts->listActiveAllowedIn(Action::Update, Resource::Lessons, $group);
 
         return new LessonList(
             stage: LessonStageView::of($stage),
@@ -61,7 +61,7 @@ final readonly class ListLessonsWorkflow
             items: LessonRows::of(
                 $listing,
                 $this->meetingsOf($shown),
-                AccountReferences::of($this->accounts->accounts(LessonRows::accountIdsOf($shown, $listing->helpers))),
+                AccountReferences::of($this->accounts->listByIds(LessonRows::accountIdsOf($shown, $listing->helpers))),
             ),
         );
     }
@@ -73,11 +73,11 @@ final readonly class ListLessonsWorkflow
      */
     private function meetingsOf(ReadableCollection $lessons): array
     {
-        $schedules = $this->meetings->schedules(MeetingViews::scheduleIdsOf($lessons));
+        $schedules = $this->meetings->listSchedules(MeetingViews::scheduleIdsOf($lessons));
 
         return MeetingViews::of(
             $schedules,
-            $this->meetings->sessionsOn($schedules, MeetingViews::datesOf($lessons)),
+            $this->meetings->listSessionsOn($schedules, MeetingViews::datesOf($lessons)),
             $lessons,
             ArchivedStructure::of($this->structure->archivedIds()),
         );

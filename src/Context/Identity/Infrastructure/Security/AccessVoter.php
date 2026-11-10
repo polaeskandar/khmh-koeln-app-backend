@@ -41,7 +41,8 @@ final class AccessVoter extends Voter
     ): bool {
         $user = $this->accountOf($token);
 
-        $granted = $user !== null && RolePermissions::activeAccountHas($user, $subject->action, $subject->resource);
+        $granted =
+            $user !== null && RolePermissions::isGrantedToActiveAccount($user, $subject->action, $subject->resource);
 
         if (!$granted) {
             $vote?->addReason(Text::format('No active role of the account grants this %s.', $attribute)->toString());

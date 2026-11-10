@@ -34,7 +34,7 @@ final readonly class ServiceMeetings
     ) {
     }
 
-    public function recentlyCompleted(GroupScope $scope): MarkedSessions
+    public function listRecentlyCompleted(GroupScope $scope): MarkedSessions
     {
         $today = $this->calendar->today();
         $schedules = CoveredSchedules::within($scope, $this->schedules->listed(serviceId: null, stageId: null));
@@ -51,11 +51,11 @@ final readonly class ServiceMeetings
     /**
      * @return ReadableCollection<non-empty-string, PlannedDate>
      */
-    public function nextByService(ArchivedStructure $archived, GroupScope $scope): ReadableCollection
+    public function listNextByService(ArchivedStructure $archived, GroupScope $scope): ReadableCollection
     {
         $today = $this->calendar->today();
         $schedules = CoveredSchedules::within($scope, $this->schedules->listed(serviceId: null, stageId: null));
-        $dates = $this->plannedDates->between($schedules, $archived, $today, $today->addDays(self::NEXT_DAYS));
+        $dates = $this->plannedDates->listBetween($schedules, $archived, $today, $today->addDays(self::NEXT_DAYS));
         $upcoming = new ArrayCollection($dates)->filter(static fn (PlannedDate $date): bool => $date->isUpcoming());
 
         return Collections::firstPerKey($upcoming, keyOf: static fn (PlannedDate $date): string => $date

@@ -22,7 +22,7 @@ final readonly class HomeworkWrites
     ) {
     }
 
-    public function lessonToAssign(Uuid $lessonId): Lesson
+    public function getLessonToAssign(Uuid $lessonId): Lesson
     {
         $found = $this->lessons->find($lessonId) ?? throw NotFound::of('lesson');
         $found->state()->ensureEditable();

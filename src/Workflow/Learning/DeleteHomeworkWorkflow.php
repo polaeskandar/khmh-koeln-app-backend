@@ -34,7 +34,7 @@ final readonly class DeleteHomeworkWorkflow
 
     private function deleted(HomeworkAssignment $task): HomeworkAssignment
     {
-        $stage = $this->structure->stage($task->stageId());
+        $stage = $this->structure->getStage($task->stageId());
 
         $this->access->requireIn(
             Action::Update,

@@ -28,7 +28,7 @@ final readonly class ListServiceLeadersWorkflow
         $this->access->require(Action::Read, Resource::Services);
 
         return $this->accounts
-            ->activeHoldersOf(self::LEADER_ROLE)
+            ->listActiveHoldersOf(self::LEADER_ROLE)
             ->map(AccountReference::of(...))
             ->getValues();
     }

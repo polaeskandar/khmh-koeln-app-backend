@@ -28,10 +28,10 @@ final readonly class SessionTallyLookups
      */
     public function tallies(ReadableCollection $sessions): ReadableCollection
     {
-        $schedules = $this->service(MeetingLookup::class)->schedules(SessionTallies::scheduleIdsOf($sessions));
+        $schedules = $this->service(MeetingLookup::class)->listSchedules(SessionTallies::scheduleIdsOf($sessions));
 
         return SessionTallies::of(
-            $this->service(Attendees::class)->rostersOn(SessionTallies::rosterKeysOf($sessions, $schedules)),
+            $this->service(Attendees::class)->listRostersOn(SessionTallies::rosterKeysOf($sessions, $schedules)),
             $this->service(AttendanceQueryInterface::class)->listPresentBySession(SessionTallies::sessionIdsOf(
                 $sessions,
             )),

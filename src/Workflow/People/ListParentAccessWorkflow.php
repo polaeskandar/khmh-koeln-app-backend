@@ -37,8 +37,8 @@ final readonly class ListParentAccessWorkflow
         $this->access->require(Action::Read, Resource::Users);
 
         return new ParentAccessList(
-            items: $this->itemsOf($this->parentAccess->approved(self::LIMIT)),
-            accounts: $this->accounts->activeListed(self::LIMIT),
+            items: $this->itemsOf($this->parentAccess->listApproved(self::LIMIT)),
+            accounts: $this->accounts->listActive(self::LIMIT),
             today: $this->calendar->today()->toString(),
         );
     }
@@ -50,15 +50,15 @@ final readonly class ListParentAccessWorkflow
      */
     private function itemsOf(ReadableCollection $links): array
     {
-        $memberships = $this->parentAccess->currentMembershipsOf(ParentAccessItems::childrenOf($links));
+        $memberships = $this->parentAccess->listCurrentMembershipsOf(ParentAccessItems::childrenOf($links));
 
         return ParentAccessItems::of(
             $links,
-            $this->accounts->accounts(ParentAccessItems::accountIdsOf($links)),
+            $this->accounts->listByIds(ParentAccessItems::accountIdsOf($links)),
             $memberships,
             Placements::of(
-                $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
-                $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+                $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),
+                $this->structure->listStages(DirectoryEntries::stageIdsOf($memberships)),
             ),
         );
     }

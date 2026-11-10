@@ -26,15 +26,15 @@ final readonly class GroupPermissions
     ) {
     }
 
-    public function scopeOfViewer(Action $action, Resource $resource): GroupScope
+    public function getViewerScope(Action $action, Resource $resource): GroupScope
     {
         $id = $this->signedIn->id();
         $viewer = $id === null ? null : $this->users->find($id);
 
-        return $viewer === null ? GroupScope::assigned([]) : $this->scopeOf($viewer, $action, $resource);
+        return $viewer === null ? GroupScope::assigned([]) : $this->getScopeOf($viewer, $action, $resource);
     }
 
-    public function scopeOf(User $user, Action $action, Resource $resource): GroupScope
+    public function getScopeOf(User $user, Action $action, Resource $resource): GroupScope
     {
         return match ($user->status()->isActive() ? PermissionScopes::of($user, $action, $resource) : null) {
             RoleScope::Church => GroupScope::churchWide(),
@@ -48,7 +48,7 @@ final readonly class GroupPermissions
      *
      * @return ReadableCollection<int, User> those whose roles let them do it in the group
      */
-    public function allowedIn(
+    public function listAllowedIn(
         ReadableCollection $users,
         Action $action,
         Resource $resource,

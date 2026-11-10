@@ -25,7 +25,7 @@ final readonly class RegistrationServices
     /**
      * @return ReadableCollection<int, Service>
      */
-    public function active(int $limit): ReadableCollection
+    public function listActive(int $limit): ReadableCollection
     {
         return new ArrayCollection($this->services->listed(ServiceFilter::Active)->slice(offset: 0, length: $limit));
     }

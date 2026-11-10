@@ -42,8 +42,8 @@ final readonly class ListAttendanceCorrectionsWorkflow
 
         return Corrections::of(
             $removed,
-            $this->attendees->peopleOf(Corrections::personIdsOf($removed)),
-            AccountReferences::of($this->accounts->accounts(Corrections::accountIdsOf($removed))),
+            $this->attendees->listPeopleOf(Corrections::personIdsOf($removed)),
+            AccountReferences::of($this->accounts->listByIds(Corrections::accountIdsOf($removed))),
         );
     }
 }

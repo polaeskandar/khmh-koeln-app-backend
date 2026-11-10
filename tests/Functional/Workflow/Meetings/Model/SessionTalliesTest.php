@@ -237,10 +237,10 @@ final class SessionTalliesTest extends KernelTestCase
         $meetings = self::getContainer()->get(MeetingLookup::class);
         self::assertInstanceOf(MeetingLookup::class, $meetings);
 
-        $schedules = $meetings->schedules(SessionTallies::scheduleIdsOf($sessions));
+        $schedules = $meetings->listSchedules(SessionTallies::scheduleIdsOf($sessions));
 
         return SessionTallies::of(
-            $rosters->rostersOn(SessionTallies::rosterKeysOf($sessions, $schedules)),
+            $rosters->listRostersOn(SessionTallies::rosterKeysOf($sessions, $schedules)),
             $marks->listPresentBySession(SessionTallies::sessionIdsOf($sessions)),
             $sessions,
             $schedules,

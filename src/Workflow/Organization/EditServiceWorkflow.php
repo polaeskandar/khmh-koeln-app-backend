@@ -39,7 +39,7 @@ final readonly class EditServiceWorkflow
 
         return ServiceOverview::of(
             $service,
-            $this->stages->activeOf($service),
+            $this->stages->listActiveOf($service),
             MemberCounts::in($this->rosters->countServiceMembers([$service->id()], $this->calendar->today()), $service),
         );
     }

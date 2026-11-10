@@ -50,7 +50,7 @@ final readonly class AccountRoles
             $role = $this->role($roleId) ?? throw NotFound::of('role');
             self::ensureOwnAdministrationKept($user, $role, $actorId);
 
-            if ($this->lastAdministrator->wouldLoseIt($user, $role)) {
+            if ($this->lastAdministrator->isLostWithout($user, $role)) {
                 throw new RuleViolation('roles.lastAdministrator');
             }
 
@@ -62,11 +62,13 @@ final readonly class AccountRoles
 
     private static function ensureOwnAdministrationKept(User $user, Role $role, Uuid $actorId): void
     {
-        if (!$user->id()->equals($actorId) || !RolePermissions::roleAllows($role, Action::Update, Resource::Roles)) {
+        if (
+            !$user->id()->equals($actorId) || !RolePermissions::isGrantedToRole($role, Action::Update, Resource::Roles)
+        ) {
             return;
         }
 
-        if (!RolePermissions::accountHasWithout($user, $role, Action::Update, Resource::Roles)) {
+        if (!RolePermissions::isGrantedToAccountWithout($user, $role, Action::Update, Resource::Roles)) {
             throw new RuleViolation('roles.ownAdminRole');
         }
     }

@@ -40,7 +40,7 @@ final readonly class EditHomeworkWorkflow
 
     private function edited(HomeworkAssignment $task, HomeworkChoice $choice): HomeworkAssignment
     {
-        $stage = $this->structure->stage($task->stageId());
+        $stage = $this->structure->getStage($task->stageId());
 
         $this->access->requireIn(
             Action::Update,

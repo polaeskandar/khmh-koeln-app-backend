@@ -12,10 +12,12 @@ use App\Context\Learning\Application\Service\LessonWrites;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\MeetingChoice;
 use App\Context\Learning\Domain\ValueObject\OfferedMeeting;
+use App\Context\Learning\Domain\ValueObject\TeamChoice;
 use App\Context\Meetings\Application\Service\MeetingLookup;
 use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Library\Problem\Model\Ids;
+use App\Platform\Access\Model\Group;
 use App\Workflow\Learning\Model\LessonChoice;
 use App\Workflow\Learning\Model\LessonStages;
 use App\Workflow\Learning\Model\OfferedMeetings;
@@ -46,7 +48,7 @@ final readonly class CreateLessonWorkflow
 
     private function created(Uuid $stageId, LessonChoice $choice): WrittenLesson
     {
-        $found = $this->structure->stage($stageId);
+        $found = $this->structure->getStage($stageId);
         $group = StructureGroup::ofStage($found);
         $this->access->requireIn(Action::Create, Resource::Lessons, $group, missing: 'stage');
         $stage = LessonStages::opened($found);
@@ -58,7 +60,7 @@ final readonly class CreateLessonWorkflow
                 $stage,
                 $draft,
                 $this->offeredFor($draft->meeting),
-                TeamChoices::of($choice, $this->accounts->activeAllowedIn(Action::Update, Resource::Lessons, $group)),
+                $this->teamOf($choice, $group),
             ),
         ));
     }
@@ -66,13 +68,22 @@ final readonly class CreateLessonWorkflow
     private function offeredFor(MeetingChoice $choice): ?OfferedMeeting
     {
         return OfferedMeetings::of(match (true) {
-            $choice->sessionId !== null => $this->meetings->slotOfSession($choice->session()),
-            $choice->scheduleId !== null => $this->meetings->slotOfSchedule(
+            $choice->sessionId !== null => $this->meetings->findSlotOfSession($choice->session()),
+            $choice->scheduleId !== null => $this->meetings->findSlotOfSchedule(
                 $choice->schedule(),
                 $choice->day(),
                 ArchivedStructure::of($this->structure->archivedIds()),
             ),
             default => null,
         });
+    }
+
+    private function teamOf(LessonChoice $choice, Group $group): TeamChoice
+    {
+        return TeamChoices::of($choice, $this->accounts->listActiveAllowedIn(
+            Action::Update,
+            Resource::Lessons,
+            $group,
+        ));
     }
 }

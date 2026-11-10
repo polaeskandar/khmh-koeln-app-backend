@@ -52,8 +52,8 @@ final readonly class ExportMemberDataWorkflow
         $memberships = $this->people->listMembershipsOf(new ArrayCollection([$person]));
 
         return MembershipRow::listOf($memberships, Placements::of(
-            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
-            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+            $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->listStages(DirectoryEntries::stageIdsOf($memberships)),
         ));
     }
 
@@ -64,6 +64,6 @@ final readonly class ExportMemberDataWorkflow
     {
         $links = $this->guardians->listForChild($person);
 
-        return LinkRow::parentsOf($links, $this->accounts->accounts(LinkRow::accountIdsOf($links)));
+        return LinkRow::parentsOf($links, $this->accounts->listByIds(LinkRow::accountIdsOf($links)));
     }
 }

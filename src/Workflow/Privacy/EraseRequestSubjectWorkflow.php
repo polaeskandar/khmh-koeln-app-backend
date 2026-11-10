@@ -64,17 +64,17 @@ final readonly class EraseRequestSubjectWorkflow
     ): ErasureOutcome {
         $subject = $asked->joined(
             $this->accounts->recordOfAccount($asked->accountId),
-            $this->accounts->accountOfRecord($asked->personId),
+            $this->accounts->findAccountOfRecord($asked->personId),
         );
 
-        $found = $subject->personId === null ? [] : $this->people->mentionsOf($subject->personId);
+        $found = $subject->personId === null ? [] : $this->people->listMentionsOf($subject->personId);
 
         $outcome = new ErasureOutcome(
             $this->people->clearMentions($choice->notesToClear($found)),
             $this->personCounts($subject->personId),
             $this->accountCounts($subject->accountId),
             $subject->accountId,
-            Mentions::of($found, $this->structure->stages(Mentions::stageIdsOf($found))),
+            Mentions::of($found, $this->structure->listStages(Mentions::stageIdsOf($found))),
         );
 
         $this->requests->complete($requestId, $viewerId, $outcome->counts());
@@ -97,7 +97,7 @@ final readonly class EraseRequestSubjectWorkflow
             return null;
         }
 
-        $guardianLinks = $this->people->guardianLinksOf($accountId);
+        $guardianLinks = $this->people->countGuardianLinksOf($accountId);
 
         return ErasureCounts::of($this->accounts->erase($accountId), $guardianLinks);
     }
@@ -107,8 +107,8 @@ final readonly class EraseRequestSubjectWorkflow
         $memberships = $person->memberships;
 
         return ErasedGroup::of($memberships, Placements::of(
-            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
-            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+            $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->listStages(DirectoryEntries::stageIdsOf($memberships)),
         ));
     }
 }

@@ -38,7 +38,7 @@ final readonly class AddMembershipWorkflow
 
     public function __invoke(string $personId, PlacementChoice $choice): AddedMembership
     {
-        $scope = $this->access->scope(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
+        $scope = $this->access->requireScope(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
 
         $person = $this->people->find(Ids::toUuid($personId, notFound: 'person')) ?? throw NotFound::of('person');
         $this->groups->requireVisible($person->id(), $scope);
@@ -70,7 +70,7 @@ final readonly class AddMembershipWorkflow
 
     private function rosterNamesOf(Service $service): RosterNames
     {
-        $stages = Collections::firstPerKey($this->stages->ofService($service), keyOf: self::stageId(...));
+        $stages = Collections::firstPerKey($this->stages->listOfService($service), keyOf: self::stageId(...));
 
         return new RosterNames($service->name()->value, $stages->map(self::stageName(...)));
     }

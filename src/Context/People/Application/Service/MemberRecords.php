@@ -22,7 +22,7 @@ final readonly class MemberRecords
     ) {
     }
 
-    public function ownRecord(Uuid $personId): Family
+    public function getOwnRecord(Uuid $personId): Family
     {
         $today = $this->calendar->today();
         $person = $this->people->find($personId);

@@ -26,7 +26,7 @@ final class PlannedDatesTest extends KernelTestCase
         $plannedDates = self::getContainer()->get(PlannedDates::class);
         self::assertInstanceOf(PlannedDates::class, $plannedDates);
 
-        $dates = $plannedDates->between(
+        $dates = $plannedDates->listBetween(
             new ArrayCollection([$friday]),
             ArchivedStructure::of([]),
             LocalDate::of('2026-11-06'),

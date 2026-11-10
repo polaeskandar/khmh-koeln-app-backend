@@ -42,16 +42,16 @@ final readonly class TaskAudienceLookups
         )->reportsOf($tasks);
 
         $keys = AudienceKeys::of(
-            $this->service(StructureLookup::class)->stages(AudienceKeys::stageIdsOf($reports)),
+            $this->service(StructureLookup::class)->listStages(AudienceKeys::stageIdsOf($reports)),
             $reports->today,
         );
 
-        $book = $this->rosters()->rosterBookOn($keys->getValues(), $reports->reporterIds());
+        $book = $this->rosters()->getRosterBookOn($keys->getValues(), $reports->reporterIds());
 
         $accounts = AudienceAccounts::of(
             $book,
-            $this->service(AccountLookup::class)->accounts(TaskAudiences::accountIdsOf($book, $reports)),
-            $this->service(AccountLookup::class)->ownAccountsOf($book->personIds()),
+            $this->service(AccountLookup::class)->listByIds(TaskAudiences::accountIdsOf($book, $reports)),
+            $this->service(AccountLookup::class)->listOwnAccountsOf($book->personIds()),
         );
 
         return TaskAudiences::of($reports, $keys, $book, $accounts);

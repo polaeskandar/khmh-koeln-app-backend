@@ -28,7 +28,7 @@ final readonly class ParentAccess
      *
      * @return ReadableCollection<int, GuardianRelationship>
      */
-    public function approved(int $limit): ReadableCollection
+    public function listApproved(int $limit): ReadableCollection
     {
         return $this->links->approved($limit);
     }
@@ -38,7 +38,7 @@ final readonly class ParentAccess
      *
      * @return ReadableCollection<int, Membership>
      */
-    public function currentMembershipsOf(ReadableCollection $children): ReadableCollection
+    public function listCurrentMembershipsOf(ReadableCollection $children): ReadableCollection
     {
         $today = $this->calendar->today();
 

@@ -27,7 +27,7 @@ final readonly class PlannedDates
      *
      * @return list<PlannedDate>
      */
-    public function between(
+    public function listBetween(
         ReadableCollection $schedules,
         ArchivedStructure $archived,
         LocalDate $from,
@@ -45,7 +45,7 @@ final readonly class PlannedDates
     /**
      * @param ReadableCollection<int, Schedule> $schedules
      */
-    public function agendaOf(
+    public function getAgendaOf(
         ReadableCollection $schedules,
         ArchivedStructure $archived,
         AgendaRange $range,

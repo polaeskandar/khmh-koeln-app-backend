@@ -39,7 +39,7 @@ final readonly class RoleAssignments
             $user = $this->account($email);
             $role = $this->role($roleName);
 
-            if ($this->lastAdministrator->wouldLoseIt($user, $role)) {
+            if ($this->lastAdministrator->isLostWithout($user, $role)) {
                 throw new RuleViolation('roles.lastAdministrator');
             }
 

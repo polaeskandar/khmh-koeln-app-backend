@@ -45,9 +45,9 @@ final readonly class ShowMemberHomeworkWorkflow
 
     private function ownOf(Uuid $viewer): OwnHomework
     {
-        $record = $this->records->ownRecord($this->member->require($viewer));
+        $record = $this->records->getOwnRecord($this->member->require($viewer));
 
-        return OwnHomework::of($record, $this->homework->tasksOf(OwnHomework::pupilsOf($record)));
+        return OwnHomework::of($record, $this->homework->listTasksOf(OwnHomework::pupilsOf($record)));
     }
 
     /**
@@ -56,8 +56,8 @@ final readonly class ShowMemberHomeworkWorkflow
     private function itemsOf(array $tasks, Uuid $viewer): ParentHomeworkItems
     {
         return ParentHomeworkItems::of(
-            $this->structure->stages(ParentHomeworkItems::stageIdsOf($tasks)),
-            $this->accounts->accounts(ParentHomeworkItems::reporterIdsOf($tasks)),
+            $this->structure->listStages(ParentHomeworkItems::stageIdsOf($tasks)),
+            $this->accounts->listByIds(ParentHomeworkItems::reporterIdsOf($tasks)),
             $viewer,
         );
     }

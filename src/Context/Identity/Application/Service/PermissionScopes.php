@@ -16,7 +16,7 @@ final readonly class PermissionScopes
     {
         $scopes = $user
             ->roles()
-            ->filter(static fn (Role $role): bool => RolePermissions::roleAllows($role, $action, $resource))
+            ->filter(static fn (Role $role): bool => RolePermissions::isGrantedToRole($role, $action, $resource))
             ->map(static fn (Role $role): RoleScope => $role->scope());
 
         if ($scopes->contains(RoleScope::Church)) {

@@ -45,9 +45,9 @@ final readonly class ShowHomeworkWorkflow
     {
         $this->access->require(Action::Read, Resource::Homework);
 
-        $reading = $this->homework->reading(Ids::toUuid($id, notFound: 'homework'));
+        $reading = $this->homework->getReading(Ids::toUuid($id, notFound: 'homework'));
         $task = $reading->task;
-        $stage = $this->structure->stage($task->stageId());
+        $stage = $this->structure->getStage($task->stageId());
 
         $this->access->requireIn(
             Action::Read,
@@ -69,7 +69,7 @@ final readonly class ShowHomeworkWorkflow
         $task = $reading->task;
         $reports = $reading->reports;
         $key = AudienceKeys::keyOf($stage, $reports->today);
-        $book = $this->rosters->rosterBookOn([$key], $reports->reporterIds());
+        $book = $this->rosters->getRosterBookOn([$key], $reports->reporterIds());
 
         $counts = $task->state()->status === HomeworkStatus::Draft ? null : $this->countsOf($reading, $book, $key);
 
@@ -89,8 +89,8 @@ final readonly class ShowHomeworkWorkflow
 
         $accounts = AudienceAccounts::of(
             $book,
-            $this->accounts->accounts(TaskAudiences::accountIdsOf($book, $reports)),
-            $this->accounts->ownAccountsOf($book->personIds()),
+            $this->accounts->listByIds(TaskAudiences::accountIdsOf($book, $reports)),
+            $this->accounts->listOwnAccountsOf($book->personIds()),
         );
 
         return TaskAudiences::of($reports, $keys, $book, $accounts)->countsOf($reading->task);

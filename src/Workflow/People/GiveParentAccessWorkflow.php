@@ -44,8 +44,8 @@ final readonly class GiveParentAccessWorkflow
     ): ParentAccessItem {
         $this->access->require(Action::Update, Resource::Users, refusal: 'guardians.adminOnlyGrant');
 
-        $parent = $this->accounts->active(Ids::toUuid($userId, notFound: 'user'));
-        $child = $this->grants->child(Ids::toUuid($personId, notFound: 'person'));
+        $parent = $this->accounts->getActive(Ids::toUuid($userId, notFound: 'user'));
+        $child = $this->grants->getChild(Ids::toUuid($personId, notFound: 'person'));
 
         $grant = new AccessGrant(
             $parent->id(),
@@ -71,15 +71,15 @@ final readonly class GiveParentAccessWorkflow
      */
     private function itemsOf(ReadableCollection $links): array
     {
-        $memberships = $this->parentAccess->currentMembershipsOf(ParentAccessItems::childrenOf($links));
+        $memberships = $this->parentAccess->listCurrentMembershipsOf(ParentAccessItems::childrenOf($links));
 
         return ParentAccessItems::of(
             $links,
-            $this->accounts->accounts(ParentAccessItems::accountIdsOf($links)),
+            $this->accounts->listByIds(ParentAccessItems::accountIdsOf($links)),
             $memberships,
             Placements::of(
-                $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
-                $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+                $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),
+                $this->structure->listStages(DirectoryEntries::stageIdsOf($memberships)),
             ),
         );
     }

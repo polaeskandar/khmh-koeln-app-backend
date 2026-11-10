@@ -28,8 +28,8 @@ final readonly class IssueCopyLinkWorkflow
         $this->access->require(Action::Update, Resource::Users, refusal: 'privacy.adminOnly');
 
         $id = Ids::toUuid($requestId, notFound: 'request');
-        $subject = $this->links->subjectOf($id);
-        $recipient = $this->accounts->accountOrHolder($subject->accountId, $subject->personId);
+        $subject = $this->links->getSubjectOf($id);
+        $recipient = $this->accounts->findAccountOrHolder($subject->accountId, $subject->personId);
         $issued = $this->links->issue($id, $recipient?->id());
 
         return new IssuedCopyLinkView(

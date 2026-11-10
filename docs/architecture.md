@@ -354,8 +354,8 @@ reloaded on every request, is active and one of its roles has the permission; ot
 permission or assignment change applies on the next request, without a new sign-in.
 
 Data of a group is checked against the group too, and `AccessCheck` is the one place that does it.
-`scope(Action, Resource)` answers a `GroupScope` (`Platform\Access\Model`): church-wide when a church role grants
-the permission, else the account's assigned groups, which Identity reads through the Platform contract
+`requireScope(Action, Resource)` answers a `GroupScope` (`Platform\Access\Model`): church-wide when a church role
+grants the permission, else the account's assigned groups, which Identity reads through the Platform contract
 `StaffGroups` that Organization implements, so neither context uses the other. `GroupScope::covers()` is the only
 rule for whether a group is covered. Workflows use it three ways: `requireIn()` answers 404 for a single item
 outside the groups (as the parent portal does for other families), `requireChosen()` refuses a group named in a

@@ -54,7 +54,7 @@ final readonly class RegisterAccountWorkflow
 
     private function profileOf(AccountDetails $account): Profile
     {
-        return $this->accounts->profile(
+        return $this->accounts->buildProfile(
             $account->firstName,
             $account->lastName,
             $account->email,

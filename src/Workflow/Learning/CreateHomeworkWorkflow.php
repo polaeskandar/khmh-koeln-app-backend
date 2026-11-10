@@ -29,8 +29,8 @@ final readonly class CreateHomeworkWorkflow
     {
         $this->access->require(Action::Create, Resource::Homework, refusal: 'homework.assignStageOnly');
 
-        $lesson = $this->homework->lessonToAssign(Ids::toUuid($lessonId, notFound: 'lesson'));
-        $stage = $this->structure->stage($lesson->stageId());
+        $lesson = $this->homework->getLessonToAssign(Ids::toUuid($lessonId, notFound: 'lesson'));
+        $stage = $this->structure->getStage($lesson->stageId());
 
         $this->access->requireIn(
             Action::Create,

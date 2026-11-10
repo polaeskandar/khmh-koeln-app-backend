@@ -28,7 +28,7 @@ final readonly class ParentGrants
     ) {
     }
 
-    public function child(Uuid $personId): Person
+    public function getChild(Uuid $personId): Person
     {
         $child = $this->people->find($personId);
 

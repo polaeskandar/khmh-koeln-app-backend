@@ -38,7 +38,7 @@ final readonly class ScheduleOutlooks
         LocalDate $today,
         GroupScope $scope,
     ): array {
-        $schedules = CoveredSchedules::within($scope, $this->schedules->recurring($serviceId, $stageId));
+        $schedules = CoveredSchedules::within($scope, $this->schedules->listRecurring($serviceId, $stageId));
 
         return $this->outlooksOf($schedules, $archived, $today);
     }
@@ -87,7 +87,7 @@ final readonly class ScheduleOutlooks
     ): ReadableCollection {
         $horizon = $today->addDays(Occurrences::HORIZON_DAYS - 1);
 
-        return new ArrayCollection($this->plannedDates->between($generating, $archived, $today, $horizon))->filter(
+        return new ArrayCollection($this->plannedDates->listBetween($generating, $archived, $today, $horizon))->filter(
             static fn (PlannedDate $date): bool => $date->isUpcoming(),
         );
     }

@@ -44,12 +44,12 @@ final readonly class ListHomeworkWorkflow
     {
         $this->access->require(Action::Read, Resource::Homework);
 
-        $stage = $this->structure->stage(Ids::toUuid($stageId, notFound: 'stage'));
+        $stage = $this->structure->getStage(Ids::toUuid($stageId, notFound: 'stage'));
         $this->access->requireIn(Action::Read, Resource::Homework, StructureGroup::ofStage($stage), missing: 'stage');
         $homework = $this->homework->ofStage($stage->id());
         $reports = $homework->reports;
         $key = AudienceKeys::keyOf($stage, $reports->today);
-        $book = $this->rosters->rosterBookOn([$key], $reports->reporterIds());
+        $book = $this->rosters->getRosterBookOn([$key], $reports->reporterIds());
 
         return new HomeworkList(
             stage: StageSummary::of($stage),
@@ -66,8 +66,8 @@ final readonly class ListHomeworkWorkflow
 
         $accounts = AudienceAccounts::of(
             $book,
-            $this->accounts->accounts(TaskAudiences::accountIdsOf($book, $reports)),
-            $this->accounts->ownAccountsOf($book->personIds()),
+            $this->accounts->listByIds(TaskAudiences::accountIdsOf($book, $reports)),
+            $this->accounts->listOwnAccountsOf($book->personIds()),
         );
 
         return TaskAudiences::of($reports, $keys, $book, $accounts);

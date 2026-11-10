@@ -33,7 +33,7 @@ final readonly class Attendees
      *
      * @return ReadableCollection<string, list<Uuid>>
      */
-    public function rostersOn(array $keys): ReadableCollection
+    public function listRostersOn(array $keys): ReadableCollection
     {
         return $this->rosters->rostersOn($keys);
     }
@@ -43,7 +43,7 @@ final readonly class Attendees
      *
      * @return ReadableCollection<non-empty-string, Person>
      */
-    public function peopleOf(array $ids): ReadableCollection
+    public function listPeopleOf(array $ids): ReadableCollection
     {
         return Collections::firstPerKey(
             $this->people->findByIds($ids),
@@ -56,7 +56,7 @@ final readonly class Attendees
      *
      * @return list<Uuid>
      */
-    public function byName(array $ids): array
+    public function listByName(array $ids): array
     {
         return $this->list->byName($ids);
     }
@@ -66,7 +66,7 @@ final readonly class Attendees
      *
      * @return ReadableCollection<int, Membership>
      */
-    public function currentMembershipsOf(ReadableCollection $people): ReadableCollection
+    public function listCurrentMembershipsOf(ReadableCollection $people): ReadableCollection
     {
         $today = $this->calendar->today();
 

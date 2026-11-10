@@ -32,13 +32,13 @@ final readonly class ListMemberAccountsWorkflow
 
         $rows = $this->accounts->listed();
         $people = $this->directory->records(MemberAccountList::personIdsOf($rows));
-        $memberships = $this->directory->currentMembershipsOf($people);
+        $memberships = $this->directory->listCurrentMembershipsOf($people);
 
         $entries = DirectoryEntries::of(
             $people,
             $memberships,
-            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
-            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+            $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->listStages(DirectoryEntries::stageIdsOf($memberships)),
         );
 
         return MemberAccountList::of($rows, LinkedRecords::of($people, $entries), $this->calendar->today());

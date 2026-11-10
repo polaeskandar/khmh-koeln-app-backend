@@ -48,7 +48,7 @@ final readonly class ShowSessionWorkflow
         $history = new ArrayCollection($this->historyOf($session));
         $progress = SessionProgress::of($session);
 
-        if (!$this->access->scopeOf(Action::Read, Resource::Attendance)->covers($group)) {
+        if (!$this->access->getScope(Action::Read, Resource::Attendance)->covers($group)) {
             $history = $history->map(static fn (HistoryEntry $entry): HistoryEntry => $entry->withoutNote());
             $progress = $progress->withoutCancelReason();
         }
@@ -71,7 +71,7 @@ final readonly class ShowSessionWorkflow
 
         return HistoryEntry::listOf(
             $events,
-            ActorReferences::of($this->accounts->accounts(ActorReferences::actorIdsOf($events))),
+            ActorReferences::of($this->accounts->listByIds(ActorReferences::actorIdsOf($events))),
         );
     }
 
@@ -86,8 +86,8 @@ final readonly class ShowSessionWorkflow
         return new SessionView(
             SessionDetails::of($session),
             ScheduleRoster::ofSession($session, RosterReferences::of(
-                $this->structure->services(RosterReferences::serviceIdsOf($schedules)),
-                $this->structure->stages(RosterReferences::stageIdsOf($schedules)),
+                $this->structure->listServices(RosterReferences::serviceIdsOf($schedules)),
+                $this->structure->listStages(RosterReferences::stageIdsOf($schedules)),
             )),
             SessionTimes::of(
                 $session,

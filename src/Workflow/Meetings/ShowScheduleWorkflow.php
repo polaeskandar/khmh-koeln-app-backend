@@ -57,8 +57,8 @@ final readonly class ShowScheduleWorkflow
     private function rosterReferencesOf(ReadableCollection $schedules): RosterReferences
     {
         return RosterReferences::of(
-            $this->structure->services(RosterReferences::serviceIdsOf($schedules)),
-            $this->structure->stages(RosterReferences::stageIdsOf($schedules)),
+            $this->structure->listServices(RosterReferences::serviceIdsOf($schedules)),
+            $this->structure->listStages(RosterReferences::stageIdsOf($schedules)),
         );
     }
 
@@ -67,6 +67,6 @@ final readonly class ShowScheduleWorkflow
      */
     private function sizesOf(ReadableCollection $schedules, LocalDate $today): RosterSizes
     {
-        return new RosterSizes($this->attendees->rostersOn(RosterSizes::keysOf($schedules, $today)), $today);
+        return new RosterSizes($this->attendees->listRostersOn(RosterSizes::keysOf($schedules, $today)), $today);
     }
 }

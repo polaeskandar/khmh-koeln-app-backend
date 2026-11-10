@@ -14,6 +14,7 @@ use App\Context\People\Domain\Query\PersonQueryInterface;
 use App\Context\Privacy\Application\Service\DataRequests;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Model\Ids;
+use App\Library\Time\Client\Calendar;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\Placements;
 use App\Workflow\Privacy\Model\CopyLinkStatus;
@@ -32,6 +33,7 @@ final readonly class ShowDataRequestWorkflow
         private PersonQueryInterface $people,
         private AccountLookup $accounts,
         private StructureLookup $structure,
+        private Calendar $calendar,
     ) {
     }
 
@@ -46,15 +48,15 @@ final readonly class ShowDataRequestWorkflow
         $rows = DataRequestRows::of(
             $requests,
             $this->people->findByIds(DataRequestRows::personIdsOf($requests)),
-            $this->accounts->accounts(DataRequestRows::accountIdsOf($requests)),
+            $this->accounts->listByIds(DataRequestRows::accountIdsOf($requests)),
         );
 
         $person = $subject->personId === null ? null : $this->people->find($subject->personId);
         $account = $subject->accountId === null ? null : $this->accounts->findAccount($subject->accountId);
-        $copyLink = $this->requests->copyLinkOf($request);
+        $copyLink = $this->requests->findCopyLinkOf($request);
 
         return new DataRequestDetail(
-            $this->requests->today(),
+            $this->calendar->today()->toString(),
             $rows[0] ?? throw NotFound::of('request'),
             RequestMember::of($person, $person === null ? [] : $this->membershipsOf($person)),
             RequestAccount::of($account),
@@ -70,8 +72,8 @@ final readonly class ShowDataRequestWorkflow
         $memberships = $this->people->listMembershipsOf(new ArrayCollection([$person]));
 
         return MembershipRow::listOf($memberships, Placements::of(
-            $this->structure->services(DirectoryEntries::serviceIdsOf($memberships)),
-            $this->structure->stages(DirectoryEntries::stageIdsOf($memberships)),
+            $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),
+            $this->structure->listStages(DirectoryEntries::stageIdsOf($memberships)),
         ));
     }
 }

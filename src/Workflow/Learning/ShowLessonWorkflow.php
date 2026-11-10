@@ -48,9 +48,9 @@ final readonly class ShowLessonWorkflow
     {
         $this->access->require(Action::Read, Resource::Lessons);
 
-        $reading = $this->lessons->reading(Ids::toUuid($id, notFound: 'lesson'));
+        $reading = $this->lessons->getReading(Ids::toUuid($id, notFound: 'lesson'));
         $lesson = $reading->lesson;
-        $stage = $this->structure->stage($lesson->stageId());
+        $stage = $this->structure->getStage($lesson->stageId());
         $group = StructureGroup::ofStage($stage);
         $this->access->requireIn(Action::Read, Resource::Lessons, $group, missing: 'lesson');
         $plan = LessonPlanView::of($lesson);
@@ -61,7 +61,9 @@ final readonly class ShowLessonWorkflow
             lesson: LessonDetailView::of(
                 $this->rowOf($reading),
                 $lesson,
-                $this->access->scopeOf(Action::Read, Resource::Members)->covers($group) ? $plan : $plan->withoutNotes(),
+                $this->access->getScope(Action::Read, Resource::Members)->covers($group)
+                    ? $plan
+                    : $plan->withoutNotes(),
             ),
         );
     }
@@ -71,7 +73,7 @@ final readonly class ShowLessonWorkflow
         $lesson = $reading->lesson;
         $lessons = new ArrayCollection([$lesson]);
 
-        $accounts = AccountReferences::of($this->accounts->accounts(LessonRows::accountIdsOf(
+        $accounts = AccountReferences::of($this->accounts->listByIds(LessonRows::accountIdsOf(
             $lessons,
             $reading->helpers,
         )));
@@ -88,11 +90,11 @@ final readonly class ShowLessonWorkflow
     private function meetingOf(Lesson $lesson): NoMeeting|OffScheduleMeeting|PlannedMeeting|SessionMeeting
     {
         $lessons = new ArrayCollection([$lesson]);
-        $schedules = $this->meetings->schedules(MeetingViews::scheduleIdsOf($lessons));
+        $schedules = $this->meetings->listSchedules(MeetingViews::scheduleIdsOf($lessons));
 
         $views = MeetingViews::of(
             $schedules,
-            $this->meetings->sessionsOn($schedules, MeetingViews::datesOf($lessons)),
+            $this->meetings->listSessionsOn($schedules, MeetingViews::datesOf($lessons)),
             $lessons,
             ArchivedStructure::of($this->structure->archivedIds()),
         );

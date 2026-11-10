@@ -23,7 +23,7 @@ final readonly class RenamePersonWorkflow
 
     public function __invoke(string $id, ?string $firstName, ?string $lastName, ?string $displayName): PersonView
     {
-        $scope = $this->access->scope(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
+        $scope = $this->access->requireScope(Action::Update, Resource::Members, refusal: 'people.changeNotAllowed');
         $personId = Ids::toUuid($id, notFound: 'person');
         $this->groups->requireVisible($personId, $scope);
 

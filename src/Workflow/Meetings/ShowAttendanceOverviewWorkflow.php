@@ -42,7 +42,7 @@ final readonly class ShowAttendanceOverviewWorkflow
 
     public function __invoke(): AttendanceOverview
     {
-        $scope = $this->access->scope(Action::Read, Resource::Attendance);
+        $scope = $this->access->requireScope(Action::Read, Resource::Attendance);
 
         $today = $this->calendar->today();
         $archivedIds = $this->structure->archivedIds();
@@ -52,7 +52,7 @@ final readonly class ShowAttendanceOverviewWorkflow
         $closed = OverviewSessions::unarchived($this->recentlyClosed($archivedIds), $archived);
         $all = new ArrayCollection([...$todays->getValues(), ...$earlier->getValues(), ...$closed->getValues()]);
         $references = $this->referencesOf($all);
-        $closers = AccountReferences::of($this->accounts->accounts(OverviewSessions::closerIdsOf($all)));
+        $closers = AccountReferences::of($this->accounts->listByIds(OverviewSessions::closerIdsOf($all)));
         $cardOf = fn (Session $session): OverviewCard => $this->cardOf($session, $references, $closers);
 
         return AttendanceOverview::of(
@@ -71,7 +71,7 @@ final readonly class ShowAttendanceOverviewWorkflow
         return $this->sessions->listOpenBetween(
             $today->addDays(-self::EARLIER_DAYS),
             $today->addDays(-1),
-            $this->access->scopeOf(Action::Create, Resource::Attendance),
+            $this->access->getScope(Action::Create, Resource::Attendance),
         );
     }
 
@@ -85,7 +85,7 @@ final readonly class ShowAttendanceOverviewWorkflow
         return $this->sessions->listLatestClosed(
             self::CLOSED,
             $archivedIds,
-            $this->access->scopeOf(Action::Create, Resource::Attendance),
+            $this->access->getScope(Action::Create, Resource::Attendance),
         );
     }
 
@@ -97,8 +97,8 @@ final readonly class ShowAttendanceOverviewWorkflow
         $schedules = OverviewSessions::schedulesOf($sessions);
 
         return RosterReferences::of(
-            $this->structure->services(RosterReferences::serviceIdsOf($schedules)),
-            $this->structure->stages(RosterReferences::stageIdsOf($schedules)),
+            $this->structure->listServices(RosterReferences::serviceIdsOf($schedules)),
+            $this->structure->listStages(RosterReferences::stageIdsOf($schedules)),
         );
     }
 

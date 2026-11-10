@@ -35,7 +35,7 @@ final readonly class ExportAccountDataWorkflow
             return null;
         }
 
-        $reports = $this->homework->madeBy($user->id());
+        $reports = $this->homework->listMadeBy($user->id());
 
         return new AccountData(
             exportedAt: $this->calendar->now(),

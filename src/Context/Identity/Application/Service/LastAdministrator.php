@@ -21,24 +21,24 @@ final readonly class LastAdministrator
 
     public function isKeptOnlyByAccount(User $user): bool
     {
-        $administers = RolePermissions::activeAccountHas($user, Action::Update, Resource::Roles);
+        $administers = RolePermissions::isGrantedToActiveAccount($user, Action::Update, Resource::Roles);
 
         $othersDo = $this->users->hasOtherActiveAccountThatCan($user, Action::Update, Resource::Roles);
 
         return $administers && !$othersDo;
     }
 
-    public function wouldLoseIt(User $user, Role $role): bool
+    public function isLostWithout(User $user, Role $role): bool
     {
-        $roleAdministers = RolePermissions::roleAllows($role, Action::Update, Resource::Roles);
-        $keepsIt = RolePermissions::accountHasWithout($user, $role, Action::Update, Resource::Roles);
+        $roleAdministers = RolePermissions::isGrantedToRole($role, Action::Update, Resource::Roles);
+        $keepsIt = RolePermissions::isGrantedToAccountWithout($user, $role, Action::Update, Resource::Roles);
 
         return $roleAdministers && !$keepsIt && $this->isKeptOnlyByAccount($user);
     }
 
     public function isKeptOnlyByRole(Role $role): bool
     {
-        $roleAdministers = RolePermissions::roleAllows($role, Action::Update, Resource::Roles);
+        $roleAdministers = RolePermissions::isGrantedToRole($role, Action::Update, Resource::Roles);
         $othersDo = $this->holders->hasActiveAccountThatCanWithout($role, Action::Update, Resource::Roles);
 
         return $roleAdministers && !$othersDo;

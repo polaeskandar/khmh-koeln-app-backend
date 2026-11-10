@@ -36,7 +36,7 @@ final readonly class AccountRegistration
     ) {
     }
 
-    public function profile(string $firstName, string $lastName, string $email, Language $language): Profile
+    public function buildProfile(string $firstName, string $lastName, string $email, Language $language): Profile
     {
         $name = Text::format('%s %s', $firstName, $lastName)->toString();
 

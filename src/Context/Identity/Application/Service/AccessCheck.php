@@ -26,35 +26,35 @@ final readonly class AccessCheck
     ) {
     }
 
-    public function allows(Action $action, Resource $resource): bool
+    public function isAllowed(Action $action, Resource $resource): bool
     {
         return $this->authorization->isGranted(Access::ATTRIBUTE, new Access($action, $resource));
     }
 
     public function require(Action $action, Resource $resource, string $refusal = 'forbidden'): void
     {
-        if ($this->allows($action, $resource)) {
+        if ($this->isAllowed($action, $resource)) {
             return;
         }
 
         throw new AccessDeniedHttpException($refusal);
     }
 
-    public function scope(Action $action, Resource $resource, string $refusal = 'forbidden'): GroupScope
+    public function requireScope(Action $action, Resource $resource, string $refusal = 'forbidden'): GroupScope
     {
         $this->require($action, $resource, $refusal);
 
-        return $this->scopeOf($action, $resource);
+        return $this->getScope($action, $resource);
     }
 
-    public function scopeOf(Action $action, Resource $resource): GroupScope
+    public function getScope(Action $action, Resource $resource): GroupScope
     {
-        return $this->groups->scopeOfViewer($action, $resource);
+        return $this->groups->getViewerScope($action, $resource);
     }
 
     public function requireIn(Action $action, Resource $resource, Group $group, string $missing): void
     {
-        if ($this->scope($action, $resource)->covers($group)) {
+        if ($this->requireScope($action, $resource)->covers($group)) {
             return;
         }
 
@@ -63,7 +63,7 @@ final readonly class AccessCheck
 
     public function requireReaching(Action $action, Resource $resource, Uuid $serviceId, string $missing): void
     {
-        if ($this->scope($action, $resource)->reaches($serviceId)) {
+        if ($this->requireScope($action, $resource)->reaches($serviceId)) {
             return;
         }
 
@@ -72,7 +72,7 @@ final readonly class AccessCheck
 
     public function requireChosen(Action $action, Resource $resource, ?Group $group, string $fieldPrefix): void
     {
-        $scope = $this->scope($action, $resource);
+        $scope = $this->requireScope($action, $resource);
         $chosen = $group === null ? [] : [$group];
 
         if ($scope->covers(...$chosen)) {
@@ -86,11 +86,11 @@ final readonly class AccessCheck
 
     public function requireAssigning(): GroupScope
     {
-        $users = $this->groups->scopeOfViewer(Action::Update, Resource::Users);
+        $users = $this->groups->getViewerScope(Action::Update, Resource::Users);
 
         $assignable = $users->isChurchWide()
             ? $users
-            : $this->groups->scopeOfViewer(Action::Update, Resource::Stages)->serviceWide();
+            : $this->groups->getViewerScope(Action::Update, Resource::Stages)->serviceWide();
 
         return $assignable->serviceIds() === []
             ? throw new AccessDeniedHttpException(self::ASSIGNING_REFUSAL)
