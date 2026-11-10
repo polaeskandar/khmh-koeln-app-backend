@@ -10,8 +10,6 @@ use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\Repository\LessonRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkDraft;
 use App\Library\Problem\Exception\NotFound;
-use App\Library\Problem\Exception\RuleViolation;
-use App\Library\Time\Client\Calendar;
 use App\Platform\Doctrine\Contract\VersionChecks;
 use Symfony\Component\Uid\Uuid;
 
@@ -21,7 +19,6 @@ final readonly class HomeworkWrites
         private HomeworkRepositoryInterface $homework,
         private LessonRepositoryInterface $lessons,
         private VersionChecks $versions,
-        private Calendar $calendar,
     ) {
     }
 
@@ -73,22 +70,6 @@ final readonly class HomeworkWrites
         $taskId = Uuid::isValid($id) ? Uuid::fromString($id) : throw NotFound::of('homework');
 
         return $this->homework->withLock($taskId, $work);
-    }
-
-    public function publish(HomeworkAssignment $task): HomeworkAssignment
-    {
-        $state = $task->state()->published($this->calendar->now());
-
-        if ($task->lesson()->state()->archivedAt !== null) {
-            throw new RuleViolation('homework.lessonArchived');
-        }
-
-        if ($state !== $task->state()) {
-            $task->changeState($state);
-            $this->homework->save($task);
-        }
-
-        return $task;
     }
 
     public function edit(HomeworkAssignment $task, HomeworkDraft $draft): HomeworkAssignment

@@ -42,7 +42,7 @@ final class HomeworkAssignmentTest extends TestCase
         self::assertSame(HomeworkStatus::Draft, $task->state()->status);
     }
 
-    public function testOnlyAPublishedTaskIsVisibleToParentsAndARepublishKeepsItsTime(): void
+    public function testOnlyAPublishedTaskIsVisibleToParents(): void
     {
         $task = new HomeworkAssignment(
             new Lesson(
@@ -58,11 +58,17 @@ final class HomeworkAssignmentTest extends TestCase
 
         self::assertFalse($task->isVisibleToParents());
 
-        $published = $task->state()->published(new DateTimeImmutable('2026-11-08T10:00:00+01:00'));
-        $task->changeState($published);
-        self::assertSame($published, $published->published(new DateTimeImmutable('2026-11-09T10:00:00+01:00')));
+        $task->changeState(
+            $task
+                ->state()
+                ->withStatus(HomeworkStatus::Published)
+                ->withPublishedAt(new DateTimeImmutable('2026-11-08T10:00:00+01:00')),
+        );
 
         self::assertTrue($task->isVisibleToParents());
         self::assertSame('2026-11-08T10:00:00+01:00', $task->state()->publishedAt?->format(DATE_ATOM));
+
+        $task->changeState($task->state()->withStatus(HomeworkStatus::Archived));
+        self::assertFalse($task->isVisibleToParents());
     }
 }

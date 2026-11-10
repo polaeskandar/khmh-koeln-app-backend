@@ -25,6 +25,45 @@ framework:
                             done: privacy.nothingScheduled
                             withdrawn: privacy.nothingScheduled
                             declined: privacy.nothingScheduled
+        homework_lifecycle:
+            type: state_machine
+            supports: App\Context\Learning\Domain\Entity\HomeworkAssignment
+            marking_store:
+                service: App\Context\Learning\Infrastructure\Lifecycle\HomeworkMarkingStore
+            events_to_dispatch: []
+            initial_marking: draft
+            places: App\Context\Learning\Domain\Enum\HomeworkStatus::*
+            transitions:
+                publish:
+                    from: [draft, published]
+                    to: published
+                    metadata:
+                        refusals:
+                            archived: homework.archivedNoPublish
+                unpublish:
+                    from: published
+                    to: draft
+                    metadata:
+                        refusals:
+                            draft: homework.onlyPublishedBack
+                            archived: homework.onlyPublishedBack
+                archive:
+                    from: [draft, published, archived]
+                    to: archived
+                restore_as_draft:
+                    from: archived
+                    to: draft
+                    metadata:
+                        refusals:
+                            draft: homework.notArchived
+                            published: homework.notArchived
+                restore_as_published:
+                    from: archived
+                    to: published
+                    metadata:
+                        refusals:
+                            draft: homework.notArchived
+                            published: homework.notArchived
         session_lifecycle:
             type: state_machine
             supports: App\Context\Meetings\Domain\Entity\Session

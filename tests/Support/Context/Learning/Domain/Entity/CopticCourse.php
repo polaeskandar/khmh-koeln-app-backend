@@ -6,6 +6,7 @@ namespace App\Tests\Support\Context\Learning\Domain\Entity;
 
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\Entity\Lesson;
+use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Context\Organization\Domain\Entity\Service;
@@ -107,7 +108,14 @@ final readonly class CopticCourse
         ?string $dueDate,
     ): HomeworkAssignment {
         $task = self::draftOf($lesson, $title, $dueDate);
-        $task->changeState($task->state()->published(new DateTimeImmutable('2026-10-27T09:00:00+01:00')));
+
+        $task->changeState(
+            $task
+                ->state()
+                ->withStatus(HomeworkStatus::Published)
+                ->withPublishedAt(new DateTimeImmutable('2026-10-27T09:00:00+01:00')),
+        );
+
         new Database($container)->persisted($task);
 
         return $task;
@@ -116,8 +124,21 @@ final readonly class CopticCourse
     private static function archived(ContainerInterface $container, Lesson $lesson, string $title): HomeworkAssignment
     {
         $task = self::draftOf($lesson, $title, null);
-        $task->changeState($task->state()->published(new DateTimeImmutable('2026-10-27T09:00:00+01:00')));
-        $task->changeState($task->state()->archived(new DateTimeImmutable('2026-10-28T09:00:00+01:00')));
+
+        $task->changeState(
+            $task
+                ->state()
+                ->withStatus(HomeworkStatus::Published)
+                ->withPublishedAt(new DateTimeImmutable('2026-10-27T09:00:00+01:00')),
+        );
+
+        $task->changeState(
+            $task
+                ->state()
+                ->withStatus(HomeworkStatus::Archived)
+                ->withArchivedAt(new DateTimeImmutable('2026-10-28T09:00:00+01:00')),
+        );
+
         new Database($container)->persisted($task);
 
         return $task;

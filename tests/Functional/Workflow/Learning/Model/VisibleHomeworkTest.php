@@ -8,6 +8,7 @@ use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Learning\Application\Service\PupilHomework;
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\Entity\Lesson;
+use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\Repository\HomeworkReportRepositoryInterface;
 use App\Context\Learning\Domain\Repository\HomeworkRepositoryInterface;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
@@ -198,7 +199,12 @@ final class VisibleHomeworkTest extends KernelTestCase
         );
 
         if ($status === 'published') {
-            $task->changeState($task->state()->published(new DateTimeImmutable('2026-11-01T09:00:00+01:00')));
+            $task->changeState(
+                $task
+                    ->state()
+                    ->withStatus(HomeworkStatus::Published)
+                    ->withPublishedAt(new DateTimeImmutable('2026-11-01T09:00:00+01:00')),
+            );
         }
 
         $database = new Database(self::getContainer());

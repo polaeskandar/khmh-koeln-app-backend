@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Interface\Api\People;
 
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\Entity\Lesson;
+use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Context\Organization\Domain\Entity\Service;
@@ -147,7 +148,13 @@ final class ParentChildrenControllerTest extends ApiTestCase
             createdBy: null,
         );
 
-        $task->changeState($task->state()->published(new DateTimeImmutable('2026-11-01T09:00:00+01:00')));
+        $task->changeState(
+            $task
+                ->state()
+                ->withStatus(HomeworkStatus::Published)
+                ->withPublishedAt(new DateTimeImmutable('2026-11-01T09:00:00+01:00')),
+        );
+
         new Database(self::getContainer())->persisted($task);
 
         return $task;

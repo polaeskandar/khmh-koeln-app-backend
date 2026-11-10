@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Support\Interface\Console\Privacy;
 
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
+use App\Context\Learning\Domain\Enum\HomeworkStatus;
 use App\Context\Learning\Domain\ValueObject\HomeworkText;
 use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Context\Meetings\Domain\Entity\Attendance;
@@ -70,7 +71,13 @@ final readonly class PrivacyFixture
             null,
         );
 
-        $task->changeState($task->state()->published(new DateTimeImmutable('2026-11-01T09:00:00+01:00')));
+        $task->changeState(
+            $task
+                ->state()
+                ->withStatus(HomeworkStatus::Published)
+                ->withPublishedAt(new DateTimeImmutable('2026-11-01T09:00:00+01:00')),
+        );
+
         new Database($this->container)->persisted($mark, $task);
         new Reports($this->container)->stored($task, $mina, by: $parent);
 
