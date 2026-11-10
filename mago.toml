@@ -144,7 +144,7 @@ deny-from = ["App\\Interface\\**"]
 reason = "Interface reaches the contexts through workflows; of a context it names only the enums in Domain\\Enum."
 
 [[guard.perimeter.restrictions]]
-dependency = "App\\Context\\*\\Domain\\{Attribute,Entity,Exception,Interface,Repository,ValueObject}\\**"
+dependency = "App\\Context\\*\\Domain\\{Attribute,Entity,Exception,Interface,Query,Repository,ValueObject}\\**"
 deny-from = ["App\\Interface\\**"]
 reason = "Interface reaches the contexts through workflows; of a context it names only the enums in Domain\\Enum."
 
@@ -224,6 +224,11 @@ deny-from = ["App\\Workflow\\*\\Model\\**"]
 reason = "A workflow model is built from values; only the workflow calls the contexts' services."
 
 [[guard.perimeter.restrictions]]
+dependency = "App\\Context\\*\\Domain\\Query\\**"
+deny-from = ["App\\Workflow\\*\\Model\\**"]
+reason = "A workflow model is built from values; only the workflow reads through the contexts' query interfaces."
+
+[[guard.perimeter.restrictions]]
 dependency = "App\\Library\\*\\Client\\**"
 deny-from = ["App\\Workflow\\*\\Model\\**"]
 reason = "A workflow model is built from values; the workflow asks clients such as the Calendar."
@@ -254,6 +259,12 @@ on = "App\\Context\\*\\Domain\\Repository\\**"
 must-be = ["interface"]
 must-be-named = "*RepositoryInterface"
 reason = "A repository is a contract that infrastructure implements."
+
+[[guard.structural.rules]]
+on = "App\\Context\\*\\Domain\\Query\\**"
+must-be = ["interface"]
+must-be-named = "*QueryInterface"
+reason = "A query interface lists the reads a workflow may make; the context's Doctrine repository implements it."
 
 [[guard.structural.rules]]
 on = "App\\Context\\*\\Domain\\Exception\\**"
