@@ -303,7 +303,7 @@ Public. Creates an account that waits for an administrator's approval. Its roles
 | Member | Rules (field error) |
 | --- | --- |
 | `account.firstName`, `account.lastName` | Required (`accounts.firstNameRequired`, `accounts.lastNameRequired`), ≤80 (`validation.tooLong`); spaces collapsed, stored as the display name "First Last" |
-| `account.email` | Required (`accounts.emailRequired`), valid (`accounts.emailInvalid`), ≤180; trimmed and lower-cased |
+| `account.email` | Required (`accounts.emailRequired`), valid (`accounts.emailInvalid`), ≤254 (`validation.tooLong`), as the database column holds; trimmed and lower-cased |
 | `account.password` | 10–200 characters (`accounts.passwordTooShort {min}`, `validation.tooLong`) |
 | `account.language` | `en`, `de` or `ar` (`accounts.chooseLanguage`) |
 | `registration.registeredAs` | `parent`, `servant` or `member` (`accounts.chooseRegisteredAs`) |
