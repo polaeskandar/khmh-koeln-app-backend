@@ -45,4 +45,26 @@ final class InputTextTest extends TestCase
         self::assertSame('monika hanna', InputText::of(' Mönika   Ḥanna ')->folded()->toString());
         self::assertSame('مينا', InputText::of('مِينَا')->folded()->toString());
     }
+
+    public function testZeroWidthCharactersAreNotSpace(): void
+    {
+        self::assertSame("\u{FEFF}Choir", InputText::of("\u{3000}\u{FEFF}Choir\u{00A0}")->collapsed()->toString());
+        self::assertSame("می\u{200C}خواهم", InputText::of(" می\u{200C}خواهم ")->collapsed()->toString());
+        self::assertSame(6, InputText::of("\u{FEFF}Choir")->length());
+        self::assertSame(8, InputText::of("می\u{200C}خواهم")->length());
+    }
+
+    public function testFoldingKeepsSharpSAndTheZeroWidthNonJoinerButDropsArabicMarks(): void
+    {
+        self::assertSame('straße groß', InputText::of('STRAẞE  Groß')->folded()->toString());
+        self::assertSame("می\u{200C}خواهم", InputText::of("می\u{200C}خواهم")->folded()->toString());
+        self::assertSame('مدارس الاحد', InputText::of('مدارس الأحد')->folded()->toString());
+        self::assertSame('محبة', InputText::of('محبّة')->folded()->toString());
+    }
+
+    public function testLoweringKeepsSharpSAndUmlauts(): void
+    {
+        self::assertSame('straße über', InputText::of('STRAẞE ÜBER')->lowered()->toString());
+        self::assertSame('مدارس الأحد', InputText::of('مدارس الأحد')->lowered()->toString());
+    }
 }
