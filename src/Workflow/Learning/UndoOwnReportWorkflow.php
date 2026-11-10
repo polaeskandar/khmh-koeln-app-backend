@@ -29,7 +29,7 @@ final readonly class UndoOwnReportWorkflow
         $viewer = Uuid::fromString($viewerId);
         $personId = $this->member->require($viewer);
 
-        $undone = $this->completions->whileLocked(
+        $undone = $this->completions->whileTaskLocked(
             Ids::toUuidOrNull($homeworkId),
             fn (HomeworkAssignment $task): VisibleTask => $this->undone($personId, $viewer, $task),
         );

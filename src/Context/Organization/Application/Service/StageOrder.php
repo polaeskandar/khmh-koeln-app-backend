@@ -30,7 +30,7 @@ final readonly class StageOrder
     {
         $sequence = StageSequence::of($stageIds);
 
-        return $this->services->withStructureLock($serviceId, fn (Service $service): Service => $this->reorderIn(
+        return $this->services->withWriteLock($serviceId, fn (Service $service): Service => $this->reorderIn(
             $service,
             $sequence,
         ));

@@ -41,5 +41,5 @@ interface HomeworkRepositoryInterface
      *
      * @return T|null null when no such task exists
      */
-    public function withLock(Uuid $id, callable $work): ?object;
+    public function withWriteLock(Uuid $id, callable $work): ?object;
 }

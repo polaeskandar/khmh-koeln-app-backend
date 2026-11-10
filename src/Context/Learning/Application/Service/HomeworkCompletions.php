@@ -29,9 +29,9 @@ final readonly class HomeworkCompletions
      *
      * @return T|null null when the request names no task that exists
      */
-    public function whileLocked(?Uuid $homeworkId, callable $work): ?object
+    public function whileTaskLocked(?Uuid $homeworkId, callable $work): ?object
     {
-        return $homeworkId === null ? null : $this->homework->withLock($homeworkId, $work);
+        return $homeworkId === null ? null : $this->homework->withWriteLock($homeworkId, $work);
     }
 
     public function report(VisibleTask $visible, Uuid $childId, Uuid $by): CompletionOutcome

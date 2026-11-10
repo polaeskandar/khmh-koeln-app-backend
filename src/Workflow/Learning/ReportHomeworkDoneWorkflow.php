@@ -36,7 +36,7 @@ final readonly class ReportHomeworkDoneWorkflow
         $viewer = Uuid::fromString($viewerId);
         $child = Ids::toUuid($childId, notFound: 'person');
 
-        $outcome = $this->families->whileKept($child, fn (): CompletionOutcome => $this->reportedOnLockedTask(
+        $outcome = $this->families->whileChildKept($child, fn (): CompletionOutcome => $this->reportedOnLockedTask(
             $viewer,
             $child,
             Ids::toUuidOrNull($homeworkId),
@@ -48,7 +48,7 @@ final readonly class ReportHomeworkDoneWorkflow
     private function reportedOnLockedTask(Uuid $viewer, Uuid $child, ?Uuid $homeworkId): CompletionOutcome
     {
         $report = fn (HomeworkAssignment $task): CompletionOutcome => $this->reported($viewer, $child, $task);
-        $reported = $this->completions->whileLocked($homeworkId, $report);
+        $reported = $this->completions->whileTaskLocked($homeworkId, $report);
 
         return $reported ?? $this->visibleTo($viewer)->missingTask($child);
     }

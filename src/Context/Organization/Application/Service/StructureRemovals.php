@@ -28,7 +28,7 @@ final readonly class StructureRemovals
      */
     public function removeService(Uuid $serviceId, callable $release): void
     {
-        $this->services->withStructureLock($serviceId, function (Service $service) use ($release): Service {
+        $this->services->withWriteLock($serviceId, function (Service $service) use ($release): Service {
             $stages = $this->stages->ofService($service);
             $stageIds = $stages->map(static fn (Stage $stage): Uuid => $stage->id())->getValues();
             $release($service, $stageIds)->ensureServiceUnused($service->name()->value);
@@ -50,7 +50,7 @@ final readonly class StructureRemovals
     {
         $serviceId = $this->stages->serviceIdOf($stageId) ?? throw NotFound::of('stage');
 
-        $this->services->withStructureLock($serviceId, function (Service $service) use ($stageId, $release): Stage {
+        $this->services->withWriteLock($serviceId, function (Service $service) use ($stageId, $release): Stage {
             ArchiveRule::ensureStagesChangeable($service);
             $stage = $this->stages->find($stageId) ?? throw NotFound::of('stage');
             $release($stage)->ensureStageUnused($stage->name()->value);

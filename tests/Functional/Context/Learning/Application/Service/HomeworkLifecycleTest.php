@@ -91,7 +91,7 @@ final class HomeworkLifecycleTest extends KernelTestCase
         $sqlState = null;
 
         try {
-            $this->service(HomeworkWrites::class)->locked(
+            $this->service(HomeworkWrites::class)->whileTaskLocked(
                 Uuid::fromString($taskId),
                 fn (HomeworkAssignment $task): HomeworkAssignment => $this->service(
                     HomeworkLifecycle::class,

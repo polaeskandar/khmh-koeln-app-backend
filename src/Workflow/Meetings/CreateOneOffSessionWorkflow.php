@@ -31,7 +31,7 @@ final readonly class CreateOneOffSessionWorkflow
     {
         $this->access->require(Action::Create, Resource::Sessions);
 
-        return $this->placements->whileKept([$oneOff->roster->serviceId], fn (): string => $this->created(
+        return $this->placements->whileServicesKept([$oneOff->roster->serviceId], fn (): string => $this->created(
             $oneOff,
             $accountId,
         ));

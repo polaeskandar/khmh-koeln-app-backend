@@ -49,7 +49,7 @@ final readonly class AccountRequests
     /**
      * @param callable(User): void $decision
      */
-    public function decide(Uuid $id, callable $decision): void
+    public function whileUndecided(Uuid $id, callable $decision): void
     {
         $this->users->withWriteLock($id, static function (User $user) use ($decision): void {
             self::ensureUndecided($user);

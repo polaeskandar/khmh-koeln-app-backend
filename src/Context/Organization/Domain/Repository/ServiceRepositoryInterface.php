@@ -38,7 +38,7 @@ interface ServiceRepositoryInterface
      *
      * @return T
      */
-    public function withStructureLock(Uuid $id, callable $work): object;
+    public function withWriteLock(Uuid $id, callable $work): object;
 
     /**
      * @template T

@@ -44,7 +44,7 @@ final readonly class MoveMembershipWorkflow
             missing: 'membership',
         );
 
-        return $this->placements->whileKept(
+        return $this->placements->whileServicesKept(
             [$membership->serviceId()->toRfc4122()],
             fn (): AddedMembership => $this->movedTo($membership, $stageId),
         );

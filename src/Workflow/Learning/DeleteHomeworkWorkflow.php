@@ -29,7 +29,7 @@ final readonly class DeleteHomeworkWorkflow
     {
         $this->access->require(Action::Update, Resource::Homework, refusal: 'homework.changeStageOnly');
 
-        $this->homework->locked(Ids::toUuid($id, notFound: 'homework'), $this->deleted(...));
+        $this->homework->whileTaskLocked(Ids::toUuid($id, notFound: 'homework'), $this->deleted(...));
     }
 
     private function deleted(HomeworkAssignment $task): HomeworkAssignment

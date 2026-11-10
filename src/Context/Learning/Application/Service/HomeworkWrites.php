@@ -48,7 +48,7 @@ final readonly class HomeworkWrites
      */
     public function whileEditable(Uuid $id, ?int $version, callable $work): object
     {
-        return $this->locked($id, function (HomeworkAssignment $task) use ($version, $work): object {
+        return $this->whileTaskLocked($id, function (HomeworkAssignment $task) use ($version, $work): object {
             $this->versions->ensureCurrent($task, $version, 'homework.changedMeanwhile');
             $task->state()->ensureEditable();
             $task->lesson()->state()->ensureEditable();
@@ -64,9 +64,9 @@ final readonly class HomeworkWrites
      *
      * @return T
      */
-    public function locked(Uuid $id, callable $work): object
+    public function whileTaskLocked(Uuid $id, callable $work): object
     {
-        return $this->homework->withLock($id, $work) ?? throw NotFound::of('homework');
+        return $this->homework->withWriteLock($id, $work) ?? throw NotFound::of('homework');
     }
 
     public function edit(HomeworkAssignment $task, HomeworkDraft $draft): HomeworkAssignment

@@ -29,7 +29,7 @@ final readonly class DeclineAccountRequestWorkflow
 
         $accountId = Ids::toUuid($id, notFound: 'user');
 
-        $this->transactions->run(fn () => $this->requests->decide($accountId, function (User $user): void {
+        $this->transactions->run(fn () => $this->requests->whileUndecided($accountId, function (User $user): void {
             $this->registrations->forget($user->id());
             $this->requests->decline($user);
         }));

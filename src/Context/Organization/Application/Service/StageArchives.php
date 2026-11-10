@@ -55,7 +55,7 @@ final readonly class StageArchives
     {
         $serviceId = $this->stages->serviceIdOf($stageId) ?? throw NotFound::of('stage');
 
-        return $this->services->withStructureLock($serviceId, function (Service $service) use ($stageId, $work): Stage {
+        return $this->services->withWriteLock($serviceId, function (Service $service) use ($stageId, $work): Stage {
             ArchiveRule::ensureStagesChangeable($service);
 
             return $work($this->stages->find($stageId) ?? throw NotFound::of('stage'));

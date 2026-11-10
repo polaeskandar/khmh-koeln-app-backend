@@ -40,7 +40,7 @@ final readonly class AddMembershipWorkflow
         $person = $this->memberships->personOf(Ids::toUuid($personId, notFound: 'person'));
         $this->groups->requireVisible($person->id(), $scope);
 
-        return $this->placements->whileKept([$choice->serviceId], fn (): AddedMembership => $this->added(
+        return $this->placements->whileServicesKept([$choice->serviceId], fn (): AddedMembership => $this->added(
             $person,
             $choice,
         ));
