@@ -50,6 +50,42 @@ final class AccountRequestsControllerAssignmentsTest extends ApiTestCase
         $this->assertJsonPath('assignments.0.stage.name', '3rd Class');
     }
 
+    public function testAStageListedWithItsWholeServiceIsLeftOutAndTheServiceAbsorbsHeldStages(): void
+    {
+        [$sundaySchool, $third] = $this->registered();
+        $youth = Structure::service('Youth Meeting');
+        $juniors = Structure::stage($youth, 'Juniors');
+        $database = new Database(self::getContainer());
+        $database->persisted($youth, $juniors);
+        $groups = new ServedGroups(self::getContainer());
+        $groups->assign($this->servantId(), $youth->id()->toRfc4122(), $juniors->id()->toRfc4122());
+        $this->signInWithRoles('admin@example.org', 'administrator');
+
+        $this->approve([
+            'as' => 'servant',
+            'roleIds' => [self::SERVANT_ROLE],
+            'assignments' => [
+                ['serviceId' => $sundaySchool->id()->toRfc4122(), 'stageId' => $third->id()->toRfc4122()],
+                ['serviceId' => $sundaySchool->id()->toRfc4122()],
+                ['serviceId' => $youth->id()->toRfc4122(), 'stageId' => null],
+            ],
+        ]);
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSame(
+            [
+                ['service_id' => $sundaySchool->id()->toRfc4122(), 'stage_id' => null],
+                ['service_id' => $youth->id()->toRfc4122(), 'stage_id' => null],
+            ],
+            $database
+                ->connection()
+                ->fetchAllAssociative(
+                    'SELECT service_id, stage_id FROM organization.staff_assignment ORDER BY service_id',
+                ),
+        );
+    }
+
     public function testEveryInvalidGroupIsReportedAndNothingIsStored(): void
     {
         [$sundaySchool, $third] = $this->registered();
@@ -134,12 +170,17 @@ final class AccountRequestsControllerAssignmentsTest extends ApiTestCase
      */
     private function approve(array $body): void
     {
+        $this->jsonRequest('POST', '/api/account-requests/' . $this->servantId() . '/approve', $body);
+    }
+
+    private function servantId(): string
+    {
         $id = new Database(self::getContainer())
             ->connection()
             ->fetchOne('SELECT id FROM identity.app_user WHERE email = ?', [self::SERVANT]);
 
         self::assertIsString($id);
 
-        $this->jsonRequest('POST', '/api/account-requests/' . $id . '/approve', $body);
+        return $id;
     }
 }

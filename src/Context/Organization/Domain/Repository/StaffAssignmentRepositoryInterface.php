@@ -14,5 +14,10 @@ interface StaffAssignmentRepositoryInterface extends StaffAssignmentQueryInterfa
 
     public function remove(StaffAssignment $assignment): void;
 
-    public function findHeld(Uuid $accountId, Uuid $serviceId, ?Uuid $stageId): ?StaffAssignment;
+    public function removeStagesOf(Uuid $accountId, Uuid $serviceId): void;
+
+    /**
+     * @return ?StaffAssignment the account's assignment to the service as a whole, else the one to the stage
+     */
+    public function findCovering(Uuid $accountId, Uuid $serviceId, ?Uuid $stageId): ?StaffAssignment;
 }

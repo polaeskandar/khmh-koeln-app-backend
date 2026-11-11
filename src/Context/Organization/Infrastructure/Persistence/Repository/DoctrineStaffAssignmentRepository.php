@@ -42,15 +42,37 @@ final readonly class DoctrineStaffAssignmentRepository implements StaffAssignmen
     }
 
     #[Override]
-    public function findHeld(Uuid $accountId, Uuid $serviceId, ?Uuid $stageId): ?StaffAssignment
+    public function removeStagesOf(Uuid $accountId, Uuid $serviceId): void
     {
-        return $this->entityManager
-            ->getRepository(StaffAssignment::class)
-            ->findOneBy([
-                'accountId' => $accountId,
-                'service' => $serviceId,
-                'stage' => $stageId,
-            ]);
+        $stages = $this->listed(
+            $this
+                ->ordered()
+                ->where('a.accountId = :account AND s.id = :service AND t.id IS NOT NULL')
+                ->setParameter('account', $accountId)
+                ->setParameter('service', $serviceId),
+        );
+
+        foreach ($stages as $stage) {
+            $this->entityManager->remove($stage);
+        }
+
+        $this->entityManager->flush();
+    }
+
+    #[Override]
+    public function findCovering(Uuid $accountId, Uuid $serviceId, ?Uuid $stageId): ?StaffAssignment
+    {
+        $covering = $this->listed(
+            $this
+                ->ordered()
+                ->where('a.accountId = :account AND s.id = :service AND (t.id IS NULL OR t.id = :stage)')
+                ->setParameter('account', $accountId)
+                ->setParameter('service', $serviceId)
+                ->setParameter('stage', $stageId)
+                ->setMaxResults(1),
+        )->first();
+
+        return $covering === false ? null : $covering;
     }
 
     /**
