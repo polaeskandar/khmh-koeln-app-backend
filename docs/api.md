@@ -80,9 +80,11 @@ role allows it.
 A group is a service's own roster or one of its stages. Every role holds either church-wide (`scope: church`) or
 only in the groups its holder is assigned to (`scope: assignedGroups`); the seeded Service leader and Servant roles
 hold in assigned groups, Administrator and Parent church-wide. An assignment to a service covers the service's own
-roster and all its stages, one to a stage that stage only. A permission applies to a group when a church role
-grants it, or a role limited to assigned groups grants it and an assignment covers the group; an account with only
-such roles and no assignment sees no group and none of its data.
+roster and all its stages, one to a stage that stage only. An account never holds a stage of a service it is
+assigned to as a whole: assigning the service removes the account's assignments to its stages, and assigning one of
+its stages is refused. A permission applies to a group when a church role grants it, or a role limited to assigned
+groups grants it and an assignment covers the group; an account with only such roles and no assignment sees no group
+and none of its data.
 
 Every endpoint that reads or changes data of a group checks the group, not only the permission:
 
@@ -1176,8 +1178,10 @@ Nothing else: no password hash and no privacy fields.
 `users: update` and `roles: update` (it grants roles), else 403 `accounts.adminOnly`. Body `{as: "parent",
 childIds, roleIds}`, `{as: "servant", roleIds, assignments?: [{serviceId, stageId | null}]}` or `{as: "member",
 member: {personId, ageCheck, guardianConsentNote?}}`. A servant gets the roles and the groups it serves in
-(see [Assigned groups](#assigned-groups)), each group once; the approver must be allowed to assign each of them as
-for `POST /api/accounts/{id}/assignments` (else 403 `assignments.notAllowed`, and the account stays pending).
+(see [Assigned groups](#assigned-groups)), each group once; a stage listed together with its whole service is left
+out, and the service takes the place of any assignment the account holds to one of its stages. The approver must be
+allowed to assign each group that is kept as for `POST /api/accounts/{id}/assignments` (else 403
+`assignments.notAllowed`, and the account stays pending).
 Parents ignore `assignments`. Children come from the
 people directory (`GET /api/people/directory?q=`), a member's record from `GET
 /api/account-requests/member-candidates?q=`. A member gets no role: the account is linked to its own record with
@@ -1236,7 +1240,9 @@ accounts are left out.
 #### `POST /api/accounts/{id}/assignments`
 
 Body `{serviceId, stageId | null}` → 201 `{id, service: ServiceRef, stage: StageRef | null}`, without `Location`:
-the account serves in that group from now on (see [Assigned groups](#assigned-groups)). Who may assign: a church
+the account serves in that group from now on (see [Assigned groups](#assigned-groups)). Assigning a whole service
+removes the account's assignments to the service's stages in the same transaction; the answer is still the new
+assignment. Who may assign: a church
 role with `users: update`, anywhere; otherwise `stages: update` with a service assignment, for that service and its
 stages. Anyone else → 403 `assignments.notAllowed`, also for a group the caller may not assign.
 
@@ -1245,7 +1251,7 @@ stages. Anyone else → 403 `assignments.notAllowed`, also for a group the calle
 | Unknown account, or an id that is not a UUID | 404 `notFound.user` |
 | `serviceId` missing or unknown; `stageId` unknown or another service's | 422 `serviceId` `meetings.chooseService`; `stageId` `meetings.chooseStage` |
 | An archived service or stage | 422 `serviceId` `meetings.serviceArchived {name}` / `stageId` `meetings.stageArchived {name}` |
-| The account already serves in that group (also when the unique index catches a race) | 409 `assignments.alreadyAssigned {name, where}`, `name` the account's, `where` the stage's or the service's |
+| The account already serves in that group (also when the unique index catches a race), or in the whole service of the chosen stage | 409 `assignments.alreadyAssigned {name, where}`, `name` the account's, `where` the name of the group it serves in: the stage's, or the service's |
 
 The service row is share-locked while the assignment is written, so a deletion of the service waits.
 

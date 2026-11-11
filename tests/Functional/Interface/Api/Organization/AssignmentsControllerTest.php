@@ -141,7 +141,64 @@ final class AssignmentsControllerTest extends ApiTestCase
         $this->jsonRequest('POST', '/api/accounts/not-an-id/assignments', ['serviceId' => $service]);
         $this->assertProblem(404, 'notFound.user');
 
-        self::assertSame(2, $connection->fetchOne('SELECT count(*) FROM organization.staff_assignment'));
+        self::assertSame(
+            [['service_id' => $service, 'stage_id' => null]],
+            $connection->fetchAllAssociative('SELECT service_id, stage_id FROM organization.staff_assignment'),
+        );
+    }
+
+    public function testAStageOfAServiceTheAccountServesAsAWholeIsRefusedNamingTheService(): void
+    {
+        [$sundaySchool, , $third] = $this->structure();
+        $bishoy = $this->servant('bishoy@example.org', 'Bishoy Adel', 'servant');
+        $whole = new ServedGroups(self::getContainer())->assign($bishoy, $sundaySchool->id()->toRfc4122());
+        $this->signInWithRoles('admin@example.org', 'administrator');
+
+        $this->jsonRequest('POST', '/api/accounts/' . $bishoy . '/assignments', [
+            'serviceId' => $sundaySchool->id()->toRfc4122(),
+            'stageId' => $third->id()->toRfc4122(),
+        ]);
+
+        $this->assertProblem(409, 'assignments.alreadyAssigned', ['name' => 'Bishoy Adel', 'where' => 'Sunday School']);
+
+        self::assertSame(
+            [$whole],
+            new Database(self::getContainer())
+                ->connection()
+                ->fetchFirstColumn('SELECT id FROM organization.staff_assignment'),
+        );
+    }
+
+    public function testAssigningTheWholeServiceRemovesTheAccountsAssignmentsToItsStages(): void
+    {
+        [$sundaySchool, $first, $third, $youth] = $this->structure();
+        $juniors = Structure::stage($youth, 'Juniors');
+        new Database(self::getContainer())->persisted($juniors);
+        $bishoy = $this->servant('bishoy@example.org', 'Bishoy Adel', 'servant');
+        $mina = $this->servant('mina@example.org', 'Mina Samir', 'servant');
+        $groups = new ServedGroups(self::getContainer());
+        $groups->assign($bishoy, $sundaySchool->id()->toRfc4122(), $first->id()->toRfc4122());
+        $groups->assign($bishoy, $sundaySchool->id()->toRfc4122(), $third->id()->toRfc4122());
+        $otherService = $groups->assign($bishoy, $youth->id()->toRfc4122(), $juniors->id()->toRfc4122());
+        $otherAccount = $groups->assign($mina, $sundaySchool->id()->toRfc4122(), $third->id()->toRfc4122());
+        $this->signInWithRoles('admin@example.org', 'administrator');
+
+        $this->jsonRequest('POST', '/api/accounts/' . $bishoy . '/assignments', [
+            'serviceId' => $sundaySchool->id()->toRfc4122(),
+            'stageId' => null,
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+        $this->assertJsonPath('service.id', $sundaySchool->id()->toRfc4122());
+        $this->assertJsonPath('stage', null);
+        $created = Type::of($this->responseJson()['id'] ?? null)->toString();
+
+        self::assertEqualsCanonicalizing(
+            [$created, $otherService, $otherAccount],
+            new Database(self::getContainer())
+                ->connection()
+                ->fetchFirstColumn('SELECT id FROM organization.staff_assignment'),
+        );
     }
 
     public function testAServiceLeaderAssignsInTheServicesHeLeadsOnly(): void

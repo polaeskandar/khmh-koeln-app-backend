@@ -31,7 +31,8 @@ final readonly class AssignmentChanges
     /**
      * @param list<array{serviceId: ?string, stageId: ?string}> $choices
      *
-     * @return ReadableCollection<int, ChosenPlacement> each group once
+     * @return ReadableCollection<int, ChosenPlacement> each group once, without the stages of a service chosen as a
+     *     whole
      */
     public function chosen(array $choices, string $field): ReadableCollection
     {
@@ -55,12 +56,10 @@ final readonly class AssignmentChanges
             static fn (array $choice, int $index): Closure => static fn (): ChosenPlacement => $pick($choice, $index),
         ));
 
-        return new ArrayCollection(
-            Collections::firstPerKey(
-                new ArrayCollection(Collections::mapArray($choices, $pick)),
-                keyOf: self::keyOf(...),
-            )->getValues(),
-        );
+        return self::withoutCovered(Collections::firstPerKey(
+            new ArrayCollection(Collections::mapArray($choices, $pick)),
+            keyOf: self::keyOf(...),
+        ));
     }
 
     /**
@@ -70,28 +69,26 @@ final readonly class AssignmentChanges
     {
         $this->registrations->removeFor($accountId);
 
-        $new = $groups->filter(fn (ChosenPlacement $group): bool => !$this->isHeld($accountId, $group));
+        $new = $groups->filter(fn (ChosenPlacement $group): bool => $this->findCovering($accountId, $group) === null);
 
         foreach ($new as $group) {
-            $this->assignments->add(new StaffAssignment($accountId, $group->service, $group->stage));
+            $this->store($accountId, $group);
         }
     }
 
     public function assign(Uuid $accountId, string $accountName, ChosenPlacement $group): StaffAssignment
     {
-        if ($this->isHeld($accountId, $group)) {
-            throw self::alreadyAssigned($accountName, $group);
+        $covering = $this->findCovering($accountId, $group);
+
+        if ($covering !== null) {
+            throw self::alreadyAssigned($accountName, new ChosenPlacement($covering->service(), $covering->stage()));
         }
 
-        $assignment = new StaffAssignment($accountId, $group->service, $group->stage);
-
         try {
-            $this->assignments->add($assignment);
+            return $this->store($accountId, $group);
         } catch (UniqueConstraintViolationException) {
             throw self::alreadyAssigned($accountName, $group);
         }
-
-        return $assignment;
     }
 
     public function remove(StaffAssignment $assignment): void
@@ -99,9 +96,21 @@ final readonly class AssignmentChanges
         $this->assignments->remove($assignment);
     }
 
-    private function isHeld(Uuid $accountId, ChosenPlacement $group): bool
+    private function store(Uuid $accountId, ChosenPlacement $group): StaffAssignment
     {
-        return $this->assignments->findHeld($accountId, $group->service->id(), $group->stage?->id()) !== null;
+        if ($group->stage === null) {
+            $this->assignments->removeStagesOf($accountId, $group->service->id());
+        }
+
+        $assignment = new StaffAssignment($accountId, $group->service, $group->stage);
+        $this->assignments->add($assignment);
+
+        return $assignment;
+    }
+
+    private function findCovering(Uuid $accountId, ChosenPlacement $group): ?StaffAssignment
+    {
+        return $this->assignments->findCovering($accountId, $group->service->id(), $group->stage?->id());
     }
 
     private static function alreadyAssigned(string $accountName, ChosenPlacement $group): RuleViolation
@@ -109,6 +118,22 @@ final readonly class AssignmentChanges
         $where = $group->stage?->name()->value ?? $group->service->name()->value;
 
         return new RuleViolation('assignments.alreadyAssigned', ['name' => $accountName, 'where' => $where]);
+    }
+
+    /**
+     * @template TKey of array-key
+     *
+     * @param ReadableCollection<TKey, ChosenPlacement> $groups
+     *
+     * @return ReadableCollection<int, ChosenPlacement>
+     */
+    private static function withoutCovered(ReadableCollection $groups): ReadableCollection
+    {
+        $uncovered = $groups->filter(
+            static fn (ChosenPlacement $group): bool => $groups->filter($group->isCoveredBy(...))->isEmpty(),
+        );
+
+        return new ArrayCollection($uncovered->getValues());
     }
 
     /**
