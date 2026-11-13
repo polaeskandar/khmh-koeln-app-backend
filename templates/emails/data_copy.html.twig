@@ -1,9 +1,0 @@
-{% extends 'emails/layout.html.twig' %}
-
-{% block title %}{{ 'data_copy.subject'|trans({}, 'emails') }}{% endblock %}
-
-{% block body %}
-    <p>{{ 'data_copy.body'|trans({'%validUntil%': validUntil}, 'emails') }}</p>
-    <p><a href="{{ url }}">{{ 'data_copy.action'|trans({}, 'emails') }}</a></p>
-    <p>{{ 'data_copy.ignore'|trans({}, 'emails') }}</p>
-{% endblock %}

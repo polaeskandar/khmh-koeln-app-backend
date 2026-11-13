@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Privacy\Domain\ValueObject\RequestSubject;
+use App\Context\Privacy\Domain\ValueObject\CopyableSubject;
 
 final readonly class CopySubject
 {
@@ -14,9 +14,9 @@ final readonly class CopySubject
     ) {
     }
 
-    public static function of(?RequestSubject $subject): ?self
+    public static function of(CopyableSubject $subject): self
     {
-        return $subject === null ? null : new self($subject->personId?->toRfc4122(), $subject->accountId?->toRfc4122());
+        return new self($subject->personId?->toRfc4122(), $subject->accountId?->toRfc4122());
     }
 
     public function isMember(): bool

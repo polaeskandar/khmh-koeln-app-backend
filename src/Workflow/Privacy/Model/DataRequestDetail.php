@@ -11,7 +11,6 @@ final readonly class DataRequestDetail
         public DataRequestRow $request,
         public ?RequestMember $member,
         public ?RequestAccount $account,
-        public ?CopyLinkStatus $copyLink,
     ) {
     }
 }

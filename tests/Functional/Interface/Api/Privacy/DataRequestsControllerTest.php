@@ -149,7 +149,14 @@ final class DataRequestsControllerTest extends ApiTestCase
             ['receipt' => ['channel' => 'app']],
             'receipt.channel',
             'validation.invalidChoice',
-            ['choices' => '"email", "letter", "in_person"'],
+            ['choices' => '"letter", "in_person"'],
+        ];
+
+        yield 'email channel' => [
+            ['receipt' => ['channel' => 'email']],
+            'receipt.channel',
+            'validation.invalidChoice',
+            ['choices' => '"letter", "in_person"'],
         ];
 
         yield 'unknown subject' => [
@@ -215,7 +222,7 @@ final class DataRequestsControllerTest extends ApiTestCase
         return [
             'kind' => 'copy',
             'subject' => ['personId' => $personId],
-            'receipt' => ['requestedBy' => 'Hoda Farag', 'channel' => 'email', 'receivedOn' => $receivedOn],
+            'receipt' => ['requestedBy' => 'Hoda Farag', 'channel' => 'letter', 'receivedOn' => $receivedOn],
             'note' => 'Asked by email for everything about Mina.',
         ];
     }

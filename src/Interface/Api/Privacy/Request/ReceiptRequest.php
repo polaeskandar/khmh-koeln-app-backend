@@ -16,7 +16,6 @@ final readonly class ReceiptRequest
         public ?string $requestedBy = null,
         #[Assert\NotNull(message: 'validation.invalidChoice')]
         #[Assert\Choice(choices: [
-            RequestChannel::Email->value,
             RequestChannel::Letter->value,
             RequestChannel::InPerson->value,
         ], message: 'validation.invalidChoice')]
