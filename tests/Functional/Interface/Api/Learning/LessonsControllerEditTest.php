@@ -47,7 +47,7 @@ final class LessonsControllerEditTest extends ApiTestCase
 
         new Database(self::getContainer())
             ->connection()
-            ->executeStatement('DELETE FROM identity.user_role');
+            ->executeStatement('DELETE FROM access.user_role');
 
         new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
 

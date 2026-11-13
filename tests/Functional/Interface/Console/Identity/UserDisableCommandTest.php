@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Interface\Console\Identity;
 
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Access\Domain\Entity\RoleGrants;
+use App\Tests\Support\Context\Access\Infrastructure\Lock\OtherSession;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
-use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
-use App\Tests\Support\Context\Identity\Infrastructure\Lock\OtherSession;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Database;
 use Doctrine\DBAL\Exception\DriverException;

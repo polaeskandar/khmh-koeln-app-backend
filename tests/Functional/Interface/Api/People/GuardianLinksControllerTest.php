@@ -178,7 +178,7 @@ final class GuardianLinksControllerTest extends ApiTestCase
             new Database(self::getContainer())
                 ->connection()
                 ->fetchOne(
-                    "SELECT count(*) FROM identity.user_role ur JOIN identity.role r ON r.id = ur.role_id WHERE r.name_key = 'parent' AND ur.user_id = ?",
+                    "SELECT count(*) FROM access.user_role ur JOIN access.role r ON r.id = ur.role_id WHERE r.name_key = 'parent' AND ur.user_id = ?",
                     [$accountId],
                 ),
         );

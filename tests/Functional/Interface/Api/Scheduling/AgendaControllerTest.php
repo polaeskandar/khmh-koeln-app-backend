@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Scheduling;
 
-use App\Context\Identity\Domain\Enum\Action;
-use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Access\Domain\Enum\Action;
+use App\Context\Access\Domain\Enum\Resource;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
-use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
+use App\Tests\Support\Context\Access\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;

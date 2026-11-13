@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\People;
 
+use App\Context\Access\Application\Service\RoleAssignments;
 use App\Context\Identity\Application\Service\ParentAccounts;
 use App\Context\People\Application\Service\Guardianship;
 use App\Context\People\Domain\Enum\GuardianKind;
@@ -17,6 +18,7 @@ final readonly class LinkGuardianWorkflow
         private ParentAccounts $accounts,
         private Guardianship $guardianship,
         private Transactions $transactions,
+        private RoleAssignments $roles,
     ) {
     }
 
@@ -32,7 +34,7 @@ final readonly class LinkGuardianWorkflow
 
         $this->transactions->run(function () use ($account, $child, $kind): void {
             $this->guardianship->linkGuardian($account->id(), $child, $kind);
-            $this->accounts->giveParentRole($account);
+            $this->roles->ensureParentRole($account->id());
         });
     }
 }

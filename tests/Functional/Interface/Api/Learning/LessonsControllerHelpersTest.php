@@ -8,7 +8,7 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\Scheduling\Domain\Entity\Schedule;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
-use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
+use App\Tests\Support\Context\Access\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
@@ -125,7 +125,7 @@ final class LessonsControllerHelpersTest extends ApiTestCase
 
         new Database(self::getContainer())
             ->connection()
-            ->executeStatement('DELETE FROM identity.user_role WHERE user_id = ?', [$christine]);
+            ->executeStatement('DELETE FROM access.user_role WHERE user_id = ?', [$christine]);
 
         $this->jsonRequest('PUT', $path, $helpers([$christine]));
         self::assertResponseIsSuccessful();

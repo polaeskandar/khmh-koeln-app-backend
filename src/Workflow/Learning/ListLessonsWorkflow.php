@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning;
 
-use App\Context\Identity\Application\Service\AccessCheck;
+use App\Context\Access\Application\Service\AccessCheck;
+use App\Context\Access\Application\Service\RoleHolders;
+use App\Context\Access\Domain\Enum\Action;
+use App\Context\Access\Domain\Enum\Resource;
 use App\Context\Identity\Application\Service\AccountLookup;
-use App\Context\Identity\Domain\Enum\Action;
-use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\StageLessons;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Enum\LessonTab;
@@ -39,6 +40,7 @@ final readonly class ListLessonsWorkflow
         private StageLessons $lessons,
         private MeetingLookup $meetings,
         private AccountLookup $accounts,
+        private RoleHolders $holders,
     ) {
     }
 
@@ -71,11 +73,11 @@ final readonly class ListLessonsWorkflow
      */
     private function preparersIn(Group $group): array
     {
-        return AccountReference::listOf($this->accounts->named(new ArrayCollection($this->accounts->listActiveAllowedIn(
+        return AccountReference::listOf($this->accounts->activeNamedByIds($this->holders->thatCanIn(
             Action::Update,
             Resource::Lessons,
             $group,
-        ))));
+        )));
     }
 
     /**

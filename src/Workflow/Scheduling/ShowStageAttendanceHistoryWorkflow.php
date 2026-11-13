@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Workflow\Scheduling;
 
-use App\Context\Identity\Application\Service\AccessCheck;
-use App\Context\Identity\Domain\Enum\Action;
-use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Access\Application\Service\AccessCheck;
+use App\Context\Access\Domain\Enum\Action;
+use App\Context\Access\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Application\Service\Attendees;

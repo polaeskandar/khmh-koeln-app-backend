@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning;
 
-use App\Context\Identity\Application\Service\AccessCheck;
+use App\Context\Access\Application\Service\AccessCheck;
+use App\Context\Access\Application\Service\RoleHolders;
+use App\Context\Access\Domain\Enum\Action;
+use App\Context\Access\Domain\Enum\Resource;
 use App\Context\Identity\Application\Service\AccountLookup;
-use App\Context\Identity\Domain\Enum\Action;
-use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\Query\LessonQueryInterface;
 use App\Context\Learning\Domain\ValueObject\LessonWindow;
@@ -33,6 +34,7 @@ final readonly class ListLessonOptionsWorkflow
         private LessonQueryInterface $lessons,
         private AccountLookup $accounts,
         private Calendar $calendar,
+        private RoleHolders $holders,
     ) {
     }
 
@@ -54,11 +56,7 @@ final readonly class ListLessonOptionsWorkflow
             $window,
             $dates,
             $this->takenIn(self::scheduleIdsOf($dates), $window, $edited),
-            $this->accounts->named(new ArrayCollection($this->accounts->listActiveAllowedIn(
-                Action::Update,
-                Resource::Lessons,
-                $group,
-            ))),
+            $this->accounts->activeNamedByIds($this->holders->thatCanIn(Action::Update, Resource::Lessons, $group)),
         );
     }
 

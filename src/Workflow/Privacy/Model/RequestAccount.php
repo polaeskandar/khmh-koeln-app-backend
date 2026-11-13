@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Identity\Domain\Entity\Role;
+use App\Context\Access\Domain\Entity\Role;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\ValueObject\NamedAccounts;
+use Doctrine\Common\Collections\ArrayCollection;
 
 final readonly class RequestAccount
 {
@@ -21,7 +22,10 @@ final readonly class RequestAccount
     ) {
     }
 
-    public static function of(?User $user, NamedAccounts $names): ?self
+    /**
+     * @param list<Role> $roles the account's roles
+     */
+    public static function of(?User $user, NamedAccounts $names, array $roles): ?self
     {
         if ($user === null) {
             return null;
@@ -31,10 +35,7 @@ final readonly class RequestAccount
             $user->id()->toRfc4122(),
             $names->nameOf($user),
             $user->username()->value,
-            $user
-                ->roles()
-                ->map(static fn (Role $role): string => $role->name()->value)
-                ->getValues(),
+            new ArrayCollection($roles)->map(static fn (Role $role): string => $role->name()->value)->getValues(),
         );
     }
 }

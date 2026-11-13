@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Identity\Response;
 
-use App\Context\Identity\Domain\Enum\Action;
-use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Identity\Domain\Enum\RoleScope;
+use App\Context\Access\Domain\Enum\Action;
+use App\Context\Access\Domain\Enum\Resource;
+use App\Context\Access\Domain\Enum\RoleScope;
 use App\Workflow\Identity\Model\AccountPermission;
 
 final readonly class AccountPermissionResponse

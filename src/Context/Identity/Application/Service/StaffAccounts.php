@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Repository\StaffAccountRepositoryInterface;
-use App\Context\Identity\Domain\ValueObject\HeldRole;
 use App\Context\Identity\Domain\ValueObject\StaffMember;
 use App\Library\Collections\Model\Collections;
 use Closure;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class StaffAccounts
 {
@@ -22,41 +22,28 @@ final readonly class StaffAccounts
     }
 
     /**
-     * @return list<StaffMember> enabled first, each by name
+     * @param list<Uuid> $staff the accounts with a staff role
+     * @param list<Uuid> $holders the accounts with any role
+     *
+     * @return list<StaffMember> the staff and the accounts with no role that are not members;
+     *         enabled first, each by name
      */
-    public function listed(): array
+    public function listed(array $staff, array $holders): array
     {
-        $rows = $this->accounts->listed(self::LISTED);
-        $accounts = new ArrayCollection($rows);
+        $rows = $this->accounts->listed($staff, $holders, self::LISTED);
         $names = $this->names->of($rows);
         $byName = AccountNames::sortKeys();
 
-        $roles = new ArrayCollection(
-            $this->accounts->rolesOf($accounts->map(static fn (array $row): string => $row['id'])->getValues()),
-        );
-
         return Collections::sortedBy(
-            $accounts->map(static fn (array $row): StaffMember => self::memberOf($row, $names, $roles)),
+            new ArrayCollection($rows)->map(
+                static fn (array $row): StaffMember => new StaffMember(
+                    $row['id'],
+                    $names[$row['personId']] ?? '',
+                    $row['username'],
+                    $row['disabled'],
+                ),
+            ),
             keyOf: static fn (StaffMember $member): string => self::rankOf($member, $byName),
-        );
-    }
-
-    /**
-     * @param array{id: string, username: string, personId: string, disabled: bool} $row
-     * @param array<string, string> $names
-     * @param ArrayCollection<int, array{accountId: string, id: string, name: string}> $roles
-     */
-    private static function memberOf(array $row, array $names, ArrayCollection $roles): StaffMember
-    {
-        return new StaffMember(
-            $row['id'],
-            $names[$row['personId']] ?? '',
-            $row['username'],
-            $row['disabled'],
-            $roles
-                ->filter(static fn (array $role): bool => $role['accountId'] === $row['id'])
-                ->map(static fn (array $role): HeldRole => new HeldRole($role['id'], $role['name']))
-                ->getValues(),
         );
     }
 

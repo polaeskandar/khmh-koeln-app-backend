@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Workflow\Organization;
 
-use App\Context\Identity\Application\Service\AccessCheck;
+use App\Context\Access\Application\Service\AccessCheck;
+use App\Context\Access\Application\Service\RoleHolders;
+use App\Context\Access\Domain\Enum\Action;
+use App\Context\Access\Domain\Enum\Resource;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Application\Service\ServingAccounts;
-use App\Context\Identity\Domain\Enum\Action;
-use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\ServiceWrites;
 use App\Context\Organization\Domain\Entity\StaffAssignment;
 use App\Context\Organization\Domain\Query\StaffAssignmentQueryInterface;
@@ -26,6 +27,7 @@ final readonly class ListServiceServantsWorkflow
         private StaffAssignmentQueryInterface $assignments,
         private ServingAccounts $accounts,
         private AccountLookup $lookup,
+        private RoleHolders $holders,
     ) {
     }
 
@@ -40,13 +42,19 @@ final readonly class ListServiceServantsWorkflow
         $assignments = $this->assignments->listOfService($service->id());
 
         $servants = $this->accounts->listActiveAmong(
-            $assignments->map(static fn (StaffAssignment $assignment): Uuid => $assignment->accountId())->getValues(),
+            $this->holders->servingInGroupsAmong(
+                $assignments->map(
+                    static fn (StaffAssignment $assignment): Uuid => $assignment->accountId(),
+                )->getValues(),
+            ),
         );
 
         return ServiceServants::of(
             $this->lookup->named(new ArrayCollection($servants)),
             $assignments,
-            $this->lookup->named(new ArrayCollection($this->accounts->listActive())),
+            $this->lookup->named(
+                new ArrayCollection($this->accounts->listActiveAmong($this->holders->servingInGroups())),
+            ),
         );
     }
 }

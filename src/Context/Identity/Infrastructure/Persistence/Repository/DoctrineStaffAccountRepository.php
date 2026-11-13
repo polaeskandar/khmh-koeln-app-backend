@@ -11,28 +11,18 @@ use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineStaffAccountRepository implements StaffAccountRepositoryInterface
 {
+    private const string NONE = '00000000-0000-0000-0000-000000000000';
+
     private const string LISTED = <<<'SQL'
         SELECT u.id::text AS id, u.username, u.person_id::text AS person, u.disabled_at IS NOT NULL AS disabled
         FROM identity.app_user u
-        WHERE (u.age_check IS NULL AND NOT EXISTS (SELECT 1 FROM identity.user_role ur WHERE ur.user_id = u.id))
-          OR EXISTS (
-            SELECT 1 FROM identity.user_role ur
-            JOIN identity.role_permission rp ON rp.role_id = ur.role_id
-            JOIN identity.permission p ON p.id = rp.permission_id
-            WHERE ur.user_id = u.id AND p.resource <> 'parentPortal'
-          )
+        WHERE u.id IN (:staff) OR (u.age_check IS NULL AND u.id NOT IN (:holders))
         ORDER BY disabled, u.username
         LIMIT :limit
-        SQL;
-
-    private const string ROLES = <<<'SQL'
-        SELECT ur.user_id::text AS account, r.id::text AS id, r.name
-        FROM identity.user_role ur JOIN identity.role r ON r.id = ur.role_id
-        WHERE ur.user_id IN (:accounts)
-        ORDER BY r.name_key
         SQL;
 
     public function __construct(
@@ -41,17 +31,21 @@ final readonly class DoctrineStaffAccountRepository implements StaffAccountRepos
     }
 
     /**
+     * @param list<Uuid> $staff
+     * @param list<Uuid> $holders
      * @param positive-int $limit
      *
      * @return list<array{id: string, username: string, personId: string, disabled: bool}>
      */
     #[Override]
-    public function listed(int $limit): array
+    public function listed(array $staff, array $holders, int $limit): array
     {
         $rows = $this->entityManager->getConnection()->fetchAllAssociative(
             self::LISTED,
-            ['limit' => $limit],
+            ['staff' => self::idsOf($staff), 'holders' => self::idsOf($holders), 'limit' => $limit],
             [
+                'staff' => ArrayParameterType::STRING,
+                'holders' => ArrayParameterType::STRING,
                 'limit' => ParameterType::INTEGER,
             ],
         );
@@ -65,27 +59,15 @@ final readonly class DoctrineStaffAccountRepository implements StaffAccountRepos
     }
 
     /**
-     * @param list<string> $accountIds
+     * @param list<Uuid> $ids
      *
-     * @return list<array{accountId: string, id: string, name: string}>
+     * @return non-empty-list<string> the ids, and one that matches no account, so the list is never empty
      */
-    #[Override]
-    public function rolesOf(array $accountIds): array
+    private static function idsOf(array $ids): array
     {
-        if ($accountIds === []) {
-            return [];
-        }
-
-        $rows = $this->entityManager->getConnection()->fetchAllAssociative(
-            self::ROLES,
-            ['accounts' => $accountIds],
-            ['accounts' => ArrayParameterType::STRING],
-        );
-
-        return new ArrayCollection($rows)->map(static fn (array $row): array => [
-            'accountId' => Type::of($row['account'] ?? null)->toString(),
-            'id' => Type::of($row['id'] ?? null)->toString(),
-            'name' => Type::of($row['name'] ?? null)->toString(),
-        ])->getValues();
+        return [
+            self::NONE,
+            ...new ArrayCollection($ids)->map(static fn (Uuid $id): string => $id->toRfc4122())->getValues(),
+        ];
     }
 }

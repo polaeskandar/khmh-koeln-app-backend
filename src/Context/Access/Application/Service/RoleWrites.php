@@ -1,0 +1,116 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Context\Access\Application\Service;
+
+use App\Context\Access\Domain\Entity\Role;
+use App\Context\Access\Domain\Enum\Action;
+use App\Context\Access\Domain\Enum\Resource;
+use App\Context\Access\Domain\Enum\RoleScope;
+use App\Context\Access\Domain\Interface\AdministrationLockInterface;
+use App\Context\Access\Domain\Repository\PermissionRepositoryInterface;
+use App\Context\Access\Domain\Repository\RoleRepositoryInterface;
+use App\Context\Access\Domain\ValueObject\PermissionSelection;
+use App\Context\Access\Domain\ValueObject\RoleName;
+use App\Context\Access\Domain\ValueObject\ScopeChoice;
+use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Problem\Exception\NotFound;
+use App\Library\Problem\Exception\RuleViolation;
+use Symfony\Component\Uid\Uuid;
+
+final readonly class RoleWrites
+{
+    public function __construct(
+        private RoleRepositoryInterface $roles,
+        private PermissionRepositoryInterface $permissions,
+        private LastAdministrator $lastAdministrator,
+        private AdministrationLockInterface $administration,
+    ) {
+    }
+
+    /**
+     * @param list<array{action: string|null, resource: string|null}> $permissions
+     */
+    public function create(string $name, ?string $scope, array $permissions): Role
+    {
+        self::check($name, $scope, $permissions);
+        $role = new Role(RoleName::of($name), ScopeChoice::of($scope)->orElse(RoleScope::Church));
+        $selection = PermissionSelection::of($permissions);
+
+        $this->administration->whileLocked(function () use ($role, $selection): void {
+            $this->ensureFree($role->name(), $role);
+            $role->replacePermissions($selection->permissionsIn($this->permissions->catalog()));
+            $this->roles->save($role);
+        });
+
+        return $role;
+    }
+
+    /**
+     * @param list<array{action: string|null, resource: string|null}> $permissions
+     */
+    public function edit(Uuid $id, string $name, ?string $scope, array $permissions): void
+    {
+        $this->administration->whileLocked(function () use ($id, $name, $scope, $permissions): void {
+            $role = $this->role($id);
+            self::check($name, $scope, $permissions);
+            $roleName = RoleName::of($name);
+            $selection = PermissionSelection::of($permissions);
+            $this->ensureFree($roleName, $role);
+
+            if (
+                $this->lastAdministrator->isKeptOnlyByRole($role)
+                && !$selection->grants(Action::Update, Resource::Roles)
+            ) {
+                throw new RuleViolation('roles.lastAdministrator');
+            }
+
+            $role->rename($roleName);
+            $role->changeScope(ScopeChoice::of($scope)->orElse($role->scope()));
+            $role->replacePermissions($selection->permissionsIn($this->permissions->catalog()));
+            $this->roles->save($role);
+        });
+    }
+
+    public function remove(Uuid $id): void
+    {
+        $this->administration->whileLocked(function () use ($id): void {
+            $role = $this->role($id);
+
+            if ($this->lastAdministrator->isKeptOnlyByRole($role)) {
+                throw new RuleViolation('roles.lastAdministrator');
+            }
+
+            $this->roles->remove($role);
+        });
+    }
+
+    private function role(Uuid $id): Role
+    {
+        return $this->roles->find($id) ?? throw NotFound::of('role');
+    }
+
+    /**
+     * @param list<array{action: string|null, resource: string|null}> $permissions
+     */
+    private static function check(string $name, ?string $scope, array $permissions): void
+    {
+        InvalidInput::all(
+            static fn (): RoleName => RoleName::of($name),
+            static fn (): ScopeChoice => ScopeChoice::of($scope),
+            static fn (): PermissionSelection => PermissionSelection::of($permissions),
+        );
+    }
+
+    private function ensureFree(RoleName $name, Role $role): void
+    {
+        $holder = $this->roles->findByName($name->value) ?? $role;
+
+        if ($holder === $role) {
+            return;
+        }
+
+        throw InvalidInput::field('name', 'roles.nameTaken', ['name' => $holder->name()->value]);
+    }
+}

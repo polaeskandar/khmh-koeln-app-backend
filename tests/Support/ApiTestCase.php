@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Support;
 
+use App\Tests\Support\Context\Access\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
-use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Platform\OpenApi\ResponseContract;
 use Override;

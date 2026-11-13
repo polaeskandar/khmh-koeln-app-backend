@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Workflow\People;
 
-use App\Context\Identity\Application\Service\AccessCheck;
+use App\Context\Access\Application\Service\AccessCheck;
+use App\Context\Access\Application\Service\RoleAssignments;
+use App\Context\Access\Domain\Enum\Action;
+use App\Context\Access\Domain\Enum\Resource;
 use App\Context\Identity\Application\Service\ParentAccounts;
-use App\Context\Identity\Domain\Enum\Action;
-use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\ParentAccess;
 use App\Context\People\Application\Service\ParentGrants;
@@ -33,6 +34,7 @@ final readonly class GiveParentAccessWorkflow
         private ParentAccess $parentAccess,
         private ParentGrants $grants,
         private StructureLookup $structure,
+        private RoleAssignments $roles,
     ) {
     }
 
@@ -57,7 +59,7 @@ final readonly class GiveParentAccessWorkflow
             Uuid::fromString($approvedBy),
         );
 
-        $link = $this->grants->grant($grant, $child, alongside: fn () => $this->accounts->giveParentRole($parent));
+        $link = $this->grants->grant($grant, $child, alongside: fn () => $this->roles->ensureParentRole($parent->id()));
 
         $items = $this->itemsOf(new ArrayCollection([$link]));
 

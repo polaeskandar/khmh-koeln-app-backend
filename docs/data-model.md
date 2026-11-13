@@ -230,11 +230,14 @@ account still exists is refused (`privacy.personHasAccount`); a request's erasur
 accounts with `bin/console app:user:create <username> <firstName> <lastName>`, which creates the person in the same
 transaction, typing the password twice or piping it with `--password-stdin`.
 
-Roles are dynamic (RBAC), in the `identity` schema: a user has roles (`user_role`), a role has permissions
+Roles are dynamic (RBAC), in the `access` schema: an account has roles (`user_role`, the account by its id without a
+foreign key, since accounts live in `identity`), a role has permissions
 (`role_permission`), and a permission is an action on a resource, `{"action": "update", "resource": "sessions"}`.
 `permission` holds the catalog, one row per action and resource (UNIQUE), with CHECKs against the enums in code
-(`Action`, `Resource`). `role` has a name (≤80, cleaned, unique by `name_key`). Deleting a user or a role removes
-its links (`ON DELETE CASCADE`); deleting a role keeps the permissions. An account has a permission when any of
+(`Action`, `Resource`). `role` has a name (≤80, cleaned, unique by `name_key`). Deleting a role removes its links
+(`ON DELETE CASCADE`) and keeps the permissions; erasing an account deletes its links through Access's `AccessTraces`.
+The migration that created the `access` schema copied the tables from `identity` where they existed, else seeded the
+catalog and the default roles; Identity's next migration dropped its copies. An account has a permission when any of
 its roles has it; it holds church-wide when one of those roles has the `church` scope, else only in the groups of
 the account's `organization.staff_assignment` rows: a service's own roster and its stages for a service assignment,
 the stage for a stage assignment (see [Who may do what](architecture.md#who-may-do-what)). The catalog and the defaults Administrator (everything but the

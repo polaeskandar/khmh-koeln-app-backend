@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Context\Identity\Application\Service;
 
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Access\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Domain\Entity\MemberLinks;
-use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
 

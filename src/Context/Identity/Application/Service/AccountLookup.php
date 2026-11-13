@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Entity\User;
-use App\Context\Identity\Domain\Enum\Action;
-use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\Repository\MemberAccountRepositoryInterface;
-use App\Context\Identity\Domain\Repository\RoleHolderRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 use App\Library\Collections\Model\Collections;
-use App\Platform\Access\Model\Group;
+use App\Library\Problem\Exception\NotFound;
 use App\Platform\Directory\Contract\PersonNames;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
@@ -22,9 +19,7 @@ final readonly class AccountLookup
 {
     public function __construct(
         private UserRepositoryInterface $users,
-        private RoleHolderRepositoryInterface $roleHolders,
         private MemberAccountRepositoryInterface $members,
-        private GroupPermissions $groups,
         private PersonNames $people,
     ) {
     }
@@ -52,6 +47,29 @@ final readonly class AccountLookup
         return $this->named($this->users->findByIds($present->getValues()));
     }
 
+    /**
+     * @param list<Uuid> $ids
+     */
+    public function activeNamedByIds(array $ids): NamedAccounts
+    {
+        return $this->named($this->users
+            ->findByIds($ids)
+            ->filter(static fn (User $account): bool => $account->status()->isActive()));
+    }
+
+    /**
+     * @param list<Uuid> $ids
+     *
+     * @return list<User> the enabled accounts among them
+     */
+    public function enabledAmong(array $ids): array
+    {
+        return $this->users
+            ->findByIds($ids)
+            ->filter(static fn (User $account): bool => $account->status()->isActive())
+            ->getValues();
+    }
+
     public function nameOf(User $account): string
     {
         return $this->named(new ArrayCollection([$account]))->nameOf($account);
@@ -67,41 +85,18 @@ final readonly class AccountLookup
         return new ArrayCollection($this->members->activeAccountsOf($personIds));
     }
 
-    /**
-     * @return ReadableCollection<int, User>
-     */
-    public function listActiveHoldersOf(string $roleNameKey): ReadableCollection
+    public function get(Uuid $id): User
     {
-        return $this->roleHolders->activeHolders($roleNameKey);
+        return $this->users->find($id) ?? throw NotFound::of('user');
+    }
+
+    public function getByUsername(string $username): User
+    {
+        return $this->users->findByUsername($username) ?? throw NotFound::of('account');
     }
 
     public function findAccount(?Uuid $id): ?User
     {
         return $id === null ? null : $this->users->find($id);
-    }
-
-    /**
-     * @return list<User> by name
-     */
-    public function listActiveAllowedTo(Action $action, Resource $resource): array
-    {
-        return $this->named($this->users->activeThatCan($action, $resource))->byName();
-    }
-
-    /**
-     * @return list<User> by name
-     */
-    public function listActiveAllowedIn(Action $action, Resource $resource, Group $group): array
-    {
-        $allowed = $this->groups->listAllowedIn(
-            $this->users->activeThatCan($action, $resource),
-            $action,
-            $resource,
-            $group,
-        );
-
-        return new ArrayCollection($this->listActiveAllowedTo($action, $resource))
-            ->filter($allowed->contains(...))
-            ->getValues();
     }
 }

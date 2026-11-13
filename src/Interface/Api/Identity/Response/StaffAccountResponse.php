@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Identity\Response;
 
-use App\Workflow\Identity\Model\RoleSummary;
+use App\Workflow\Access\Model\RoleSummary;
 use App\Workflow\Identity\Model\StaffAccount;
 use App\Workflow\Organization\Model\AssignmentView;
 use JsonSerializable;

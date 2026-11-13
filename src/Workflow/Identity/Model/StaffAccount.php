@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Workflow\Identity\Model;
 
-use App\Context\Identity\Domain\ValueObject\HeldRole;
+use App\Context\Access\Domain\Entity\Role;
 use App\Context\Identity\Domain\ValueObject\StaffMember;
+use App\Workflow\Access\Model\RoleSummary;
 use App\Workflow\Organization\Model\AssignmentView;
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -21,21 +22,17 @@ final readonly class StaffAccount
     }
 
     /**
+     * @param list<Role> $roles
      * @param list<AssignmentView> $assignments
      */
-    public static function of(StaffMember $member, array $assignments): self
+    public static function of(StaffMember $member, array $roles, array $assignments): self
     {
         return new self(
             $member->id,
             $member->displayName,
             $member->username,
             $member->disabled,
-            new StaffDuties(
-                new ArrayCollection($member->roles)->map(
-                    static fn (HeldRole $role): RoleSummary => new RoleSummary($role->id, $role->name),
-                )->getValues(),
-                $assignments,
-            ),
+            new StaffDuties(new ArrayCollection($roles)->map(RoleSummary::of(...))->getValues(), $assignments),
         );
     }
 }

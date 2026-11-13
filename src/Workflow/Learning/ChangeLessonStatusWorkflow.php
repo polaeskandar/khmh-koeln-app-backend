@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning;
 
-use App\Context\Identity\Application\Service\AccessCheck;
-use App\Context\Identity\Domain\Enum\Action;
-use App\Context\Identity\Domain\Enum\Resource;
+use App\Context\Access\Application\Service\AccessCheck;
+use App\Context\Access\Domain\Enum\Action;
+use App\Context\Access\Domain\Enum\Resource;
 use App\Context\Learning\Application\Service\LessonLifecycle;
 use App\Context\Learning\Application\Service\LessonWrites;
 use App\Context\Learning\Domain\Entity\Lesson;

@@ -26,7 +26,7 @@ no-redundant-variable = { enabled = true }
 no-unused-closure-capture = { enabled = true }
 no-parameter-shadowing = { enabled = true }
 no-assign-in-argument = { enabled = true }
-no-service-state-mutation = { enabled = true, exclude-namespaces = ["App\\Context\\Identity\\Domain\\Entity\\", "App\\Context\\Learning\\Domain\\Entity\\", "App\\Context\\Scheduling\\Domain\\Entity\\", "App\\Context\\Organization\\Domain\\Entity\\", "App\\Context\\People\\Domain\\Entity\\", "App\\Context\\Privacy\\Domain\\Entity\\", "App\\Library\\Persistence\\Mapping\\", "App\\Platform\\OpenApi\\Service\\", "App\\Tests\\"] }
+no-service-state-mutation = { enabled = true, exclude-namespaces = ["App\\Context\\Access\\Domain\\Entity\\", "App\\Context\\Identity\\Domain\\Entity\\", "App\\Context\\Learning\\Domain\\Entity\\", "App\\Context\\Scheduling\\Domain\\Entity\\", "App\\Context\\Organization\\Domain\\Entity\\", "App\\Context\\People\\Domain\\Entity\\", "App\\Context\\Privacy\\Domain\\Entity\\", "App\\Library\\Persistence\\Mapping\\", "App\\Platform\\OpenApi\\Service\\", "App\\Tests\\"] }
 prefer-self-return-type = { enabled = true }
 variable-name = { enabled = true }
 method-name = { enabled = true }
@@ -47,6 +47,21 @@ strict-array-index-existence = true
 
 [guard]
 minimum-fail-level = "note"
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Access\\**"
+allow-from = ["App\\Context\\Access\\**", "App\\Workflow\\**", "App\\Interface\\**", "App\\Tests\\**"]
+reason = "A context never uses another context; only Workflow uses the contexts, and Interface names their enums."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Access\\Domain\\Repository\\**"
+allow-from = ["App\\Context\\Access\\**", "App\\Tests\\**"]
+reason = "Workflows go through the context's application services, never straight to its repositories."
+
+[[guard.perimeter.restrictions]]
+dependency = "App\\Context\\Access\\Infrastructure\\**"
+allow-from = ["App\\Context\\Access\\Infrastructure\\**", "App\\Tests\\**"]
+reason = "Only the context's own Infrastructure uses its Infrastructure; the rest goes through Domain contracts."
 
 [[guard.perimeter.restrictions]]
 dependency = "App\\Context\\Identity\\**"
@@ -239,7 +254,7 @@ deny-from = ["App\\Context\\*\\Domain\\Validation\\**"]
 reason = "A domain rule is pure: the application service loads the facts and hands them over."
 
 [[guard.perimeter.restrictions]]
-dependency = "App\\Context\\Identity\\Application\\Service\\AccessCheck"
+dependency = "App\\Context\\Access\\Application\\Service\\AccessCheck"
 allow-from = ["App\\Workflow\\*", "App\\Tests\\**"]
 reason = "Workflows manage access; models, controllers and context services never check it."
 

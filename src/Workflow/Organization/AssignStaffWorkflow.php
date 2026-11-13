@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Organization;
 
-use App\Context\Identity\Application\Service\AccessCheck;
+use App\Context\Access\Application\Service\AccessCheck;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Application\Service\ServingAccounts;
 use App\Context\Identity\Domain\Entity\User;

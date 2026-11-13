@@ -15,23 +15,13 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrineMemberAccountRepository implements MemberAccountRepositoryInterface
 {
+    private const string NONE = '00000000-0000-0000-0000-000000000000';
+
     private const string LISTED = <<<'SQL'
-        SELECT u.id::text AS id, u.username, u.disabled_at IS NOT NULL AS disabled,
-          EXISTS (
-            SELECT 1 FROM identity.user_role ur
-            JOIN identity.role_permission rp ON rp.role_id = ur.role_id
-            JOIN identity.permission p ON p.id = rp.permission_id
-            WHERE ur.user_id = u.id AND p.resource = 'parentPortal'
-          ) AS parent,
+        SELECT u.id::text AS id, u.username, u.disabled_at IS NOT NULL AS disabled, u.id IN (:parents) AS parent,
           u.person_id::text AS person, u.age_check, u.guardian_consent_note AS note
         FROM identity.app_user u
-        WHERE u.age_check IS NOT NULL
-          AND NOT EXISTS (
-            SELECT 1 FROM identity.user_role ur
-            JOIN identity.role_permission rp ON rp.role_id = ur.role_id
-            JOIN identity.permission p ON p.id = rp.permission_id
-            WHERE ur.user_id = u.id AND p.resource <> 'parentPortal'
-          )
+        WHERE u.age_check IS NOT NULL AND u.id NOT IN (:staff)
         ORDER BY u.username
         SQL;
 
@@ -69,6 +59,9 @@ final readonly class DoctrineMemberAccountRepository implements MemberAccountRep
     }
 
     /**
+     * @param list<Uuid> $staff
+     * @param list<Uuid> $parents
+     *
      * @return list<array{
      *     id: string,
      *     username: string,
@@ -80,9 +73,13 @@ final readonly class DoctrineMemberAccountRepository implements MemberAccountRep
      * }>
      */
     #[Override]
-    public function listed(): array
+    public function listed(array $staff, array $parents): array
     {
-        $rows = $this->entityManager->getConnection()->fetchAllAssociative(self::LISTED);
+        $rows = $this->entityManager->getConnection()->fetchAllAssociative(
+            self::LISTED,
+            ['staff' => self::idsOf($staff), 'parents' => self::idsOf($parents)],
+            ['staff' => ArrayParameterType::STRING, 'parents' => ArrayParameterType::STRING],
+        );
 
         return new ArrayCollection($rows)->map(static fn (array $row): array => [
             'id' => Type::of($row['id'] ?? null)->toString(),
@@ -93,5 +90,18 @@ final readonly class DoctrineMemberAccountRepository implements MemberAccountRep
             'ageCheck' => Type::of($row['age_check'] ?? null)->toStringOrNull(),
             'guardianConsentNote' => Type::of($row['note'] ?? null)->toStringOrNull(),
         ])->getValues();
+    }
+
+    /**
+     * @param list<Uuid> $ids
+     *
+     * @return non-empty-list<string> the ids, and one that matches no account, so the list is never empty
+     */
+    private static function idsOf(array $ids): array
+    {
+        return [
+            self::NONE,
+            ...new ArrayCollection($ids)->map(static fn (Uuid $id): string => $id->toRfc4122())->getValues(),
+        ];
     }
 }

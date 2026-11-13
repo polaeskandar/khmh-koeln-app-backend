@@ -32,7 +32,7 @@ final class GuardianLinkCommandTest extends KernelTestCase
         }
 
         self::assertSame(1, $this->rowsIn('people.guardian_relationship'));
-        self::assertSame(1, $this->rowsIn('identity.user_role'));
+        self::assertSame(1, $this->rowsIn('access.user_role'));
     }
 
     /**
@@ -59,7 +59,7 @@ final class GuardianLinkCommandTest extends KernelTestCase
         self::assertSame(Command::FAILURE, $status);
         self::assertStringContainsString($code, $tester->getDisplay());
         self::assertSame(0, $this->rowsIn('people.guardian_relationship'));
-        self::assertSame(0, $this->rowsIn('identity.user_role'));
+        self::assertSame(0, $this->rowsIn('access.user_role'));
     }
 
     /**
