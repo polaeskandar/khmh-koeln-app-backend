@@ -49,8 +49,6 @@ final class TokenControllerRefusalTest extends ApiTestCase
     {
         yield 'unknown email' => [['unknown' => null], SignInAccounts::TYPED];
         yield 'wrong password' => [[], SignInAccounts::MISTYPED];
-        yield 'unconfirmed' => [['approved_at' => null, 'email_confirmed_at' => null], SignInAccounts::TYPED];
-        yield 'pending' => [['approved_at' => null], SignInAccounts::TYPED];
         yield 'disabled' => [['disabled_at' => '2026-11-01 10:00:00+01'], SignInAccounts::TYPED];
     }
 

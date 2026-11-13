@@ -20,7 +20,7 @@ final class DoctrineUserRepositoryTest extends KernelTestCase
     {
         self::mockTime('2026-11-08 12:00:00+01:00');
         $repository = new DoctrineUserRepository(new Database(self::getContainer())->entityManager());
-        $sara = Accounts::approved('sara.hanna@example.org');
+        $sara = Accounts::active('sara.hanna@example.org');
 
         $repository->save($sara);
 
@@ -33,7 +33,7 @@ final class DoctrineUserRepositoryTest extends KernelTestCase
     {
         $database = new Database(self::getContainer());
         $repository = new DoctrineUserRepository($database->entityManager());
-        $sara = Accounts::approved('sara@example.org');
+        $sara = Accounts::active('sara@example.org');
         $repository->save($sara);
         $database->entityManager()->clear();
         $locked = null;
@@ -51,7 +51,7 @@ final class DoctrineUserRepositoryTest extends KernelTestCase
     {
         $database = new Database(self::getContainer());
         $repository = new DoctrineUserRepository($database->entityManager());
-        $sara = Accounts::approved('sara@example.org');
+        $sara = Accounts::active('sara@example.org');
         $repository->save($sara);
         $database->connection()->executeStatement('UPDATE identity.app_user SET disabled_at = now() WHERE id = ?', [$sara->id()->toRfc4122()]);
         $disabled = null;

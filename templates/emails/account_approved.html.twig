@@ -1,8 +1,0 @@
-{% extends 'emails/layout.html.twig' %}
-
-{% block title %}{{ 'account_approved.subject'|trans({}, 'emails') }}{% endblock %}
-
-{% block body %}
-    <p>{{ 'account_approved.body'|trans({}, 'emails') }}</p>
-    <p><a href="{{ url }}">{{ 'account_approved.action'|trans({}, 'emails') }}</a></p>
-{% endblock %}

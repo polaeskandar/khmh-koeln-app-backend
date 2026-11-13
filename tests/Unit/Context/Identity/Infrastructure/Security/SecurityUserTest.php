@@ -14,7 +14,7 @@ final class SecurityUserTest extends TestCase
 {
     public function testTheAccountIsKnownByItsIdWithTheUserRoleOnly(): void
     {
-        $user = Accounts::approved('sara@example.org');
+        $user = Accounts::active('sara@example.org');
         $securityUser = SecurityUser::of($user);
 
         self::assertSame($user->id()->toRfc4122(), $securityUser->getUserIdentifier());
@@ -24,7 +24,7 @@ final class SecurityUserTest extends TestCase
 
     public function testASessionHoldsNeitherTheEmailNorThePasswordHash(): void
     {
-        $user = Accounts::approved('sara@example.org', passwordHash: '$2y$04$abcdefghijklmnopqrstuv');
+        $user = Accounts::active('sara@example.org', passwordHash: '$2y$04$abcdefghijklmnopqrstuv');
 
         $stored = serialize(SecurityUser::of($user));
 
@@ -35,10 +35,10 @@ final class SecurityUserTest extends TestCase
 
     public function testADifferentPasswordHashMakesItAnotherUser(): void
     {
-        $user = Accounts::approved('sara@example.org', passwordHash: 'first-hash');
+        $user = Accounts::active('sara@example.org', passwordHash: 'first-hash');
         $stored = self::restored(serialize(SecurityUser::of($user)));
 
-        self::assertFalse($stored->isEqualTo(SecurityUser::of(Accounts::approved(
+        self::assertFalse($stored->isEqualTo(SecurityUser::of(Accounts::active(
             'sara@example.org',
             passwordHash: 'second-hash',
         ))));
@@ -46,7 +46,7 @@ final class SecurityUserTest extends TestCase
 
     public function testASessionStoredInAnEarlierShapeEndsInsteadOfFailing(): void
     {
-        $user = Accounts::approved('sara@example.org');
+        $user = Accounts::active('sara@example.org');
         $earlier = serialize(SecurityUser::of($user)) |> self::withoutStatusFingerprint(...);
 
         self::assertFalse(self::restored($earlier)->isEqualTo(SecurityUser::of($user)));
@@ -54,7 +54,7 @@ final class SecurityUserTest extends TestCase
 
     public function testADisabledAccountIsAnotherUser(): void
     {
-        $user = Accounts::approved('sara@example.org');
+        $user = Accounts::active('sara@example.org');
         $stored = self::restored(serialize(SecurityUser::of($user)));
 
         $user->changeStatus($user->status()->disabledAt(new DateTimeImmutable('2026-11-09T12:00:00+01:00')));

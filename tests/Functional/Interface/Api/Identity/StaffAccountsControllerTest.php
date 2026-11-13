@@ -58,7 +58,6 @@ final class StaffAccountsControllerTest extends ApiTestCase
         $this->account('zeina@example.org', 'Zeina Gerges', []);
         $this->account('adel@example.org', 'Adel Fahmy', ['disabled_at' => '2026-11-01 10:00:00+01'], 'servant');
         $this->account('hoda@example.org', 'Hoda Farag', [], 'parent');
-        $this->account('mina@example.org', 'Mina Wassef', ['approved_at' => null]);
         $nevine = $this->account('nevine@example.org', 'Nevine Boulos', []);
         $marina = $this->account('marina@example.org', 'Marina Tawfik', [], 'servant');
         $member = new Rosters(self::getContainer())->person('Nevine', 'Boulos');
@@ -131,14 +130,11 @@ final class StaffAccountsControllerTest extends ApiTestCase
 
     public function testOnlyActiveAccountsGetAPasswordLink(): void
     {
-        $pending = $this->account('mina@example.org', 'Mina Wassef', ['approved_at' => null]);
         $disabled = $this->account('adel@example.org', 'Adel Fahmy', ['disabled_at' => '2026-11-01 10:00:00+01']);
         $this->signInWithRoles('admin@example.org', 'administrator');
 
-        foreach ([$pending, $disabled] as $account) {
-            $this->jsonRequest('POST', '/api/accounts/' . $account . '/password-link');
-            $this->assertProblem(409, 'accounts.passwordLinkUnavailable');
-        }
+        $this->jsonRequest('POST', '/api/accounts/' . $disabled . '/password-link');
+        $this->assertProblem(409, 'accounts.passwordLinkUnavailable');
 
         $this->jsonRequest('POST', '/api/accounts/' . Uuid::v7()->toRfc4122() . '/password-link');
         $this->assertProblem(404, 'notFound.user');

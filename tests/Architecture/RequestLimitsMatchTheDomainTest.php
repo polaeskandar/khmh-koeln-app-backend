@@ -4,21 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Architecture;
 
-use App\Context\Identity\Domain\Enum\AgeCheck;
 use App\Context\Identity\Domain\ValueObject\Email;
-use App\Context\Identity\Domain\ValueObject\MemberLink;
-use App\Context\Identity\Domain\ValueObject\PlainPassword;
 use App\Context\People\Application\Service\PersonDirectory;
-use App\Interface\Api\Identity\Request\AccountRequest;
 use App\Interface\Api\Identity\Request\ForgotPasswordRequest;
-use App\Interface\Api\Identity\Request\MemberApprovalRequest;
 use App\Interface\Api\People\Request\PeopleQueryRequest;
 use App\Library\Problem\Exception\InvalidInput;
 use Closure;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionProperty;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints\Length;
 
 final class RequestLimitsMatchTheDomainTest extends KernelTestCase
@@ -68,32 +62,11 @@ final class RequestLimitsMatchTheDomainTest extends KernelTestCase
         $letters = static fn (int $length): string => str_pad('', $length, pad_string: 'a');
         $email = static fn (int $length): string => str_pad('', $length - 12, pad_string: 'a') . '@example.org';
 
-        yield 'registration password' => [
-            AccountRequest::class,
-            'password',
-            PlainPassword::of(...),
-            $letters,
-        ];
-
-        yield 'registration email' => [
-            AccountRequest::class,
-            'email',
-            Email::of(...),
-            $email,
-        ];
-
         yield 'forgotten password email' => [
             ForgotPasswordRequest::class,
             'email',
             Email::of(...),
             $email,
-        ];
-
-        yield 'member consent note' => [
-            MemberApprovalRequest::class,
-            'guardianConsentNote',
-            static fn (string $text): MemberLink => MemberLink::of(Uuid::v7(), AgeCheck::GuardianConsent, $text),
-            $letters,
         ];
 
         yield 'people search' => [

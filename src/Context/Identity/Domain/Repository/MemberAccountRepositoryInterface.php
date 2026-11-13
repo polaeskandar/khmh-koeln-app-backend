@@ -14,13 +14,6 @@ interface MemberAccountRepositoryInterface
     /**
      * @param list<Uuid> $personIds
      *
-     * @return list<string> the ids of those records that an account is linked to
-     */
-    public function linkedAmong(array $personIds): array;
-
-    /**
-     * @param list<Uuid> $personIds
-     *
      * @return array<string, string> the approved, enabled account linked to each of those records, by person id
      */
     public function activeAccountsOf(array $personIds): array;
@@ -35,9 +28,6 @@ interface MemberAccountRepositoryInterface
      *     personId: string,
      *     ageCheck: string|null,
      *     guardianConsentNote: string|null,
-     *     approvedAt: string|null,
-     *     approverId: string|null,
-     *     approverName: string|null,
      * }> the linked accounts without a staff role, by name
      */
     public function listed(): array;

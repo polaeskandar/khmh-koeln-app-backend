@@ -176,7 +176,6 @@ final class RolesControllerTest extends ApiTestCase
         self::assertFalse($this->onlyWayToChangeRoles(self::SERVANT_ROLE));
 
         $this->account('mariam@example.org', 'Mariam Saad', ['disabled_at' => self::DISABLED], 'role_keeper');
-        $this->account('mina@example.org', 'Mina Wassef', ['approved_at' => null], 'role_keeper');
         self::assertTrue($this->onlyWayToChangeRoles(self::ADMINISTRATOR_ROLE));
 
         $this->account('kirollos@example.org', 'Kirollos Nabil', [], 'role_keeper');

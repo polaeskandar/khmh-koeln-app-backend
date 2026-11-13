@@ -8,7 +8,6 @@ use App\Context\Identity\Domain\Entity\Role;
 use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\InvalidInput;
-use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Model\Ids;
 use App\Library\Strings\Model\Text;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -40,23 +39,5 @@ final readonly class RoleChoices
         $chosen = $this->roles->findByIds(Collections::mapPresent($ids, Ids::toUuidOrNull(...))->getValues());
 
         return $chosen->count() === $ids->count() ? $chosen : throw InvalidInput::field('roleIds', 'roles.unknown');
-    }
-
-    /**
-     * @param list<string> $roleIds
-     *
-     * @return ReadableCollection<int, Role>
-     */
-    public function chosenWithParent(array $roleIds): ReadableCollection
-    {
-        $parent = $this->roles->findByName(ParentAccounts::PARENT_ROLE) ?? throw NotFound::of('role');
-        $chosen = $this->chosen($roleIds);
-
-        $roles = Collections::firstPerKey(
-            new ArrayCollection([...$chosen->getValues(), $parent]),
-            keyOf: static fn (Role $role): string => $role->id()->toRfc4122(),
-        );
-
-        return new ArrayCollection($roles->getValues());
     }
 }

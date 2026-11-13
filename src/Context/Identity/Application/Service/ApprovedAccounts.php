@@ -17,7 +17,6 @@ use App\Context\Identity\Domain\ValueObject\PlainPassword;
 use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Identity\Domain\ValueObject\Registration;
 use App\Library\Problem\Exception\InvalidInput;
-use App\Library\Time\Client\Calendar;
 use SensitiveParameter;
 use Symfony\Component\Uid\Uuid;
 
@@ -27,7 +26,6 @@ final readonly class ApprovedAccounts
         private UserRepositoryInterface $users,
         private RoleRepositoryInterface $roles,
         private PasswordHasherInterface $hasher,
-        private Calendar $calendar,
     ) {
     }
 
@@ -48,7 +46,7 @@ final readonly class ApprovedAccounts
         $user = new User(
             $profile,
             passwordHash: $this->passwordHash($password),
-            status: AccountStatus::pending()->approvedOn($this->calendar->now()),
+            status: AccountStatus::active(),
             registration: Registration::none(),
             roles: $this->rolesNamed($role),
         );

@@ -16,7 +16,7 @@ it is deployed is not part of this repository.
 | Exactly one API instance, reachable only through the reverse proxy | Must | Sign-in limits count per instance (§ Configuration); `TRUSTED_PROXIES` |
 | Migrations run as a one-off command before new code serves requests, never on start (§ Migrations) | Must | `app:migrations:migrate` |
 | The Messenger worker, `php bin/console messenger:consume async`, with the API's code and environment, restarted when it stops | Should | No message is routed to `async` yet; the first one makes it a Must |
-| The scheduled commands (§ Scheduled commands), each with an alert on a non-zero exit | Must | Sessions, purges and erasures |
+| The scheduled commands (§ Scheduled commands), each with an alert on a non-zero exit | Must | Sessions and erasures |
 | Secrets passed as environment variables from a secret store, never in the repository or a build | Must | `APP_SECRET`, `DATABASE_URL`, `MAILER_DSN` (#41) |
 | Logs kept 14 days (to be confirmed by the data protection adviser) | Must | D6, #112 |
 | An uptime check on `GET /api/health/ready` from outside, with alerts; `GET /api/health` never touches the database | Must | [API contract](api.md#health) |
@@ -42,7 +42,6 @@ it is deployed is not part of this repository.
 | Command | When | Needed by |
 | --- | --- | --- |
 | `php bin/console app:sessions:generate --no-interaction` | Every hour at minute 5, and once after each release; see [Session generator](#session-generator) | #53 |
-| `php bin/console app:user:purge-unconfirmed --no-interaction` | Daily (e.g. `30 3 * * *`); it prints only a count | #84 |
 | `php bin/console app:privacy:erase-due --no-interaction` | Daily (e.g. `45 3 * * *`); see [Scheduled erasures](#scheduled-erasures) | #315 |
 
 ### Session generator
@@ -68,8 +67,7 @@ Europe/Berlin) and exits. It runs every hour at minute 5 and once after each rel
 An erasure request made in the app waits 14 days (`erasesOn`), so the person can withdraw it. `bin/console
 app:privacy:erase-due` erases every request whose `erasesOn` is church-today or earlier and that is still open: the
 account and, when it is linked to its own member record, that record too, as `POST /api/data-requests/{id}/erase`
-with `clearNotes: true` does, and closes the request with the counts. It runs once a day next to
-`app:user:purge-unconfirmed`:
+with `clearNotes: true` does, and closes the request with the counts. It runs once a day:
 
 ```cron
 45 3 * * * php bin/console app:privacy:erase-due --no-interaction
@@ -116,22 +114,6 @@ php bin/console app:members:import members.csv           # imports in one transa
 - **Personal data:** names appear only in the command's output, never in logs. Copy the file to the server over
   SSH (`scp`/`sftp`) only, never by email or a shared folder, into a directory readable only by the operator;
   a successful import deletes it, and after a failed one delete it yourself once the import is done.
-
-## Confirming an email address by hand
-
-A registration reaches Settings › Account requests only after its email address is confirmed; until then signing
-in answers `auth.unconfirmed`. When the confirmation email doesn't arrive (a spam filter, a full mailbox), an
-operator who has checked that the address belongs to the person confirms it:
-
-```sh
-php bin/console app:user:confirm-email person@example.org
-```
-
-- It does what the link does: the confirmation time is now and the account's unused confirmation links stop
-  working. It sends no email. The registration then waits for approval like any other.
-- An address that is already confirmed, or an approved account (approved accounts are never asked to confirm),
-  prints that nothing changed and exits 0. An unknown address prints an error and exits 1.
-- `app:user:purge-unconfirmed` no longer deletes the registration once it is confirmed.
 
 ## Configuration
 

@@ -6,40 +6,29 @@ namespace App\Tests\Functional\Context\Identity\Infrastructure\Security;
 
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
-use App\Tests\Support\Interface\Api\Identity\EmailedLinks;
-use App\Tests\Support\Interface\Api\Identity\Registrations;
 
 final class AccountStatusListenerTest extends ApiTestCase
 {
     private const string EMAIL = 'mariam.hanna@example.org';
 
-    public function testARegistrationAsksForItsEmailAddressBeforeItWaitsForApproval(): void
+    public function testAnAccountTheOfficeCreatedSignsInAtOnce(): void
     {
-        $this->jsonRequest('POST', '/api/auth/register', Registrations::parent());
-        $token = new EmailedLinks(self::getContainer())->lastToken();
-
-        $this->signIn();
-        $this->assertProblem(403, 'auth.unconfirmed');
-        $this->issueToken();
-        $this->assertProblem(403, 'auth.unconfirmed');
-
-        $this->jsonRequest('POST', '/api/auth/email-confirmations', ['token' => $token]);
-        self::assertResponseStatusCodeSame(204);
-
-        $this->signIn();
-        $this->assertProblem(403, 'auth.pending');
-        $this->issueToken();
-        $this->assertProblem(403, 'auth.pending');
-    }
-
-    public function testAnApprovedAccountWithoutAConfirmedAddressSignsIn(): void
-    {
-        new SignInAccounts(self::getContainer())->add(self::EMAIL, ['email_confirmed_at' => null]);
+        new SignInAccounts(self::getContainer())->add(self::EMAIL);
 
         $this->signIn();
         self::assertResponseStatusCodeSame(204);
         $this->issueToken();
         self::assertResponseStatusCodeSame(201);
+    }
+
+    public function testADisabledAccountIsRefusedWithItsReason(): void
+    {
+        new SignInAccounts(self::getContainer())->add(self::EMAIL, ['disabled_at' => '2026-11-08 12:00:00+01']);
+
+        $this->signIn();
+        $this->assertProblem(403, 'auth.disabled');
+        $this->issueToken();
+        $this->assertProblem(403, 'auth.disabled');
     }
 
     private function signIn(): void

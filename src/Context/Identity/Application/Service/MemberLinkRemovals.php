@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Entity\User;
-use App\Context\Identity\Domain\Enum\RegisteredAs;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\MemberLink;
 use App\Library\Problem\Exception\NotFound;
@@ -40,13 +39,5 @@ final readonly class MemberLinkRemovals
         }
 
         $account->changeMember(MemberLink::none());
-
-        if ($account->roles()->isEmpty()) {
-            $account->changeApproval(
-                by: null,
-                status: $account->status()->reopened(),
-                registration: $account->registration()->reopenedAs(RegisteredAs::Member),
-            );
-        }
     }
 }

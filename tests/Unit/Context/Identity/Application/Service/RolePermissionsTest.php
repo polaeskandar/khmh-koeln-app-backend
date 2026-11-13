@@ -8,9 +8,9 @@ use App\Context\Identity\Application\Service\RolePermissions;
 use App\Context\Identity\Domain\Entity\Permission;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Identity\Domain\ValueObject\AccountStatus;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Domain\Entity\Roles;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 final class RolePermissionsTest extends TestCase
@@ -25,7 +25,7 @@ final class RolePermissionsTest extends TestCase
 
     public function testAnAccountHasWhatAnyOfItsRolesAllows(): void
     {
-        $user = Accounts::approved('sara@example.org');
+        $user = Accounts::active('sara@example.org');
         $user->assign(Roles::named('Servant', new Permission(Action::Create, Resource::Attendance)));
         $user->assign(Roles::named('Parent', new Permission(Action::Read, Resource::ParentPortal)));
 
@@ -36,18 +36,18 @@ final class RolePermissionsTest extends TestCase
 
     public function testOnlyAnActiveAccountHasWhatItsRolesAllow(): void
     {
-        $user = Accounts::approved('sara@example.org');
+        $user = Accounts::active('sara@example.org');
         $user->assign(Roles::named('Servant', new Permission(Action::Create, Resource::Attendance)));
 
         self::assertTrue(RolePermissions::isGrantedToActiveAccount($user, Action::Create, Resource::Attendance));
 
-        $user->changeStatus(AccountStatus::pending());
+        $user->changeStatus($user->status()->disabledAt(new DateTimeImmutable('2026-11-08T12:00:00+01:00')));
         self::assertFalse(RolePermissions::isGrantedToActiveAccount($user, Action::Create, Resource::Attendance));
     }
 
     public function testAnAccountHasWithoutARoleOnlyWhatItsOtherRolesAllow(): void
     {
-        $user = Accounts::approved('sara@example.org');
+        $user = Accounts::active('sara@example.org');
         $administrator = Roles::named('Administrator', new Permission(Action::Update, Resource::Roles));
         $user->assign($administrator);
         $user->assign(Roles::named('Servant', new Permission(Action::Create, Resource::Attendance)));

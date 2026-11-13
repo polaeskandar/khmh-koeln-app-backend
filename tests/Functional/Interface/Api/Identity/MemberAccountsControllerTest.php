@@ -49,10 +49,10 @@ final class MemberAccountsControllerTest extends ApiTestCase
         $this->assertProblem(403, 'accounts.adminOnly');
     }
 
-    public function testUnlinkingAMemberOnlyAccountMakesItARequestAgain(): void
+    public function testUnlinkingAMemberOnlyAccountLeavesItWithoutTheMemberPortal(): void
     {
         self::mockTime('2026-11-08T12:08:00+01:00');
-        $accounts = $this->members();
+        $this->members();
         $this->signInAs('nevine.boulos@example.org', SignInAccounts::TYPED);
         $nevineSession = $this->browser()->getCookieJar()->all();
         $this->browser()->getCookieJar()->clear();
@@ -65,30 +65,10 @@ final class MemberAccountsControllerTest extends ApiTestCase
         $this->assertProblem(409, 'accounts.notLinked');
         $this->jsonRequest('POST', '/api/member-accounts/' . Uuid::v7()->toRfc4122() . '/unlink', []);
         $this->assertProblem(404, 'notFound.user');
-        $this->jsonRequest('GET', '/api/account-requests');
-        $this->assertJsonPath('items.0.account.email', 'nevine.boulos@example.org');
-        $this->assertJsonPath('items.0.registeredAs', 'member');
 
-        $mariamSession = $this->browser()->getCookieJar()->all();
         $this->restore($nevineSession);
-        $this->jsonRequest('GET', '/api/me');
-        $this->assertProblem(401, 'auth.unauthenticated');
-
-        $this->jsonRequest('POST', '/api/auth/sign-in', [
-            'email' => 'nevine.boulos@example.org',
-            'password' => SignInAccounts::TYPED,
-        ]);
-
-        $this->assertProblem(403, 'auth.pending');
-
-        $this->restore($mariamSession);
-
-        $this->jsonRequest('POST', '/api/account-requests/' . $nevineAccount . '/approve', [
-            'as' => 'member',
-            'member' => ['personId' => $accounts['nevine'], 'ageCheck' => 'sixteenOrOlder'],
-        ]);
-
-        self::assertResponseIsSuccessful();
+        $this->jsonRequest('GET', '/api/member/groups');
+        $this->assertProblem(403, 'forbidden');
     }
 
     public function testUnlinkingAParentKeepsTheParentPortal(): void

@@ -12,8 +12,6 @@ use App\Context\Identity\Domain\ValueObject\Email;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Types\Model\ListOf;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Criteria;
-use Doctrine\Common\Collections\Order;
 use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -45,18 +43,6 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
     {
         $this->entityManager->remove($user);
         $this->entityManager->flush();
-    }
-
-    #[Override]
-    public function listPending(int $limit): ReadableCollection
-    {
-        $confirmed = Criteria::create()
-            ->where(Criteria::expr()->isNull('status.approvedAt'))
-            ->andWhere(Criteria::expr()->neq('status.emailConfirmedAt', null))
-            ->orderBy(['createdAt' => Order::Ascending, 'id' => Order::Ascending])
-            ->setMaxResults($limit);
-
-        return new ArrayCollection($this->entityManager->getRepository(User::class)->matching($confirmed)->getValues());
     }
 
     #[Override]
@@ -93,8 +79,7 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
             SELECT DISTINCT u FROM App\Context\Identity\Domain\Entity\User u
             JOIN u.roles r
             JOIN r.permissions p
-            WHERE u.status.approvedAt IS NOT NULL
-              AND u.status.disabledAt IS NULL
+            WHERE u.status.disabledAt IS NULL
               AND p.action = :action
               AND p.resource = :resource
             DQL)->setParameters(['action' => $action, 'resource' => $resource]);
@@ -122,7 +107,6 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
             ->innerJoin('ur', 'identity.role_permission', 'rp', 'rp.role_id = ur.role_id')
             ->innerJoin('rp', 'identity.permission', 'p', 'p.id = rp.permission_id')
             ->where('u.id <> :except')
-            ->andWhere('u.approved_at IS NOT NULL')
             ->andWhere('u.disabled_at IS NULL')
             ->andWhere('u.erases_on IS NULL')
             ->andWhere('p.action = :action')

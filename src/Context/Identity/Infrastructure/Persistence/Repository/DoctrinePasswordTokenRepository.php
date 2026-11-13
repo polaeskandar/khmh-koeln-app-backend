@@ -86,7 +86,7 @@ final readonly class DoctrinePasswordTokenRepository implements PasswordTokenRep
                     UPDATE identity.password_token t SET used_at = :at
                     FROM identity.app_user u
                     WHERE t.token_hash = :hash AND t.used_at IS NULL AND t.expires_at > :at
-                      AND u.id = t.user_id AND u.approved_at IS NOT NULL AND u.disabled_at IS NULL
+                      AND u.id = t.user_id AND u.disabled_at IS NULL
                     RETURNING t.user_id
                     SQL, ['hash' => $tokenHash, 'at' => $at], ['at' => Types::DATETIMETZ_IMMUTABLE])
                 ->fetchOne(),

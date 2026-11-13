@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Domain\ValueObject;
 
-use App\Library\Problem\Exception\RuleViolation;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -13,34 +12,16 @@ use Doctrine\ORM\Mapping as ORM;
 final readonly class AccountStatus
 {
     private function __construct(
-        #[ORM\Column(name: 'approved_at', type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-        public ?DateTimeImmutable $approvedAt,
         #[ORM\Column(name: 'disabled_at', type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
         public ?DateTimeImmutable $disabledAt,
         #[ORM\Column(name: 'auth_version', options: ['default' => 0])]
         public int $authVersion = 0,
-        #[ORM\Column(name: 'email_confirmed_at', type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-        public ?DateTimeImmutable $emailConfirmedAt = null,
     ) {
     }
 
-    public static function pending(): self
+    public static function active(): self
     {
-        return new self(approvedAt: null, disabledAt: null);
-    }
-
-    public function approvedOn(DateTimeImmutable $at): self
-    {
-        if ($this->disabledAt !== null) {
-            throw new RuleViolation('accounts.requestDisabled');
-        }
-
-        return new self($at, $this->disabledAt, $this->authVersion, $this->emailConfirmedAt ?? $at);
-    }
-
-    public function emailConfirmedOn(DateTimeImmutable $at): self
-    {
-        return new self($this->approvedAt, $this->disabledAt, $this->authVersion, $this->emailConfirmedAt ?? $at);
+        return new self(disabledAt: null);
     }
 
     public function disabledAt(DateTimeImmutable $at): self
@@ -49,41 +30,16 @@ final readonly class AccountStatus
             return $this;
         }
 
-        return new self($this->approvedAt, $at, $this->authVersion + 1, $this->emailConfirmedAt);
-    }
-
-    public function reopened(): self
-    {
-        return new self(
-            approvedAt: null,
-            disabledAt: $this->disabledAt,
-            authVersion: $this->authVersion + 1,
-            emailConfirmedAt: $this->emailConfirmedAt,
-        );
+        return new self($at, $this->authVersion + 1);
     }
 
     public function enabled(): self
     {
-        return new self(
-            $this->approvedAt,
-            disabledAt: null,
-            authVersion: $this->authVersion,
-            emailConfirmedAt: $this->emailConfirmedAt,
-        );
+        return new self(disabledAt: null, authVersion: $this->authVersion);
     }
 
     public function isActive(): bool
     {
-        return !$this->isPending() && $this->disabledAt === null;
-    }
-
-    public function isPending(): bool
-    {
-        return $this->approvedAt === null;
-    }
-
-    public function isAwaitingEmailConfirmation(): bool
-    {
-        return $this->isPending() && $this->emailConfirmedAt === null;
+        return $this->disabledAt === null;
     }
 }

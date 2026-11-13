@@ -85,7 +85,6 @@ final class GuardianLinksControllerTest extends ApiTestCase
     public function testInactiveAndUnknownPartiesAreRefused(): void
     {
         $accounts = new SignInAccounts(self::getContainer());
-        $pending = $accounts->add('pending@example.org', ['approved_at' => null]);
         $disabled = $accounts->add('disabled@example.org', ['disabled_at' => '2026-11-01 10:00:00+01']);
         $hoda = $accounts->add('hoda@example.org');
         [$kiro] = $this->children();
@@ -97,7 +96,7 @@ final class GuardianLinksControllerTest extends ApiTestCase
 
         $this->signInWithRoles('admin@example.org', 'administrator');
 
-        foreach ([$pending, $disabled] as $account) {
+        foreach ([$disabled] as $account) {
             $this->jsonRequest('POST', self::PATH, ['userId' => $account, 'personId' => $kiro]);
             $this->assertProblem(409, 'guardians.accountInactive');
         }

@@ -17,7 +17,6 @@ final readonly class AccountRecord
         public AccountMoments $moments,
         public PrivacyAcceptance $privacy,
         public array $roles,
-        public ?RegistrationView $registration,
     ) {
     }
 
@@ -31,7 +30,6 @@ final readonly class AccountRecord
                 ->roles()
                 ->map(static fn (Role $role): string => $role->name()->value)
                 ->getValues(),
-            registration: RegistrationView::pendingOf($user),
         );
     }
 }

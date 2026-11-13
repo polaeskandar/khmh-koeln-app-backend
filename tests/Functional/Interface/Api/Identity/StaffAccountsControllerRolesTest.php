@@ -42,19 +42,17 @@ final class StaffAccountsControllerRolesTest extends ApiTestCase
     {
         $servant = new SignInAccounts(self::getContainer())->add('bishoy@example.org');
         new RoleGrants(self::getContainer())->grant($servant, 'servant');
-        $pending = new SignInAccounts(self::getContainer())->add('mina@example.org', ['approved_at' => null]);
+        $roleless = new SignInAccounts(self::getContainer())->add('mina@example.org');
         $this->signInWithRoles('admin@example.org', 'administrator');
         $before = $this->roleCount();
 
         $this->give($servant, self::SERVANT_ROLE);
         $this->assertProblem(409, 'roles.alreadyHasRole', ['name' => 'Sara Hanna']);
-        $this->give($pending, self::SERVANT_ROLE);
-        $this->assertProblem(409, 'roles.accountPending');
         $this->give($servant, Uuid::v7()->toRfc4122());
         $this->assertFieldError('roleId', 'roles.unknown');
         $this->give(Uuid::v7()->toRfc4122(), self::SERVANT_ROLE);
         $this->assertProblem(404, 'notFound.user');
-        $this->take($pending, self::SERVANT_ROLE);
+        $this->take($roleless, self::SERVANT_ROLE);
         $this->assertProblem(409, 'roles.notHeld', ['name' => 'Sara Hanna']);
         $this->take($servant, Uuid::v7()->toRfc4122());
         $this->assertProblem(404, 'notFound.role');

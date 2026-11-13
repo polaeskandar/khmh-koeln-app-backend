@@ -204,28 +204,22 @@ command that runs the workflow, with its lock, is #53.
 
 | Table | Purpose | Key rules |
 | --- | --- | --- |
-| `app_user` | A sign-in account: email, display name, password hash, language (`en`, `de`, `ar`), optional link to the person's own member record (`person_id`), optional `birth_date` and postal address (`street`, `postal_code`, `city`, all three or none; visible to the person and administrators). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. `approved_at`/`approved_by` stay null until an administrator approves the account; until then it can't sign in. While waiting it keeps what the person wrote when registering (`registered_as` parent, servant or member, `registration_note`, and for servants the services they serve in, `organization.registration_service`); these are cleared once an administrator decides. Declining deletes the row. Disabled accounts (`disabled_at`) can't sign in and keep their history. `erases_on` is set while an erasure the account asked for in the app waits: it can't sign in (`auth.erasureScheduled`), its sessions ended when it was set, and it doesn't count as another administrator for `roles.lastAdministrator`. |
+| `app_user` | A sign-in account: email, display name, password hash, language (`en`, `de`, `ar`), optional link to the person's own member record (`person_id`), optional `birth_date` and postal address (`street`, `postal_code`, `city`, all three or none; visible to the person and administrators). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. The church office creates every account, and it can sign in at once. Disabled accounts (`disabled_at`) can't sign in and keep their history. `erases_on` is set while an erasure the account asked for in the app waits: it can't sign in (`auth.erasureScheduled`), its sessions ended when it was set, and it doesn't count as another administrator for `roles.lastAdministrator`. |
 | `role` | A named set of permissions with a `scope`: `church` (the permissions hold everywhere) or `assignedGroups` (they hold in the holder's assigned groups). Administrators create, rename and delete roles and choose their permissions and scope; the defaults are Administrator, Service leader, Servant and Parent. | Name unique, ignoring case and extra spaces. `scope` defaults to `church` (CHECK); Service leader and Servant are seeded with `assignedGroups`. |
 | `organization.staff_assignment` | A group an account serves in: `account_id`, `service_id`, `stage_id` (null for the service's own roster and all its stages), `created_at`. | Once per account and group (partial UNIQUE `(account_id, service_id) WHERE stage_id IS NULL` and `(account_id, stage_id) WHERE stage_id IS NOT NULL`). No stage row for a service the account holds as a whole: the API refuses one and deletes the stage rows when the whole service is assigned, without a constraint; migration `Version20261111201730` deleted those that existed before. `service_id` and `stage_id` reference `service` and `stage` with `ON DELETE CASCADE`; `account_id` is a plain id of an Identity account, deleted with it. |
 | `permission` | One action (`create`, `read`, `update`, `delete`) on one resource (`users`, `roles`, `services`, `stages`, `sessions`, `attendance`, `members`, `lessons`, `homework`, `parentPortal`). | One row per action and resource; seeded. |
 
 `app_user` lives in the `identity` schema. The email is stored trimmed and in lower case (CHECK `email =
 lower(btrim(email))`, UNIQUE), so lookups normalize the typed address the same way. CHECKs keep `language` to
-`en`, `de`, `ar` and `registered_as` to `parent`, `servant`, `member`; the
-registration fields are empty once `approved_at` is set; `person_id` is a plain id of a People person (no
+`en`, `de`, `ar`; `person_id` is a plain id of a People person (no
 foreign key across schemas), partial UNIQUE `(person_id) WHERE person_id IS NOT NULL`; `age_check`
 (`sixteenOrOlder`, `guardianConsent`) and `guardian_consent_note` (≤200) are set only with `person_id`, and the
 note only with `guardianConsent`; operators set and remove the link with `app:member:link` and `app:member:unlink`.
 `LinkMemberWorkflow` checks the person in People (exists, active, no other account) while it holds a share lock
 on the person's row, so an erasure, which locks the row for update and clears the link, can't remove the person in
 between. The address is all three parts or none (street ≤120,
-postal code ≤10, city ≤80, cleaned, blank → null). A servant who registers names every service they serve in. Those rows live with
-the services: `organization.registration_service (account_id, service_id)`, primary key over both, `service_id`
-references `service` with `ON DELETE CASCADE`, `account_id` is a plain id of an Identity account. The registration
-workflow writes them only for a pending servant, and the workflows that approve, decline or erase an account
-delete them. A birth date is never after today: the application checks it against the
-church calendar, because a CHECK can't read the date. `approved_by` references `app_user` with `ON DELETE SET
-NULL`. Operators create approved accounts with `bin/console app:user:create <email> <name>`, typing the
+postal code ≤10, city ≤80, cleaned, blank → null). A birth date is never after today: the application checks it
+against the church calendar, because a CHECK can't read the date. Operators create accounts with `bin/console app:user:create <email> <name>`, typing the
 password twice, piping it with `--password-stdin` or leaving it for a password link with `--no-password`.
 
 Roles are dynamic (RBAC), in the `identity` schema: a user has roles (`user_role`), a role has permissions
@@ -240,10 +234,9 @@ parent portal), Service leader, Servant and Parent (`parentPortal:read`) are see
 are ordinary roles. `app:user:create --role=<name>` writes the account with that role in one transaction.
 `app:user:role:add <email> <role>` and `app:user:role:remove <email> <role>` give and take a role by its name
 (any case); both go through `RoleAssignments`, the one home of the rules: a role is held once
-(`roles.alreadyHasRole`), only a held role can be taken (`roles.notHeld`), a pending account gets roles when it
-is approved (`roles.accountPending`), and the last active account that can manage roles (`roles: update`)
-keeps that permission (`roles.lastAdministrator`, through `LastAdministrator`; pending and disabled accounts
-don't count). Taking a role and disabling an account hold the administration lock (`AdministrationLockInterface`,
+(`roles.alreadyHasRole`), only a held role can be taken (`roles.notHeld`), and the last active account that can
+manage roles (`roles: update`) keeps that permission (`roles.lastAdministrator`, through `LastAdministrator`;
+disabled accounts don't count). Taking a role and disabling an account hold the administration lock (`AdministrationLockInterface`,
 a PostgreSQL advisory lock through Symfony Lock on the Doctrine connection) from reading the account until it
 is saved, so two changes that run at the same time can't both see the other administrator and leave none.
 
@@ -256,17 +249,17 @@ after enabling.
 
 Sign-in sessions live in `public.sessions` (Symfony's `PdoSessionHandler` table, created by an Identity
 migration from `app:migrations:generate identity` and outside every context's schema, so no context's diff touches it). A session holds
-only the account id and two crc32c fingerprints: one of the password hash, one of the approval and disabled
-times, `auth_version` and, while one is scheduled, `erases_on`. It ends when either changes, so scheduling an
+only the account id and two crc32c fingerprints: one of the password hash, one of the disabled time,
+`auth_version` and, while one is scheduled, `erases_on`. It ends when either changes, so scheduling an
 erasure ends every session at once. Because the session stores fingerprints and no objects,
 a session saved before a change to the account's shape restores with empty fingerprints and ends cleanly.
 
 The backend checks every request against these roles. The frontend only uses them to hide actions a person
 can't take.
 
-Account states: registered (waiting) → approved → disabled. Approving a parent creates approved
-`guardian_relationship` rows for the children the administrator chose; approving a servant gives them their
-roles and the groups they serve in (`staff_assignment`), and deletes the services they named. A parent account without any approved child sees an empty portal.
+Account states: active ⇄ disabled. The office links a parent to the children it has checked (approved
+`guardian_relationship` rows) and gives a servant their roles and the groups they serve in (`staff_assignment`).
+A parent account without any approved child sees an empty portal.
 
 ## Lessons, homework and parent access
 
@@ -371,8 +364,8 @@ fixed order) for `kind: member` or `kind: account`:
 - **member:** `member` (names, status, `recordedSince`), `memberships` (service, stage, from, until),
   `attendance` (meeting, date, `markedPresentAt`, `removedAt`, `removalNote`), `homeworkReports`
   (homework, `completedAt`, `undoneAt`) and `parentAccounts` (name and link status only).
-- **account:** `account` (email, name, language, `createdAt`, `approvedAt`, `disabledAt`,
-  `privacyNoticeAccepted {at, version}`, role names, the registration while pending, `memberAgeCheck {result,
+- **account:** `account` (email, name, language, `createdAt`, `disabledAt`,
+  `privacyNoticeAccepted {at, version}`, role names, `memberAgeCheck {result,
   parentAgreed}` or `null`), `children` (name and link status), the `homeworkReports` it made and `memberRecord`:
   for an account linked to its own member record that record's member copy (a member's account and an account's
   member record belong to the same request), else `null`.

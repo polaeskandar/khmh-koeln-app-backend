@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace App\Interface\Api\Identity\Response;
 
 use App\Context\Identity\Domain\Enum\AgeCheck;
-use App\Workflow\Identity\Model\AccountReference;
 use App\Workflow\Identity\Model\MemberAccountItem;
-use DateTimeImmutable;
 use JsonSerializable;
 use Override;
 
@@ -33,8 +31,6 @@ final readonly class MemberAccountItemResponse implements JsonSerializable
      *     member: array{id: string, name: string|null, inactive: bool, groups: list<string>},
      *     ageCheck: AgeCheck|null,
      *     guardianConsentNote: string|null,
-     *     approvedAt: DateTimeImmutable|null,
-     *     approvedBy: AccountReference|null,
      * }
      */
     #[Override]
@@ -58,8 +54,6 @@ final readonly class MemberAccountItemResponse implements JsonSerializable
             ],
             'ageCheck' => $item->age->ageCheck,
             'guardianConsentNote' => $item->age->guardianConsentNote,
-            'approvedAt' => $item->approval->approvedAt,
-            'approvedBy' => $item->approval->approvedBy,
         ];
     }
 }
