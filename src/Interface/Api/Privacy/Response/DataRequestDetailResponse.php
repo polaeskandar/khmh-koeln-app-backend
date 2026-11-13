@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Privacy\Response;
 
-use App\Workflow\Privacy\Model\CopyLinkStatus;
 use App\Workflow\Privacy\Model\DataRequestDetail;
 use App\Workflow\Privacy\Model\RequestAccount;
 
@@ -15,7 +14,6 @@ final readonly class DataRequestDetailResponse
         public DataRequestRowResponse $request,
         public ?RequestMemberResponse $member,
         public ?RequestAccount $account,
-        public ?CopyLinkStatus $copyLink,
     ) {
     }
 
@@ -26,7 +24,6 @@ final readonly class DataRequestDetailResponse
             new DataRequestRowResponse($detail->request),
             RequestMemberResponse::of($detail->member),
             $detail->account,
-            $detail->copyLink,
         );
     }
 }

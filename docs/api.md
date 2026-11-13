@@ -556,8 +556,6 @@ A body with the wrong JSON type for a member gives `validation.invalidType` on t
 endpoint does not accept gives `validation.unexpectedField` on its name. Query parameters use the same
 shape, keyed by parameter name (`to`: `validation.invalidRange`).
 
-A 422 without fields uses its own code, such as `privacy.copyLinkInvalid`.
-
 A body's shape is checked before the caller's rights: a malformed body gets 422 even from a caller who may not use
 the endpoint, and a well-formed one gets the endpoint's 403.
 
@@ -579,8 +577,7 @@ the endpoint, and a well-formed one gets the endpoint's 403.
 | 409 | `conflict` | Fallback: a concurrent change hit a database constraint or a newer version of the row |
 | 415 | `invalidRequest` | Unsafe method without a JSON body |
 | 422 | `checkFields` | Field errors in `fieldErrors` (`validation.invalidType`, `validation.unexpectedField` and the field codes) |
-| 422 | specific codes | Without fields, e.g. `privacy.copyLinkInvalid` |
-| 429 | `auth.tooManyAttempts` | Sign-in, password changes, erasure cancellation, data copies; with `Retry-After` in seconds |
+| 429 | `auth.tooManyAttempts` | Sign-in, password changes and erasure cancellation; with `Retry-After` in seconds |
 | 429 | `tooManyRequests` | Any other limit; with `Retry-After` in seconds |
 | 500 | `internal` | Unexpected error; no message, class or trace |
 | 503 | `unavailable` | The API or its database is down for a moment |
@@ -618,10 +615,6 @@ One example per status:
 
 ```json
 {"status":415,"code":"invalidRequest","params":{}}
-```
-
-```json
-{"status":422,"code":"privacy.copyLinkInvalid","params":{}}
 ```
 
 ```json
@@ -888,9 +881,8 @@ label is its own label, and the 120-character limit applies only to a label that
 | `privacy.subjectGone` | – | **New.** 409: neither the member nor the account still exists. |
 | `privacy.ownAccount` | – | **New.** 409: an administrator can't erase their own account. |
 | `privacy.alreadyRequested` | – | **New.** 409: the account already has an open erasure request from the app. |
-| `privacy.notCopy` | – | **New.** 409: only copy requests get a download link. |
+| `privacy.notCopy` | – | **New.** 409: only copy requests give a copy and are completed by hand. |
 | `privacy.nothingScheduled` | – | **New.** 409: the account has no erasure waiting for its grace period to end. |
-| `privacy.copyLinkInvalid` | – | **New.** 422: the download link is missing, unknown, used, expired or replaced by a newer one. |
 
 ### `homework`
 
@@ -961,7 +953,6 @@ label is its own label, and the 120-character limit applies only to a label that
 | `privacy.notErasure` | – | Only erasure requests delete data. |
 | `privacy.notCopy` | – | This is not a request for a copy. |
 | `privacy.nothingScheduled` | – | Nothing is waiting to be deleted for this account. |
-| `privacy.copyLinkInvalid` | – | This download link is invalid, was already used or has expired. Ask the church office for a new one. |
 | `privacy.subjectGone` | – | The data this request is about no longer exists. |
 | `privacy.ownAccount` | – | You can’t erase your own account. Ask another administrator. |
 | `privacy.declineReasonRequired` | – | Give the reason. The person must be told why, and that they can complain to the data protection authority. |
@@ -2186,11 +2177,11 @@ month (Art. 12(3)).
 
 #### `POST /api/data-requests`
 
-Body `{kind: erasure|copy, subject: {personId?, accountId?}, receipt: {requestedBy, channel: email|letter|in_person,
+Body `{kind: erasure|copy, subject: {personId?, accountId?}, receipt: {requestedBy, channel: letter|in_person,
 receivedOn}, note?}` → 201 `{id}`. Exactly one existing member or account (`subject` `privacy.chooseSubject`);
 `receipt.requestedBy` `privacy.requestedByRequired`, `validation.tooLong {max: 200}`; `receipt.receivedOn`
 `validation.invalidDate`, `privacy.receivedInFuture`; `note` ≤ 2000; another `kind` or `channel` →
-`validation.invalidChoice`. `receivedAt` is now when received today, else 12:00 Europe/Berlin on that day;
+`validation.invalidChoice` (requests recorded earlier keep `email`). `receivedAt` is now when received today, else 12:00 Europe/Berlin on that day;
 `dueOn` is one month later, clamped to the month's end (31 Jan → 28 Feb).
 
 #### `GET /api/data-requests`
@@ -2201,14 +2192,12 @@ erasesOn, note, closedAt, closedBy: AccountRef | null, declineReason, outcome}`;
 or account while it exists, else `null`. `status` is `open`, `done`, `declined` or `withdrawn` (an erasure the account
 cancelled in its grace period). `erasesOn` is the date an erasure request made in the app is erased automatically,
 else `null`; it stays on the row after the request closes. `closedBy` is `null` when nobody from the office closed
-the request: a scheduled erasure, a withdrawal or a downloaded copy.
+the request: a scheduled erasure or a withdrawal (or, before November 2026, a copy downloaded with its link).
 
 #### `GET /api/data-requests/{id}`
 
 `{today, request, member: {id, firstName, lastName, displayName, status, memberships} | null, account: {id, name,
-email, roles} | null, copyLink: {expiresAt, emailedTo, usedAt} | null}`; 404 `notFound.request`. `copyLink` is the
-request's latest download link (`POST …/copy-link`): `emailedTo` is the address it was emailed to while that account
-exists, else `null`. The token itself is never shown again.
+email, roles} | null}`; 404 `notFound.request`.
 
 #### `GET /api/data-requests/{id}/erasure`
 
@@ -2239,30 +2228,17 @@ and `app:privacy:erase-account`; any failure changes nothing. Every request abou
 `privacy.notOpen`, `privacy.notErasure`, `privacy.subjectGone`, `privacy.ownAccount`, `roles.lastAdministrator`;
 `clearNotes` missing or not a boolean → 422 `validation.invalidType`; 403 and 404 as above.
 
-#### `POST /api/data-requests/{id}/copy-link`
+#### `GET /api/data-requests/{id}/copy`
 
-Body `{}` → 201 `{url, expiresAt, emailedTo}` for an open copy request. The link is
-`FRONTEND_URL/{language}/data-copy/#token=…` in the account's language, else `de`; it works once and for 7 days, and a
-new link voids the previous one. When the subject is an account, or a member record linked to an account, the link is
-emailed to that account's address (`data_copy` template, in its language) and `emailedTo` is that address; otherwise
-`emailedTo` is `null` and the office hands the link over. The token is stored only as a SHA-256 hash.
+→ 200 `application/json` as the attachment `khmk-data-copy.json`: the subject's export, the same document
+`app:privacy:export` writes (`kind: account` for an account, `kind: member` for a member record). The office checks
+who asked and hands the file over itself (in person, or an encrypted email); the app sends nothing. Downloading
+changes nothing: the request stays open until the office completes it. 409 `privacy.notOpen`, `privacy.notCopy`,
+`privacy.subjectGone`; a malformed or unknown id → 404 `notFound.request`; 403 as above.
 
-```json
-{"url": "https://app.khmk-koeln.com/de/data-copy/#token=kXh2…", "expiresAt": "2026-11-15T10:00:00+01:00", "emailedTo": "hoda@example.org"}
-```
+#### `POST /api/data-requests/{id}/complete`
 
-409 `privacy.notOpen`, `privacy.notCopy`, `privacy.subjectGone`; a malformed or unknown id → 404 `notFound.request`;
-403 as above.
-
-#### `POST /api/data-copies`
-
-Public. Body `{token}` from the `#token=` fragment of the copy link → 200 `application/json` as the attachment
-`khmk-my-data.json`: the subject's export, the same document `app:privacy:export` writes (`kind: account` for an
-account, `kind: member` for a member record). The link is spent and the request closes as `done` (`closedBy` and
-`outcome` `null`) in the same transaction, so a copy is delivered once.
-
-| Case | Answer |
-| --- | --- |
-| Token missing, unknown, used, expired or replaced by a newer link, or the request is closed or its subject erased | 422 `privacy.copyLinkInvalid`, the same body for each |
-| An 11th request from one IP within an hour | 429 `auth.tooManyAttempts` with `Retry-After` |
+Body `{}` → 200 with the request's row (`status: done`, `closedBy` the viewer, `outcome: null`): the office has
+handed the copy over. The request is locked while it closes. 409 `privacy.notOpen`, `privacy.notCopy` (an erasure
+request closes when it is erased), `privacy.subjectGone`; 403 and 404 as above.
 

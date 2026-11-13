@@ -17,7 +17,6 @@ use App\Library\Problem\Model\Ids;
 use App\Library\Time\Client\Calendar;
 use App\Workflow\People\Model\DirectoryEntries;
 use App\Workflow\People\Model\Placements;
-use App\Workflow\Privacy\Model\CopyLinkStatus;
 use App\Workflow\Privacy\Model\DataRequestDetail;
 use App\Workflow\Privacy\Model\DataRequestRows;
 use App\Workflow\Privacy\Model\MembershipRow;
@@ -53,14 +52,12 @@ final readonly class ShowDataRequestWorkflow
 
         $person = $subject->personId === null ? null : $this->people->find($subject->personId);
         $account = $subject->accountId === null ? null : $this->accounts->findAccount($subject->accountId);
-        $copyLink = $this->requests->findCopyLinkOf($request);
 
         return new DataRequestDetail(
             $this->calendar->today()->toString(),
             $rows[0] ?? throw NotFound::of('request'),
             RequestMember::of($person, $person === null ? [] : $this->membershipsOf($person)),
             RequestAccount::of($account),
-            CopyLinkStatus::of($copyLink, $this->accounts->findAccount($copyLink?->recipientId())),
         );
     }
 

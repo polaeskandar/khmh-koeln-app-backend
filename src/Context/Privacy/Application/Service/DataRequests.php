@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Context\Privacy\Application\Service;
 
-use App\Context\Privacy\Domain\Entity\CopyLink;
 use App\Context\Privacy\Domain\Entity\DataRequest;
 use App\Context\Privacy\Domain\Enum\RequestChannel;
 use App\Context\Privacy\Domain\Enum\RequestKind;
-use App\Context\Privacy\Domain\Repository\CopyLinkRepositoryInterface;
 use App\Context\Privacy\Domain\Repository\DataRequestRepositoryInterface;
 use App\Context\Privacy\Domain\ValueObject\Deadlines;
 use App\Context\Privacy\Domain\ValueObject\Receipt;
@@ -28,7 +26,6 @@ final readonly class DataRequests
 
     public function __construct(
         private DataRequestRepositoryInterface $requests,
-        private CopyLinkRepositoryInterface $copyLinks,
         private Calendar $calendar,
     ) {
     }
@@ -61,11 +58,6 @@ final readonly class DataRequests
     public function get(Uuid $id): DataRequest
     {
         return $this->requests->find($id) ?? throw NotFound::of('request');
-    }
-
-    public function findCopyLinkOf(DataRequest $request): ?CopyLink
-    {
-        return $this->copyLinks->latestOf($request->id());
     }
 
     private function receivedOn(ReceiptDraft $receipt): LocalDate

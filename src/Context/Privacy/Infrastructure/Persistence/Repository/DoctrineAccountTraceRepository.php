@@ -35,9 +35,8 @@ final readonly class DoctrineAccountTraceRepository implements AccountTraceRepos
     {
         $connection = $this->entityManager->getConnection();
         $id = $accountId->toRfc4122();
-        $emailed = (int) $connection->update('privacy.copy_link', ['recipient_id' => null], ['recipient_id' => $id]);
         $closed = (int) $connection->update('privacy.data_request', ['closed_by' => null], ['closed_by' => $id]);
 
-        return $emailed + $closed + (int) $connection->executeStatement(self::FORGET_SUBJECT, [$id]);
+        return $closed + (int) $connection->executeStatement(self::FORGET_SUBJECT, [$id]);
     }
 }

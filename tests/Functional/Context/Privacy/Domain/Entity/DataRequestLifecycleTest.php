@@ -10,7 +10,6 @@ use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
-use App\Tests\Support\Interface\Api\Privacy\CopyLinks;
 use App\Tests\Support\Interface\Api\Privacy\ErasureFixture;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
@@ -112,60 +111,73 @@ final class DataRequestLifecycleTest extends ApiTestCase
         ];
 
         yield 'done copy, erase' => [[RequestKind::Copy, self::DONE], 'erase', 409, 'privacy.notOpen', self::doneRow()];
-        yield 'open copy, copy link' => [[RequestKind::Copy, self::OPEN], 'copy-link', 201, null, self::openRow()];
+        yield 'open copy, complete' => [
+            [RequestKind::Copy, self::OPEN],
+            'complete',
+            200,
+            'done',
+            [
+                ...self::openRow(),
+                'status' => 'done',
+                'closed_at' => self::NOW,
+                'closed_by' => self::VIEWER,
+            ],
+        ];
 
-        yield 'done copy, copy link' => [
+        yield 'done copy, complete' => [
             [RequestKind::Copy, self::DONE],
-            'copy-link',
+            'complete',
             409,
             'privacy.notOpen',
             self::doneRow(),
         ];
 
-        yield 'withdrawn copy, copy link' => [
+        yield 'withdrawn copy, complete' => [
             [RequestKind::Copy, self::WITHDRAWN],
-            'copy-link',
+            'complete',
             409,
             'privacy.notOpen',
             self::withdrawnRow(),
         ];
 
-        yield 'declined copy, copy link' => [
+        yield 'declined copy, complete' => [
             [RequestKind::Copy, self::DECLINED],
-            'copy-link',
+            'complete',
             409,
             'privacy.notOpen',
             self::declinedRow(),
         ];
 
-        yield 'open erasure, copy link' => [
+        yield 'open erasure, complete' => [
             [RequestKind::Erasure, self::OPEN],
-            'copy-link',
+            'complete',
             409,
             'privacy.notCopy',
             self::openRow(),
         ];
     }
 
-    public function testUsingTheCopyLinkCompletesTheRequestOnce(): void
+    public function testACopyRequestIsCompletedOnceAndItsCopyIsThenNoLongerOffered(): void
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         $id = $this->request(RequestKind::Copy, self::OPEN);
         $viewer = $this->signInWithRoles('admin@example.org', 'administrator');
-        $this->jsonRequest('POST', '/api/data-requests/' . $id . '/copy-link');
-        $token = CopyLinks::tokenOf(Type::of($this->responseJson()['url'] ?? null)->toString());
 
-        $this->jsonRequest('POST', '/api/data-copies', ['token' => $token]);
+        $this->jsonRequest('GET', '/api/data-requests/' . $id . '/copy');
+        self::assertResponseIsSuccessful();
+        self::assertSame(self::openRow(), $this->stored($id, $viewer));
+
+        $this->jsonRequest('POST', '/api/data-requests/' . $id . '/complete', []);
         self::assertResponseIsSuccessful();
 
         self::assertSame(
-            [...self::openRow(), 'status' => 'done', 'closed_at' => self::NOW],
+            [...self::openRow(), 'status' => 'done', 'closed_at' => self::NOW, 'closed_by' => self::VIEWER],
             $this->stored($id, $viewer),
         );
 
-        $this->jsonRequest('POST', '/api/data-copies', ['token' => $token]);
-        $this->assertProblem(422, 'privacy.copyLinkInvalid');
-        $this->jsonRequest('POST', '/api/data-requests/' . $id . '/copy-link');
+        $this->jsonRequest('POST', '/api/data-requests/' . $id . '/complete', []);
+        $this->assertProblem(409, 'privacy.notOpen');
+        $this->jsonRequest('GET', '/api/data-requests/' . $id . '/copy');
         $this->assertProblem(409, 'privacy.notOpen');
     }
 
