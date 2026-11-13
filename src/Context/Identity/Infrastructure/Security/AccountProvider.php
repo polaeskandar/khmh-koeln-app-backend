@@ -33,7 +33,7 @@ final readonly class AccountProvider implements UserProviderInterface
     #[Override]
     public function loadUserByIdentifier(string $identifier): SecurityUser
     {
-        $user = $this->users->findByEmail($identifier);
+        $user = $this->users->findByUsername($identifier);
 
         if ($user === null) {
             $this->spendAPasswordCheck();

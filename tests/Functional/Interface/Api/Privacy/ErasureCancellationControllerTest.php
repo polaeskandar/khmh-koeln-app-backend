@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Interface\Api\Privacy;
 
 use App\Library\Types\Model\Integers;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Database;
 use SensitiveParameter;
@@ -23,7 +24,12 @@ final class ErasureCancellationControllerTest extends ApiTestCase
 
         $this->signIn(SignInAccounts::TYPED);
         $this->assertProblem(403, 'auth.erasureScheduled', ['erasesOn' => '2026-11-22']);
-        $this->jsonRequest('POST', '/api/auth/tokens', ['email' => self::EMAIL, 'password' => SignInAccounts::TYPED]);
+
+        $this->jsonRequest('POST', '/api/auth/tokens', [
+            'username' => Accounts::usernameOf(self::EMAIL),
+            'password' => SignInAccounts::TYPED,
+        ]);
+
         $this->assertProblem(403, 'auth.erasureScheduled', ['erasesOn' => '2026-11-22']);
         $this->signIn(SignInAccounts::MISTYPED);
         $this->assertProblem(401, 'auth.invalidCredentials');
@@ -78,12 +84,12 @@ final class ErasureCancellationControllerTest extends ApiTestCase
             ->executeStatement("UPDATE identity.app_user SET disabled_at = '2026-11-09 12:00:00+01'");
 
         $this->signIn(SignInAccounts::TYPED);
-        $this->assertProblem(403, 'auth.disabled');
+        $this->assertProblem(401, 'auth.invalidCredentials');
 
         $this->cancel(self::EMAIL, SignInAccounts::TYPED);
         self::assertResponseStatusCodeSame(204);
         $this->signIn(SignInAccounts::TYPED);
-        $this->assertProblem(403, 'auth.disabled');
+        $this->assertProblem(401, 'auth.invalidCredentials');
     }
 
     public function testAttemptsAreThrottledLikeSignIn(): void
@@ -114,12 +120,18 @@ final class ErasureCancellationControllerTest extends ApiTestCase
 
     private function signIn(#[SensitiveParameter] string $password): void
     {
-        $this->jsonRequest('POST', '/api/auth/sign-in', ['email' => self::EMAIL, 'password' => $password]);
+        $this->jsonRequest('POST', '/api/auth/sign-in', [
+            'username' => Accounts::usernameOf(self::EMAIL),
+            'password' => $password,
+        ]);
     }
 
     private function cancel(string $email, #[SensitiveParameter] string $password): void
     {
-        $this->jsonRequest('POST', '/api/auth/erasure-cancellation', ['email' => $email, 'password' => $password]);
+        $this->jsonRequest('POST', '/api/auth/erasure-cancellation', [
+            'username' => Accounts::usernameOf($email),
+            'password' => $password,
+        ]);
     }
 
     private function numberOf(string $sql): int

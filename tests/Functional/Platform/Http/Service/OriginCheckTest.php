@@ -21,7 +21,7 @@ final class OriginCheckTest extends ApiTestCase
                 'POST',
                 '/api/auth/sign-in',
                 [
-                    'email' => 'christine.adel@example.org',
+                    'username' => 'christine.adel',
                     'password' => 'wrong ' . $attempt,
                 ],
                 ['Origin' => $origin],
@@ -52,7 +52,7 @@ final class OriginCheckTest extends ApiTestCase
             'POST',
             '/api/auth/sign-in',
             [
-                'email' => 'christine.adel@example.org',
+                'username' => 'christine.adel',
                 'password' => SignInAccounts::TYPED,
             ],
             ['Origin' => 'https://app.khmk-koeln.com'],

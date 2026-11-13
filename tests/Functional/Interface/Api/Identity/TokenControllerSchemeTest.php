@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Interface\Api\Identity;
 
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use SensitiveParameter;
@@ -46,7 +47,11 @@ final class TokenControllerSchemeTest extends ApiTestCase
         $id = new SignInAccounts(self::getContainer())->add(self::EMAIL);
         new RoleGrants(self::getContainer())->grant($id, 'servant');
 
-        $this->jsonRequest('POST', '/api/auth/tokens', ['email' => self::EMAIL, 'password' => SignInAccounts::TYPED]);
+        $this->jsonRequest('POST', '/api/auth/tokens', [
+            'username' => Accounts::usernameOf(self::EMAIL),
+            'password' => SignInAccounts::TYPED,
+        ]);
+
         self::assertResponseStatusCodeSame(201);
 
         return Type::of($this->responseJson()['token'] ?? null)->toString();

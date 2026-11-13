@@ -8,6 +8,7 @@ use App\Library\Checksum\Model\Checksum;
 use App\Library\Types\Model\Integers;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Database;
@@ -131,7 +132,7 @@ final class TokenControllerTest extends ApiTestCase
     private function issued(): string
     {
         $this->jsonRequest('POST', '/api/auth/tokens', [
-            'email' => self::EMAIL,
+            'username' => Accounts::usernameOf(self::EMAIL),
             'password' => SignInAccounts::TYPED,
             'deviceName' => " Mina's iPhone ",
         ]);

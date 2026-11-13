@@ -20,10 +20,10 @@ final readonly class SymfonyCredentialCheck implements CredentialCheckInterface
     }
 
     #[Override]
-    public function accountWith(string $email, #[SensitiveParameter] string $password): ?Uuid
+    public function accountWith(string $username, #[SensitiveParameter] string $password): ?Uuid
     {
         try {
-            $user = $this->accounts->loadUserByIdentifier($email);
+            $user = $this->accounts->loadUserByIdentifier($username);
         } catch (UserNotFoundException) {
             return null;
         }

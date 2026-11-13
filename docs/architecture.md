@@ -244,8 +244,8 @@ links), a servant gets the servant role and the services or stages it serves in,
 their own member record (see "Members can have an account of their own"). An account can sign in as soon as it
 exists; there is no confirmation of an email address and no queue of requests to approve.
 
-Sign-in answers "wrong email or password" without saying which, so it can't be used to find out who has an
-account. There are no password links: the church office resets a forgotten password (#366). Disabled accounts can't sign in and keep their
+Sign-in takes the username and answers "wrong username or password" without saying which, also for a disabled
+account, so it can't be used to find out who has an account or what state it is in. There are no password links: the church office resets a forgotten password (#366). Disabled accounts can't sign in and keep their
 history.
 
 ### Members can have an account of their own

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Infrastructure\Security;
 
-use App\Context\Identity\Domain\ValueObject\Email;
+use App\Context\Identity\Domain\ValueObject\Username;
 use App\Library\Strings\Model\Text;
 use Override;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -31,11 +31,11 @@ final class SignInRateLimiter extends AbstractRequestRateLimiter
     protected function getLimiters(Request $request): array
     {
         $client = $request->getClientIp() ?? '';
-        $email = Email::normalized($request->attributes->getString(SecurityRequestAttributes::LAST_USERNAME));
+        $username = Username::normalized($request->attributes->getString(SecurityRequestAttributes::LAST_USERNAME));
 
         return [
             $this->clients->create($client),
-            $this->accounts->create(Text::format('%s-%s', $email, $client)->toString()),
+            $this->accounts->create(Text::format('%s-%s', $username, $client)->toString()),
         ];
     }
 }

@@ -19,7 +19,7 @@ security:
                 limiter: App\Context\Identity\Infrastructure\Security\SignInRateLimiter
             json_login:
                 check_path: api_auth_tokens
-                username_path: email
+                username_path: username
                 password_path: password
                 success_handler: App\Context\Identity\Infrastructure\Security\ApiTokenIssuer
         api_bearer:
@@ -37,7 +37,7 @@ security:
                 limiter: App\Context\Identity\Infrastructure\Security\SignInRateLimiter
             json_login:
                 check_path: api_auth_sign_in
-                username_path: email
+                username_path: username
                 password_path: password
             logout:
                 path: api_auth_sign_out

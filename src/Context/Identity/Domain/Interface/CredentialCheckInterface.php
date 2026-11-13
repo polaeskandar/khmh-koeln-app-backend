@@ -9,5 +9,5 @@ use Symfony\Component\Uid\Uuid;
 
 interface CredentialCheckInterface
 {
-    public function accountWith(string $email, #[SensitiveParameter] string $password): ?Uuid;
+    public function accountWith(string $username, #[SensitiveParameter] string $password): ?Uuid;
 }

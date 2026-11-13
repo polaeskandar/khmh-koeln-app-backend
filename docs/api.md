@@ -175,16 +175,16 @@ without `Origin` pass. `GET` is never blocked. Bearer requests skip this check.
 
 #### `POST /api/auth/sign-in`
 
-Public. Body `{email, password}`, both strings. The email is trimmed and compared in lower case.
+Public. Body `{username, password}`, both strings. The username is trimmed, composed to NFKC and compared in lower
+case, as it is stored (see the [data model](data-model.md#accounts-and-roles)).
 
 | Result | Answer |
 | --- | --- |
-| Right email and password, not disabled | 204 + `Set-Cookie` |
-| Body not an object with string `email` and `password` | 400 `invalidRequest` |
-| Unknown email or wrong password (identical answers) | 401 `auth.invalidCredentials` |
-| Right password, account disabled (checked first) | 403 `auth.disabled` |
-| Right password, the account asked for its erasure in the app and it is still scheduled (checked after `auth.disabled`) | 403 `auth.erasureScheduled {erasesOn}`; `POST /api/auth/erasure-cancellation` withdraws it |
-| 5 failures for this email and IP within 15 minutes, or the per-IP limit | 429 `auth.tooManyAttempts` + `Retry-After`, even with the right password |
+| Right username and password, account not disabled | 204 + `Set-Cookie` |
+| Body not an object with string `username` and `password` | 400 `invalidRequest` |
+| Unknown username, wrong password, or a disabled account (identical answers) | 401 `auth.invalidCredentials` |
+| Right password, the account asked for its erasure in the app and it is still scheduled | 403 `auth.erasureScheduled {erasesOn}`; `POST /api/auth/erasure-cancellation` withdraws it |
+| 5 failures for this username and IP within 15 minutes, or the per-IP limit | 429 `auth.tooManyAttempts` + `Retry-After`, even with the right password |
 
 A wrong password never reveals that an account is disabled or scheduled for erasure. Failures set no cookie.
 
@@ -193,7 +193,7 @@ POST /api/auth/sign-in HTTP/1.1
 Content-Type: application/json
 Origin: https://app.khmk-koeln.com
 
-{"email":"christine.adel@example.org","password":"correct horse battery"}
+{"username":"christine.adel","password":"correct horse battery"}
 ```
 
 ```http
@@ -208,16 +208,6 @@ Cache-Control: no-store
 {
   "status": 401,
   "code": "auth.invalidCredentials",
-  "params": {}
-}
-```
-
-403 disabled:
-
-```json
-{
-  "status": 403,
-  "code": "auth.disabled",
   "params": {}
 }
 ```
@@ -250,18 +240,18 @@ Public. Body `{}`. Ends the session and expires the cookie. Answers 204, also wi
 
 #### `POST /api/auth/erasure-cancellation`
 
-Public. Body `{email, password}` → 204: withdraws the erasure the account asked for in the app
+Public. Body `{username, password}` → 204: withdraws the erasure the account asked for in the app
 (`POST /api/me/erasure-request`) while its grace period runs. The request closes as `withdrawn` (`closedBy` null), and
 the account signs in again.
 
 | Case | Answer |
 | --- | --- |
-| Unknown email or wrong password (identical answers) | 401 `auth.invalidCredentials`; nothing changes |
+| Unknown username or wrong password (identical answers) | 401 `auth.invalidCredentials`; nothing changes |
 | Right password, no erasure scheduled | 409 `privacy.nothingScheduled` |
 | Right password, account disabled | 204; the erasure is withdrawn and the account stays disabled |
-| 5 attempts for this email and IP within 15 minutes, or the per-IP limit (counted together with sign-ins) | 429 `auth.tooManyAttempts` + `Retry-After` |
+| 5 attempts for this username and IP within 15 minutes, or the per-IP limit (counted together with sign-ins) | 429 `auth.tooManyAttempts` + `Retry-After` |
 
-The email is trimmed and compared in lower case. An unknown email spends the same password check as a known one.
+The username is normalized as for sign-in. An unknown username spends the same password check as a known one.
 A person who forgot the password asks the church office for a new one first and then cancels with it.
 
 #### `GET /api/me`
@@ -387,9 +377,9 @@ of a disabled account, gets 401 `auth.unauthenticated`, even with a valid sessio
 
 #### `POST /api/auth/tokens`
 
-Public. Body `{email, password, deviceName?}` (`deviceName` at most 100 characters, else 422
+Public. Body `{username, password, deviceName?}` (`deviceName` at most 100 characters, else 422
 `validation.tooLong`) → 201 `{token, expiresAt}`. The same codes and throttling as `POST /api/auth/sign-in`
-(400, 401 `auth.invalidCredentials`, 403 `auth.disabled`/`auth.erasureScheduled`, 429
+(400, 401 `auth.invalidCredentials`, 403 `auth.erasureScheduled`, 429
 `auth.tooManyAttempts` with `Retry-After`; the attempts count together with cookie sign-ins). No session or
 cookie, and no `Location`: a token is only addressable as `current`.
 
@@ -567,9 +557,9 @@ the endpoint, and a well-formed one gets the endpoint's 403.
 | --- | --- | --- |
 | 400 | `invalidRequest` | Malformed JSON, or a body that is not the documented object |
 | 401 | `auth.unauthenticated` | No valid session or token |
-| 401 | `auth.invalidCredentials` | Sign-in with a wrong email or password |
+| 401 | `auth.invalidCredentials` | Sign-in with an unknown username, a wrong password or a disabled account |
 | 403 | `forbidden` | The role does not allow it, or a foreign `Origin` |
-| 403 | `auth.disabled`, `auth.erasureScheduled` | Sign-in and token issuing with the right password |
+| 403 | `auth.erasureScheduled` | Sign-in and token issuing with the right password |
 | 403 | specific codes | Where a section names why, e.g. `services.adminOnlyCreate` |
 | 404 | `notFound.<thing>` | Unknown, deleted, or non-UUID id, or an item outside the viewer's groups |
 | 404 | `notFound.route` | No such route under `/api` |
@@ -663,8 +653,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | Code | Params | Meaning (English reference text) |
 | --- | --- | --- |
 | `auth.unauthenticated` | – | **New.** 401: no valid session or bearer token (never signed in, signed out, expired, or the account was disabled or its password changed). |
-| `auth.invalidCredentials` | – | **New.** 401 on sign-in: wrong email or password, without saying which. |
-| `auth.disabled` | – | **New.** 403 on sign-in with the right password: the account is disabled. |
+| `auth.invalidCredentials` | – | **New.** 401 on sign-in: wrong username or password, without saying which. |
 | `auth.tooManyAttempts` | – | **New.** 429 on sign-in and password changes. `Retry-After` says when to retry. |
 | `auth.erasureScheduled` | `erasesOn` | **New.** 403 on sign-in with the right password: the account asked for its erasure, which happens on {erasesOn}. Cancel it to sign in again. |
 
