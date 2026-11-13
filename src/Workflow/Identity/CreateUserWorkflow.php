@@ -21,7 +21,7 @@ final readonly class CreateUserWorkflow
         string $displayName,
         string $language,
         #[SensitiveParameter]
-        ?string $password,
+        string $password,
         ?string $role,
     ): string {
         $chosen = Language::tryFrom($language) ?? throw InvalidInput::field('language', 'accounts.chooseLanguage');

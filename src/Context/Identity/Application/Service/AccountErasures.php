@@ -40,11 +40,7 @@ final readonly class AccountErasures
 
         $removed = $this->removals->remove($accountId);
 
-        return new AccountErased(
-            $removed->roles,
-            $removed->passwordLinks,
-            $removed->rowsKept + $this->sweeps->sweep($accountId),
-        );
+        return new AccountErased($removed->roles, $removed->rowsKept + $this->sweeps->sweep($accountId));
     }
 
     public function sweep(Uuid $accountId): int

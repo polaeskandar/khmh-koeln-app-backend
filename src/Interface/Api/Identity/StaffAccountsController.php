@@ -5,13 +5,10 @@ declare(strict_types=1);
 namespace App\Interface\Api\Identity;
 
 use App\Interface\Api\Identity\Request\GiveAccountRoleRequest;
-use App\Interface\Api\Identity\Response\PasswordLinkResponse;
 use App\Interface\Api\Identity\Response\RoleResponse;
 use App\Interface\Api\Identity\Response\StaffAccountListResponse;
 use App\Workflow\Identity\GiveAccountRoleWorkflow;
-use App\Workflow\Identity\IssuePasswordLinkWorkflow;
 use App\Workflow\Identity\ListStaffAccountsWorkflow;
-use App\Workflow\Identity\Model\IssuedPasswordLink;
 use App\Workflow\Identity\Model\RoleSummary;
 use App\Workflow\Identity\TakeAccountRoleWorkflow;
 use Nelmio\ApiDocBundle\Attribute\Model;
@@ -75,26 +72,5 @@ final class StaffAccountsController extends AbstractController
         $takeAccountRole($id, $roleId, $actor->getUserIdentifier());
 
         return new Response(status: Response::HTTP_NO_CONTENT);
-    }
-
-    #[Route('/accounts/{id}/password-link', name: 'api_account_password_link', methods: ['POST'])]
-    #[OA\Post(summary: 'Account password link.')]
-    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
-    #[OA\Response(
-        response: 201,
-        description: 'Created.',
-        content: new OA\JsonContent(ref: new Model(type: IssuedPasswordLink::class)),
-    )]
-    #[OA\Response(ref: '#/components/responses/Problem', response: 'default')]
-    public function passwordLink(
-        string $id,
-        #[CurrentUser]
-        UserInterface $actor,
-        IssuePasswordLinkWorkflow $issuePasswordLink,
-    ): JsonResponse {
-        return $this->json(
-            PasswordLinkResponse::of($issuePasswordLink($id, $actor->getUserIdentifier())),
-            status: Response::HTTP_CREATED,
-        );
     }
 }

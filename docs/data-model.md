@@ -220,7 +220,7 @@ on the person's row, so an erasure, which locks the row for update and clears th
 between. The address is all three parts or none (street ≤120,
 postal code ≤10, city ≤80, cleaned, blank → null). A birth date is never after today: the application checks it
 against the church calendar, because a CHECK can't read the date. Operators create accounts with `bin/console app:user:create <email> <name>`, typing the
-password twice, piping it with `--password-stdin` or leaving it for a password link with `--no-password`.
+password twice or piping it with `--password-stdin`.
 
 Roles are dynamic (RBAC), in the `identity` schema: a user has roles (`user_role`), a role has permissions
 (`role_permission`), and a permission is an action on a resource, `{"action": "update", "resource": "sessions"}`.
@@ -240,11 +240,7 @@ disabled accounts don't count). Taking a role and disabling an account hold the 
 a PostgreSQL advisory lock through Symfony Lock on the Doctrine connection) from reading the account until it
 is saved, so two changes that run at the same time can't both see the other administrator and leave none.
 
-`password_token` holds one-time password links: `user_id` (CASCADE, indexed), `token_hash` (SHA-256 hex of the
-token, UNIQUE; the token itself is never stored), `expires_at` (CHECK `expires_at > created_at`), `used_at`,
-`created_at` and `created_by` (SET NULL). A new link deletes the account's unused ones, and the link is emailed
-to the account's address (`password_link` template), never printed. `app_user.auth_version`
-counts disablings; a session's status fingerprint includes it, so a session from before a disabling stays dead
+`app_user.auth_version` counts disablings; a session's status fingerprint includes it, so a session from before a disabling stays dead
 after enabling.
 
 Sign-in sessions live in `public.sessions` (Symfony's `PdoSessionHandler` table, created by an Identity
@@ -369,7 +365,7 @@ fixed order) for `kind: member` or `kind: account`:
   parentAgreed}` or `null`), `children` (name and link status), the `homeworkReports` it made and `memberRecord`:
   for an account linked to its own member record that record's member copy (a member's account and an account's
   member record belong to the same request), else `null`.
-- **Never:** password hashes, password-link tokens, session data, other people's email addresses (Art. 15(4)),
+- **Never:** password hashes, session data, other people's email addresses (Art. 15(4)),
   notes by others that mention the person.
 
 The file is first written as a new owner-only (`0600`) file beside the target and then renamed over it, so an
@@ -438,7 +434,7 @@ point to the account become null (`recorded_by`, `removed_by`, `closed_by`, `act
 
 `app:privacy:erase-account` (and its `:dry-run`, which rolls the same steps back) runs
 `EraseAccountWorkflow`. Identity's `AccountErasures` locks role administration and the account row, refuses
-the last administrator, counts the roles and password links, lets every context forget the account, and
+the last administrator, counts the roles, lets every context forget the account, and
 deletes it in one transaction. Each context forgets through its `AccountTraces` service, which implements the
 `AccountReferences` platform contract and nulls its actor columns or deletes the rows the account owned;
 Identity's `AccountSweeps` collects them by the contract's tag, so a new context only adds its own service. A

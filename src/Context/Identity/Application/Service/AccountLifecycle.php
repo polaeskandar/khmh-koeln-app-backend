@@ -17,7 +17,7 @@ final readonly class AccountLifecycle
         private UserRepositoryInterface $users,
         private LastAdministrator $lastAdministrator,
         private AdministrationLockInterface $administration,
-        private Credentials $credentials,
+        private ApiTokens $apiTokens,
         private Calendar $calendar,
     ) {
     }
@@ -33,7 +33,7 @@ final readonly class AccountLifecycle
 
             $user->changeStatus($user->status()->disabledAt($this->calendar->now()));
             $this->users->save($user);
-            $this->credentials->endAllOf($user->id());
+            $this->apiTokens->revokeAllOf($user->id());
         });
     }
 

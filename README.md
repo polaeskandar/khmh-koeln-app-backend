@@ -35,16 +35,12 @@ There is no account screen at launch; operators run these commands on the server
 
 | Command | Does |
 | --- | --- |
-| `app:user:create <email> <name> [--role=<name>] [--language=de]` | Creates an account that signs in at once. Type the password twice, pipe it with `--password-stdin`, or use `--no-password` and send a password link. |
+| `app:user:create <email> <name> [--role=<name>] [--language=de]` | Creates an account that signs in at once. Type the password twice or pipe it with `--password-stdin`. |
 | `app:privacy:export --person=UUID \| --account=UUID [--output=FILE]` | Writes everything stored about one member or account as JSON (Art. 15/20) to a file only you can read; prints only the file name. Never includes password hashes, tokens, sessions or other people's email addresses. |
-| `app:privacy:erase-account <id>` (`:dry-run` to preview) | Erases an account (Art. 17): its roles, guardian links, password links and registration choices go; what it did for the church stays with the actor set to `null` ("a former account"). Refuses the last active administrator. Prints counts only. |
+| `app:privacy:erase-account <id>` (`:dry-run` to preview) | Erases an account (Art. 17): its roles and guardian links go; what it did for the church stays with the actor set to `null` ("a former account"). Refuses the last active administrator. Prints counts only. |
 | `app:privacy:erase-person <id>` (`:dry-run` to preview) | Erases a member (Art. 17) in one transaction: first raises the anonymous counters of every counted past session they were on or marked in, then deletes their attendance (corrections included), homework reports, guardian links, memberships and the person. Prints counts only. |
 | `app:user:role:add <email> <role>` / `app:user:role:remove <email> <role>` | Gives or takes a role by name. The last active account that can manage roles keeps that permission. |
 | `app:user:disable <email>` / `app:user:enable <email>` | Disables an account (it can't sign in, and its open sessions end for good) or enables it again. Repeating changes nothing. The last active administrator can't be disabled. |
-| `app:user:password-link <email>` | Emails the account a one-time link to set the password, valid for 24 hours, in the account's language. A new link replaces the unused ones. |
-
-The link goes only to the account's own address, never to the console or the logs, and is stored only as a
-SHA-256 hash.
 
 ## Deployment
 

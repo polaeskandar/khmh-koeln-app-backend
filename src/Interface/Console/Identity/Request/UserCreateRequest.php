@@ -8,9 +8,6 @@ use Symfony\Component\Console\Attribute\Option;
 
 final class UserCreateRequest
 {
-    #[Option(description: 'Set the password later by link')]
-    public bool $noPassword = false;
-
     #[Option(description: 'Read the password from stdin')]
     public bool $passwordStdin = false;
 

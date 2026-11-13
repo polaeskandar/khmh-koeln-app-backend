@@ -16,7 +16,6 @@ account is assigned to; parents see only their own approved children.
 | `identity.user_role` | which account has which role | Access control | Administrators | With the account | Deleted with the account |
 | `identity.role`, `identity.permission`, `identity.role_permission` | none | Access rules | Administrators | Permanent | – |
 | `identity.api_token` | hashed token, its account, device name, created, last used, expiry and revocation | Signing in the iOS and Android apps | Nobody (hashes only) | 90 days (`API_TOKEN_LIFETIME`), or until revoked | Deleted with the account |
-| `identity.password_token` | hashed one-time token, its account, who created it | Password links | Nobody (hashes only) | 24 h, then unusable | Deleted with the account |
 | `organization.service`, `organization.stage` | none | Services and classes | Staff | Permanent | – |
 | `organization.staff_assignment` | which account serves in which service or stage, since when | Limiting servants and service leaders to the groups they serve in | Administrators; service leaders for their services; the account itself (`GET /api/me`); members, for the servants of their own groups (`GET /api/member/servants`) | While the account serves there; removed by an administrator or a service leader | Deleted with the account |
 | `people.person` | names, display name, status, birth date, address | Members (children, youth, servants as members) | Staff (`members: read`); parents for their own children | While a member; open (service leaders) | `erase-person`: deleted |
@@ -39,7 +38,7 @@ account is assigned to; parents see only their own approved children.
 | Processor | What | Where | Art. 28 DPA |
 | --- | --- | --- | --- |
 | Hosting provider (not chosen yet; requirements in [operations.md § Runtime](operations.md#runtime)) | Server, managed PostgreSQL, backups | EU region | To sign before launch |
-| Mailgun (EU region) | Transactional emails: password links and data copy links | EU | To sign before launch |
+| Mailgun (EU region) | Transactional emails: data copy links | EU | To sign before launch |
 
 No other processor receives personal data. Logs leave the server only without personal data (see Logging).
 
@@ -71,7 +70,6 @@ No other processor receives personal data. Logs leave the server only without pe
 | **Objection** (Art. 21) | Office with the adviser | One month | Weigh the church's legitimate interest; record the decision. |
 | **Breach** (Art. 33) | Administrator, then the adviser | 72 h after becoming aware | Contain, assess, report to the authority; inform families when the risk is high. |
 | **Servant leaves** | Service leader | The same week | `app:user:disable <email>`; take the role and remove the assignments (`DELETE /api/assignments/{id}`). |
-| **Password link** | Administrator | – | Check the person's identity before sending one (`app:user:password-link`). |
 | **Restore** | Operator | Before the app is reopened | Replay every [erasure ledger](#erasure-ledger) entry made after the backup was taken. |
 
 ### Erasure ledger

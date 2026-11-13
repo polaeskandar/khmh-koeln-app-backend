@@ -15,7 +15,7 @@ final class UserCreateCommandTest extends KernelTestCase
 {
     private const string TYPED = 'correct horse battery';
 
-    public function testATypedPasswordCreatesAnApprovedAccount(): void
+    public function testATypedPasswordCreatesAnAccountThatSignsIn(): void
     {
         $tester = $this->tester();
         $tester->setInputs([self::TYPED, self::TYPED]);
@@ -52,20 +52,6 @@ final class UserCreateCommandTest extends KernelTestCase
         ));
     }
 
-    public function testWithoutAPasswordNothingIsAskedAndNoPasswordWorks(): void
-    {
-        $tester = $this->tester();
-
-        self::assertSame(Command::SUCCESS, $tester->execute([
-            'email' => 'sara@example.org',
-            'name' => 'Sara',
-            '--no-password' => true,
-        ]));
-
-        self::assertStringNotContainsString('Password', $tester->getDisplay());
-        self::assertFalse($this->accounts()->acceptsSecret($this->accounts()->withEmail('sara@example.org'), ''));
-    }
-
     /**
      * @param list<string> $typed
      */
@@ -95,14 +81,15 @@ final class UserCreateCommandTest extends KernelTestCase
 
     public function testATakenEmailInAnyCaseWritesNothing(): void
     {
-        $this->tester()->execute(['email' => 'sara@example.org', 'name' => 'Sara', '--no-password' => true]);
+        $this->piped(['email' => 'sara@example.org', 'name' => 'Sara']);
         $tester = $this->tester();
+        $tester->setInputs([self::TYPED]);
 
         self::assertSame(Command::INVALID, $tester->execute([
             'email' => 'SARA@Example.org',
             'name' => 'Sara',
-            '--no-password' => true,
-        ]));
+            '--password-stdin' => true,
+        ], ['interactive' => false]));
 
         self::assertStringContainsString('accounts.emailTaken', $tester->getDisplay());
         self::assertSame(1, $this->accounts()->count());
@@ -111,13 +98,14 @@ final class UserCreateCommandTest extends KernelTestCase
     public function testAnUnknownLanguageWritesNothing(): void
     {
         $tester = $this->tester();
+        $tester->setInputs([self::TYPED]);
 
         self::assertSame(Command::INVALID, $tester->execute([
             'email' => 'sara@example.org',
             'name' => 'Sara',
-            '--no-password' => true,
+            '--password-stdin' => true,
             '--language' => 'fr',
-        ]));
+        ], ['interactive' => false]));
 
         self::assertStringContainsString('language: accounts.chooseLanguage', $tester->getDisplay());
         self::assertSame(0, $this->accounts()->count());
@@ -133,6 +121,17 @@ final class UserCreateCommandTest extends KernelTestCase
 
         self::assertStringContainsString('standard input', $tester->getDisplay());
         self::assertSame(0, $this->accounts()->count());
+    }
+
+    /**
+     * @param array<string, string> $arguments
+     */
+    private function piped(array $arguments): void
+    {
+        $tester = $this->tester();
+        $tester->setInputs([self::TYPED]);
+        $tester->execute([...$arguments, '--password-stdin' => true], ['interactive' => false]);
+        $tester->assertCommandIsSuccessful();
     }
 
     private function tester(): CommandTester

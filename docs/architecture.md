@@ -244,8 +244,8 @@ links), a servant gets the servant role and the services or stages it serves in,
 their own member record (see "Members can have an account of their own"). An account can sign in as soon as it
 exists; there is no confirmation of an email address and no queue of requests to approve.
 
-Sign-in answers "wrong email or password" without saying which, and "forgot password" always answers the
-same, so neither can be used to find out who has an account. Disabled accounts can't sign in and keep their
+Sign-in answers "wrong email or password" without saying which, so it can't be used to find out who has an
+account. There are no password links: the church office resets a forgotten password (#366). Disabled accounts can't sign in and keep their
 history.
 
 ### Members can have an account of their own
@@ -278,10 +278,7 @@ Emails use the same rule: `AccountMailer::send($user, $template, $params)` rende
 `translations/emails.{en,de,ar}.yaml` in the account's language. The only personal data in an email is the
 recipient's address and name. Mail is queued and sent after the response (`kernel.terminate`,
 `console.terminate`), so no request waits for the mail server; a failure is logged with the account id and
-template, never the address, and is not raised. There is no Messenger worker for mail. Work whose duration
-would reveal something runs there too: Platform's `AfterResponse` (`TerminateQueue`) runs it at
-`kernel.terminate`, before the mail is sent, and logs a failure. The password reset uses it, so an unknown
-address answers as fast as a known one.
+template, never the address, and is not raised. There is no Messenger worker for mail.
 ### Data protection (DSGVO)
 
 The inventory, processors, measures and the office's procedures are in [data-protection.md](data-protection.md).
@@ -426,7 +423,7 @@ was built on or names the issue that changes it.
 ## Open questions for tickets
 
 - Sign-in: email links remain an option for parents besides passwords.
-- Email delivery: password links and erasure notices, in the person's language. Which provider (an EU one).
+- Email delivery: data copy links and erasure notices, in the person's language. Which provider (an EU one).
 - How the office verifies a parent before linking a child (in person after the liturgy is the prototype's
   suggestion), and who can make data protection requests for a child.
 - Data protection, with the church's adviser: the controller and the contact in the privacy notice; the

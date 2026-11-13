@@ -248,37 +248,6 @@ Cache-Control: no-store
 Public. Body `{}`. Ends the session and expires the cookie. Answers 204, also without a session.
 `GET` → 405 `invalidRequest`, and the session stays.
 
-#### `POST /api/auth/password-links`
-
-Public. Body `{token, password}`: sets a new password with the one-time link from the `password_link` email
-(`app:user:password-link`). The token travels only in this body; the web app reads it from the link's
-`#token=` fragment. Answers 204; the new password signs in, and every session of the account ends.
-
-| Case | Response |
-| --- | --- |
-| `password` shorter than 10 or longer than 200 characters | 422 `accounts.passwordTooShort {min: 10}` or `validation.tooLong {max: 200}` on `password`; the link stays usable |
-| Token missing, unknown, used, expired or replaced by a newer link, or the account is disabled | 422 `auth.resetLinkInvalid`, the same body for each |
-| More than 10 requests from one IP within one fixed hour window | 429 `auth.tooManyAttempts` with `Retry-After` |
-
-The password is checked before the link is spent, and hashed only once the link is valid. Spending the link,
-dropping the account's other unused links and saving the password happen in one transaction, so a link works
-exactly once. Disabling an account drops its unused links, so enabling it again doesn't bring them back.
-
-#### `POST /api/auth/forgot-password`
-
-Public. Body `{email}` → 202 `{"status":"received"}`, the same bytes for every address. Only an active account
-(not disabled) gets a `password_link` email in its language, with a link valid for 1 hour that replaces
-any older unused link; unknown and disabled addresses get nothing. Looking the address up, creating the
-link and sending the email all happen after the response (`AfterResponse`), so the answer's timing reveals nothing.
-The link is used with `POST /api/auth/password-links`; links from `app:user:password-link` still last 24 hours.
-
-| Case | Response |
-| --- | --- |
-| `email` missing or blank | 422 `accounts.emailRequired` on `email` |
-| `email` not an address | 422 `accounts.emailInvalid` on `email` |
-| `email` longer than 254 characters, like an account's address | 422 `validation.tooLong {max: 254}` on `email` |
-| An 11th request from one IP, or a 4th for one address (case-insensitive), within an hour | 429 `auth.tooManyAttempts` with `Retry-After` |
-
 #### `POST /api/auth/erasure-cancellation`
 
 Public. Body `{email, password}` → 204: withdraws the erasure the account asked for in the app
@@ -293,8 +262,7 @@ the account signs in again.
 | 5 attempts for this email and IP within 15 minutes, or the per-IP limit (counted together with sign-ins) | 429 `auth.tooManyAttempts` + `Retry-After` |
 
 The email is trimmed and compared in lower case. An unknown email spends the same password check as a known one.
-A person who forgot the password resets it first (`POST /api/auth/forgot-password` still reaches an account whose
-erasure is scheduled) and then cancels with the new one.
+A person who forgot the password asks the church office for a new one first and then cancels with it.
 
 #### `GET /api/me`
 
@@ -375,7 +343,7 @@ A parent:
 #### `PUT /api/me/language`
 
 Any signed-in account. Body `{language: en|de|ar}`, the whole resource (the account's language is the only thing
-it changes itself) → 200 with the `GET /api/me` body, already showing the new language. Password links and emails use it; other sessions stay signed
+it changes itself) → 200 with the `GET /api/me` body, already showing the new language. Emails use it; other sessions stay signed
 in and read it on their next `GET /api/me`.
 
 ```json
@@ -588,7 +556,7 @@ A body with the wrong JSON type for a member gives `validation.invalidType` on t
 endpoint does not accept gives `validation.unexpectedField` on its name. Query parameters use the same
 shape, keyed by parameter name (`to`: `validation.invalidRange`).
 
-A 422 without fields uses its own code, such as `auth.resetLinkInvalid`.
+A 422 without fields uses its own code, such as `privacy.copyLinkInvalid`.
 
 A body's shape is checked before the caller's rights: a malformed body gets 422 even from a caller who may not use
 the endpoint, and a well-formed one gets the endpoint's 403.
@@ -611,8 +579,8 @@ the endpoint, and a well-formed one gets the endpoint's 403.
 | 409 | `conflict` | Fallback: a concurrent change hit a database constraint or a newer version of the row |
 | 415 | `invalidRequest` | Unsafe method without a JSON body |
 | 422 | `checkFields` | Field errors in `fieldErrors` (`validation.invalidType`, `validation.unexpectedField` and the field codes) |
-| 422 | specific codes | Without fields, e.g. `auth.resetLinkInvalid` |
-| 429 | `auth.tooManyAttempts` | Sign-in, password links, erasure cancellation, data copies; with `Retry-After` in seconds |
+| 422 | specific codes | Without fields, e.g. `privacy.copyLinkInvalid` |
+| 429 | `auth.tooManyAttempts` | Sign-in, password changes, erasure cancellation, data copies; with `Retry-After` in seconds |
 | 429 | `tooManyRequests` | Any other limit; with `Retry-After` in seconds |
 | 500 | `internal` | Unexpected error; no message, class or trace |
 | 503 | `unavailable` | The API or its database is down for a moment |
@@ -653,7 +621,7 @@ One example per status:
 ```
 
 ```json
-{"status":422,"code":"auth.resetLinkInvalid","params":{}}
+{"status":422,"code":"privacy.copyLinkInvalid","params":{}}
 ```
 
 ```json
@@ -702,8 +670,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `auth.unauthenticated` | – | **New.** 401: no valid session or bearer token (never signed in, signed out, expired, or the account was disabled or its password changed). |
 | `auth.invalidCredentials` | – | **New.** 401 on sign-in: wrong email or password, without saying which. |
 | `auth.disabled` | – | **New.** 403 on sign-in with the right password: the account is disabled. |
-| `auth.tooManyAttempts` | – | **New.** 429 on sign-in and password links. `Retry-After` says when to retry. |
-| `auth.resetLinkInvalid` | – | **New.** 422: the one-time password link is missing, unknown, used, expired or superseded. |
+| `auth.tooManyAttempts` | – | **New.** 429 on sign-in and password changes. `Retry-After` says when to retry. |
 | `auth.erasureScheduled` | `erasesOn` | **New.** 403 on sign-in with the right password: the account asked for its erasure, which happens on {erasesOn}. Cancel it to sign in again. |
 
 ### `notFound`
@@ -966,7 +933,7 @@ label is its own label, and the 120-character limit applies only to a label that
 | `accounts.nameRequired` | – | **New.** Field error on `displayName`: enter the name to show for the account. |
 | `accounts.emailRequired` | – | Enter your email address. |
 | `accounts.emailInvalid` | – | Enter an email address like name@example.org. |
-| `accounts.emailTaken` | – | There is already an account with this email address. Sign in, or reset the password if you forgot it. |
+| `accounts.emailTaken` | – | There is already an account with this email address. |
 | `accounts.passwordTooShort` | `min` | Use at least {min, number} characters. |
 | `accounts.currentPasswordWrong` | – | **New.** Field error on `currentPassword`: the current password is not right. |
 | `accounts.chooseServiceForRole` | – | Choose the service for this role. |
@@ -975,7 +942,6 @@ label is its own label, and the 120-character limit applies only to a label that
 | `accounts.stageNotInService` | – | This stage doesn’t belong to the chosen service. |
 | `accounts.currentPasswordWrong` | – | **New.** Field error on `currentPassword` (P1, #45). |
 | `accounts.chooseLanguage` | – | **New.** Field error on `account.language`: choose English, German or Arabic. |
-| `accounts.passwordLinkUnavailable` | – | **New.** 409: password links are only for enabled accounts. |
 | `accounts.personNotFound` | – | **New.** Field error on `personId`: This member record no longer exists or is inactive. |
 | `accounts.personHasAccount` | `name` | **New.** Field error on `personId`: {name} already has an account. Check that you chose the right person. |
 | `accounts.chooseAge` | – | **New.** Field error on `ageCheck`: Choose whether the member is 16 or older, or under 16 with a parent’s agreement. |
@@ -1074,7 +1040,7 @@ Readiness: runs `SELECT 1` with a 2-second connect and statement timeout.
 
 ### Staff accounts
 
-Settings for administrators: staff accounts, their roles, the groups they serve in and password links.
+Settings for administrators: staff accounts, their roles and the groups they serve in.
 
 #### `GET /api/staff-accounts`
 
@@ -1121,13 +1087,6 @@ stores nothing.
 `roles: update` on their own account), `roles.lastAdministrator`. The administration lock that `app:user:disable`
 and the erasures take serialises every removal, so two administrators removing each other's role can't leave
 nobody to manage roles.
-
-#### `POST /api/accounts/{id}/password-link`
-
-`users: update`, else 403 `forbidden`. Body `{}` → 201 `{expiresAt}`: emails the account a one-time
-`password_link` valid for 24 hours (`created_by` = the viewer) that replaces any older unused link, as
-`app:user:password-link` does. The link itself is never returned, stored or logged. 404 `notFound.user`; 409
-`accounts.passwordLinkUnavailable` for a pending or disabled account.
 
 ### Roles
 
