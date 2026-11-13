@@ -11,10 +11,10 @@ use App\Tests\Support\Context\Identity\Domain\Entity\MemberLinks;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -40,7 +40,7 @@ final readonly class MemberGroupsFixture
         new Database($this->container)
             ->connection()
             ->update(
-                'meetings.meeting_schedule',
+                'scheduling.schedule',
                 ['start_time' => '18:00', 'end_time' => '19:00'],
                 ['id' => $class->id()->toRfc4122()],
             );

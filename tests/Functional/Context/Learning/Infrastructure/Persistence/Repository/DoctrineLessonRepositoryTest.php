@@ -11,8 +11,8 @@ use App\Context\Learning\Domain\ValueObject\MeetingLink;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Time\Model\LocalDate;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 

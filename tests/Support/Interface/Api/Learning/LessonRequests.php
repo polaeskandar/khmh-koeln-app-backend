@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Interface\Api\Learning;
 
-use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Domain\Entity\Stage;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Context\Scheduling\Domain\Entity\Schedule;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 

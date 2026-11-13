@@ -222,8 +222,8 @@ the reverse proxy leave out query strings, cookies and `Authorization`.
 Migrations run as a one-off command against production before the new code serves requests:
 `php bin/console app:migrations:migrate --no-interaction`, with the same environment as the API. It applies the
 pending migrations of every context and does nothing when there are none. A context's latest one is
-`SELECT max(version) FROM <context>_migration_versions` (`identity`, `organization`, `people`, `meetings`,
-`learning`).
+`SELECT max(version) FROM <context>_migration_versions` (`identity`, `organization`, `people`, `scheduling`,
+`learning`, `privacy`).
 
 Migrations are written expand/contract, so the release before the new code keeps running against the migrated
 schema:

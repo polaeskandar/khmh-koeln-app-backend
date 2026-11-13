@@ -24,10 +24,10 @@ account is assigned to; parents see only their own approved children.
 | `people.person` | names, display name, status, birth date, address | Members (children, youth, servants as members) | Staff (`members: read`); parents for their own children | While a member; open (service leaders) | `erase-person`: deleted |
 | `people.membership` | which person is in which service or stage, from, until | Rosters | Staff | With the person | Deleted with the person |
 | `people.guardian_relationship` | which account is a parent of which person, link status | Parent portal access | Administrators; the parent | While the link is approved | Deleted with the person or the account |
-| `meetings.meeting_schedule` | none | Recurring meetings | Staff | Permanent | – |
-| `meetings.meeting_session` | who opened and closed it, cancel reason (may name children) | Attendance sessions | Staff; cancel reasons only with `attendance: read` | Permanent (totals) | Actors set to null; erased people kept as anonymous counters |
-| `meetings.session_event` | actor, note (may name children) | Session history | Staff with `attendance: read` for notes | Permanent | Actor set to null |
-| `meetings.attendance` | who was present, who recorded or removed the mark, removal reason (may name children) | Attendance | Staff (`attendance: read`) | Open (service leaders) | Deleted with the person; actors set to null |
+| `scheduling.schedule` | none | Recurring meetings | Staff | Permanent | – |
+| `scheduling.session` | who opened and closed it, cancel reason (may name children) | Attendance sessions | Staff; cancel reasons only with `attendance: read` | Permanent (totals) | Actors set to null; erased people kept as anonymous counters |
+| `scheduling.session_event` | actor, note (may name children) | Session history | Staff with `attendance: read` for notes | Permanent | Actor set to null |
+| `scheduling.attendance` | who was present, who recorded or removed the mark, removal reason (may name children) | Attendance | Staff (`attendance: read`) | Open (service leaders) | Deleted with the person; actors set to null |
 | `learning.lesson` | responsible servant, notes (may name children) | Lesson planning | Staff; notes only with `members: read` | Open (service leaders) | Responsible set to null |
 | `learning.lesson_collaborator` | which account helps with which lesson | Lesson planning | Staff | With the lesson | Deleted with the account or the lesson |
 | `learning.homework_assignment` | who created it | Homework | Staff; published tasks to the children's parents | Open (service leaders) | Creator set to null |

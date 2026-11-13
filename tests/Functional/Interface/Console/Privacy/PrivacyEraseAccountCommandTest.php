@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Interface\Console\Privacy;
 
 use App\Context\Learning\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as LearningTraces;
-use App\Context\Meetings\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as MeetingTraces;
 use App\Context\People\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as PeopleTraces;
 use App\Context\Privacy\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as PrivacyTraces;
+use App\Context\Scheduling\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as MeetingTraces;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
@@ -52,7 +52,7 @@ final class PrivacyEraseAccountCommandTest extends KernelTestCase
         }
 
         $connection->executeStatement(
-            'INSERT INTO meetings.session_event (id, session_id, type, occurred_at, actor_id, by_generator) SELECT ?, id, ?, now(), ?, false FROM meetings.meeting_session',
+            'INSERT INTO scheduling.session_event (id, session_id, type, occurred_at, actor_id, by_generator) SELECT ?, id, ?, now(), ?, false FROM scheduling.session',
             [Uuid::v7()->toRfc4122(), 'opened', $servant],
         );
 
@@ -217,9 +217,9 @@ final class PrivacyEraseAccountCommandTest extends KernelTestCase
 
             return $count;
         }, [
-            'meetings.attendance',
-            'meetings.meeting_session',
-            'meetings.session_event',
+            'scheduling.attendance',
+            'scheduling.session',
+            'scheduling.session_event',
             'learning.lesson',
             'learning.homework_assignment',
             'learning.homework_completion',

@@ -21,7 +21,7 @@ return [
             'exclude' => [
                 'src/Platform/OpenApi/Service',
                 'src/Context/Learning/Infrastructure/Lifecycle/HomeworkMarkingStore.php',
-                'src/Context/Meetings/Infrastructure/Lifecycle/SessionMarkingStore.php',
+                'src/Context/Scheduling/Infrastructure/Lifecycle/SessionMarkingStore.php',
                 'src/Context/Privacy/Infrastructure/Lifecycle/DataRequestMarkingStore.php',
             ],
         ],
@@ -29,7 +29,7 @@ return [
             'exclude' => [
                 'src/Platform/OpenApi/Service/ArrayShapes.php',
                 'src/Context/Learning/Infrastructure/Lifecycle/HomeworkMarkingStore.php',
-                'src/Context/Meetings/Infrastructure/Lifecycle/SessionMarkingStore.php',
+                'src/Context/Scheduling/Infrastructure/Lifecycle/SessionMarkingStore.php',
                 'src/Context/Privacy/Infrastructure/Lifecycle/DataRequestMarkingStore.php',
             ],
         ],

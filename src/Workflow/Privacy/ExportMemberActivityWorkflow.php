@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Workflow\Privacy;
 
 use App\Context\Learning\Application\Service\HomeworkReports;
-use App\Context\Meetings\Application\Service\MeetingLookup;
-use App\Context\Meetings\Domain\Query\AttendanceQueryInterface;
 use App\Context\People\Domain\Query\PersonQueryInterface;
+use App\Context\Scheduling\Application\Service\MeetingLookup;
+use App\Context\Scheduling\Domain\Query\AttendanceQueryInterface;
 use App\Workflow\Privacy\Model\AttendanceRow;
 use App\Workflow\Privacy\Model\MemberActivity;
 use App\Workflow\Privacy\Model\ReportAboutRow;

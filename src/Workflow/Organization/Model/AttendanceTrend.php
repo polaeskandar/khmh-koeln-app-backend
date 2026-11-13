@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Workflow\Organization\Model;
 
-use App\Context\Meetings\Domain\Entity\Session;
-use App\Context\Meetings\Domain\Enum\RosterMode;
-use App\Context\Meetings\Domain\ValueObject\SessionCounts;
+use App\Context\Scheduling\Domain\Entity\Session;
+use App\Context\Scheduling\Domain\Enum\RosterMode;
+use App\Context\Scheduling\Domain\ValueObject\SessionCounts;
 use App\Library\Collections\Model\Collections;
 use App\Library\Types\Model\Ratio;
-use App\Workflow\Meetings\Model\SessionTally;
+use App\Workflow\Scheduling\Model\SessionTally;
 use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class AttendanceTrend

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Organization\Model;
 
-use App\Context\Meetings\Domain\ValueObject\StructureImpact;
+use App\Context\Scheduling\Domain\ValueObject\StructureImpact;
 
 final readonly class ArchiveImpact
 {

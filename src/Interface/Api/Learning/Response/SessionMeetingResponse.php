@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Learning\Response;
 
-use App\Context\Meetings\Domain\Enum\SessionStatus;
+use App\Context\Scheduling\Domain\Enum\SessionStatus;
 use App\Workflow\Learning\Model\SessionMeeting;
 use JsonSerializable;
 use Override;

@@ -7,9 +7,9 @@ namespace App\Tests\Functional\Workflow\Privacy;
 use App\Library\Problem\Exception\NotFound;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use App\Workflow\Privacy\EraseAccountWorkflow;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
@@ -62,7 +62,7 @@ final class EraseAccountWorkflowTest extends ApiTestCase
         $this->workflow()($servant);
         $connection = new Database(self::getContainer())->connection();
 
-        $connection->insert('meetings.session_event', [
+        $connection->insert('scheduling.session_event', [
             'id' => Uuid::v7()->toRfc4122(),
             'session_id' => $session,
             'type' => 'opened',
@@ -78,7 +78,7 @@ final class EraseAccountWorkflowTest extends ApiTestCase
             self::assertSame('notFound.account', $gone->getMessage());
         }
 
-        self::assertSame(0, $connection->fetchOne('SELECT count(*) FROM meetings.session_event WHERE actor_id = ?', [
+        self::assertSame(0, $connection->fetchOne('SELECT count(*) FROM scheduling.session_event WHERE actor_id = ?', [
             $servant,
         ]));
     }

@@ -6,14 +6,14 @@ namespace App\Tests\Functional\Context\Learning\Domain\Entity;
 
 use App\Context\Learning\Domain\Entity\HomeworkAssignment;
 use App\Context\Learning\Domain\Entity\Lesson;
-use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Domain\Entity\Stage;
+use App\Context\Scheduling\Domain\Entity\Schedule;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\HomeworkTasks;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;

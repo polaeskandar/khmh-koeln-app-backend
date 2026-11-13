@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
-use App\Context\Meetings\Domain\Entity\Session;
+use App\Context\Scheduling\Domain\Entity\Attendance;
+use App\Context\Scheduling\Domain\Entity\Session;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;

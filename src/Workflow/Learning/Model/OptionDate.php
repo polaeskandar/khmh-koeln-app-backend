@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Meetings\Domain\ValueObject\PlannedDate;
+use App\Context\Scheduling\Domain\ValueObject\PlannedDate;
 
 final readonly class OptionDate
 {

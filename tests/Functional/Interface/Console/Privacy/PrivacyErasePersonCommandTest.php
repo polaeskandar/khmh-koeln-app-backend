@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Console\Privacy;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
-use App\Context\Meetings\Domain\Entity\Session;
-use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\Privacy\Domain\Enum\RequestKind;
+use App\Context\Scheduling\Domain\Entity\Attendance;
+use App\Context\Scheduling\Domain\Entity\Session;
+use App\Context\Scheduling\Domain\ValueObject\Removal;
 use App\Library\Types\Model\Type;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use App\Tests\Support\Interface\Api\Privacy\ErasureFixture;
-use App\Tests\Support\Workflow\Meetings\Model\SessionTallyLookups;
+use App\Tests\Support\Workflow\Scheduling\Model\SessionTallyLookups;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
@@ -32,7 +32,7 @@ final class PrivacyErasePersonCommandTest extends KernelTestCase
 
     private const array HANDLED = [
         'identity.app_user.person_id',
-        'meetings.attendance.person_id',
+        'scheduling.attendance.person_id',
         'learning.homework_completion.person_id',
         'people.guardian_relationship.person_id',
         'people.membership.person_id',
@@ -167,7 +167,7 @@ final class PrivacyErasePersonCommandTest extends KernelTestCase
             ->connection()
             ->fetchAllKeyValue(
                 "SELECT sc.name, s.erased_roster || '/' || s.erased_present || '/' || s.erased_roster_present
-             FROM meetings.meeting_session s JOIN meetings.meeting_schedule sc ON sc.id = s.schedule_id ORDER BY 1",
+             FROM scheduling.session s JOIN scheduling.schedule sc ON sc.id = s.schedule_id ORDER BY 1",
             );
 
         return array_map(static fn (mixed $value): string => Type::of($value)->toString(), $rows);
@@ -236,11 +236,7 @@ final class PrivacyErasePersonCommandTest extends KernelTestCase
 
         new Database(self::getContainer())
             ->connection()
-            ->update(
-                'meetings.meeting_schedule',
-                ['roster_mode' => 'open'],
-                ['id' => $openSchedule->id()->toRfc4122()],
-            );
+            ->update('scheduling.schedule', ['roster_mode' => 'open'], ['id' => $openSchedule->id()->toRfc4122()]);
 
         $open = $schedules->session($openSchedule, '2026-11-01', self::DONE . ", roster_mode = 'open'");
 

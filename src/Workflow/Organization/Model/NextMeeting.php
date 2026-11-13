@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Workflow\Organization\Model;
 
-use App\Context\Meetings\Domain\ValueObject\PlannedDate;
 use App\Context\Organization\Domain\Entity\Stage;
+use App\Context\Scheduling\Domain\ValueObject\PlannedDate;
 use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class NextMeeting

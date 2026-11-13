@@ -6,10 +6,10 @@ namespace App\Workflow\People;
 
 use App\Context\Identity\Application\Service\MemberCheck;
 use App\Context\Learning\Domain\Query\RecentLessonQueryInterface;
-use App\Context\Meetings\Application\Service\MeetingSchedules;
-use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\MemberRecords;
+use App\Context\Scheduling\Application\Service\MeetingSchedules;
+use App\Context\Scheduling\Domain\Entity\Schedule;
 use App\Library\Time\Model\LocalDate;
 use App\Workflow\People\Model\MemberGroupList;
 use App\Workflow\People\Model\MemberRoster;

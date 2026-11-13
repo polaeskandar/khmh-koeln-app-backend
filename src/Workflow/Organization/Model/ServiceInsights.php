@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Workflow\Organization\Model;
 
-use App\Context\Meetings\Domain\ValueObject\PlannedDate;
-use App\Context\Meetings\Domain\ValueObject\StructureImpact;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
+use App\Context\Scheduling\Domain\ValueObject\PlannedDate;
+use App\Context\Scheduling\Domain\ValueObject\StructureImpact;
 use App\Library\Collections\Model\Collections;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;

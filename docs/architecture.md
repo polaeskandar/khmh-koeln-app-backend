@@ -41,7 +41,7 @@ namespaces, and calls go one way: **Interface → Workflow → Context**.
 | --- | --- |
 | `App\Interface` | Entry points and the shapes they exchange, nothing else: `Api/<Area>/<Name>Controller`, `Api/<Area>/Request/<Name>Request` (the `#[MapRequestPayload]` DTOs with their `#[Assert]` constraints, strings and lists only), `Api/<Area>/Response/<Name>Response` (the JSON an endpoint answers, built with `::of()` from a workflow model), `Console/<Area>/<Name>Command` and `Console/<Area>/Request/<Name>Request`. An `<Area>` is the context the endpoint or command belongs to, so `Api/` and `Console/` mirror `Context/`: the parent and member portals' homework is in `Api/Learning`, their children and groups in `Api/People`. Interface calls workflows only; of a context it names nothing but the enums in `Domain/Enum`, so a response can type a field with the enum its values come from. A dry run wraps the workflow in the `Transactions` platform contract. |
 | `App\Workflow` | One class per process: `<Area>/<Verb><Subject>Workflow`, its `<Area>` the context it mainly serves (the same folders as `Context/`), run through its only public method `__invoke()`. A workflow sequences the application services of one or more contexts, holds the transaction when several writes must succeed together, checks access, and maps what the contexts return to its models in `<Area>/Model/` (final readonly, scalars, the contexts' enums, lists and other models). It is the only code that uses the contexts. |
-| `App\Context` | The bounded contexts: `Identity`, `Organization`, `People`, `Meetings` (schedules, sessions and their attendance marks), `Learning`, `Privacy` (data protection requests). Each has `Application/Service` (the business logic), `Domain` (the model: `Entity`, `ValueObject`, `Enum`, `Validation` (the rules that weigh values and entities against each other), `Repository` interfaces, the `Query` interfaces workflows read through, the `Interface` contracts that its `Infrastructure` implements, `Exception`, `Attribute`) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations such as `Lifecycle`, the marking stores and guards of the context's state machines). |
+| `App\Context` | The bounded contexts: `Identity`, `Organization`, `People`, `Scheduling` (schedules, sessions and their attendance marks), `Learning`, `Privacy` (data protection requests). Each has `Application/Service` (the business logic), `Domain` (the model: `Entity`, `ValueObject`, `Enum`, `Validation` (the rules that weigh values and entities against each other), `Repository` interfaces, the `Query` interfaces workflows read through, the `Interface` contracts that its `Infrastructure` implements, `Exception`, `Attribute`) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations such as `Lifecycle`, the marking stores and guards of the context's state machines). |
 | `App\Library` | Business-agnostic packages, each split into `Client`, `Model` and `Exception` (and `Mapping` for Doctrine mapped superclasses that entities extend); they wrap PHP's native functions once for the rest of the application where no library class covers them (see [Code style](code-style.md#8-libraries-and-native-functions)): `Strings` (`Text`, `InputText`, `NameKey`, `ComposedForm`), `Types` (`Type`), `Collections` (`Collections`, next to Doctrine's collections), `Files` (`CsvFiles`, `PrivateFiles`), `Console` (`HiddenPrompt`), `Problem` (the coded exceptions, and `Ids`, which turns an id a request sends into a `Uuid` or into the `notFound.<thing>` it answers), `Time` (`LocalDate`, `LocalTime`, `Calendar`, on Carbon), `Persistence` (the `CreatedAtEntity` and `TimestampedEntity` mapped superclasses). Packages never use each other (`mago guard`); a package keeps only the methods something uses, and missing ones are added with their first caller. |
 | `App\Platform` | The runtime: `Kernel`, `Migration`, `Health` (the `/api/health` probes with their own `Controller` and `Response`), `Http`, `Logging`, `OpenApi` (describes the response classes for `docs/openapi.json`, which its `Controller` serves at `/api/openapi.json` in the dev and test environments), `Lifecycle` (the `Transitions` contract that applies a state machine's transition and turns a refusal into its code), and the contracts the contexts share, such as `Privacy`'s `AccountReferences` (every context forgets an erased account through it). Each module splits into `Contract` (interfaces the rest may use), `Service`, `Model` and `Command`. |
 
@@ -75,8 +75,8 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
   `AccountReferences` (each context's `AccountTraces`).
 - A context never uses another context. Only a context's own `Infrastructure` uses its `Infrastructure`.
   When a rule of one context needs another context's facts, the workflow reads them and hands them over in
-  the receiving context's own value object: `OfferedMeetings` maps Meetings' `MeetingSlot` into Learning's
-  `OfferedMeeting`, and `ArchivedStructure` carries Organization's archived ids into Meetings.
+  the receiving context's own value object: `OfferedMeetings` maps Scheduling's `MeetingSlot` into Learning's
+  `OfferedMeeting`, and `ArchivedStructure` carries Organization's archived ids into Scheduling.
 - `Domain` holds the model only (`SourceLayoutTest`), and business logic lives in `Application/Service`. Entities hold state and
   nothing else: the constructor assigns the value objects, entities and ids it is given (plus fixed starting
   values such as a new session's `scheduled` progress), getters return them or answer a question about that
@@ -126,8 +126,8 @@ Naming:
 
 Persistence (ADR 0004 of `bisort-console`):
 
-- Each context owns one PostgreSQL schema (`identity`, `organization`, `people`, `meetings`, `attendance`,
-  `learning`) and its own migration history (`<context>_migration_versions`). Its migrations live in
+- Each context owns one PostgreSQL schema (`identity`, `organization`, `people`, `scheduling`, `learning`,
+  `privacy`) and its own migration history (`<context>_migration_versions`). Its migrations live in
   `src/Context/<Context>/Infrastructure/Persistence/Migrations`.
 - Every folder `src/Context/<Context>` is a context; its schema is the lower-case name. Migrations are
   applied by `app:migrations:migrate`, which migrates every context.
@@ -159,13 +159,13 @@ Errors (the contract is in [API contract](api.md#problems)):
   catalog.
 - A request checks only the shape of the input: presence, types, formats and choices. Rules that weigh values
   against each other belong to the context, which throws `InvalidInput` with the request's field path; for
-  example `RecurrenceRule` (Meetings) checks a `RecurrenceDraft` and reports `recurrence.interval`.
+  example `RecurrenceRule` (Scheduling) checks a `RecurrenceDraft` and reports `recurrence.interval`.
 - Adding a code: add it to its module in the code catalog of `docs/api.md`, and its en/de/ar texts as
   `errors.<code>` in the frontend.
 
 Naming and Doctrine rules:
 
-- `Service` (Organization) is the table `service` and `serviceId` in JSON; `Schedule` and `Session` (Meetings) are the tables `meeting_schedule` and `meeting_session`; `User` is the
+- `Service` (Organization) is the table `service` and `serviceId` in JSON; `Schedule` and `Session` (Scheduling) are the tables `schedule` and `session`; `User` is the
   table `app_user`. Classes in a `Service` folder are services in the Symfony sense; the entity is the only class named
   `Service`.
 - Entities create their UUIDv7 id in the constructor. The `$id` property is not `readonly`: when Doctrine loads a
@@ -408,7 +408,7 @@ is designed but not built; the prototype simulates it.
 
 ### Attendance records presence only
 
-Servants mark people present. Attendance belongs to the Meetings context: a mark is part of its session.
+Servants mark people present. Attendance belongs to the Scheduling context: a mark is part of its session.
 Not marked present is not the same as absent, and the MVP records no absences or excuses. Closing attendance freezes the list; a service leader can reopen it for corrections,
 and corrections keep their history.
 

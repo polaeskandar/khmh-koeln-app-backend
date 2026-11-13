@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Context\Organization\Application\Service;
 
-use App\Context\Meetings\Application\Service\SchedulePauses;
-use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Application\Service\ServiceLifecycle;
 use App\Context\Organization\Domain\Entity\Service;
+use App\Context\Scheduling\Application\Service\SchedulePauses;
+use App\Context\Scheduling\Domain\Entity\Session;
 use App\Tests\Support\CommittedRows;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use DAMA\DoctrineTestBundle\PHPUnit\SkipDatabaseRollback;
 use Doctrine\DBAL\DriverManager;
@@ -22,7 +22,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 #[SkipDatabaseRollback]
 final class ServiceLifecycleTest extends KernelTestCase
 {
-    private const string NOWAIT = 'SELECT id FROM meetings.meeting_session WHERE id = ? FOR UPDATE NOWAIT';
+    private const string NOWAIT = 'SELECT id FROM scheduling.session WHERE id = ? FOR UPDATE NOWAIT';
 
     private ?Service $service = null;
 
@@ -41,8 +41,8 @@ final class ServiceLifecycleTest extends KernelTestCase
     protected function tearDown(): void
     {
         new CommittedRows(new Database(self::getContainer())->connection())->delete([
-            'meetings.meeting_session' => [$this->session?->id()->toRfc4122() ?? ''],
-            'meetings.meeting_schedule' => [$this->session?->schedule()->id()->toRfc4122() ?? ''],
+            'scheduling.session' => [$this->session?->id()->toRfc4122() ?? ''],
+            'scheduling.schedule' => [$this->session?->schedule()->id()->toRfc4122() ?? ''],
             'organization.service' => [$this->service?->id()->toRfc4122() ?? ''],
         ]);
 

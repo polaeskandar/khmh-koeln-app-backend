@@ -181,8 +181,8 @@ A docblock never starts with a sentence. Names are camelCase, classes are nouns,
 | Service | What servants run: Sunday School, Youth Meeting | `Service` (Organization) |
 | Stage | A class or year group inside a service | `Stage` |
 | Group | A service's own roster or one of its stages, the unit of access | `GroupScope` |
-| Meeting schedule | When a service or stage meets, as a recurring plan | `Schedule` in Meetings, `MeetingSchedule…` elsewhere |
-| Meeting session | One meeting on one date, with its progress | `Session` in Meetings, `MeetingSession…` elsewhere |
+| Meeting schedule | When a service or stage meets, as a recurring plan | `Schedule` in Scheduling, `MeetingSchedule…` elsewhere |
+| Meeting session | One meeting on one date, with its progress | `Session` in Scheduling, `MeetingSession…` elsewhere |
 | Attendance | The presence marks of a session | `Attendance` |
 | Lesson | What a stage is taught at one meeting | `Lesson` |
 | Homework assignment | A task given with a lesson | `HomeworkAssignment`, `$task` |
@@ -325,7 +325,7 @@ Each rule has one authoritative place, in the layer that owns it:
   named `<subject>_lifecycle`, never `*_workflow` (`App\Workflow` is the process layer). The machines and why
   lessons and accounts have none are in [Architecture](architecture.md#state-machines-for-business-states).
 - `config/packages/workflow.yaml` is the only list of places and transitions. The places are the status enum's
-  values (`places: App\Context\Meetings\Domain\Enum\SessionStatus::*`), the transitions are verbs. No entity or
+  values (`places: App\Context\Scheduling\Domain\Enum\SessionStatus::*`), the transitions are verbs. No entity or
   value object implements the graph next to it: a value object only holds the state (`Progress::withOpened()`),
   and only the machine writes the status.
 - Every transition answers every place (`tests/Architecture/StateMachinesAnswerEveryPlaceTest`): it starts from

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Interface\Api;
 
-use App\Context\Meetings\Domain\Entity\Schedule;
-use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
+use App\Context\Scheduling\Domain\Entity\Schedule;
+use App\Context\Scheduling\Domain\Entity\Session;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 final readonly class AssignedMeetings

@@ -6,9 +6,6 @@ namespace App\Tests\Functional\Workflow\Privacy;
 
 use App\Context\Identity\Application\Service\PersonTraces as IdentityTraces;
 use App\Context\Learning\Application\Service\PersonTraces as LearningTraces;
-use App\Context\Meetings\Application\Service\PersonTraces as MeetingTraces;
-use App\Context\Meetings\Domain\Entity\Attendance;
-use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\PersonErasures;
 use App\Context\People\Domain\Repository\PersonTraceRepositoryInterface;
@@ -16,13 +13,16 @@ use App\Context\People\Domain\Repository\RosterRepositoryInterface;
 use App\Context\People\Domain\ValueObject\ForgottenPerson;
 use App\Context\People\Infrastructure\Persistence\Repository\DoctrinePersonRepository;
 use App\Context\Privacy\Application\Service\PersonTraces as PrivacyTraces;
+use App\Context\Scheduling\Application\Service\PersonTraces as MeetingTraces;
+use App\Context\Scheduling\Domain\Entity\Attendance;
+use App\Context\Scheduling\Domain\Entity\Session;
 use App\Platform\Doctrine\Contract\Transactions;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use App\Workflow\Privacy\ErasePersonWorkflow;
 use DateTimeImmutable;
@@ -81,7 +81,7 @@ final class ErasePersonWorkflowTest extends ApiTestCase
             ['erased_roster' => 2, 'erased_present' => 2, 'erased_roster_present' => 2],
             new Database(self::getContainer())
                 ->connection()
-                ->fetchAssociative('SELECT erased_roster, erased_present, erased_roster_present FROM meetings.meeting_session WHERE id = ?', [$session->id()->toRfc4122()]),
+                ->fetchAssociative('SELECT erased_roster, erased_present, erased_roster_present FROM scheduling.session WHERE id = ?', [$session->id()->toRfc4122()]),
         );
     }
 
@@ -131,8 +131,8 @@ final class ErasePersonWorkflowTest extends ApiTestCase
         }
 
         $connection = new Database(self::getContainer())->connection();
-        self::assertSame(1, $connection->fetchOne('SELECT count(*) FROM meetings.attendance'));
-        self::assertSame(0, $connection->fetchOne('SELECT sum(erased_present) FROM meetings.meeting_session'));
+        self::assertSame(1, $connection->fetchOne('SELECT count(*) FROM scheduling.attendance'));
+        self::assertSame(0, $connection->fetchOne('SELECT sum(erased_present) FROM scheduling.session'));
         self::assertSame($mina, $connection->fetchOne('SELECT person_id::text FROM identity.app_user'));
     }
 

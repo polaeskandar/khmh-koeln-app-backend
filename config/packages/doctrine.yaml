@@ -36,11 +36,11 @@ doctrine:
                 is_bundle: false
                 dir: '%kernel.project_dir%/src/Context/People/Domain'
                 prefix: 'App\Context\People\Domain'
-            Meetings:
+            Scheduling:
                 type: attribute
                 is_bundle: false
-                dir: '%kernel.project_dir%/src/Context/Meetings/Domain'
-                prefix: 'App\Context\Meetings\Domain'
+                dir: '%kernel.project_dir%/src/Context/Scheduling/Domain'
+                prefix: 'App\Context\Scheduling\Domain'
             Learning:
                 type: attribute
                 is_bundle: false

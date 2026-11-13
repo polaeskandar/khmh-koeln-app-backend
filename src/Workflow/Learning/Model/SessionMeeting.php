@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Meetings\Domain\Entity\Session;
-use App\Context\Meetings\Domain\ValueObject\PlannedDate;
-use App\Workflow\Meetings\Model\MeetingTime;
-use App\Workflow\Meetings\Model\SessionProgress;
+use App\Context\Scheduling\Domain\Entity\Session;
+use App\Context\Scheduling\Domain\ValueObject\PlannedDate;
+use App\Workflow\Scheduling\Model\MeetingTime;
+use App\Workflow\Scheduling\Model\SessionProgress;
 
 final readonly class SessionMeeting
 {
