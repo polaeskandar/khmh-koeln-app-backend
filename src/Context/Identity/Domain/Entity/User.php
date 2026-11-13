@@ -10,6 +10,7 @@ use App\Context\Identity\Domain\ValueObject\MemberLink;
 use App\Context\Identity\Domain\ValueObject\PersonalDetails;
 use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Identity\Domain\ValueObject\Registration;
+use App\Context\Identity\Domain\ValueObject\Username;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
 use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -22,6 +23,7 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Entity]
 #[ORM\Table(name: 'app_user', schema: 'identity')]
 #[ORM\UniqueConstraint(name: 'app_user_email_unique', columns: ['email'])]
+#[ORM\UniqueConstraint(name: 'app_user_username_unique', columns: ['username'])]
 #[ORM\UniqueConstraint(
     name: 'app_user_person_unique',
     columns: ['person_id'],
@@ -32,6 +34,9 @@ final class User extends CreatedAtEntity
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME)]
     private Uuid $id;
+
+    #[ORM\Embedded(Username::class, columnPrefix: false)]
+    private Username $username;
 
     #[ORM\Embedded(Profile::class, columnPrefix: false)]
     private Profile $profile;
@@ -67,6 +72,7 @@ final class User extends CreatedAtEntity
      * @param list<Role> $roles
      */
     public function __construct(
+        Username $username,
         Profile $profile,
         string $passwordHash,
         AccountStatus $status,
@@ -74,6 +80,7 @@ final class User extends CreatedAtEntity
         array $roles,
     ) {
         $this->id = Uuid::v7();
+        $this->username = $username;
         $this->profile = $profile;
         $this->passwordHash = $passwordHash;
         $this->registration = $registration;
@@ -86,6 +93,11 @@ final class User extends CreatedAtEntity
     public function id(): Uuid
     {
         return $this->id;
+    }
+
+    public function username(): Username
+    {
+        return $this->username;
     }
 
     public function profile(): Profile

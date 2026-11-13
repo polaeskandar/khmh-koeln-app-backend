@@ -21,11 +21,13 @@ final class UserCreateCommandTest extends KernelTestCase
         $tester->setInputs([self::TYPED, self::TYPED]);
 
         self::assertSame(Command::SUCCESS, $tester->execute([
+            'username' => 'Sara.Hanna',
             'email' => ' Sara.Hanna@Example.org',
             'name' => 'Sara Hanna',
         ]));
 
         $user = $this->accounts()->withEmail('sara.hanna@example.org');
+        self::assertSame('sara.hanna', $user->username()->value);
         self::assertTrue($user->status()->isActive());
         self::assertSame(['ROLE_USER'], SecurityUser::of($user)->getRoles());
         self::assertTrue($this->accounts()->acceptsSecret($user, self::TYPED));
@@ -38,6 +40,7 @@ final class UserCreateCommandTest extends KernelTestCase
         $tester->setInputs([self::TYPED]);
 
         $status = $tester->execute([
+            'username' => 'sara',
             'email' => 'sara@example.org',
             'name' => 'Sara',
             '--password-stdin' => true,
@@ -61,7 +64,11 @@ final class UserCreateCommandTest extends KernelTestCase
         $tester = $this->tester();
         $tester->setInputs($typed);
 
-        self::assertNotSame(Command::SUCCESS, $tester->execute(['email' => 'sara@example.org', 'name' => 'Sara']));
+        self::assertNotSame(Command::SUCCESS, $tester->execute([
+            'username' => 'sara',
+            'email' => 'sara@example.org',
+            'name' => 'Sara',
+        ]));
 
         self::assertSame(0, $this->accounts()->count());
 
@@ -81,11 +88,12 @@ final class UserCreateCommandTest extends KernelTestCase
 
     public function testATakenEmailInAnyCaseWritesNothing(): void
     {
-        $this->piped(['email' => 'sara@example.org', 'name' => 'Sara']);
+        $this->piped(['username' => 'sara', 'email' => 'sara@example.org', 'name' => 'Sara']);
         $tester = $this->tester();
         $tester->setInputs([self::TYPED]);
 
         self::assertSame(Command::INVALID, $tester->execute([
+            'username' => 'sara2',
             'email' => 'SARA@Example.org',
             'name' => 'Sara',
             '--password-stdin' => true,
@@ -95,12 +103,46 @@ final class UserCreateCommandTest extends KernelTestCase
         self::assertSame(1, $this->accounts()->count());
     }
 
+    public function testATakenUsernameInAnyCaseWritesNothing(): void
+    {
+        $this->piped(['username' => 'sara', 'email' => 'sara@example.org', 'name' => 'Sara']);
+        $tester = $this->tester();
+        $tester->setInputs([self::TYPED]);
+
+        self::assertSame(Command::FAILURE, $tester->execute([
+            'username' => ' SARA ',
+            'email' => 'sara.hanna@example.org',
+            'name' => 'Sara',
+            '--password-stdin' => true,
+        ], ['interactive' => false]));
+
+        self::assertStringContainsString('accounts.usernameTaken', $tester->getDisplay());
+        self::assertSame(1, $this->accounts()->count());
+    }
+
+    public function testAnInvalidUsernameWritesNothing(): void
+    {
+        $tester = $this->tester();
+        $tester->setInputs([self::TYPED]);
+
+        self::assertSame(Command::INVALID, $tester->execute([
+            'username' => 'a..b',
+            'email' => 'sara@example.org',
+            'name' => 'Sara',
+            '--password-stdin' => true,
+        ], ['interactive' => false]));
+
+        self::assertStringContainsString('username: accounts.usernameInvalid', $tester->getDisplay());
+        self::assertSame(0, $this->accounts()->count());
+    }
+
     public function testAnUnknownLanguageWritesNothing(): void
     {
         $tester = $this->tester();
         $tester->setInputs([self::TYPED]);
 
         self::assertSame(Command::INVALID, $tester->execute([
+            'username' => 'sara',
             'email' => 'sara@example.org',
             'name' => 'Sara',
             '--password-stdin' => true,

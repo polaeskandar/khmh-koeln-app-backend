@@ -11,6 +11,7 @@ final readonly class AccountSummary
 {
     public function __construct(
         public string $id,
+        public string $username,
         public string $email,
         public string $displayName,
         public Language $language,
@@ -23,6 +24,7 @@ final readonly class AccountSummary
 
         return new self(
             $user->id()->toRfc4122(),
+            $user->username()->value,
             $profile->email->value,
             $profile->displayName->value,
             $profile->language,

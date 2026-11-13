@@ -41,6 +41,13 @@ final readonly class InputText
         return new self(mb_strtolower($unmarked->value));
     }
 
+    public function compatibilityComposed(): self
+    {
+        $composed = Normalizer::normalize($this->value, Normalizer::FORM_KC);
+
+        return $composed === false ? $this : new self($composed);
+    }
+
     public function lowered(): self
     {
         return new self($this->value |> mb_strtolower(...) |> ComposedForm::of(...));

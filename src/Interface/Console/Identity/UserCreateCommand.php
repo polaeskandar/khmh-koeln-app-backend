@@ -10,9 +10,9 @@ use App\Library\Console\Exception\ConfirmationMismatch;
 use App\Library\Console\Exception\HiddenInputUnavailable;
 use App\Library\Console\Exception\TerminalRequired;
 use App\Library\Problem\Exception\InvalidInput;
+use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Strings\Model\Text;
 use App\Workflow\Identity\CreateUserWorkflow;
-use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Attribute\MapInput;
 use Symfony\Component\Console\Command\Command;
@@ -28,29 +28,19 @@ final readonly class UserCreateCommand
     ) {
     }
 
-    public function __invoke(
-        SymfonyStyle $io,
-        InputInterface $input,
-        #[Argument(description: 'Email address, compared in lower case')]
-        string $email,
-        #[Argument(description: 'Display name')]
-        string $name,
-        #[MapInput]
-        UserCreateRequest $options,
-    ): int {
+    public function __invoke(SymfonyStyle $io, InputInterface $input, #[MapInput] UserCreateRequest $request): int
+    {
         try {
             $account = ($this->createUser)(
-                email: $email,
-                displayName: $name,
-                language: $options->language,
-                password: $this->password($io, $input, $options),
-                role: $options->role,
+                $request->details(),
+                password: $this->password($io, $input, $request),
+                role: $request->role,
             );
         } catch (InvalidInput $invalid) {
             self::report($io, $invalid);
 
             return Command::INVALID;
-        } catch (ConfirmationMismatch|HiddenInputUnavailable|TerminalRequired $unusable) {
+        } catch (ConfirmationMismatch|HiddenInputUnavailable|RuleViolation|TerminalRequired $unusable) {
             $io->error($unusable->getMessage());
 
             return Command::FAILURE;

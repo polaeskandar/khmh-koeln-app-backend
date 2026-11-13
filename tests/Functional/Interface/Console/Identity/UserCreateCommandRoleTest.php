@@ -21,6 +21,7 @@ final class UserCreateCommandRoleTest extends KernelTestCase
         $tester->setInputs([self::TYPED, self::TYPED]);
 
         self::assertSame(Command::SUCCESS, $tester->execute([
+            'username' => 'admin',
             'email' => 'admin@example.org',
             'name' => 'Admin',
             '--role' => 'administrator',
@@ -49,6 +50,7 @@ final class UserCreateCommandRoleTest extends KernelTestCase
         $tester->setInputs([self::TYPED]);
 
         self::assertSame(Command::INVALID, $tester->execute([
+            'username' => 'sara',
             'email' => 'sara@example.org',
             'name' => 'Sara',
             '--password-stdin' => true,

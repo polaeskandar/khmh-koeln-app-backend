@@ -270,7 +270,7 @@ Any signed-in account, parents included. 401 `auth.unauthenticated` without a va
 
 | Member | Type |
 | --- | --- |
-| `account` | `{id, email, displayName, language}`; `language` is `en`, `de` or `ar` |
+| `account` | `{id, username, email, displayName, language}`; `language` is `en`, `de` or `ar` |
 | `roles` | `[{id, name}]`, by name |
 | `permissions` | `[{action, resource, scope}]`, every permission the account's roles grant, once each, by resource and action in the order of the catalog; `scope` is `church` when a church role grants it, else `assignedGroups` |
 | `assignments` | `[{service: ServiceRef, stage: StageRef \| null}]`, the groups the account serves in (see [Assigned groups](#assigned-groups)), by service name, the service itself first, then by stage position |
@@ -299,6 +299,7 @@ A servant (its `members`, `lessons` and `homework` permissions left out):
 {
   "account": {
     "id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f01",
+    "username": "daniel.mikhail",
     "email": "daniel.mikhail@example.org",
     "displayName": "Daniel Mikhail",
     "language": "de"
@@ -328,6 +329,7 @@ A parent:
 {
   "account": {
     "id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f03",
+    "username": "mariam.hanna",
     "email": "mariam.hanna@example.org",
     "displayName": "Mariam Hanna",
     "language": "ar"
@@ -926,6 +928,10 @@ label is its own label, and the 120-character limit applies only to a label that
 | `accounts.emailRequired` | – | Enter your email address. |
 | `accounts.emailInvalid` | – | Enter an email address like name@example.org. |
 | `accounts.emailTaken` | – | There is already an account with this email address. |
+| `accounts.usernameRequired` | – | **New.** Field error: enter a username. |
+| `accounts.usernameTooShort` | `min` | **New.** Field error: a username has at least `min` (3) characters. |
+| `accounts.usernameInvalid` | – | **New.** Field error: use `a–z`, `0–9`, `.`, `_` or `-`, start with a letter, end with a letter or digit, and never put two of `._-` in a row. |
+| `accounts.usernameTaken` | – | **New.** 409: another account already has this username. |
 | `accounts.passwordTooShort` | `min` | Use at least {min, number} characters. |
 | `accounts.currentPasswordWrong` | – | **New.** Field error on `currentPassword`: the current password is not right. |
 | `accounts.chooseServiceForRole` | – | Choose the service for this role. |
