@@ -17,7 +17,7 @@ final readonly class ErasureSchedules
         private UserRepositoryInterface $users,
         private LastAdministrator $lastAdministrator,
         private AdministrationLockInterface $administration,
-        private Credentials $credentials,
+        private ApiTokens $apiTokens,
     ) {
     }
 
@@ -32,7 +32,7 @@ final readonly class ErasureSchedules
                 $user->changeErasure($erasesOn);
             });
 
-            $this->credentials->endAllOf($accountId);
+            $this->apiTokens->revokeAllOf($accountId);
         });
     }
 

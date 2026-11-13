@@ -6,7 +6,6 @@ namespace App\Tests\Functional\Interface\Console\Identity;
 
 use App\Tests\Support\Context\Identity\Domain\Entity\StoredAccounts;
 use App\Tests\Support\Database;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
@@ -16,11 +15,7 @@ final class UserCreateCommandRoleTest extends KernelTestCase
 {
     private const string TYPED = 'correct horse battery';
 
-    /**
-     * @param array<string, bool> $passwordOptions
-     */
-    #[DataProvider('administrators')]
-    public function testTheRoleOptionGivesTheAccountThatRole(array $passwordOptions): void
+    public function testTheRoleOptionGivesTheAccountThatRole(): void
     {
         $tester = $this->tester();
         $tester->setInputs([self::TYPED, self::TYPED]);
@@ -29,7 +24,6 @@ final class UserCreateCommandRoleTest extends KernelTestCase
             'email' => 'admin@example.org',
             'name' => 'Admin',
             '--role' => 'administrator',
-            ...$passwordOptions,
         ]));
 
         self::assertTrue(
@@ -49,25 +43,17 @@ final class UserCreateCommandRoleTest extends KernelTestCase
         );
     }
 
-    /**
-     * @return iterable<string, array{array<string, bool>}>
-     */
-    public static function administrators(): iterable
-    {
-        yield 'typed password' => [[]];
-        yield 'no password' => [['--no-password' => true]];
-    }
-
     public function testAnUnknownRoleWritesNothing(): void
     {
         $tester = $this->tester();
+        $tester->setInputs([self::TYPED]);
 
         self::assertSame(Command::INVALID, $tester->execute([
             'email' => 'sara@example.org',
             'name' => 'Sara',
-            '--no-password' => true,
+            '--password-stdin' => true,
             '--role' => 'Pastor',
-        ]));
+        ], ['interactive' => false]));
 
         self::assertStringContainsString('role: roles.unknown', $tester->getDisplay());
         self::assertSame(0, new StoredAccounts(self::getContainer())->count());

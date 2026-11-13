@@ -6,7 +6,6 @@ namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Interface\AdministrationLockInterface;
-use App\Context\Identity\Domain\Repository\PasswordTokenRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\AccountErased;
 use App\Library\Problem\Exception\RuleViolation;
@@ -19,7 +18,6 @@ final readonly class AccountRemovals
         private AdministrationLockInterface $administration,
         private UserRepositoryInterface $users,
         private LastAdministrator $lastAdministrator,
-        private PasswordTokenRepositoryInterface $tokens,
         private AccountSweeps $sweeps,
     ) {
     }
@@ -43,11 +41,7 @@ final readonly class AccountRemovals
             throw new RuleViolation('roles.lastAdministrator');
         }
 
-        $erased = new AccountErased(
-            $user->roles()->count(),
-            $this->tokens->countFor($user->id()),
-            $this->sweeps->sweep($user->id()),
-        );
+        $erased = new AccountErased($user->roles()->count(), $this->sweeps->sweep($user->id()));
 
         $this->users->remove($user);
 

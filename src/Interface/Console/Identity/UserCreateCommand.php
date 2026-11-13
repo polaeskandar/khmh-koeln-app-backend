@@ -19,7 +19,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand(name: 'app:user:create', description: 'Create an approved account')]
+#[AsCommand(name: 'app:user:create', description: 'Create an account')]
 final readonly class UserCreateCommand
 {
     public function __construct(
@@ -56,18 +56,16 @@ final readonly class UserCreateCommand
             return Command::FAILURE;
         }
 
-        $io->success(Text::format('Created the approved account %s.', $account)->toString());
+        $io->success(Text::format('Created the account %s.', $account)->toString());
 
         return Command::SUCCESS;
     }
 
-    private function password(SymfonyStyle $io, InputInterface $input, UserCreateRequest $options): ?string
+    private function password(SymfonyStyle $io, InputInterface $input, UserCreateRequest $options): string
     {
-        return match (true) {
-            $options->noPassword => null,
-            $options->passwordStdin => $this->secrets->fromStandardInput($input),
-            default => $this->secrets->typed($io, $input, prompt: 'Password'),
-        };
+        return $options->passwordStdin
+            ? $this->secrets->fromStandardInput($input)
+            : $this->secrets->typed($io, $input, prompt: 'Password');
     }
 
     private static function report(SymfonyStyle $io, InvalidInput $invalid): void

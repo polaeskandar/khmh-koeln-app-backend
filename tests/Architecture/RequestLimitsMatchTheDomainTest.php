@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Architecture;
 
-use App\Context\Identity\Domain\ValueObject\Email;
 use App\Context\People\Application\Service\PersonDirectory;
-use App\Interface\Api\Identity\Request\ForgotPasswordRequest;
 use App\Interface\Api\People\Request\PeopleQueryRequest;
 use App\Library\Problem\Exception\InvalidInput;
 use Closure;
@@ -60,14 +58,6 @@ final class RequestLimitsMatchTheDomainTest extends KernelTestCase
     public static function limits(): iterable
     {
         $letters = static fn (int $length): string => str_pad('', $length, pad_string: 'a');
-        $email = static fn (int $length): string => str_pad('', $length - 12, pad_string: 'a') . '@example.org';
-
-        yield 'forgotten password email' => [
-            ForgotPasswordRequest::class,
-            'email',
-            Email::of(...),
-            $email,
-        ];
 
         yield 'people search' => [
             PeopleQueryRequest::class,

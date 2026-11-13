@@ -21,15 +21,6 @@ final class SymfonyPasswordHasherTest extends KernelTestCase
         self::assertFalse($hasher->verify($hash, 'correct horse '));
     }
 
-    public function testAnUnusableHashIsDifferentEveryTimeAndVerifiesNothingKnown(): void
-    {
-        $hasher = new SymfonyPasswordHasher($this->factory());
-        $first = $hasher->unusableHash();
-
-        self::assertNotSame($first, $hasher->unusableHash());
-        self::assertFalse($this->symfonyHasher()->verify($first, ''));
-    }
-
     private function symfonyHasher(): \Symfony\Component\PasswordHasher\PasswordHasherInterface
     {
         return $this->factory()->getPasswordHasher(SecurityUser::class);

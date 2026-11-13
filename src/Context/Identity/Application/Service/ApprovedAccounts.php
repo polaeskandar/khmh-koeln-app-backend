@@ -34,7 +34,7 @@ final readonly class ApprovedAccounts
         string $displayName,
         Language $language,
         #[SensitiveParameter]
-        ?string $password,
+        string $password,
         ?string $role,
     ): Uuid {
         $profile = new Profile(Email::of($email), DisplayName::of($displayName), $language);
@@ -45,7 +45,7 @@ final readonly class ApprovedAccounts
 
         $user = new User(
             $profile,
-            passwordHash: $this->passwordHash($password),
+            passwordHash: $this->hasher->hash(PlainPassword::of($password)),
             status: AccountStatus::active(),
             registration: Registration::none(),
             roles: $this->rolesNamed($role),
@@ -66,10 +66,5 @@ final readonly class ApprovedAccounts
         }
 
         return [$this->roles->findByName($roleName) ?? throw InvalidInput::field('role', 'roles.unknown')];
-    }
-
-    private function passwordHash(#[SensitiveParameter] ?string $password): string
-    {
-        return $password === null ? $this->hasher->unusableHash() : $this->hasher->hash(PlainPassword::of($password));
     }
 }

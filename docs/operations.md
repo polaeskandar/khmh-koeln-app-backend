@@ -84,9 +84,8 @@ with `clearNotes: true` does, and closes the request with the counts. It runs on
 ## First administrators
 
 An empty database has no account. After migrating it, create each administrator with
-`php bin/console app:user:create <email> "<name>" --role=administrator --no-password`, then
-`php bin/console app:user:password-link <email>`; the link reaches them by email and is valid 24 hours. Tell each
-of them in person that it is coming.
+`php bin/console app:user:create <email> "<name>" --role=administrator`, typing the password twice (or piping
+it with `--password-stdin`), and hand it over in person.
 
 ## Importing members
 

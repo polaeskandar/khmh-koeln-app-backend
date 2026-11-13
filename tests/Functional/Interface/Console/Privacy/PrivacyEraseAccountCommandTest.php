@@ -88,27 +88,16 @@ final class PrivacyEraseAccountCommandTest extends KernelTestCase
             ->fetchOne('SELECT count(*) FROM organization.staff_assignment WHERE account_id = ?', [$servant]));
     }
 
-    public function testAParentsReportsStayButItsRolesLinksAndPasswordLinksGo(): void
+    public function testAParentsReportsStayButItsRolesAndLinksGo(): void
     {
         self::mockTime('2026-11-08T12:00:00+01:00');
         [, $parent] = new PrivacyFixture(self::getContainer())->family();
         $connection = new Database(self::getContainer())->connection();
 
-        $connection->insert('identity.password_token', [
-            'id' => Uuid::v7()->toRfc4122(),
-            'token_hash' => 'h',
-            'expires_at' => '2026-11-09 12:00:00+01',
-            'user_id' => $parent,
-            'created_at' => '2026-11-08 12:00:00+01',
-        ]);
-
         $tester = $this->tester();
         self::assertSame(Command::SUCCESS, $tester->execute(['account' => $parent]));
 
-        self::assertStringContainsString(
-            '1 roles, 1 guardian links and 1 password links removed',
-            $tester->getDisplay(),
-        );
+        self::assertStringContainsString('1 roles and 1 guardian links removed', $tester->getDisplay());
 
         self::assertStringNotContainsString('hoda', $tester->getDisplay());
 
@@ -122,10 +111,6 @@ final class PrivacyEraseAccountCommandTest extends KernelTestCase
         ]));
 
         self::assertSame(0, $connection->fetchOne('SELECT count(*) FROM people.guardian_relationship WHERE user_id = ?', [
-            $parent,
-        ]));
-
-        self::assertSame(0, $connection->fetchOne('SELECT count(*) FROM identity.password_token WHERE user_id = ?', [
             $parent,
         ]));
     }

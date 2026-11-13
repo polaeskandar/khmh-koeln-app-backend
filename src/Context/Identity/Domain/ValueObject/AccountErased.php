@@ -8,7 +8,6 @@ final readonly class AccountErased
 {
     public function __construct(
         public int $roles,
-        public int $passwordLinks,
         public int $rowsKept,
     ) {
     }
