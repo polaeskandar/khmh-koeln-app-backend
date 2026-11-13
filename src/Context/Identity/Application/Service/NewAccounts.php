@@ -45,6 +45,7 @@ final readonly class NewAccounts
         }
 
         $user = new User(
+            $draft->personId,
             $name,
             $profile,
             passwordHash: $this->hasher->hash(PlainPassword::of($password)),

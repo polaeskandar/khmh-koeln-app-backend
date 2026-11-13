@@ -42,7 +42,7 @@ final readonly class ExportAccountDataWorkflow
             account: AccountRecord::of($user),
             children: LinkRow::childrenOf($this->guardians->listOfAccount($user->id())),
             homeworkReports: ReportByRow::listOf($reports, $this->people->findByIds(ReportByRow::childIdsOf($reports))),
-            member: MemberLinkView::of($user->member()),
+            member: MemberLinkView::of($user),
         );
     }
 }

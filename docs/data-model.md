@@ -204,7 +204,7 @@ command that runs the workflow, with its lock, is #53.
 
 | Table | Purpose | Key rules |
 | --- | --- | --- |
-| `app_user` | A sign-in account: username, email, display name, password hash, language (`en`, `de`, `ar`), optional link to the person's own member record (`person_id`), optional `birth_date` and postal address (`street`, `postal_code`, `city`, all three or none; visible to the person and administrators). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. The church office creates every account, and it can sign in at once. Disabled accounts (`disabled_at`) can't sign in and keep their history. `erases_on` is set while an erasure the account asked for in the app waits: it can't sign in (`auth.erasureScheduled`), its sessions ended when it was set, and it doesn't count as another administrator for `roles.lastAdministrator`. |
+| `app_user` | A sign-in account: username, email, display name, password hash, language (`en`, `de`, `ar`), the person it belongs to (`person_id`, required, one account per person), optional `birth_date` and postal address (`street`, `postal_code`, `city`, all three or none; visible to the person and administrators). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. The church office creates every account, and it can sign in at once. Disabled accounts (`disabled_at`) can't sign in and keep their history. `erases_on` is set while an erasure the account asked for in the app waits: it can't sign in (`auth.erasureScheduled`), its sessions ended when it was set, and it doesn't count as another administrator for `roles.lastAdministrator`. |
 | `role` | A named set of permissions with a `scope`: `church` (the permissions hold everywhere) or `assignedGroups` (they hold in the holder's assigned groups). Administrators create, rename and delete roles and choose their permissions and scope; the defaults are Administrator, Service leader, Servant and Parent. | Name unique, ignoring case and extra spaces. `scope` defaults to `church` (CHECK); Service leader and Servant are seeded with `assignedGroups`. |
 | `organization.staff_assignment` | A group an account serves in: `account_id`, `service_id`, `stage_id` (null for the service's own roster and all its stages), `created_at`. | Once per account and group (partial UNIQUE `(account_id, service_id) WHERE stage_id IS NULL` and `(account_id, stage_id) WHERE stage_id IS NOT NULL`). No stage row for a service the account holds as a whole: the API refuses one and deletes the stage rows when the whole service is assigned, without a constraint; migration `Version20261111201730` deleted those that existed before. `service_id` and `stage_id` reference `service` and `stage` with `ON DELETE CASCADE`; `account_id` is a plain id of an Identity account, deleted with it. |
 | `permission` | One action (`create`, `read`, `update`, `delete`) on one resource (`users`, `roles`, `services`, `stages`, `sessions`, `attendance`, `members`, `lessons`, `homework`, `parentPortal`). | One row per action and resource; seeded. |
@@ -217,15 +217,14 @@ refused instead of matched. It is stored in that normal form, UNIQUE, with a CHE
 answers `accounts.usernameTaken`. The migration that added it derived each existing account's username from its
 email's local part (cleaned, `user` in front when too short, `2`, `3`, … after a name already taken). The email is stored trimmed and in lower case (CHECK `email =
 lower(btrim(email))`, UNIQUE), so lookups normalize the typed address the same way. CHECKs keep `language` to
-`en`, `de`, `ar`; `person_id` is a plain id of a People person (no
-foreign key across schemas), partial UNIQUE `(person_id) WHERE person_id IS NOT NULL`; `age_check`
-(`sixteenOrOlder`, `guardianConsent`) and `guardian_consent_note` (≤200) are set only with `person_id`, and the
-note only with `guardianConsent`; operators set and remove the link with `app:member:link` and `app:member:unlink`.
-`LinkMemberWorkflow` checks the person in People (exists, active, no other account) while it holds a share lock
-on the person's row, so an erasure, which locks the row for update and clears the link, can't remove the person in
-between. The address is all three parts or none (street ≤120,
+`en`, `de`, `ar`; `person_id` is a plain id of a People person (no foreign key across schemas), NOT NULL and
+UNIQUE: every account belongs to exactly one person, created with it, and the link never changes. `age_check`
+(`sixteenOrOlder`, `guardianConsent`) marks a member account, and `guardian_consent_note` (≤200) is set only with
+`guardianConsent`. The migration that made `person_id` required created an active person for each account without
+one (first name from the display name's first word, last name from the rest) and linked it. Erasing a person whose
+account still exists is refused (`privacy.personHasAccount`); a request's erasure erases both. The address is all three parts or none (street ≤120,
 postal code ≤10, city ≤80, cleaned, blank → null). A birth date is never after today: the application checks it
-against the church calendar, because a CHECK can't read the date. Operators create accounts with `bin/console app:user:create <username> <email> <name>`, typing the
+against the church calendar, because a CHECK can't read the date. Operators create accounts with `bin/console app:user:create <username> <email> <firstName> <lastName>`, which creates the person in the same transaction, typing the
 password twice or piping it with `--password-stdin`.
 
 Roles are dynamic (RBAC), in the `identity` schema: a user has roles (`user_role`), a role has permissions

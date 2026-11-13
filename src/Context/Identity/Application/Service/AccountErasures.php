@@ -27,7 +27,7 @@ final readonly class AccountErasures
 
     public function recordOfAccount(?Uuid $accountId): ?Uuid
     {
-        return $accountId === null ? null : $this->users->find($accountId)?->member()->personId;
+        return $accountId === null ? null : $this->users->find($accountId)?->personId();
     }
 
     public function erase(Uuid $accountId): AccountErased

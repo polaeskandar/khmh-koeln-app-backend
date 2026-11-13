@@ -47,8 +47,6 @@ final class UserTest extends KernelTestCase
         yield 'unknown language' => [['language' => 'fr']];
         yield 'street only' => [['street' => 'Domstraße 1']];
         yield 'no city' => [['street' => 'Domstraße 1', 'postal_code' => '50667']];
-        yield 'age check without a member record' => [['age_check' => 'sixteenOrOlder']];
-        yield 'member record without an age check' => [['person_id' => Uuid::v7()->toRfc4122()]];
         yield 'unknown age check' => [['person_id' => Uuid::v7()->toRfc4122(), 'age_check' => 'adult']];
 
         yield 'note without an age check' => [['guardian_consent_note' => 'Mother agreed.']];

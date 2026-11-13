@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Workflow\Privacy;
 
+use App\Context\Identity\Application\Service\AccountErasures;
 use App\Context\Identity\Application\Service\PersonTraces as IdentityTraces;
 use App\Context\Learning\Application\Service\PersonTraces as LearningTraces;
 use App\Context\Organization\Application\Service\StructureLookup;
@@ -16,6 +17,7 @@ use App\Context\Privacy\Application\Service\PersonTraces as PrivacyTraces;
 use App\Context\Scheduling\Application\Service\PersonTraces as MeetingTraces;
 use App\Context\Scheduling\Domain\Entity\Attendance;
 use App\Context\Scheduling\Domain\Entity\Session;
+use App\Library\Problem\Exception\RuleViolation;
 use App\Platform\Doctrine\Contract\Transactions;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
@@ -48,20 +50,22 @@ final class ErasePersonWorkflowTest extends ApiTestCase
         $this->assertProblem(404, 'notFound.person');
     }
 
-    public function testErasingAPersonRemovesTheLinkOfTheirOwnAccount(): void
+    public function testAPersonWithAnAccountIsNotErasedWithoutIt(): void
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         [$mina] = $this->sessionWith(['Mina'], self::DONE);
-
         $this->linkAccountTo($mina);
-        self::service(ErasePersonWorkflow::class)($mina);
 
-        self::assertSame(
-            ['person_id' => null, 'age_check' => null, 'guardian_consent_note' => null],
-            new Database(self::getContainer())
-                ->connection()
-                ->fetchAssociative('SELECT person_id, age_check, guardian_consent_note FROM identity.app_user'),
-        );
+        try {
+            self::service(ErasePersonWorkflow::class)($mina);
+            self::fail('The person was erased.');
+        } catch (RuleViolation $refused) {
+            self::assertSame('privacy.personHasAccount', $refused->getMessage());
+        }
+
+        $connection = new Database(self::getContainer())->connection();
+        self::assertSame(1, $connection->fetchOne('SELECT count(*) FROM scheduling.attendance'));
+        self::assertSame($mina, $connection->fetchOne('SELECT person_id::text FROM identity.app_user'));
     }
 
     public function testErasuresAddToTheCountersInsteadOfOverwritingThem(): void
@@ -89,7 +93,6 @@ final class ErasePersonWorkflowTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         [$mina] = $this->sessionWith(['Mina'], self::DONE);
-        $this->linkAccountTo($mina);
         $entityManager = new Database(self::getContainer())->entityManager();
 
         $failing = new class implements PersonTraceRepositoryInterface {
@@ -107,6 +110,7 @@ final class ErasePersonWorkflowTest extends ApiTestCase
         };
 
         $erasure = new ErasePersonWorkflow(
+            self::service(AccountErasures::class),
             new PersonErasures(
                 new DoctrinePersonRepository($entityManager),
                 self::service(RosterRepositoryInterface::class),
@@ -133,7 +137,6 @@ final class ErasePersonWorkflowTest extends ApiTestCase
         $connection = new Database(self::getContainer())->connection();
         self::assertSame(1, $connection->fetchOne('SELECT count(*) FROM scheduling.attendance'));
         self::assertSame(0, $connection->fetchOne('SELECT sum(erased_present) FROM scheduling.session'));
-        self::assertSame($mina, $connection->fetchOne('SELECT person_id::text FROM identity.app_user'));
     }
 
     private function linkAccountTo(string $personId): void

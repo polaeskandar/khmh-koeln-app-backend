@@ -16,8 +16,11 @@ final class UserCreateRequest
     #[Argument(description: 'Email address, compared in lower case')]
     public string $email = '';
 
-    #[Argument(description: 'Display name')]
-    public string $name = '';
+    #[Argument(description: 'First name of the person the account belongs to', name: 'firstName')]
+    public string $firstName = '';
+
+    #[Argument(description: 'Last name of the person the account belongs to', name: 'lastName')]
+    public string $lastName = '';
 
     #[Option(description: 'Read the password from stdin')]
     public bool $passwordStdin = false;
@@ -30,6 +33,6 @@ final class UserCreateRequest
 
     public function details(): NewAccountDetails
     {
-        return new NewAccountDetails($this->username, $this->email, $this->name, $this->language);
+        return new NewAccountDetails($this->username, $this->email, $this->firstName, $this->lastName, $this->language);
     }
 }

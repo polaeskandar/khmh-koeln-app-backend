@@ -23,7 +23,8 @@ final class UserCreateCommandTest extends KernelTestCase
         self::assertSame(Command::SUCCESS, $tester->execute([
             'username' => 'Sara.Hanna',
             'email' => ' Sara.Hanna@Example.org',
-            'name' => 'Sara Hanna',
+            'firstName' => 'Sara',
+            'lastName' => 'Hanna',
         ]));
 
         $user = $this->accounts()->withEmail('sara.hanna@example.org');
@@ -42,7 +43,8 @@ final class UserCreateCommandTest extends KernelTestCase
         $status = $tester->execute([
             'username' => 'sara',
             'email' => 'sara@example.org',
-            'name' => 'Sara',
+            'firstName' => 'Sara',
+            'lastName' => 'Hanna',
             '--password-stdin' => true,
             '--language' => 'ar',
         ], ['interactive' => false]);
@@ -67,7 +69,8 @@ final class UserCreateCommandTest extends KernelTestCase
         self::assertNotSame(Command::SUCCESS, $tester->execute([
             'username' => 'sara',
             'email' => 'sara@example.org',
-            'name' => 'Sara',
+            'firstName' => 'Sara',
+            'lastName' => 'Hanna',
         ]));
 
         self::assertSame(0, $this->accounts()->count());
@@ -88,14 +91,21 @@ final class UserCreateCommandTest extends KernelTestCase
 
     public function testATakenEmailInAnyCaseWritesNothing(): void
     {
-        $this->piped(['username' => 'sara', 'email' => 'sara@example.org', 'name' => 'Sara']);
+        $this->piped([
+            'username' => 'sara',
+            'email' => 'sara@example.org',
+            'firstName' => 'Sara',
+            'lastName' => 'Hanna',
+        ]);
+
         $tester = $this->tester();
         $tester->setInputs([self::TYPED]);
 
         self::assertSame(Command::INVALID, $tester->execute([
             'username' => 'sara2',
             'email' => 'SARA@Example.org',
-            'name' => 'Sara',
+            'firstName' => 'Sara',
+            'lastName' => 'Hanna',
             '--password-stdin' => true,
         ], ['interactive' => false]));
 
@@ -105,14 +115,21 @@ final class UserCreateCommandTest extends KernelTestCase
 
     public function testATakenUsernameInAnyCaseWritesNothing(): void
     {
-        $this->piped(['username' => 'sara', 'email' => 'sara@example.org', 'name' => 'Sara']);
+        $this->piped([
+            'username' => 'sara',
+            'email' => 'sara@example.org',
+            'firstName' => 'Sara',
+            'lastName' => 'Hanna',
+        ]);
+
         $tester = $this->tester();
         $tester->setInputs([self::TYPED]);
 
         self::assertSame(Command::FAILURE, $tester->execute([
             'username' => ' SARA ',
             'email' => 'sara.hanna@example.org',
-            'name' => 'Sara',
+            'firstName' => 'Sara',
+            'lastName' => 'Hanna',
             '--password-stdin' => true,
         ], ['interactive' => false]));
 
@@ -128,7 +145,8 @@ final class UserCreateCommandTest extends KernelTestCase
         self::assertSame(Command::INVALID, $tester->execute([
             'username' => 'a..b',
             'email' => 'sara@example.org',
-            'name' => 'Sara',
+            'firstName' => 'Sara',
+            'lastName' => 'Hanna',
             '--password-stdin' => true,
         ], ['interactive' => false]));
 
@@ -144,7 +162,8 @@ final class UserCreateCommandTest extends KernelTestCase
         self::assertSame(Command::INVALID, $tester->execute([
             'username' => 'sara',
             'email' => 'sara@example.org',
-            'name' => 'Sara',
+            'firstName' => 'Sara',
+            'lastName' => 'Hanna',
             '--password-stdin' => true,
             '--language' => 'fr',
         ], ['interactive' => false]));
@@ -157,7 +176,11 @@ final class UserCreateCommandTest extends KernelTestCase
     {
         $tester = $this->tester();
 
-        self::assertSame(Command::FAILURE, $tester->execute(['email' => 'sara@example.org', 'name' => 'Sara'], [
+        self::assertSame(Command::FAILURE, $tester->execute([
+            'email' => 'sara@example.org',
+            'firstName' => 'Sara',
+            'lastName' => 'Hanna',
+        ], [
             'interactive' => false,
         ]));
 

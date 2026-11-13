@@ -35,7 +35,7 @@ There is no account screen at launch; operators run these commands on the server
 
 | Command | Does |
 | --- | --- |
-| `app:user:create <username> <email> <name> [--role=<name>] [--language=de]` | Creates an account that signs in at once with its username (rules in the [data model](docs/data-model.md#accounts-and-roles)). Type the password twice or pipe it with `--password-stdin`. |
+| `app:user:create <username> <email> <firstName> <lastName> [--role=<name>] [--language=de]` | Creates a person record and the account that belongs to it, which signs in at once with its username (rules in the [data model](docs/data-model.md#accounts-and-roles)). Type the password twice or pipe it with `--password-stdin`. |
 | `app:privacy:export --person=UUID \| --account=UUID [--output=FILE]` | Writes everything stored about one member or account as JSON (Art. 15/20) to a file only you can read; prints only the file name. Never includes password hashes, tokens, sessions or other people's email addresses. |
 | `app:privacy:erase-account <id>` (`:dry-run` to preview) | Erases an account (Art. 17): its roles and guardian links go; what it did for the church stays with the actor set to `null` ("a former account"). Refuses the last active administrator. Prints counts only. |
 | `app:privacy:erase-person <id>` (`:dry-run` to preview) | Erases a member (Art. 17) in one transaction: first raises the anonymous counters of every counted past session they were on or marked in, then deletes their attendance (corrections included), homework reports, guardian links, memberships and the person. Prints counts only. |
@@ -78,13 +78,8 @@ Parents see a child only through an approved guardian link. At launch operators 
 
 ## Member accounts
 
-A member with an account of their own sees their own groups and homework through the link to their member record.
-An administrator checks who the account belongs to before linking it; under 16 only with a parent's or guardian's
-agreement. Parents and staff can be linked to their own record too and keep their roles.
-
-| Command | Does |
-| --- | --- |
-| `app:member:link <email> <personId> --age=16-or-older` | Links an enabled account to an active member record that no other account has. Linking it to the same record again changes nothing. |
-| `app:member:link <email> <personId> --age=guardian-consent [--note=…]` | The same for a member under 16 whose parent or guardian agreed; the note (at most 200 characters) says how. |
-| `app:member:unlink <email>` | Removes the account's link to its member record; an account without roles keeps signing in, without the member portal. Repeating changes nothing. |
+Every account belongs to exactly one person record, created with it, and the link is permanent. A member account
+also records how the member's age was checked (16 or older, or a parent's or guardian's agreement under 16); that
+opens the member portal with the person's own groups and homework. Member accounts are created by the church office
+(#365).
 

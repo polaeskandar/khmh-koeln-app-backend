@@ -6,8 +6,8 @@ namespace App\Context\Identity\Domain\Entity;
 
 use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\ValueObject\AccountStatus;
-use App\Context\Identity\Domain\ValueObject\MemberLink;
 use App\Context\Identity\Domain\ValueObject\PersonalDetails;
+use App\Context\Identity\Domain\ValueObject\PersonLink;
 use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Identity\Domain\ValueObject\Registration;
 use App\Context\Identity\Domain\ValueObject\Username;
@@ -24,11 +24,7 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Table(name: 'app_user', schema: 'identity')]
 #[ORM\UniqueConstraint(name: 'app_user_email_unique', columns: ['email'])]
 #[ORM\UniqueConstraint(name: 'app_user_username_unique', columns: ['username'])]
-#[ORM\UniqueConstraint(
-    name: 'app_user_person_unique',
-    columns: ['person_id'],
-    options: ['where' => '(person_id IS NOT NULL)'],
-)]
+#[ORM\UniqueConstraint(name: 'app_user_person_unique', columns: ['person_id'])]
 final class User extends CreatedAtEntity
 {
     #[ORM\Id]
@@ -53,8 +49,8 @@ final class User extends CreatedAtEntity
     #[ORM\Embedded(AccountStatus::class, columnPrefix: false)]
     private AccountStatus $status;
 
-    #[ORM\Embedded(MemberLink::class, columnPrefix: false)]
-    private MemberLink $member;
+    #[ORM\Embedded(PersonLink::class, columnPrefix: false)]
+    private PersonLink $person;
 
     #[ORM\Column(name: 'erases_on', type: 'local_date', nullable: true)]
     private ?LocalDate $erasesOn = null;
@@ -72,6 +68,7 @@ final class User extends CreatedAtEntity
      * @param list<Role> $roles
      */
     public function __construct(
+        Uuid $personId,
         Username $username,
         Profile $profile,
         string $passwordHash,
@@ -80,13 +77,13 @@ final class User extends CreatedAtEntity
         array $roles,
     ) {
         $this->id = Uuid::v7();
+        $this->person = PersonLink::to($personId);
         $this->username = $username;
         $this->profile = $profile;
         $this->passwordHash = $passwordHash;
         $this->registration = $registration;
         $this->personalDetails = PersonalDetails::none();
         $this->status = $status;
-        $this->member = MemberLink::none();
         $this->roles = new ArrayCollection($roles);
     }
 
@@ -140,14 +137,14 @@ final class User extends CreatedAtEntity
         $this->status = $status;
     }
 
-    public function member(): MemberLink
+    public function personId(): Uuid
     {
-        return $this->member;
+        return $this->person->personId;
     }
 
-    public function changeMember(MemberLink $member): void
+    public function person(): PersonLink
     {
-        $this->member = $member;
+        return $this->person;
     }
 
     public function erasesOn(): ?LocalDate

@@ -265,7 +265,7 @@ Any signed-in account, parents included. 401 `auth.unauthenticated` without a va
 | `permissions` | `[{action, resource, scope}]`, every permission the account's roles grant, once each, by resource and action in the order of the catalog; `scope` is `church` when a church role grants it, else `assignedGroups` |
 | `assignments` | `[{service: ServiceRef, stage: StageRef \| null}]`, the groups the account serves in (see [Assigned groups](#assigned-groups)), by service name, the service itself first, then by stage position |
 | `today` | date |
-| `member` | `null`, or `{personId, groupCount}` for an account linked to its own member record: `groupCount` counts the record's current memberships (church-today) in services and stages that are not archived, 0 while the record is inactive |
+| `member` | `null`, or `{personId, groupCount}` for a member account (one with an age check recorded): `groupCount` counts the record's current memberships (church-today) in services and stages that are not archived, 0 while the record is inactive |
 
 Nothing else: no password hash, privacy acceptance, disabled data or age check.
 
@@ -870,6 +870,7 @@ label is its own label, and the 120-character limit applies only to a label that
 | `privacy.notOpen` | – | **New.** 409: the request is already closed. |
 | `privacy.notErasure` | – | **New.** 409: only erasure requests erase data. |
 | `privacy.subjectGone` | – | **New.** 409: neither the member nor the account still exists. |
+| `privacy.personHasAccount` | – | **New.** Console (`app:privacy:erase-person`): the person still has an account; erase the account first, or erase both through a request. |
 | `privacy.ownAccount` | – | **New.** 409: an administrator can't erase their own account. |
 | `privacy.alreadyRequested` | – | **New.** 409: the account already has an open erasure request from the app. |
 | `privacy.notCopy` | – | **New.** 409: only copy requests give a copy and are completed by hand. |
@@ -929,11 +930,6 @@ label is its own label, and the 120-character limit applies only to a label that
 | `accounts.stageNotInService` | – | This stage doesn’t belong to the chosen service. |
 | `accounts.currentPasswordWrong` | – | **New.** Field error on `currentPassword` (P1, #45). |
 | `accounts.chooseLanguage` | – | **New.** Field error on `account.language`: choose English, German or Arabic. |
-| `accounts.personNotFound` | – | **New.** Field error on `personId`: This member record no longer exists or is inactive. |
-| `accounts.personHasAccount` | `name` | **New.** Field error on `personId`: {name} already has an account. Check that you chose the right person. |
-| `accounts.chooseAge` | – | **New.** Field error on `ageCheck`: Choose whether the member is 16 or older, or under 16 with a parent’s agreement. |
-| `accounts.notLinked` | – | **New.** 409: This account isn’t linked to a member record. |
-| `accounts.accountInactive` | – | **New.** Console (`app:member:link`): only an enabled account can be linked to a member record. |
 
 ### `privacy`
 
@@ -1033,7 +1029,7 @@ Settings for administrators: staff accounts, their roles and the groups they ser
 `users: read`, else 403 `forbidden`. `{items: [{id, displayName, email, disabled, roles: [{id, name}], assignments:
 [{id, service: ServiceRef, stage: StageRef | null}]}], today}`: accounts with a staff role (one that grants
 a permission outside `parentPortal`) or with no role, disabled ones last, then by name, at most 500; roles by name,
-assignments as in `GET /api/me`. Parent-only and member-only (no role and linked to a member record) accounts are
+assignments as in `GET /api/me`. Parent-only and member-only (no role and an age check recorded) accounts are
 left out.
 
 #### `POST /api/accounts/{id}/assignments`
@@ -1143,17 +1139,10 @@ administration lock.
 
 #### `GET /api/member-accounts`
 
-`users: read`, else 403 `accounts.adminOnly`. → 200 `{today, items}`: the accounts linked to a member record that hold
+`users: read`, else 403 `accounts.adminOnly`. → 200 `{today, items}`: the member accounts (an age check recorded) that hold
 no staff role (no permission outside `parentPortal`), by name in German collation, as `{id, name, email, isParent,
 disabled, member: {id, name, inactive, groups}, ageCheck, guardianConsentNote}`. `member.groups` are the record's current groups as `"Service"` or `"Service › Stage"`; `inactive` says the
 record is inactive. No password, privacy acceptance or session data.
-
-#### `POST /api/member-accounts/{id}/unlink`
-
-`users: update`, else 403 `accounts.adminOnly`. Body `{}` → 204: the link, the age check and the note are removed.
-The account keeps its roles, so a parent keeps the parent portal; an account without roles still signs in and
-sees the no-role view. 404 `notFound.user`; 409
-`accounts.notLinked` when the account has no link.
 
 ### Parent access
 
@@ -2044,10 +2033,10 @@ then the task is no longer visible.
 
 ### Member portal
 
-`/api/member/*` is open to an active account linked to a member record (`person_id`), whatever its roles; the
-person always comes from the account, never from the request. Each member workflow starts with Identity's
-`MemberCheck::require(accountId)`, which reloads the account on every request and hands back its record, so
-removing the link closes the portal on the next request without signing out. Without a link → 403 `forbidden`; without a session → 401 `auth.unauthenticated`. An
+`/api/member/*` is open to an active member account (its age check recorded), whatever its roles; the person is
+always the account's own (`person_id`), never one from the request. Each member workflow starts with Identity's
+`MemberCheck::require(accountId)`, which reloads the account on every request and hands back its person, so
+disabling the account closes the portal on the next request. Not a member account → 403 `forbidden`; without a session → 401 `auth.unauthenticated`. An
 inactive record keeps the portal open with empty lists. A member-only account (no roles) gets 403 on every route
 that needs a permission, the parent portal included.
 

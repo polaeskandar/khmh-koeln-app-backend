@@ -12,13 +12,13 @@ use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Embeddable]
-final readonly class MemberLink
+final readonly class PersonLink
 {
     public const int NOTE_LENGTH = 200;
 
     private function __construct(
-        #[ORM\Column(name: 'person_id', type: UuidType::NAME, nullable: true)]
-        public ?Uuid $personId,
+        #[ORM\Column(name: 'person_id', type: UuidType::NAME)]
+        public Uuid $personId,
         #[ORM\Column(name: 'age_check', length: 15, nullable: true, enumType: AgeCheck::class)]
         public ?AgeCheck $ageCheck,
         #[ORM\Column(name: 'guardian_consent_note', length: self::NOTE_LENGTH, nullable: true)]
@@ -26,7 +26,12 @@ final readonly class MemberLink
     ) {
     }
 
-    public static function of(Uuid $personId, AgeCheck $ageCheck, ?string $note): self
+    public static function to(Uuid $personId): self
+    {
+        return new self($personId, ageCheck: null, guardianConsentNote: null);
+    }
+
+    public function asMember(AgeCheck $ageCheck, ?string $note): self
     {
         $consent = $ageCheck === AgeCheck::GuardianConsent ? InputText::of($note)->trimmed() : InputText::of(null);
 
@@ -34,16 +39,11 @@ final readonly class MemberLink
             throw InvalidInput::tooLong('guardianConsentNote', self::NOTE_LENGTH);
         }
 
-        return new self($personId, $ageCheck, $consent->toStringOrNull());
+        return new self($this->personId, $ageCheck, $consent->toStringOrNull());
     }
 
-    public static function none(): self
+    public function isMember(): bool
     {
-        return new self(personId: null, ageCheck: null, guardianConsentNote: null);
-    }
-
-    public function isLinkedTo(Uuid $personId): bool
-    {
-        return $this->personId?->equals($personId) === true;
+        return $this->ageCheck !== null;
     }
 }

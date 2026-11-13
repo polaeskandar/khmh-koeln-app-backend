@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Domain\Repository;
 
-use App\Context\Identity\Domain\Entity\User;
 use Symfony\Component\Uid\Uuid;
 
 interface MemberAccountRepositoryInterface
 {
-    public function holderOf(Uuid $personId): ?User;
-
     /**
      * @param list<Uuid> $personIds
      *
-     * @return array<string, string> the approved, enabled account linked to each of those records, by person id
+     * @return array<string, string> the enabled member account of each of those people, by person id
      */
     public function activeAccountsOf(array $personIds): array;
 

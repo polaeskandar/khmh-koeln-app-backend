@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
+use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\AgeCheck;
-use App\Context\Identity\Domain\ValueObject\MemberLink;
 
 final readonly class MemberLinkView
 {
@@ -16,15 +16,14 @@ final readonly class MemberLinkView
     ) {
     }
 
-    public static function of(MemberLink $link): ?self
+    public static function of(User $user): ?self
     {
-        $personId = $link->personId;
-        $ageCheck = $link->ageCheck;
+        $ageCheck = $user->person()->ageCheck;
 
-        if ($personId === null || $ageCheck === null) {
+        if ($ageCheck === null) {
             return null;
         }
 
-        return new self($personId->toRfc4122(), $ageCheck, $link->guardianConsentNote);
+        return new self($user->personId()->toRfc4122(), $ageCheck, $user->person()->guardianConsentNote);
     }
 }
