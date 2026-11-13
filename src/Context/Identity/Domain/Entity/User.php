@@ -51,10 +51,6 @@ final class User extends CreatedAtEntity
     #[ORM\Embedded(MemberLink::class, columnPrefix: false)]
     private MemberLink $member;
 
-    #[ORM\ManyToOne(targetEntity: self::class)]
-    #[ORM\JoinColumn(name: 'approved_by', nullable: true, onDelete: 'SET NULL')]
-    private ?self $approvedBy = null;
-
     #[ORM\Column(name: 'erases_on', type: 'local_date', nullable: true)]
     private ?LocalDate $erasesOn = null;
 
@@ -117,13 +113,6 @@ final class User extends CreatedAtEntity
         return $this->status;
     }
 
-    public function changeApproval(?self $by, AccountStatus $status, Registration $registration): void
-    {
-        $this->status = $status;
-        $this->approvedBy = $by;
-        $this->registration = $registration;
-    }
-
     public function changePassword(string $passwordHash): void
     {
         $this->passwordHash = $passwordHash;
@@ -147,11 +136,6 @@ final class User extends CreatedAtEntity
     public function changeMember(MemberLink $member): void
     {
         $this->member = $member;
-    }
-
-    public function approvedBy(): ?self
-    {
-        return $this->approvedBy;
     }
 
     public function erasesOn(): ?LocalDate

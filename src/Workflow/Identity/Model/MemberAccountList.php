@@ -33,9 +33,6 @@ final readonly class MemberAccountList
      *     personId: string,
      *     ageCheck: string|null,
      *     guardianConsentNote: string|null,
-     *     approvedAt: string|null,
-     *     approverId: string|null,
-     *     approverName: string|null,
      * }> $rows
      */
     public static function of(array $rows, LinkedRecords $records, LocalDate $today): self
@@ -60,9 +57,6 @@ final readonly class MemberAccountList
      *     personId: string,
      *     ageCheck: string|null,
      *     guardianConsentNote: string|null,
-     *     approvedAt: string|null,
-     *     approverId: string|null,
-     *     approverName: string|null,
      * }> $rows
      *
      * @return list<Uuid>
@@ -88,9 +82,6 @@ final readonly class MemberAccountList
      *     personId: string,
      *     ageCheck: string|null,
      *     guardianConsentNote: string|null,
-     *     approvedAt: string|null,
-     *     approverId: string|null,
-     *     approverName: string|null,
      * } $row
      */
     private static function itemOf(array $row, LinkedRecords $records): MemberAccountItem
@@ -99,7 +90,6 @@ final readonly class MemberAccountList
             new MemberAccountView($row['id'], $row['name'], $row['email'], $row['isParent'], $row['disabled']),
             $records->viewOf(Uuid::fromString($row['personId'])),
             MemberAgeView::of($row['ageCheck'], $row['guardianConsentNote']),
-            ApprovalView::of($row['approvedAt'], $row['approverId'], $row['approverName']),
         );
     }
 }

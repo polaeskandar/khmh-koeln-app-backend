@@ -114,10 +114,10 @@ Paged lists add `page` (from 1), `pageSize` and `total`.
 | Method | Use | Success |
 | --- | --- | --- |
 | `GET` | Reads. Never changes anything. | 200 |
-| `POST` on a collection | Creates. | 201 with `Location` and a body with at least `id`. Registration answers 202. |
+| `POST` on a collection | Creates. | 201 with `Location` and a body with at least `id`. |
 | `PATCH` | Changes only the members sent. A nested object or array that is sent replaces the old value whole. Sections that document a complete body say so. | 200 with the changed resource |
 | `PUT` | Sets a state or replaces a resource's editable members whole, idempotently, e.g. `PUT /api/sessions/{id}/attendance/{personId}` or `PUT /api/services/{id}`. Repeating it changes nothing. | 201 when it created something, else 200 |
-| `POST` on a sub-path | Runs an action: `/archive`, `/restore`, `/approve`, `/end`. | 200 with the resource, or 204 |
+| `POST` on a sub-path | Runs an action: `/archive`, `/restore`, `/end`. | 200 with the resource, or 204 |
 | `DELETE` | Deletes, where the section allows it. | 204 |
 
 Unsafe methods (`POST`, `PUT`, `PATCH`, `DELETE`) always send a JSON body with
@@ -179,19 +179,14 @@ Public. Body `{email, password}`, both strings. The email is trimmed and compare
 
 | Result | Answer |
 | --- | --- |
-| Right email and password, approved, not disabled | 204 + `Set-Cookie` |
+| Right email and password, not disabled | 204 + `Set-Cookie` |
 | Body not an object with string `email` and `password` | 400 `invalidRequest` |
 | Unknown email or wrong password (identical answers) | 401 `auth.invalidCredentials` |
 | Right password, account disabled (checked first) | 403 `auth.disabled` |
 | Right password, the account asked for its erasure in the app and it is still scheduled (checked after `auth.disabled`) | 403 `auth.erasureScheduled {erasesOn}`; `POST /api/auth/erasure-cancellation` withdraws it |
-| Right password, not approved and the email address not confirmed yet (checked before `auth.pending`) | 403 `auth.unconfirmed` |
-| Right password, email address confirmed, account waiting for approval | 403 `auth.pending` |
 | 5 failures for this email and IP within 15 minutes, or the per-IP limit | 429 `auth.tooManyAttempts` + `Retry-After`, even with the right password |
 
-A wrong password never reveals that an account is unconfirmed, pending, disabled or scheduled for erasure. Failures
-set no cookie. An
-approved account is never refused for an unconfirmed address, so accounts from `app:user:create` sign in without a
-confirmation time.
+A wrong password never reveals that an account is disabled or scheduled for erasure. Failures set no cookie.
 
 ```http
 POST /api/auth/sign-in HTTP/1.1
@@ -217,12 +212,12 @@ Cache-Control: no-store
 }
 ```
 
-403 pending (`auth.unconfirmed` and `auth.disabled` have the same shape):
+403 disabled:
 
 ```json
 {
   "status": 403,
-  "code": "auth.pending",
+  "code": "auth.disabled",
   "params": {}
 }
 ```
@@ -262,7 +257,7 @@ Public. Body `{token, password}`: sets a new password with the one-time link fro
 | Case | Response |
 | --- | --- |
 | `password` shorter than 10 or longer than 200 characters | 422 `accounts.passwordTooShort {min: 10}` or `validation.tooLong {max: 200}` on `password`; the link stays usable |
-| Token missing, unknown, used, expired or replaced by a newer link, or the account is pending or disabled | 422 `auth.resetLinkInvalid`, the same body for each |
+| Token missing, unknown, used, expired or replaced by a newer link, or the account is disabled | 422 `auth.resetLinkInvalid`, the same body for each |
 | More than 10 requests from one IP within one fixed hour window | 429 `auth.tooManyAttempts` with `Retry-After` |
 
 The password is checked before the link is spent, and hashed only once the link is valid. Spending the link,
@@ -272,8 +267,8 @@ exactly once. Disabling an account drops its unused links, so enabling it again 
 #### `POST /api/auth/forgot-password`
 
 Public. Body `{email}` → 202 `{"status":"received"}`, the same bytes for every address. Only an active account
-(approved, not disabled) gets a `password_link` email in its language, with a link valid for 1 hour that replaces
-any older unused link; unknown, pending and disabled addresses get nothing. Looking the address up, creating the
+(not disabled) gets a `password_link` email in its language, with a link valid for 1 hour that replaces
+any older unused link; unknown and disabled addresses get nothing. Looking the address up, creating the
 link and sending the email all happen after the response (`AfterResponse`), so the answer's timing reveals nothing.
 The link is used with `POST /api/auth/password-links`; links from `app:user:password-link` still last 24 hours.
 
@@ -283,60 +278,6 @@ The link is used with `POST /api/auth/password-links`; links from `app:user:pass
 | `email` not an address | 422 `accounts.emailInvalid` on `email` |
 | `email` longer than 254 characters, like an account's address | 422 `validation.tooLong {max: 254}` on `email` |
 | An 11th request from one IP, or a 4th for one address (case-insensitive), within an hour | 429 `auth.tooManyAttempts` with `Retry-After` |
-
-#### `POST /api/auth/register`
-
-Public. Creates an account that waits for an administrator's approval. Its roles come with the approval.
-
-```json
-{
-  "account": {
-    "firstName": "Mariam",
-    "lastName": "Hanna",
-    "email": "mariam.hanna@example.org",
-    "password": "correct horse battery",
-    "language": "ar"
-  },
-  "registration": {"registeredAs": "parent", "note": "Youssef, 3rd Class", "serviceIds": []},
-  "privacy": {"accepted": true, "version": "2026-11"}
-}
-```
-
-| Member | Rules (field error) |
-| --- | --- |
-| `account.firstName`, `account.lastName` | Required (`accounts.firstNameRequired`, `accounts.lastNameRequired`), ≤80 (`validation.tooLong`); spaces collapsed, stored as the display name "First Last" |
-| `account.email` | Required (`accounts.emailRequired`), valid (`accounts.emailInvalid`), ≤254 (`validation.tooLong`), as the database column holds; trimmed and lower-cased |
-| `account.password` | 10–200 characters (`accounts.passwordTooShort {min}`, `validation.tooLong`) |
-| `account.language` | `en`, `de` or `ar` (`accounts.chooseLanguage`) |
-| `registration.registeredAs` | `parent`, `servant` or `member` (`accounts.chooseRegisteredAs`) |
-| `registration.note` | Required (`accounts.childrenRequired` for parents, `accounts.serviceDetailsRequired` for servants, `accounts.groupsRequired` for members: the groups they take part in), ≤1000 |
-| `registration.serviceIds` | Servants: at least one active service, each once (`accounts.chooseService`). Ignored for parents. |
-| `privacy.accepted` | `true` (`accounts.acceptPrivacy`) |
-| `privacy.version` | The current privacy notice version, `2026-11` |
-
-| Result | Answer |
-| --- | --- |
-| Valid, new email | 202 `{"status": "received"}`, a pending account and an `email_confirmation` email in its language with a link to `/{language}/confirm-email/#token=…`, valid 7 days |
-| Valid, the email has an unconfirmed registration | The same 202; a fresh link that voids the older one, so someone who lost the email can finish |
-| Valid, the email already has a confirmed account (any case, any state) | 422 `checkFields` with `account.email` `accounts.emailTaken`; nothing changes and no email is sent |
-| A field fails | 422 `checkFields` with every failed field |
-| `privacy.version` is not the current one | 409 `accounts.privacyNoticeOutdated` |
-| More than 20 registrations from one client within an hour | 429 `auth.tooManyAttempts` + `Retry-After` |
-
-The answer says when an address already has an account, so the registration limit above is what keeps it from
-being used to probe addresses. Emails leave after the response. An address gets at most 3 confirmation emails per
-hour; further registrations still answer 202 and send nothing. The registration reaches the office (`GET /api/account-requests`) only after the link is used, and
-`app:user:purge-unconfirmed` (daily) deletes registrations left unconfirmed for 7 days whose newest link has
-expired too, so a link resent on day 6 still works until day 13. Signing in before the link is used answers 403
-`auth.unconfirmed`, and after it until the approval 403 `auth.pending`. When the email doesn't arrive, an operator
-confirms the address with `app:user:confirm-email <email>`, which does what the link does.
-
-#### `POST /api/auth/email-confirmations`
-
-Public. Body `{token}` from the `#token=` fragment of the confirmation link → 204; the registration now waits
-for the office, and signing in answers 403 `auth.pending` instead of `auth.unconfirmed`. A missing, unknown, used
-or expired token → 422 `auth.confirmationLinkInvalid`, the same body for each. An 11th request from one IP within
-an hour → 429 `auth.tooManyAttempts` with `Retry-After`.
 
 #### `POST /api/auth/erasure-cancellation`
 
@@ -355,10 +296,6 @@ The email is trimmed and compared in lower case. An unknown email spends the sam
 A person who forgot the password resets it first (`POST /api/auth/forgot-password` still reaches an account whose
 erasure is scheduled) and then cancels with the new one.
 
-#### `GET /api/auth/register/services`
-
-Public. The services a servant can name: `{"items": [{"id", "name"}]}`, active services by name, at most 200.
-
 #### `GET /api/me`
 
 Any signed-in account, parents included. 401 `auth.unauthenticated` without a valid session or token.
@@ -372,7 +309,7 @@ Any signed-in account, parents included. 401 `auth.unauthenticated` without a va
 | `today` | date |
 | `member` | `null`, or `{personId, groupCount}` for an account linked to its own member record: `groupCount` counts the record's current memberships (church-today) in services and stages that are not archived, 0 while the record is inactive |
 
-Nothing else: no password hash, registration, approval, disabled data or age check.
+Nothing else: no password hash, privacy acceptance, disabled data or age check.
 
 Clients choose the account's areas, navigation and actions from `permissions`, by the same rules the API
 enforces:
@@ -385,8 +322,8 @@ enforces:
 - **Actions:** for example a service's edit button for `services: update`, its archive button for
   `services: delete`, and creating a service for `services: create`. Read models carry no permission flags.
 
-An account can have several areas; an approved account without roles and without a member record has none and
-sees the no-role view.
+An account can have several areas; an account without roles and without a member record has none and sees the
+no-role view.
 
 A servant (its `members`, `lessons` and `homework` permissions left out):
 
@@ -476,13 +413,13 @@ account (`app:user:disable`), a password set from a link and a password change r
 A request with a bearer token, or to a path under `/api/auth/tokens`, is stateless: it never reads or sets the
 session cookie and skips the Origin check. A password change over a token therefore answers 204 without a new
 session; it revokes every token of the account, the one sent included. An expired, revoked or unknown token, or one
-of a pending or disabled account, gets 401 `auth.unauthenticated`, even with a valid session cookie.
+of a disabled account, gets 401 `auth.unauthenticated`, even with a valid session cookie.
 
 #### `POST /api/auth/tokens`
 
 Public. Body `{email, password, deviceName?}` (`deviceName` at most 100 characters, else 422
 `validation.tooLong`) → 201 `{token, expiresAt}`. The same codes and throttling as `POST /api/auth/sign-in`
-(400, 401 `auth.invalidCredentials`, 403 `auth.unconfirmed`/`auth.pending`/`auth.disabled`/`auth.erasureScheduled`, 429
+(400, 401 `auth.invalidCredentials`, 403 `auth.disabled`/`auth.erasureScheduled`, 429
 `auth.tooManyAttempts` with `Retry-After`; the attempts count together with cookie sign-ins). No session or
 cookie, and no `Location`: a token is only addressable as `current`.
 
@@ -664,7 +601,7 @@ the endpoint, and a well-formed one gets the endpoint's 403.
 | 401 | `auth.unauthenticated` | No valid session or token |
 | 401 | `auth.invalidCredentials` | Sign-in with a wrong email or password |
 | 403 | `forbidden` | The role does not allow it, or a foreign `Origin` |
-| 403 | `auth.unconfirmed`, `auth.pending`, `auth.disabled`, `auth.erasureScheduled` | Sign-in and token issuing with the right password |
+| 403 | `auth.disabled`, `auth.erasureScheduled` | Sign-in and token issuing with the right password |
 | 403 | specific codes | Where a section names why, e.g. `services.adminOnlyCreate` |
 | 404 | `notFound.<thing>` | Unknown, deleted, or non-UUID id, or an item outside the viewer's groups |
 | 404 | `notFound.route` | No such route under `/api` |
@@ -675,7 +612,7 @@ the endpoint, and a well-formed one gets the endpoint's 403.
 | 415 | `invalidRequest` | Unsafe method without a JSON body |
 | 422 | `checkFields` | Field errors in `fieldErrors` (`validation.invalidType`, `validation.unexpectedField` and the field codes) |
 | 422 | specific codes | Without fields, e.g. `auth.resetLinkInvalid` |
-| 429 | `auth.tooManyAttempts` | Sign-in, registration, password links, erasure cancellation, data copies; with `Retry-After` in seconds |
+| 429 | `auth.tooManyAttempts` | Sign-in, password links, erasure cancellation, data copies; with `Retry-After` in seconds |
 | 429 | `tooManyRequests` | Any other limit; with `Retry-After` in seconds |
 | 500 | `internal` | Unexpected error; no message, class or trace |
 | 503 | `unavailable` | The API or its database is down for a moment |
@@ -764,12 +701,9 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | --- | --- | --- |
 | `auth.unauthenticated` | – | **New.** 401: no valid session or bearer token (never signed in, signed out, expired, or the account was disabled or its password changed). |
 | `auth.invalidCredentials` | – | **New.** 401 on sign-in: wrong email or password, without saying which. |
-| `auth.unconfirmed` | – | **New.** 403 on sign-in with the right password: the account is not approved and its email address is not confirmed. Confirm your email address first: open the link we sent you when you registered. |
-| `auth.pending` | – | **New.** 403 on sign-in with the right password: an administrator has not approved the account yet. |
 | `auth.disabled` | – | **New.** 403 on sign-in with the right password: the account is disabled. |
-| `auth.tooManyAttempts` | – | **New.** 429 on sign-in, registration and password links. `Retry-After` says when to retry. |
+| `auth.tooManyAttempts` | – | **New.** 429 on sign-in and password links. `Retry-After` says when to retry. |
 | `auth.resetLinkInvalid` | – | **New.** 422: the one-time password link is missing, unknown, used, expired or superseded. |
-| `auth.confirmationLinkInvalid` | – | **New.** This confirmation link is invalid or has expired. Register again to get a new one. |
 | `auth.erasureScheduled` | `erasesOn` | **New.** 403 on sign-in with the right password: the account asked for its erasure, which happens on {erasesOn}. Cancel it to sign in again. |
 
 ### `notFound`
@@ -932,7 +866,6 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `roles.unknown` | – | **New.** Field error on `role` or `roleIds`: no role has this name or id. |
 | `roles.chooseRole` | – | **New.** Field error on `roleIds`: choose at least one role. |
 | `roles.notHeld` | `name` | **New.** 409: {name} doesn't have this role. |
-| `roles.accountPending` | – | **New.** 409: an account that waits for approval gets its roles when it is approved. |
 
 ### `assignments`
 
@@ -1023,44 +956,31 @@ label is its own label, and the 120-character limit applies only to a label that
 | `guardians.alreadyHasAccess` | `parent`, `child` | {parent} already has access to {child}. |
 | `guardians.adminOnlyApprove` | – | Only administrators can approve parent access. |
 | `guardians.adminOnlyRemove` | – | Only administrators can remove parent access. |
-| `guardians.accountInactive` | – | **New.** 409: only an approved, enabled account can be linked to a child. |
+| `guardians.accountInactive` | – | **New.** 409: only an enabled account can be linked to a child. |
 | `guardians.childInactive` | – | **New.** 409: the person is inactive. |
 
 ### `accounts`
 
 | Code | Params | Meaning (English reference text) |
 | --- | --- | --- |
-| `accounts.firstNameRequired` | – | Enter your first name. |
-| `accounts.lastNameRequired` | – | Enter your last name. |
 | `accounts.nameRequired` | – | **New.** Field error on `displayName`: enter the name to show for the account. |
 | `accounts.emailRequired` | – | Enter your email address. |
 | `accounts.emailInvalid` | – | Enter an email address like name@example.org. |
 | `accounts.emailTaken` | – | There is already an account with this email address. Sign in, or reset the password if you forgot it. |
 | `accounts.passwordTooShort` | `min` | Use at least {min, number} characters. |
 | `accounts.currentPasswordWrong` | – | **New.** Field error on `currentPassword`: the current password is not right. |
-| `accounts.childrenRequired` | – | Write the names and classes of your children, so the church office can link them to your account. |
-| `accounts.serviceDetailsRequired` | – | Write where you serve, so the church office can give you the right access. |
-| `accounts.chooseService` | – | Choose the service you serve in. |
 | `accounts.chooseServiceForRole` | – | Choose the service for this role. |
-| `accounts.acceptPrivacy` | – | Please confirm that you have read the privacy notice. |
-| `accounts.adminOnly` | – | Only administrators can approve or decline accounts. |
-| `accounts.requestDisabled` | – | **New.** 409: this request's account is disabled. Enable it before approving it, or decline it. |
-| `accounts.alreadyApproved` | – | This account has already been approved. |
-| `accounts.chooseChild` | – | Choose at least one child. |
+| `accounts.adminOnly` | – | Only administrators can manage member accounts. |
 | `accounts.childNotFound` | – | One of the chosen children no longer exists or is inactive. |
 | `accounts.stageNotInService` | – | This stage doesn’t belong to the chosen service. |
-| `accounts.privacyNoticeOutdated` | – | **New.** 409 on registration: the privacy notice version the app showed is not the current one. Reload. |
 | `accounts.currentPasswordWrong` | – | **New.** Field error on `currentPassword` (P1, #45). |
-| `accounts.chooseRegisteredAs` | – | **New.** Field error on `registration.registeredAs`: choose parent, servant or member. |
 | `accounts.chooseLanguage` | – | **New.** Field error on `account.language`: choose English, German or Arabic. |
-| `accounts.passwordLinkUnavailable` | – | **New.** 409: password links are only for approved, enabled accounts. |
-| `accounts.groupsRequired` | – | **New.** Field error on `note` for a member: Write which groups you take part in, so the church office can link your account to your record. |
-| `accounts.choosePerson` | – | **New.** Field error on `personId`: Choose the member record this account belongs to. |
+| `accounts.passwordLinkUnavailable` | – | **New.** 409: password links are only for enabled accounts. |
 | `accounts.personNotFound` | – | **New.** Field error on `personId`: This member record no longer exists or is inactive. |
 | `accounts.personHasAccount` | `name` | **New.** Field error on `personId`: {name} already has an account. Check that you chose the right person. |
 | `accounts.chooseAge` | – | **New.** Field error on `ageCheck`: Choose whether the member is 16 or older, or under 16 with a parent’s agreement. |
 | `accounts.notLinked` | – | **New.** 409: This account isn’t linked to a member record. |
-| `accounts.accountInactive` | – | **New.** Console (`app:member:link`): only an approved, enabled account can be linked to a member record. |
+| `accounts.accountInactive` | – | **New.** Console (`app:member:link`): only an enabled account can be linked to a member record. |
 
 ### `privacy`
 
@@ -1152,79 +1072,6 @@ Readiness: runs `SELECT 1` with a 2-second connect and statement timeout.
 {"status": "unavailable", "checks": {"database": "unavailable"}}
 ```
 
-### Account requests
-
-Registrations waiting for a decision. The endpoints need the users permission (`users: read` to list,
-`users: update` to approve, `users: delete` to decline); anyone else gets 403 `accounts.adminOnly`.
-
-#### `GET /api/account-requests`
-
-`{items: [AccountRequest], roles: [{id, name}], today}`: the 200 oldest pending accounts with a confirmed email
-address (not approved, also when disabled, so they can still be declined), oldest first, with `services` by name,
-and every role by name for the approval dialog.
-
-| Member | Type |
-| --- | --- |
-| `account` | `{id, email, displayName, language}` |
-| `registeredAt` | instant |
-| `registeredAs` | `parent`, `servant` or `member` |
-| `note` | string or `null` |
-| `services` | `[ServiceRef]`, the services a servant named; empty for parents |
-
-Nothing else: no password hash and no privacy fields.
-
-#### `POST /api/account-requests/{id}/approve`
-
-`users: update` and `roles: update` (it grants roles), else 403 `accounts.adminOnly`. Body `{as: "parent",
-childIds, roleIds}`, `{as: "servant", roleIds, assignments?: [{serviceId, stageId | null}]}` or `{as: "member",
-member: {personId, ageCheck, guardianConsentNote?}}`. A servant gets the roles and the groups it serves in
-(see [Assigned groups](#assigned-groups)), each group once; a stage listed together with its whole service is left
-out, and the service takes the place of any assignment the account holds to one of its stages. The approver must be
-allowed to assign each group that is kept as for `POST /api/accounts/{id}/assignments` (else 403
-`assignments.notAllowed`, and the account stays pending).
-Parents ignore `assignments`. Children come from the
-people directory (`GET /api/people/directory?q=`), a member's record from `GET
-/api/account-requests/member-candidates?q=`. A member gets no role: the account is linked to its own record with
-the age check (`sixteenOrOlder`, or `guardianConsent` for under 16 with the parent's or guardian's agreement), and
-`guardianConsentNote` is kept only with `guardianConsent`. In one transaction, with the account locked: the roles
-are given (a parent also gets the Parent role), a servant's assignments are stored, a parent gets approved guardian links to the children
-(`approved_by` = the administrator), a member's account is linked to its record, the account is approved, and the
-registration's note, its `registeredAs` and the services the person named are deleted. A member's approval holds a
-share lock on the record first, as `app:member:link` does, so an erasure can't remove it in between. Any failure
-stores nothing. 200 `{id, email, displayName, language}`. The request is checked before the body, and every field
-error comes back at once. After the approval is stored, the account gets an `account_approved` email in its
-language with the sign-in link (`{FRONTEND_URL}/{language}/sign-in`); a failed email is logged and the approval
-stands. Declining sends nothing.
-
-| Field | Codes |
-| --- | --- |
-| `as` | `validation.invalidChoice` (not `parent`, `servant` or `member`) |
-| `member.personId` (members) | `accounts.choosePerson` (missing), `accounts.personNotFound` (unknown or inactive), `accounts.personHasAccount {name}` (another account has it, also when the unique index catches a race) |
-| `member.ageCheck` (members) | `accounts.chooseAge` (missing or not `sixteenOrOlder`/`guardianConsent`) |
-| `member.guardianConsentNote` (members) | `validation.tooLong {max: 200}` |
-| `roleIds` | `roles.chooseRole` (none), `roles.unknown` (an id no role has); duplicates are ignored, in any letter case |
-| `childIds` (parents) | `accounts.chooseChild` (none), `validation.tooMany {max: 20}`, `accounts.childNotFound` (unknown or inactive); duplicates are ignored, in any letter case |
-| `assignments` (servants) | `validation.tooMany {max: 50}`; `assignments.N.serviceId` `meetings.chooseService` (missing or unknown), `meetings.serviceArchived {name}`; `assignments.N.stageId` `meetings.chooseStage` (unknown or another service's), `meetings.stageArchived {name}`; a member of the wrong JSON type `validation.invalidType` |
-
-404 `notFound.user`, also for an id that is not a UUID; 409 `accounts.alreadyApproved`; 409
-`accounts.requestDisabled` for a disabled request, which can still be declined. A refused approval leaves the
-account pending.
-
-#### `GET /api/account-requests/member-candidates?q=`
-
-`users: read`, else 403 `accounts.adminOnly`. The approval dialog's search for a member's own record, with the
-people directory's rules (at most 20 active people by last and first name; `q` folded, fewer than 2 letters → 422
-`q` `people.searchTooShort {min: 2}`): `{items: [{id, firstName, lastName, displayName, groups, hasAccount}]}`.
-`groups` are the current memberships as in the directory; `hasAccount` says another account is linked to the
-record, so the dialog can grey it out without account data in the staff directory.
-
-#### `POST /api/account-requests/{id}/decline`
-
-Body `{}`. Deletes the account and everything the person entered, then answers 204; the same email can
-register again. The account is locked (`SELECT … FOR UPDATE`) while the decision is made, so two
-administrators can't both decide. 404 `notFound.user`, also for an id that is not a UUID; 409 `accounts.alreadyApproved` for an approved
-account, which stays.
-
 ### Staff accounts
 
 Settings for administrators: staff accounts, their roles, the groups they serve in and password links.
@@ -1232,10 +1079,10 @@ Settings for administrators: staff accounts, their roles, the groups they serve 
 #### `GET /api/staff-accounts`
 
 `users: read`, else 403 `forbidden`. `{items: [{id, displayName, email, disabled, roles: [{id, name}], assignments:
-[{id, service: ServiceRef, stage: StageRef | null}]}], today}`: approved accounts with a staff role (one that grants
+[{id, service: ServiceRef, stage: StageRef | null}]}], today}`: accounts with a staff role (one that grants
 a permission outside `parentPortal`) or with no role, disabled ones last, then by name, at most 500; roles by name,
-assignments as in `GET /api/me`. Parent-only, member-only (no role and linked to a member record) and pending
-accounts are left out.
+assignments as in `GET /api/me`. Parent-only and member-only (no role and linked to a member record) accounts are
+left out.
 
 #### `POST /api/accounts/{id}/assignments`
 
@@ -1353,16 +1200,14 @@ administration lock.
 
 `users: read`, else 403 `accounts.adminOnly`. → 200 `{today, items}`: the accounts linked to a member record that hold
 no staff role (no permission outside `parentPortal`), by name in German collation, as `{id, name, email, isParent,
-disabled, member: {id, name, inactive, groups}, ageCheck, guardianConsentNote, approvedAt, approvedBy: AccountRef |
-null}`. `member.groups` are the record's current groups as `"Service"` or `"Service › Stage"`; `inactive` says the
-record is inactive. No password, registration or session data.
+disabled, member: {id, name, inactive, groups}, ageCheck, guardianConsentNote}`. `member.groups` are the record's current groups as `"Service"` or `"Service › Stage"`; `inactive` says the
+record is inactive. No password, privacy acceptance or session data.
 
 #### `POST /api/member-accounts/{id}/unlink`
 
 `users: update`, else 403 `accounts.adminOnly`. Body `{}` → 204: the link, the age check and the note are removed.
-An account without roles becomes an account request again (`approvedAt`, `approvedBy` null, `registeredAs: member`,
-no note); its sessions end on their next request and signing in answers 403 `auth.pending` until it is approved
-again. An account with roles keeps them, so a parent keeps the parent portal. 404 `notFound.user`; 409
+The account keeps its roles, so a parent keeps the parent portal; an account without roles still signs in and
+sees the no-role view. 404 `notFound.user`; 409
 `accounts.notLinked` when the account has no link.
 
 ### Parent access
@@ -1379,7 +1224,7 @@ The administrators' page for giving and revoking a parent's access to a child, t
   name (German collation). `relationship` is `parent` or `guardian`; `groups` are the child's current memberships, as
   in the people directory; `approvedBy` is `null` for console links and once the account is gone. Revoked links
   are left out.
-- `accounts`: the accounts a link can name, `{id, name, email}` by name: approved and not disabled, staff
+- `accounts`: the accounts a link can name, `{id, name, email}` by name: not disabled, staff
   included. Pending and disabled accounts are left out.
 - At most 1000 links and 1000 accounts; there is no search or paging.
 
@@ -1469,7 +1314,7 @@ order; anything else → 422 field error `status`: `validation.invalidChoice`. A
 
 #### `GET /api/service-leaders`
 
-`services: read`. `{items: [AccountRef]}`, the approved, enabled accounts with the Service leader role, by name,
+`services: read`. `{items: [AccountRef]}`, the enabled accounts with the Service leader role, by name,
 the same for every viewer and every service: it lists accounts, not group data.
 
 #### `GET /api/services/{id}/servants`
@@ -1574,7 +1419,7 @@ edit that waited for another one works on the committed stage. 200 with the stag
 #### `GET /api/people/directory?q=`
 
 `members: read`, so every staff role and no parent. A church-wide name search for pickers (a visitor on the
-attendance board, a child when approving a parent): it crosses services on purpose and returns only names and
+attendance board, a child when linking a parent): it crosses services on purpose and returns only names and
 current groups, nothing else about the person (D7).
 
 `{items: [{id, firstName, lastName, displayName, groups: [{service: ServiceRef, stage: StageRef | null}]}]}`, at

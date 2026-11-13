@@ -24,7 +24,6 @@ final class AccountLookupTest extends KernelTestCase
         $this->account('Bishoy Fahmy', [], 'administrator');
         $this->account('Mariam Hanna', [], 'parent');
         $this->account('Mina Iskander', ['disabled_at' => '2026-11-09 12:00:00+01'], 'servant');
-        $this->account('Sara Hanna', ['approved_at' => null], 'servant');
 
         self::assertSame(
             ['Bishoy Fahmy', 'Christine Adel', 'Daniel Michael', 'Ölga Bishara'],

@@ -10,7 +10,6 @@ final readonly class MemberAccountItem
         public MemberAccountView $account,
         public MemberRecordView $member,
         public MemberAgeView $age,
-        public ApprovalView $approval,
     ) {
     }
 }

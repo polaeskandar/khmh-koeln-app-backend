@@ -70,7 +70,6 @@ final class MemberLinkCommandTest extends KernelTestCase
      */
     public static function refusedAccounts(): iterable
     {
-        yield 'pending' => [['approved_at' => null]];
         yield 'disabled' => [['disabled_at' => '2026-11-01 10:00:00+01']];
     }
 

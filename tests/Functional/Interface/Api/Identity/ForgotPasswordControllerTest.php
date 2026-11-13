@@ -74,7 +74,6 @@ final class ForgotPasswordControllerTest extends ApiTestCase
     public static function silentAddresses(): iterable
     {
         yield 'unknown' => [[]];
-        yield 'pending' => [['approved_at' => null]];
         yield 'disabled' => [['disabled_at' => '2026-11-08 09:30:00+01']];
     }
 

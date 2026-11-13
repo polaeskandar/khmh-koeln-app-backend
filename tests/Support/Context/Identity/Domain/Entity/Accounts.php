@@ -11,17 +11,16 @@ use App\Context\Identity\Domain\ValueObject\DisplayName;
 use App\Context\Identity\Domain\ValueObject\Email;
 use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Identity\Domain\ValueObject\Registration;
-use DateTimeImmutable;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class Accounts
 {
-    public static function approved(string $email, string $passwordHash = 'not-a-real-hash'): User
+    public static function active(string $email, string $passwordHash = 'not-a-real-hash'): User
     {
         return new User(
             new Profile(Email::of($email), DisplayName::of('Sara Hanna'), Language::German),
             passwordHash: $passwordHash,
-            status: AccountStatus::pending()->approvedOn(new DateTimeImmutable('2026-11-08T12:00:00+01:00')),
+            status: AccountStatus::active(),
             registration: Registration::none(),
             roles: [],
         );
@@ -40,8 +39,6 @@ final readonly class Accounts
             'display_name' => 'Sara Hanna',
             'password_hash' => 'not-a-real-hash',
             'language' => 'de',
-            'approved_at' => '2026-11-08 12:00:00+01',
-            'email_confirmed_at' => '2026-11-08 12:00:00+01',
             'created_at' => '2026-11-08 12:00:00+01',
             ...$columns,
         ];

@@ -52,7 +52,6 @@ final class UserRoleAddCommandTest extends KernelTestCase
     {
         yield 'unknown email' => ['nobody@example.org', 'Servant', [], 'notFound.account'];
         yield 'unknown role' => ['daniel@example.org', 'Deacon', [], 'notFound.role'];
-        yield 'pending account' => ['daniel@example.org', 'Servant', ['approved_at' => null], 'roles.accountPending'];
     }
 
     /**

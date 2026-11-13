@@ -12,10 +12,6 @@ final readonly class RoleChange
 {
     public static function ensureGivable(User $user, Role $role): void
     {
-        if ($user->status()->isPending()) {
-            throw new RuleViolation('roles.accountPending');
-        }
-
         if ($user->roles()->contains($role)) {
             throw new RuleViolation('roles.alreadyHasRole', ['name' => $user->profile()->displayName->value]);
         }

@@ -116,7 +116,6 @@ final class PasswordLinkControllerTest extends ApiTestCase
         yield 'missing' => [[], [], ['token']];
         yield 'used' => [[], ['used_at' => '2026-11-08 09:30:00+01'], []];
         yield 'expired' => [[], ['expires_at' => '2026-11-08 09:59:00+01'], []];
-        yield 'pending account' => [['approved_at' => null], [], []];
         yield 'disabled account' => [['disabled_at' => '2026-11-08 09:30:00+01'], [], []];
     }
 

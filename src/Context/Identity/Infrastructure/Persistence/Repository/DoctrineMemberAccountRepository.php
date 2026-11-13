@@ -24,10 +24,8 @@ final readonly class DoctrineMemberAccountRepository implements MemberAccountRep
             JOIN identity.permission p ON p.id = rp.permission_id
             WHERE ur.user_id = u.id AND p.resource = 'parentPortal'
           ) AS parent,
-          u.person_id::text AS person, u.age_check, u.guardian_consent_note AS note, u.approved_at::text AS approved_at,
-          a.id::text AS approver_id, a.display_name AS approver_name
+          u.person_id::text AS person, u.age_check, u.guardian_consent_note AS note
         FROM identity.app_user u
-        LEFT JOIN identity.app_user a ON a.id = u.approved_by
         WHERE u.person_id IS NOT NULL
           AND NOT EXISTS (
             SELECT 1 FROM identity.user_role ur
@@ -52,32 +50,6 @@ final readonly class DoctrineMemberAccountRepository implements MemberAccountRep
     /**
      * @param list<Uuid> $personIds
      *
-     * @return list<string>
-     */
-    #[Override]
-    public function linkedAmong(array $personIds): array
-    {
-        $linked = $this->entityManager
-            ->getConnection()
-            ->createQueryBuilder()
-            ->select('person_id::text')
-            ->from('identity.app_user')
-            ->where('person_id IN (:people)')
-            ->setParameter(
-                'people',
-                new ArrayCollection($personIds)->map(static fn (Uuid $id): string => $id->toRfc4122())->getValues(),
-                ArrayParameterType::STRING,
-            )
-            ->fetchFirstColumn();
-
-        return new ArrayCollection($linked)->map(
-            static fn (mixed $id): string => Type::of($id)->toString(),
-        )->getValues();
-    }
-
-    /**
-     * @param list<Uuid> $personIds
-     *
      * @return array<string, string>
      */
     #[Override]
@@ -89,7 +61,6 @@ final readonly class DoctrineMemberAccountRepository implements MemberAccountRep
             ->select('person_id::text AS person', 'id::text AS account')
             ->from('identity.app_user')
             ->where('person_id IN (:people)')
-            ->andWhere('approved_at IS NOT NULL')
             ->andWhere('disabled_at IS NULL')
             ->setParameter(
                 'people',
@@ -113,9 +84,6 @@ final readonly class DoctrineMemberAccountRepository implements MemberAccountRep
      *     personId: string,
      *     ageCheck: string|null,
      *     guardianConsentNote: string|null,
-     *     approvedAt: string|null,
-     *     approverId: string|null,
-     *     approverName: string|null,
      * }>
      */
     #[Override]
@@ -132,9 +100,6 @@ final readonly class DoctrineMemberAccountRepository implements MemberAccountRep
             'personId' => Type::of($row['person'] ?? null)->toString(),
             'ageCheck' => Type::of($row['age_check'] ?? null)->toStringOrNull(),
             'guardianConsentNote' => Type::of($row['note'] ?? null)->toStringOrNull(),
-            'approvedAt' => Type::of($row['approved_at'] ?? null)->toStringOrNull(),
-            'approverId' => Type::of($row['approver_id'] ?? null)->toStringOrNull(),
-            'approverName' => Type::of($row['approver_name'] ?? null)->toStringOrNull(),
         ])->getValues();
     }
 }

@@ -13,7 +13,6 @@ use App\Context\Identity\Domain\ValueObject\MemberRecord;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Symfony\Component\Uid\Uuid;
 
 final readonly class MemberAccounts
 {
@@ -47,16 +46,6 @@ final readonly class MemberAccounts
     }
 
     /**
-     * @param list<Uuid> $personIds
-     *
-     * @return list<string>
-     */
-    public function linkedAmong(array $personIds): array
-    {
-        return $this->members->linkedAmong($personIds);
-    }
-
-    /**
      * @return list<array{
      *     id: string,
      *     name: string,
@@ -66,9 +55,6 @@ final readonly class MemberAccounts
      *     personId: string,
      *     ageCheck: string|null,
      *     guardianConsentNote: string|null,
-     *     approvedAt: string|null,
-     *     approverId: string|null,
-     *     approverName: string|null,
      * }> the linked accounts without a staff role
      */
     public function listed(): array

@@ -11,7 +11,6 @@ use App\Workflow\Privacy\Model\AccountRecord;
 use App\Workflow\Privacy\Model\LinkRow;
 use App\Workflow\Privacy\Model\MemberLinkView;
 use App\Workflow\Privacy\Model\PrivacyAcceptance;
-use App\Workflow\Privacy\Model\RegistrationView;
 use App\Workflow\Privacy\Model\ReportByRow;
 use DateTimeImmutable;
 use JsonSerializable;
@@ -40,11 +39,9 @@ final readonly class AccountDataResponse implements JsonSerializable
      *         name: string,
      *         language: Language,
      *         createdAt: DateTimeImmutable,
-     *         approvedAt: DateTimeImmutable|null,
      *         disabledAt: DateTimeImmutable|null,
      *         privacyNoticeAccepted: PrivacyAcceptance,
      *         roles: list<string>,
-     *         registration: RegistrationView|null,
      *         memberAgeCheck: array{result: AgeCheck, parentAgreed: string|null}|null,
      *     },
      *     children: list<LinkRow>,
@@ -75,11 +72,9 @@ final readonly class AccountDataResponse implements JsonSerializable
      *     name: string,
      *     language: Language,
      *     createdAt: DateTimeImmutable,
-     *     approvedAt: DateTimeImmutable|null,
      *     disabledAt: DateTimeImmutable|null,
      *     privacyNoticeAccepted: PrivacyAcceptance,
      *     roles: list<string>,
-     *     registration: RegistrationView|null,
      * }
      */
     private static function accountOf(AccountRecord $account): array
@@ -90,11 +85,9 @@ final readonly class AccountDataResponse implements JsonSerializable
             'name' => $account->identity->name,
             'language' => $account->identity->language,
             'createdAt' => $account->moments->createdAt,
-            'approvedAt' => $account->moments->approvedAt,
             'disabledAt' => $account->moments->disabledAt,
             'privacyNoticeAccepted' => $account->privacy,
             'roles' => $account->roles,
-            'registration' => $account->registration,
         ];
     }
 

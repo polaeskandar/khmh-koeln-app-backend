@@ -19,12 +19,11 @@ use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
-use App\Tests\Support\Interface\Api\Identity\EmailedLinks;
-use App\Tests\Support\Interface\Api\Identity\Registrations;
-use App\Tests\Support\JsonBody;
 use DateTimeImmutable;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
+use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Uid\Uuid;
 
 final class MemberJourneyTest extends ApiTestCase
@@ -48,7 +47,7 @@ final class MemberJourneyTest extends ApiTestCase
         ));
 
         $this->signInWithRoles(self::MARIAM, 'administrator');
-        $this->registerAndApproveMina($youth);
+        $this->createAndLinkMinasAccount($youth);
         $task = $this->prepareAdvancedHomework($advanced, $saturday, $peter);
 
         $this->signInAs(self::MINA, SignInAccounts::TYPED);
@@ -116,33 +115,19 @@ final class MemberJourneyTest extends ApiTestCase
         return [$advanced, $saturday, $task->id()->toRfc4122(), $youth->id()->toRfc4122()];
     }
 
-    private function registerAndApproveMina(string $youth): void
+    private function createAndLinkMinasAccount(string $youth): void
     {
-        $this->jsonRequest('POST', '/api/auth/register', Registrations::parent([
-            'account' => ['firstName' => 'Mina', 'lastName' => 'Hanna', 'email' => self::MINA],
-            'registration' => ['registeredAs' => 'member', 'note' => 'Youth Meeting and Deacons’ School Advanced'],
-        ]));
+        new SignInAccounts(self::getContainer())->add(self::MINA, ['display_name' => 'Mina Hanna']);
+        $link = new CommandTester(new Application(self::$kernel ?? self::bootKernel())->find('app:member:link'));
 
-        self::assertResponseStatusCodeSame(202);
-
-        $this->jsonRequest('POST', '/api/auth/email-confirmations', [
-            'token' => new EmailedLinks(self::getContainer())->lastToken(),
+        $link->execute([
+            'email' => self::MINA,
+            'personId' => $youth,
+            '--age' => 'guardian-consent',
+            '--note' => 'Father agreed.',
         ]);
 
-        $this->signInAs(self::MARIAM, SignInAccounts::TYPED);
-        $this->jsonRequest('GET', '/api/account-requests/member-candidates?q=mina%20han');
-        self::assertCount(2, JsonBody::asArray($this->responseJson()['items'] ?? null, 'items'));
-
-        $this->jsonRequest('POST', '/api/account-requests/' . $this->minaAccount() . '/approve', [
-            'as' => 'member',
-            'member' => [
-                'personId' => $youth,
-                'ageCheck' => 'guardianConsent',
-                'guardianConsentNote' => 'Father agreed.',
-            ],
-        ]);
-
-        self::assertResponseIsSuccessful();
+        $link->assertCommandIsSuccessful();
     }
 
     private function prepareAdvancedHomework(Stage $advanced, Schedule $saturday, string $peter): string
@@ -199,12 +184,10 @@ final class MemberJourneyTest extends ApiTestCase
         $this->signInAs(self::MARIAM, SignInAccounts::TYPED);
         $this->jsonRequest('POST', '/api/member-accounts/' . $this->minaAccount() . '/unlink', []);
         self::assertResponseStatusCodeSame(204);
-        $this->jsonRequest('GET', '/api/account-requests');
-        $this->assertJsonPath('items.0.account.email', self::MINA);
 
         $this->restore($minaSession);
         $this->jsonRequest('GET', '/api/member/homework');
-        $this->assertProblem(401, 'auth.unauthenticated');
+        $this->assertProblem(403, 'forbidden');
     }
 
     /**

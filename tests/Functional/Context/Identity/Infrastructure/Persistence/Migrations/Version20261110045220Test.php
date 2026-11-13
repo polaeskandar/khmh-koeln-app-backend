@@ -21,7 +21,7 @@ final class Version20261110045220Test extends KernelTestCase
     public function testDecomposedRoleNamesAndEmailsAreComposed(): void
     {
         $role = Roles::named('Choir leader');
-        $account = Accounts::approved('sara@example.org');
+        $account = Accounts::active('sara@example.org');
         $this->database()->persisted($role, $account);
         $this->storeRoleAsTypedBefore($role->id(), "Chorleiter Mu\u{0308}hle");
         $this->storeEmail($account->id(), "mu\u{0308}ller@example.org");
@@ -48,8 +48,8 @@ final class Version20261110045220Test extends KernelTestCase
     {
         $role = Roles::named("Chorleiter M\u{00FC}hle");
         $roleTwin = Roles::named('Choir leader');
-        $account = Accounts::approved("m\u{00FC}ller@example.org");
-        $accountTwin = Accounts::approved('sara@example.org');
+        $account = Accounts::active("m\u{00FC}ller@example.org");
+        $accountTwin = Accounts::active('sara@example.org');
         $this->database()->persisted($role, $roleTwin, $account, $accountTwin);
         $this->storeRoleAsTypedBefore($roleTwin->id(), "Chorleiter Mu\u{0308}hle");
         $this->storeEmail($accountTwin->id(), "mu\u{0308}ller@example.org");

@@ -7,11 +7,10 @@ namespace App\Context\Identity\Domain\Repository;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Identity\Domain\Query\UserQueryInterface;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
-interface UserRepositoryInterface extends UserQueryInterface
+interface UserRepositoryInterface
 {
     public function save(User $user): void;
 

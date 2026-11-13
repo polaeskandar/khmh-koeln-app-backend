@@ -8,14 +8,12 @@ use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Domain\Entity\Person;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
-use App\Tests\Support\Database;
-use App\Tests\Support\Interface\Api\Identity\EmailedLinks;
-use App\Tests\Support\Interface\Api\Identity\Registrations;
 use App\Tests\Support\Interface\Api\Learning\ProgressRows;
 use App\Tests\Support\JsonBody;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
@@ -47,7 +45,7 @@ final class HomeworkJourneyTest extends ApiTestCase
             $rosters->place($child, $school, $third, '2026-09-01');
         }
 
-        $this->registerAndApproveHoda($mina, $mimi);
+        $this->createHodasAccount($mina, $mimi);
         $daniel = new ServedGroups(self::getContainer())->everyService($this->signInWithRoles(self::DANIEL, 'servant'));
         new Families(self::getContainer())->link($this->signInWithRoles(self::SAMIR, 'parent'), $kiro);
         $task = $this->prepareHomework($third, $daniel);
@@ -68,35 +66,13 @@ final class HomeworkJourneyTest extends ApiTestCase
         $this->assertProgress($task, $mina, null);
     }
 
-    private function registerAndApproveHoda(Person $mina, Person $mimi): void
+    private function createHodasAccount(Person $mina, Person $mimi): void
     {
-        $this->jsonRequest('POST', '/api/auth/register', Registrations::parent([
-            'account' => ['firstName' => 'Hoda', 'lastName' => 'Farag', 'email' => self::HODA],
-            'registration' => ['note' => 'Mina, 3rd Class, and Mimi, 1st Class'],
-        ]));
-
-        self::assertResponseStatusCodeSame(202);
-        $token = new EmailedLinks(self::getContainer())->lastToken();
-        $this->jsonRequest('POST', '/api/auth/email-confirmations', ['token' => $token]);
-        self::assertResponseStatusCodeSame(204);
-        $this->signInWithRoles('mariam@example.org', 'administrator');
-        $this->jsonRequest('GET', '/api/account-requests');
-
-        $items = JsonBody::asArray($this->responseJson()['items'] ?? null, 'items');
-        $account = JsonBody::asArray(JsonBody::asArray($items[0] ?? null, 'request')['account'] ?? null, 'account');
-        $request = Type::of($account['id'] ?? null)->toString();
-
-        $parentRole = new Database(self::getContainer())
-            ->connection()
-            ->fetchOne("SELECT id::text FROM identity.role WHERE name_key = 'parent'");
-
-        $this->jsonRequest('POST', '/api/account-requests/' . $request . '/approve', [
-            'as' => 'parent',
-            'childIds' => [$mina->id()->toRfc4122(), $mimi->id()->toRfc4122()],
-            'roleIds' => [Type::of($parentRole)->toString()],
-        ]);
-
-        self::assertResponseIsSuccessful();
+        $hoda = new SignInAccounts(self::getContainer())->add(self::HODA, ['display_name' => 'Hoda Farag']);
+        new RoleGrants(self::getContainer())->grant($hoda, 'parent');
+        $families = new Families(self::getContainer());
+        $families->link($hoda, $mina);
+        $families->link($hoda, $mimi);
         $this->signInAs(self::HODA, SignInAccounts::TYPED);
     }
 

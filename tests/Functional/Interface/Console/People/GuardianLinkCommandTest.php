@@ -67,7 +67,6 @@ final class GuardianLinkCommandTest extends KernelTestCase
      */
     public static function refusals(): iterable
     {
-        yield 'pending account' => [['approved_at' => null], 'active', null, 'guardians.accountInactive'];
         yield 'disabled account' => [
             ['disabled_at' => '2026-11-09 12:00:00+01'],
             'active',

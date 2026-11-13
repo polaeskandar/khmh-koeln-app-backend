@@ -5,8 +5,8 @@ Youth Meeting, …): they plan meetings, take attendance, prepare lessons and gi
 Parents follow their children's homework in a parent portal.
 
 The MVP covers services and stages, meeting schedules and sessions, manual attendance (also on the phone),
-a minimal member list, lesson preparation, homework and the parent portal, together with sign-in and
-registration with an administrator's approval, data protection requests, three languages (English, German,
+a minimal member list, lesson preparation, homework and the parent portal, together with sign-in to accounts the
+church office creates, data protection requests, three languages (English, German,
 Arabic) and a dark mode. QR check-in, follow-up, visitation, events, pastoral care, appointments and welfare
 are not part of it.
 
@@ -106,7 +106,7 @@ Naming:
 | Response | `Interface/Api/<Area>/Response/` | `<Name>Response` | final readonly |
 | Console command | `Interface/Console/<Area>/` | `<Name>Command` | final, invokable |
 | Console request | `Interface/Console/<Area>/Request/` | `<Name>Request` | final, public properties Symfony fills through `#[MapInput]` |
-| Workflow | `Workflow/<Area>/` | `<Verb><Subject>Workflow`: an imperative verb for a write (`RegisterAccount`, `GiveRole`), `Show` for one thing, `List` for many | final readonly, only `__invoke()` public |
+| Workflow | `Workflow/<Area>/` | `<Verb><Subject>Workflow`: an imperative verb for a write (`CreateUser`, `GiveRole`), `Show` for one thing, `List` for many | final readonly, only `__invoke()` public |
 | Workflow model | `Workflow/<Area>/Model/` | a noun (`CurrentAccount`, `AccountDetails`) | final readonly |
 | Application service | `Context/<C>/Application/Service/` | what it manages (`RoleAssignments`, `AccountRegistration`), never `*Service`, `*Manager` or `*Helper` | final readonly |
 | Port | `Context/<C>/Domain/Interface/` | `*Interface` | interface |
@@ -236,29 +236,24 @@ firewalls run before the cookie one: `api_token_issue` (`json_login` on `POST /a
 throttling and failure codes) and `api_bearer` (`access_token`, matched by `BearerRequests`, the predicate the
 Origin check also skips). The contract for both is in the [API contract](api.md#authentication).
 
-### Accounts need an administrator's approval
+### The church office creates every account
 
-Parents, servants and members register themselves: name, email, password, whether they are a parent, a
-servant or a member, and a note (their children's names and classes, where they serve, or the groups they take
-part in), after accepting the privacy notice.
-The account exists from then on but can't be used: signing in with the right password only shows that it
-is waiting. An administrator approves it in Settings › Account requests, and the approval is where access
-is decided: a parent's account is linked to the children the office has checked (approved guardian links),
-a servant gets the servant role and the services or stages it serves in, a member's account is linked to their own member record (see "Members can have
-an account of their own"). Declining deletes the account and everything the person entered. Accounts the office
-creates itself are approved at once.
+Nobody registers themselves (board decision H, Nov 2026). The church office creates each account and decides at
+once what it may do: a parent's account is linked to the children the office has checked (approved guardian
+links), a servant gets the servant role and the services or stages it serves in, a member's account is linked to
+their own member record (see "Members can have an account of their own"). An account can sign in as soon as it
+exists; there is no confirmation of an email address and no queue of requests to approve.
 
 Sign-in answers "wrong email or password" without saying which, and "forgot password" always answers the
-same, so neither can be used to find out who has an account. Before an administrator sees a registration,
-the person should confirm their email address through a link (not in the prototype). Disabled accounts
-can't sign in and keep their history.
+same, so neither can be used to find out who has an account. Disabled accounts can't sign in and keep their
+history.
 
 ### Members can have an account of their own
 
 After the launch, people on a roster (a youth, an adult in the Coptic course, an older child whose parents
-agreed) can get an account of their own. An administrator links an approved account to the person's own member
+agreed) can get an account of their own. An administrator links an account to the person's own member
 record after checking who it belongs to, at most one account per record. Under 16 this needs the agreement of a
-parent or guardian (DSGVO Art. 8): the administrator records how the age was checked with the approval
+parent or guardian (DSGVO Art. 8): the administrator records how the age was checked with the link
 (`age_check`: 16 or older, or a guardian's consent) and, for a consent, how it was given (an optional note).
 Staff and parents can be members too: a mother who takes the Coptic course keeps her parent portal and gets her
 own groups next to it.
@@ -267,8 +262,8 @@ Members receive their own groups, when and where they meet, their servants, the 
 memory verse, the next two weeks' meetings (canceled ones without the reason) and the published homework of
 their stages, which they tick off themselves. They never see attendance, notes for the servants, cancel
 reasons, lesson plans or other members. Only an administrator sets or removes the link (`GET /api/member-accounts`,
-`POST /api/member-accounts/{id}/unlink`, or the console); an account that is only a member's goes back to the
-account requests when its link is removed.
+`POST /api/member-accounts/{id}/unlink`, or the console); an account that is only a member's keeps signing in
+without the member portal when its link is removed.
 
 ### Three languages, right to left included
 
@@ -344,8 +339,8 @@ families. The member portal needs no permission: it is open to an active account
 shows only that record's own groups and homework, so a staff or parent account can be a member as well. The
 frontend only hides what a person can't do; the API checks every request. People's `GuardianVoter` grants
 `ACT_FOR_CHILD` on a child to an account with an approved guardian link. It checks only the link, because a
-token always belongs to an active account: Identity refuses pending and disabled accounts at sign-in and ends
-their sessions on the next request.
+token always belongs to an active account: Identity refuses disabled accounts at sign-in and ends their
+sessions on the next request.
 
 A workflow that needs a permission states it as its first step:
 `$this->access->require(Action::Update, Resource::Services)` (`Context\Identity\Application\Service\AccessCheck`).
@@ -363,7 +358,7 @@ body as if it were unknown, and lists pass the scope to the contexts, which keep
 list and the latest closed sessions in their queries, since they are paged or cut). A person belongs to the groups
 of its memberships that have not ended; a person without one is reachable only through a church role. Who may
 assign is decided there as well: a church role with `users: update` anywhere, otherwise `stages: update` with a
-service assignment for that service and its stages. Users, roles, account requests, parent access and data
+service assignment for that service and its stages. Users, roles, parent access and data
 protection stay church-wide by permission, and so does the people directory, a name search for pickers. A member workflow starts the same way
 with `$personId = $this->member->require($viewerId)` (`MemberCheck`): it reloads the account and returns its own
 member record, or refuses with 403 `forbidden` when the account is inactive or not linked. The record always
@@ -392,12 +387,9 @@ applied by the subject's `<Subject>Lifecycle` service ([Code style](code-style.m
   `LessonState::isCompletedBeforeTeachingDate()`, checked when the status changes and when a completed lesson
   moves to another date; archiving is a separate date, not a status. `LessonLifecycle` changes the status and
   archives and restores a lesson, applying that rule itself.
-- An account's state has no machine either. It has no status column: awaiting confirmation, pending, active and
-  disabled are derived from `email_confirmed_at`, `approved_at` and `disabled_at` in `AccountStatus`, a declined
-  registration is deleted, and each change has its own effect on `auth_version`. A machine would need a new
-  column, a backfill and a CHECK to say what the dates already say; `AccountStatusTransitionsTest` pins the table.
-  `AccountLifecycle` approves, declines, disables and enables an account; registering it and confirming its email
-  stay with `AccountRegistration` and `EmailConfirmations`, which own the tokens and mails of those steps.
+- An account's state has no machine either. It is active or disabled, derived from `disabled_at` in
+  `AccountStatus`; disabling raises `auth_version`. A machine for two states would refuse nothing;
+  `AccountStatusTransitionsTest` pins the table. `AccountLifecycle` disables and enables an account.
 
 ### Sessions are created the day before
 
@@ -434,8 +426,7 @@ was built on or names the issue that changes it.
 ## Open questions for tickets
 
 - Sign-in: email links remain an option for parents besides passwords.
-- Email delivery: confirming the address after registration, password links, approval and erasure
-  notices, in the person's language. Which provider (an EU one).
+- Email delivery: password links and erasure notices, in the person's language. Which provider (an EU one).
 - How the office verifies a parent before linking a child (in person after the liturgy is the prototype's
   suggestion), and who can make data protection requests for a child.
 - Data protection, with the church's adviser: the controller and the contact in the privacy notice; the

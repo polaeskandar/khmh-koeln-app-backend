@@ -14,9 +14,4 @@ final readonly class ChosenPlacement
         public ?Stage $stage,
     ) {
     }
-
-    public function isCoveredBy(self $group): bool
-    {
-        return $this->stage !== null && $group->stage === null && $this->service->id()->equals($group->service->id());
-    }
 }

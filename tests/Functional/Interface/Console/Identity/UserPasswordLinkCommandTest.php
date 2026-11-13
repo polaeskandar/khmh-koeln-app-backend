@@ -81,7 +81,6 @@ final class UserPasswordLinkCommandTest extends KernelTestCase
     public static function refusals(): iterable
     {
         yield 'unknown email' => ['nobody@example.org', [], 'notFound.account'];
-        yield 'pending' => ['daniel@example.org', ['approved_at' => null], 'accounts.passwordLinkUnavailable'];
         yield 'disabled' => [
             'daniel@example.org',
             ['disabled_at' => '2026-11-09 12:00:00+01'],

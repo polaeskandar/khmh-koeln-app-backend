@@ -1,7 +1,0 @@
-{% extends 'emails/layout.txt.twig' %}
-
-{% block body %}{{ 'email_confirmation.body'|trans({'%validUntil%': validUntil}, 'emails') }}
-
-{{ url }}
-
-{{ 'email_confirmation.ignore'|trans({}, 'emails') }}{% endblock %}

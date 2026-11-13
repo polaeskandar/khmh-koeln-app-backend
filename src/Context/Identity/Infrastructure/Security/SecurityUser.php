@@ -115,8 +115,7 @@ final readonly class SecurityUser implements UserInterface, PasswordAuthenticate
         $status = $user->status();
 
         return Text::format(
-            '%d|%d|%d%s',
-            $status->approvedAt?->getTimestamp() ?? 0,
+            '%d|%d%s',
             $status->disabledAt?->getTimestamp() ?? 0,
             $status->authVersion,
             $user->erasesOn()?->format(self::ERASURE_MARK) ?? '',

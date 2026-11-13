@@ -32,18 +32,6 @@ final class RoleAssignmentsTest extends KernelTestCase
         self::assertSame(['servant'], $this->fixtures()->roleKeysOf('sara@example.org'));
     }
 
-    public function testAPendingAccountGetsNoRole(): void
-    {
-        $this->fixtures()->account('sara@example.org', ['approved_at' => null]);
-
-        $this->assertRefused('roles.accountPending', fn () => $this
-            ->fixtures()
-            ->assignments()
-            ->give('sara@example.org', 'Servant'));
-
-        self::assertSame([], $this->fixtures()->roleKeysOf('sara@example.org'));
-    }
-
     public function testOnlyAHeldRoleCanBeTaken(): void
     {
         $this->fixtures()->account('sara@example.org');
@@ -57,7 +45,6 @@ final class RoleAssignmentsTest extends KernelTestCase
     public function testTheLastActiveAdministratorKeepsTheRole(): void
     {
         $admin = $this->fixtures()->account('admin@example.org', [], 'administrator');
-        $this->fixtures()->account('pending@example.org', ['approved_at' => null], 'administrator');
 
         $this->fixtures()->account(
             'disabled@example.org',

@@ -25,7 +25,6 @@ final readonly class DoctrineRoleHolderRepository implements RoleHolderRepositor
         SELECT u FROM App\Context\Identity\Domain\Entity\User u
         JOIN u.roles r
         WHERE r.name.key = :key
-          AND u.status.approvedAt IS NOT NULL
           AND u.status.disabledAt IS NULL
         ORDER BY u.profile.displayName.value, u.id
         DQL;
@@ -34,7 +33,6 @@ final readonly class DoctrineRoleHolderRepository implements RoleHolderRepositor
         SELECT DISTINCT u FROM App\Context\Identity\Domain\Entity\User u
         JOIN u.roles r
         WHERE r.scope = :scope
-          AND u.status.approvedAt IS NOT NULL
           AND u.status.disabledAt IS NULL
         DQL;
 
@@ -57,7 +55,6 @@ final readonly class DoctrineRoleHolderRepository implements RoleHolderRepositor
         JOIN identity.role_permission rp ON rp.role_id = ur.role_id
         JOIN identity.permission p ON p.id = rp.permission_id
         WHERE ur.role_id <> :role
-          AND u.approved_at IS NOT NULL
           AND u.disabled_at IS NULL
           AND u.erases_on IS NULL
           AND p.action = :action

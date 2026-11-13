@@ -17,15 +17,12 @@ final readonly class DoctrineStaffAccountRepository implements StaffAccountRepos
     private const string LISTED = <<<'SQL'
         SELECT u.id::text AS id, u.display_name AS name, u.email, u.disabled_at IS NOT NULL AS disabled
         FROM identity.app_user u
-        WHERE u.approved_at IS NOT NULL
-          AND (
-            (u.person_id IS NULL AND NOT EXISTS (SELECT 1 FROM identity.user_role ur WHERE ur.user_id = u.id))
-            OR EXISTS (
-              SELECT 1 FROM identity.user_role ur
-              JOIN identity.role_permission rp ON rp.role_id = ur.role_id
-              JOIN identity.permission p ON p.id = rp.permission_id
-              WHERE ur.user_id = u.id AND p.resource <> 'parentPortal'
-            )
+        WHERE (u.person_id IS NULL AND NOT EXISTS (SELECT 1 FROM identity.user_role ur WHERE ur.user_id = u.id))
+          OR EXISTS (
+            SELECT 1 FROM identity.user_role ur
+            JOIN identity.role_permission rp ON rp.role_id = ur.role_id
+            JOIN identity.permission p ON p.id = rp.permission_id
+            WHERE ur.user_id = u.id AND p.resource <> 'parentPortal'
           )
         ORDER BY disabled, lower(u.display_name), u.id
         LIMIT :limit

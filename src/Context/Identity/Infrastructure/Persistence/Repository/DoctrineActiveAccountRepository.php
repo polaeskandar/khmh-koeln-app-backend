@@ -16,7 +16,7 @@ final readonly class DoctrineActiveAccountRepository implements ActiveAccountRep
     private const string LISTED = <<<'SQL'
         SELECT id::text AS id, display_name AS name, email
         FROM identity.app_user
-        WHERE approved_at IS NOT NULL AND disabled_at IS NULL
+        WHERE disabled_at IS NULL
         ORDER BY lower(display_name), id
         LIMIT :limit
         SQL;

@@ -35,14 +35,13 @@ There is no account screen at launch; operators run these commands on the server
 
 | Command | Does |
 | --- | --- |
-| `app:user:create <email> <name> [--role=<name>] [--language=de]` | Creates an approved account. Type the password twice, pipe it with `--password-stdin`, or use `--no-password` and send a password link. |
+| `app:user:create <email> <name> [--role=<name>] [--language=de]` | Creates an account that signs in at once. Type the password twice, pipe it with `--password-stdin`, or use `--no-password` and send a password link. |
 | `app:privacy:export --person=UUID \| --account=UUID [--output=FILE]` | Writes everything stored about one member or account as JSON (Art. 15/20) to a file only you can read; prints only the file name. Never includes password hashes, tokens, sessions or other people's email addresses. |
 | `app:privacy:erase-account <id>` (`:dry-run` to preview) | Erases an account (Art. 17): its roles, guardian links, password links and registration choices go; what it did for the church stays with the actor set to `null` ("a former account"). Refuses the last active administrator. Prints counts only. |
 | `app:privacy:erase-person <id>` (`:dry-run` to preview) | Erases a member (Art. 17) in one transaction: first raises the anonymous counters of every counted past session they were on or marked in, then deletes their attendance (corrections included), homework reports, guardian links, memberships and the person. Prints counts only. |
 | `app:user:role:add <email> <role>` / `app:user:role:remove <email> <role>` | Gives or takes a role by name. The last active account that can manage roles keeps that permission. |
 | `app:user:disable <email>` / `app:user:enable <email>` | Disables an account (it can't sign in, and its open sessions end for good) or enables it again. Repeating changes nothing. The last active administrator can't be disabled. |
 | `app:user:password-link <email>` | Emails the account a one-time link to set the password, valid for 24 hours, in the account's language. A new link replaces the unused ones. |
-| `app:user:confirm-email <email>` | Confirms a registration's email address by hand, as if its link was used: the confirmation time is now, its unused links stop working, and the registration appears under Account requests. Sends no email. An address that is already confirmed (or an approved account) changes nothing and exits 0; an unknown address exits 1. |
 
 The link goes only to the account's own address, never to the console or the logs, and is stored only as a
 SHA-256 hash.
@@ -77,7 +76,7 @@ Parents see a child only through an approved guardian link. At launch operators 
 
 | Command | Does |
 | --- | --- |
-| `app:guardian:link <email> <personId> [--relationship=guardian]` | Links an approved, enabled account to an active child and gives the account the Parent role. Repeating changes nothing. |
+| `app:guardian:link <email> <personId> [--relationship=guardian]` | Links an enabled account to an active child and gives the account the Parent role. Repeating changes nothing. |
 | `app:guardian:revoke <email>` | Lists the account's children with their ids. |
 | `app:guardian:revoke <email> <personId>` | Ends the account's access to that child; the link stays as revoked. Repeating changes nothing. |
 
@@ -89,7 +88,7 @@ agreement. Parents and staff can be linked to their own record too and keep thei
 
 | Command | Does |
 | --- | --- |
-| `app:member:link <email> <personId> --age=16-or-older` | Links an approved, enabled account to an active member record that no other account has. Linking it to the same record again changes nothing. |
+| `app:member:link <email> <personId> --age=16-or-older` | Links an enabled account to an active member record that no other account has. Linking it to the same record again changes nothing. |
 | `app:member:link <email> <personId> --age=guardian-consent [--note=…]` | The same for a member under 16 whose parent or guardian agreed; the note (at most 200 characters) says how. |
-| `app:member:unlink <email>` | Removes the account's link to its member record; an account without roles becomes an account request again. Repeating changes nothing. |
+| `app:member:unlink <email>` | Removes the account's link to its member record; an account without roles keeps signing in, without the member portal. Repeating changes nothing. |
 
