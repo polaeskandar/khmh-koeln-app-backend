@@ -85,11 +85,7 @@ final class TaskAudiencesMemberTest extends KernelTestCase
 
         new Database(self::getContainer())
             ->connection()
-            ->update(
-                'identity.app_user',
-                ['disabled_at' => '2026-11-01 10:00:00+01'],
-                ['email' => 'disabled@example.org'],
-            );
+            ->update('identity.app_user', ['disabled_at' => '2026-11-01 10:00:00+01'], ['username' => 'disabled']);
 
         $task = $course->task('letters');
 

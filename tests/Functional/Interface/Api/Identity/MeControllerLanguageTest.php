@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Interface\Api\Identity;
 
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Database;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -93,7 +94,7 @@ final class MeControllerLanguageTest extends ApiTestCase
     {
         $language = new Database(self::getContainer())
             ->connection()
-            ->fetchOne('SELECT language FROM identity.app_user WHERE email = ?', [$email]);
+            ->fetchOne('SELECT language FROM identity.app_user WHERE username = ?', [Accounts::usernameOf($email)]);
 
         self::assertIsString($language);
 

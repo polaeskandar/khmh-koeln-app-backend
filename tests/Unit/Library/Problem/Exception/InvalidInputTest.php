@@ -14,8 +14,8 @@ final class InvalidInputTest extends TestCase
     public function testAFieldErrorCarriesItsCodeAndOnlyGivenParams(): void
     {
         self::assertSame(
-            ['email' => ['code' => 'accounts.emailTaken']],
-            InvalidInput::field('email', 'accounts.emailTaken')->fieldErrors,
+            ['username' => ['code' => 'accounts.usernameTaken']],
+            InvalidInput::field('username', 'accounts.usernameTaken')->fieldErrors,
         );
 
         self::assertSame(

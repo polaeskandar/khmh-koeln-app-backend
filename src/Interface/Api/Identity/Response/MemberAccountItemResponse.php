@@ -25,7 +25,7 @@ final readonly class MemberAccountItemResponse implements JsonSerializable
      * @return array{
      *     id: string,
      *     name: string,
-     *     email: string,
+     *     username: string,
      *     isParent: bool,
      *     disabled: bool,
      *     member: array{id: string, name: string|null, inactive: bool, groups: list<string>},
@@ -43,7 +43,7 @@ final readonly class MemberAccountItemResponse implements JsonSerializable
         return [
             'id' => $account->id,
             'name' => $account->name,
-            'email' => $account->email,
+            'username' => $account->username,
             'isParent' => $account->isParent,
             'disabled' => $account->disabled,
             'member' => [

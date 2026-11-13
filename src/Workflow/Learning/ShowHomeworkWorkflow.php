@@ -89,7 +89,7 @@ final readonly class ShowHomeworkWorkflow
 
         $accounts = AudienceAccounts::of(
             $book,
-            $this->accounts->listByIds(TaskAudiences::accountIdsOf($book, $reports)),
+            $this->accounts->namedByIds(TaskAudiences::accountIdsOf($book, $reports)),
             $this->accounts->listOwnAccountsOf($book->personIds()),
         );
 

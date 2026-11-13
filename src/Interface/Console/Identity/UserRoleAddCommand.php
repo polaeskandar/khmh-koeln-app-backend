@@ -23,20 +23,20 @@ final readonly class UserRoleAddCommand
 
     public function __invoke(
         SymfonyStyle $io,
-        #[Argument(description: 'Email address of the account')]
-        string $email,
+        #[Argument(description: 'Username of the account')]
+        string $username,
         #[Argument(description: 'Name of the role, for example "Servant"')]
         string $role,
     ): int {
         try {
-            ($this->giveRole)($email, $role);
+            ($this->giveRole)($username, $role);
         } catch (NotFound|RuleViolation $refused) {
             $io->error($refused->getMessage());
 
             return Command::FAILURE;
         }
 
-        $io->success(Text::format('Gave %s the role %s.', $email, $role)->toString());
+        $io->success(Text::format('Gave %s the role %s.', $username, $role)->toString());
 
         return Command::SUCCESS;
     }

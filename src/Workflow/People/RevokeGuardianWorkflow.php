@@ -19,9 +19,9 @@ final readonly class RevokeGuardianWorkflow
     ) {
     }
 
-    public function __invoke(string $email, string $personId): void
+    public function __invoke(string $username, string $personId): void
     {
-        $account = $this->accounts->getByEmail($email);
+        $account = $this->accounts->getByUsername($username);
         $child = $this->people->find(Ids::toUuid($personId, notFound: 'person')) ?? throw NotFound::of('person');
 
         $this->guardianship->revoke($account->id(), $child);

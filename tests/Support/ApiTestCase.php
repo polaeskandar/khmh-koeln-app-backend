@@ -87,6 +87,15 @@ abstract class ApiTestCase extends WebTestCase
         return $id;
     }
 
+    protected function signInNamed(string $email, string $name, string ...$roles): string
+    {
+        $id = new SignInAccounts(self::getContainer())->add($email, ['display_name' => $name]);
+        new RoleGrants(self::getContainer())->grant($id, ...$roles);
+        $this->signInAs($email, SignInAccounts::TYPED);
+
+        return $id;
+    }
+
     protected function browser(): KernelBrowser
     {
         $browser = self::getClient();

@@ -52,7 +52,7 @@ final class PrivacyEraseDueCommandTest extends ApiTestCase
 
         self::assertSame(0, $this->numberOf(self::KIRO));
         self::assertSame(0, $this->numberOf('SELECT count(*) FROM identity.app_user WHERE id = ?', [$account]));
-        self::assertSame(1, $this->numberOf("SELECT count(*) FROM identity.app_user WHERE email = 'hoda@example.org'"));
+        self::assertSame(1, $this->numberOf("SELECT count(*) FROM identity.app_user WHERE username = 'hoda'"));
         self::assertSame(2, $this->numberOf(self::NOTES));
 
         $request = new Database(self::getContainer())
@@ -152,7 +152,7 @@ final class PrivacyEraseDueCommandTest extends ApiTestCase
         self::assertStringContainsString('Erased 1 scheduled requests, 1 failed.', $tester->getDisplay());
 
         self::assertSame(1, $this->numberOf('SELECT count(*) FROM identity.app_user WHERE id = ?', [$leaving]));
-        self::assertSame(0, $this->numberOf("SELECT count(*) FROM identity.app_user WHERE email = 'hoda@example.org'"));
+        self::assertSame(0, $this->numberOf("SELECT count(*) FROM identity.app_user WHERE username = 'hoda'"));
         self::assertSame(1, $this->numberOf("SELECT count(*) FROM privacy.data_request WHERE status = 'open'"));
 
         $failure = new Logs(self::getContainer())->containing('A scheduled erasure failed.');

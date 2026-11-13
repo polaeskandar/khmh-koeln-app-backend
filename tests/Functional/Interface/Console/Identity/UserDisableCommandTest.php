@@ -100,7 +100,7 @@ final class UserDisableCommandTest extends ApiTestCase
         self::assertSame(0, $this->authVersion());
     }
 
-    public function testAnUnknownEmailFails(): void
+    public function testAnUnknownUsernameFails(): void
     {
         self::assertSame(Command::FAILURE, $this->console('app:user:disable'));
         self::assertSame(Command::FAILURE, $this->console('app:user:enable'));
@@ -115,7 +115,7 @@ final class UserDisableCommandTest extends ApiTestCase
     private function console(string $command): int
     {
         return new CommandTester(new Application($this->browser()->getKernel())->find($command))->execute([
-            'email' => self::EMAIL,
+            'username' => Accounts::usernameOf(self::EMAIL),
         ]);
     }
 
@@ -123,7 +123,9 @@ final class UserDisableCommandTest extends ApiTestCase
     {
         $version = new Database(self::getContainer())
             ->connection()
-            ->fetchOne('SELECT auth_version FROM identity.app_user WHERE email = ?', [self::EMAIL]);
+            ->fetchOne('SELECT auth_version FROM identity.app_user WHERE username = ?', [Accounts::usernameOf(
+                self::EMAIL,
+            )]);
 
         self::assertIsInt($version);
 

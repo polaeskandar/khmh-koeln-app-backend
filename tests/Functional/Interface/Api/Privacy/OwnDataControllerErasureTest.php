@@ -21,7 +21,7 @@ final class OwnDataControllerErasureTest extends ApiTestCase
     public function testTheRightPasswordSchedulesTheErasureAndEndsTheSession(): void
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
-        $this->signInWithRoles('hoda@example.org', 'parent');
+        $this->signInNamed('hoda@example.org', 'Hoda Farag', 'parent');
 
         $this->jsonRequest('GET', '/api/me/erasure-request');
         $this->assertJsonPath('erasureRequested', null);
@@ -41,7 +41,7 @@ final class OwnDataControllerErasureTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/data-requests');
         $this->assertJsonPath('open.0.channel', 'app');
         $this->assertJsonPath('open.0.kind', 'erasure');
-        $this->assertJsonPath('open.0.requestedBy', 'Sara Hanna');
+        $this->assertJsonPath('open.0.requestedBy', 'Hoda Farag');
         $this->assertJsonPath('open.0.note', 'Please delete everything.');
         $this->assertJsonPath('open.0.dueOn', '2026-12-08');
         $this->assertJsonPath('open.0.erasesOn', '2026-11-22');

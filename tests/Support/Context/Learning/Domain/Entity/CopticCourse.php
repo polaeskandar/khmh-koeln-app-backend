@@ -13,6 +13,7 @@ use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Domain\Entity\Person;
 use App\Library\Time\Model\LocalDate;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Domain\Entity\MemberLinks;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
@@ -91,7 +92,7 @@ final readonly class CopticCourse
     {
         $by = new Database($this->container)
             ->connection()
-            ->fetchOne('SELECT id::text FROM identity.app_user WHERE email = ?', [$byEmail]);
+            ->fetchOne('SELECT id::text FROM identity.app_user WHERE username = ?', [Accounts::usernameOf($byEmail)]);
 
         new Reports($this->container)->stored(
             $this->task($task),

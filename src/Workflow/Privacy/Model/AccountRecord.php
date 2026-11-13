@@ -20,10 +20,10 @@ final readonly class AccountRecord
     ) {
     }
 
-    public static function of(User $user): self
+    public static function of(User $user, string $name): self
     {
         return new self(
-            identity: AccountIdentity::of($user),
+            identity: AccountIdentity::of($user, $name),
             moments: AccountMoments::of($user),
             privacy: PrivacyAcceptance::of($user),
             roles: $user

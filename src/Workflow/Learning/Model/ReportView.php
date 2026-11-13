@@ -25,11 +25,11 @@ final readonly class ReportView
             return null;
         }
 
-        $completer = $accounts->users->get($report->completedBy?->toRfc4122() ?? '');
+        $completer = $accounts->users->find($report->completedBy);
 
         return new self(
             $report->completedAt,
-            $completer === null ? null : AccountReference::of($completer),
+            $completer === null ? null : AccountReference::of($completer, $accounts->users),
             $report->late,
             bySelf: $accounts->isOwnAccount($person, $report->completedBy),
         );

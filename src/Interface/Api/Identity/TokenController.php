@@ -24,8 +24,8 @@ final readonly class TokenController
     #[OA\Post(summary: 'Auth tokens.', security: [])]
     #[OA\RequestBody(
         required: true,
-        content: new OA\JsonContent(required: ['email', 'password'], properties: [
-            new OA\Property(property: 'email', type: 'string'),
+        content: new OA\JsonContent(required: ['username', 'password'], properties: [
+            new OA\Property(property: 'username', type: 'string'),
             new OA\Property(property: 'password', type: 'string'),
             new OA\Property(property: 'deviceName', type: 'string', maxLength: 100),
         ]),

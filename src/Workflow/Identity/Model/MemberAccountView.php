@@ -9,7 +9,7 @@ final readonly class MemberAccountView
     public function __construct(
         public string $id,
         public string $name,
-        public string $email,
+        public string $username,
         public bool $isParent,
         public bool $disabled,
     ) {

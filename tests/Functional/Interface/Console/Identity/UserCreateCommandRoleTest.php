@@ -22,7 +22,6 @@ final class UserCreateCommandRoleTest extends KernelTestCase
 
         self::assertSame(Command::SUCCESS, $tester->execute([
             'username' => 'admin',
-            'email' => 'admin@example.org',
             'firstName' => 'Mariam',
             'lastName' => 'Saad',
             '--role' => 'administrator',
@@ -30,7 +29,7 @@ final class UserCreateCommandRoleTest extends KernelTestCase
 
         self::assertTrue(
             new StoredAccounts(self::getContainer())
-                ->withEmail('admin@example.org')
+                ->withUsername('admin')
                 ->status()
                 ->isActive(),
         );
@@ -52,7 +51,6 @@ final class UserCreateCommandRoleTest extends KernelTestCase
 
         self::assertSame(Command::INVALID, $tester->execute([
             'username' => 'sara',
-            'email' => 'sara@example.org',
             'firstName' => 'Sara',
             'lastName' => 'Hanna',
             '--password-stdin' => true,

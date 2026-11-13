@@ -10,23 +10,51 @@ use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\Repository\MemberAccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\RoleHolderRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 use App\Library\Collections\Model\Collections;
 use App\Platform\Access\Model\Group;
-use Collator;
+use App\Platform\Directory\Contract\PersonNames;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class AccountLookup
 {
-    private const string COLLATION = 'de';
-
     public function __construct(
         private UserRepositoryInterface $users,
         private RoleHolderRepositoryInterface $roleHolders,
         private MemberAccountRepositoryInterface $members,
         private GroupPermissions $groups,
+        private PersonNames $people,
     ) {
+    }
+
+    /**
+     * @param ReadableCollection<int, User> $accounts
+     */
+    public function named(ReadableCollection $accounts): NamedAccounts
+    {
+        return NamedAccounts::of(
+            $accounts,
+            $this->people->namesOf(
+                $accounts->map(static fn (User $account): Uuid => $account->personId())->getValues(),
+            ),
+        );
+    }
+
+    /**
+     * @param list<?Uuid> $ids
+     */
+    public function namedByIds(array $ids): NamedAccounts
+    {
+        $present = Collections::mapPresent(new ArrayCollection($ids), static fn (?Uuid $id): ?Uuid => $id);
+
+        return $this->named($this->users->findByIds($present->getValues()));
+    }
+
+    public function nameOf(User $account): string
+    {
+        return $this->named(new ArrayCollection([$account]))->nameOf($account);
     }
 
     /**
@@ -47,32 +75,17 @@ final readonly class AccountLookup
         return $this->roleHolders->activeHolders($roleNameKey);
     }
 
-    /**
-     * @param list<Uuid> $ids
-     *
-     * @return ReadableCollection<int, User>
-     */
-    public function listByIds(array $ids): ReadableCollection
-    {
-        return $this->users->findByIds($ids);
-    }
-
     public function findAccount(?Uuid $id): ?User
     {
         return $id === null ? null : $this->users->find($id);
     }
 
     /**
-     * @return list<User>
+     * @return list<User> by name
      */
     public function listActiveAllowedTo(Action $action, Resource $resource): array
     {
-        $collator = new Collator(self::COLLATION);
-
-        $nameKeyOf =
-            static fn (User $user): string => (string) $collator->getSortKey($user->profile()->displayName->value);
-
-        return Collections::sortedBy($this->users->activeThatCan($action, $resource), keyOf: $nameKeyOf);
+        return $this->named($this->users->activeThatCan($action, $resource))->byName();
     }
 
     /**

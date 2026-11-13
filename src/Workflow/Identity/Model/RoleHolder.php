@@ -5,25 +5,24 @@ declare(strict_types=1);
 namespace App\Workflow\Identity\Model;
 
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 
 final readonly class RoleHolder
 {
     public function __construct(
         public string $id,
         public string $displayName,
-        public string $email,
+        public string $username,
         public bool $disabled,
     ) {
     }
 
-    public static function of(User $user): self
+    public static function of(User $user, NamedAccounts $names): self
     {
-        $profile = $user->profile();
-
         return new self(
             $user->id()->toRfc4122(),
-            $profile->displayName->value,
-            $profile->email->value,
+            $names->nameOf($user),
+            $user->username()->value,
             $user->status()->disabledAt !== null,
         );
     }

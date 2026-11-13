@@ -23,13 +23,13 @@ Doctrine on Symfony 7.4. It has no lessons, homework or parent access.
 - **JSON names** in the API are camelCase. Columns are snake_case.
 - **Text is stored in Unicode NFC.** What people type is composed first (`InputText::of()`, through
   `ComposedForm`), so "ü" typed as one character or as "u" with a combining diaeresis is one name with one key,
-  and lengths count the composed characters. Name keys and emails are composed again after lowering;
+  and lengths count the composed characters. Name keys are composed again after lowering;
   `search_text` stays folded, which gives the same text for either form. One migration per context (Identity,
-  Organization, People) composed the rows stored before: names, emails and keys became `normalize(…, NFC)`.
+  Organization, People) composed the rows stored before: names and keys became `normalize(…, NFC)`.
   Lowering keeps canonically equivalent text equivalent, so a composed stored key is exactly the key of the
   composed name; `Version20261110045222Test` checks this against PostgreSQL for every character with a
-  canonical decomposition. Where role, service or stage names or emails would have become the same, the
-  migration stops and names the rows (accounts by id only) instead of merging them. People may share a key
+  canonical decomposition. Where role, service or stage names would have become the same, the
+  migration stops and names the rows instead of merging them. People may share a key
   (namesakes), so the People migration only composes.
 - **Contexts own their tables.** Each context has its own PostgreSQL schema. A reference to another
   context's record is its id without a foreign key, checked by the workflow that writes it; the foreign keys
@@ -204,7 +204,7 @@ command that runs the workflow, with its lock, is #53.
 
 | Table | Purpose | Key rules |
 | --- | --- | --- |
-| `app_user` | A sign-in account: username, email, display name, password hash, language (`en`, `de`, `ar`), the person it belongs to (`person_id`, required, one account per person), optional `birth_date` and postal address (`street`, `postal_code`, `city`, all three or none; visible to the person and administrators). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). | Email unique, compared in lower case. The church office creates every account, and it can sign in at once. Disabled accounts (`disabled_at`) can't sign in and keep their history. `erases_on` is set while an erasure the account asked for in the app waits: it can't sign in (`auth.erasureScheduled`), its sessions ended when it was set, and it doesn't count as another administrator for `roles.lastAdministrator`. |
+| `app_user` | A sign-in account: username, password hash, language (`en`, `de`, `ar`) and the person it belongs to (`person_id`, required, one account per person). When the privacy notice was accepted (`privacy_accepted_at`, `privacy_version`). The account's name, birth date and address are the person's (`people.person`). | Username unique. The church office creates every account, and it can sign in at once. Disabled accounts (`disabled_at`) can't sign in and keep their history. `erases_on` is set while an erasure the account asked for in the app waits: it can't sign in (`auth.erasureScheduled`), its sessions ended when it was set, and it doesn't count as another administrator for `roles.lastAdministrator`. |
 | `role` | A named set of permissions with a `scope`: `church` (the permissions hold everywhere) or `assignedGroups` (they hold in the holder's assigned groups). Administrators create, rename and delete roles and choose their permissions and scope; the defaults are Administrator, Service leader, Servant and Parent. | Name unique, ignoring case and extra spaces. `scope` defaults to `church` (CHECK); Service leader and Servant are seeded with `assignedGroups`. |
 | `organization.staff_assignment` | A group an account serves in: `account_id`, `service_id`, `stage_id` (null for the service's own roster and all its stages), `created_at`. | Once per account and group (partial UNIQUE `(account_id, service_id) WHERE stage_id IS NULL` and `(account_id, stage_id) WHERE stage_id IS NOT NULL`). No stage row for a service the account holds as a whole: the API refuses one and deletes the stage rows when the whole service is assigned, without a constraint; migration `Version20261111201730` deleted those that existed before. `service_id` and `stage_id` reference `service` and `stage` with `ON DELETE CASCADE`; `account_id` is a plain id of an Identity account, deleted with it. |
 | `permission` | One action (`create`, `read`, `update`, `delete`) on one resource (`users`, `roles`, `services`, `stages`, `sessions`, `attendance`, `members`, `lessons`, `homework`, `parentPortal`). | One row per action and resource; seeded. |
@@ -215,17 +215,20 @@ command that runs the workflow, with its lock, is #53.
 `UsernameRule` checks it against that ASCII pattern, so look-alike letters from other scripts (a Cyrillic `а`) are
 refused instead of matched. It is stored in that normal form, UNIQUE, with a CHECK for the pattern; a taken one
 answers `accounts.usernameTaken`. The migration that added it derived each existing account's username from its
-email's local part (cleaned, `user` in front when too short, `2`, `3`, … after a name already taken). The email is stored trimmed and in lower case (CHECK `email =
-lower(btrim(email))`, UNIQUE), so lookups normalize the typed address the same way. CHECKs keep `language` to
+email's local part (cleaned, `user` in front when too short, `2`, `3`, … after a name already taken). Accounts
+store no email address, name, birth date or address (board decision, Nov 2026): wherever an account is shown by
+name, the name is its person's (`PersonNames`, the display name, else first and last name), read from People
+through the `Platform\Directory` contract, so lists of accounts are sorted by name in PHP (German collation)
+rather than in SQL. The migration that dropped the columns first copied an account's birth date and address to
+its person where the person had none. CHECKs keep `language` to
 `en`, `de`, `ar`; `person_id` is a plain id of a People person (no foreign key across schemas), NOT NULL and
 UNIQUE: every account belongs to exactly one person, created with it, and the link never changes. `age_check`
 (`sixteenOrOlder`, `guardianConsent`) marks a member account, and `guardian_consent_note` (≤200) is set only with
 `guardianConsent`. The migration that made `person_id` required created an active person for each account without
 one (first name from the display name's first word, last name from the rest) and linked it. Erasing a person whose
-account still exists is refused (`privacy.personHasAccount`); a request's erasure erases both. The address is all three parts or none (street ≤120,
-postal code ≤10, city ≤80, cleaned, blank → null). A birth date is never after today: the application checks it
-against the church calendar, because a CHECK can't read the date. Operators create accounts with `bin/console app:user:create <username> <email> <firstName> <lastName>`, which creates the person in the same transaction, typing the
-password twice or piping it with `--password-stdin`.
+account still exists is refused (`privacy.personHasAccount`); a request's erasure erases both. Operators create
+accounts with `bin/console app:user:create <username> <firstName> <lastName>`, which creates the person in the same
+transaction, typing the password twice or piping it with `--password-stdin`.
 
 Roles are dynamic (RBAC), in the `identity` schema: a user has roles (`user_role`), a role has permissions
 (`role_permission`), and a permission is an action on a resource, `{"action": "update", "resource": "sessions"}`.
@@ -237,7 +240,7 @@ the account's `organization.staff_assignment` rows: a service's own roster and i
 the stage for a stage assignment (see [Who may do what](architecture.md#who-may-do-what)). The catalog and the defaults Administrator (everything but the
 parent portal), Service leader, Servant and Parent (`parentPortal:read`) are seeded by a migration; the roles
 are ordinary roles. `app:user:create --role=<name>` writes the account with that role in one transaction.
-`app:user:role:add <email> <role>` and `app:user:role:remove <email> <role>` give and take a role by its name
+`app:user:role:add <username> <role>` and `app:user:role:remove <username> <role>` give and take a role by its name
 (any case); both go through `RoleAssignments`, the one home of the rules: a role is held once
 (`roles.alreadyHasRole`), only a held role can be taken (`roles.notHeld`), and the last active account that can
 manage roles (`roles: update`) keeps that permission (`roles.lastAdministrator`, through `LastAdministrator`;
@@ -364,12 +367,12 @@ fixed order) for `kind: member` or `kind: account`:
 - **member:** `member` (names, status, `recordedSince`), `memberships` (service, stage, from, until),
   `attendance` (meeting, date, `markedPresentAt`, `removedAt`, `removalNote`), `homeworkReports`
   (homework, `completedAt`, `undoneAt`) and `parentAccounts` (name and link status only).
-- **account:** `account` (email, name, language, `createdAt`, `disabledAt`,
+- **account:** `account` (username, name, language, `createdAt`, `disabledAt`,
   `privacyNoticeAccepted {at, version}`, role names, `memberAgeCheck {result,
   parentAgreed}` or `null`), `children` (name and link status), the `homeworkReports` it made and `memberRecord`:
   for an account linked to its own member record that record's member copy (a member's account and an account's
   member record belong to the same request), else `null`.
-- **Never:** password hashes, session data, other people's email addresses (Art. 15(4)),
+- **Never:** password hashes, session data, other people's usernames (Art. 15(4)),
   notes by others that mention the person.
 
 The file is first written as a new owner-only (`0600`) file beside the target and then renamed over it, so an
@@ -452,7 +455,7 @@ Three counters on `session` keep them: `erased_roster`, `erased_present` and
 of or marked present at. The counts add them; the lists no longer show the person.
 
 The copy (`copy` requests and the download on the account page) is JSON with the member's record
-(birth date and address included), memberships, attendance and homework reports, and the account's details (birth date and address included), roles, linked children and the
+(birth date and address included), memberships, attendance and homework reports, and the account's details, roles, linked children and the
 reports it made. Password hashes and other people's contact details are never part of it.
 
 Retention is an open question for the church (see the architecture's open questions): how long members

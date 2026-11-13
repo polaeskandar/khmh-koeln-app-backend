@@ -61,7 +61,7 @@ final readonly class ListChildHomeworkWorkflow
     {
         return ParentHomeworkItems::of(
             $this->structure->listStages(ParentHomeworkItems::stageIdsOf($tasks)),
-            $this->accounts->listByIds(ParentHomeworkItems::reporterIdsOf($tasks)),
+            $this->accounts->namedByIds(ParentHomeworkItems::reporterIdsOf($tasks)),
             $viewer,
         );
     }

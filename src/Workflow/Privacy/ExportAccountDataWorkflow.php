@@ -39,7 +39,7 @@ final readonly class ExportAccountDataWorkflow
 
         return new AccountData(
             exportedAt: $this->calendar->now(),
-            account: AccountRecord::of($user),
+            account: AccountRecord::of($user, $this->accounts->nameOf($user)),
             children: LinkRow::childrenOf($this->guardians->listOfAccount($user->id())),
             homeworkReports: ReportByRow::listOf($reports, $this->people->findByIds(ReportByRow::childIdsOf($reports))),
             member: MemberLinkView::of($user),

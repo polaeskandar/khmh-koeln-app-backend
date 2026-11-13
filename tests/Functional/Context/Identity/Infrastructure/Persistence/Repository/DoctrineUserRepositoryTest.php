@@ -16,7 +16,7 @@ final class DoctrineUserRepositoryTest extends KernelTestCase
 {
     use ClockSensitiveTrait;
 
-    public function testAnAccountIsFoundByItsEmailWhateverTheSpacingAndCase(): void
+    public function testAnAccountIsFoundByItsUsernameWhateverTheSpacingAndCase(): void
     {
         self::mockTime('2026-11-08 12:00:00+01:00');
         $repository = new DoctrineUserRepository(new Database(self::getContainer())->entityManager());
@@ -24,9 +24,9 @@ final class DoctrineUserRepositoryTest extends KernelTestCase
 
         $repository->save($sara);
 
-        self::assertSame($sara, $repository->findByEmail('  Sara.Hanna@Example.org '));
+        self::assertSame($sara, $repository->findByUsername('  Sara.Hanna '));
         self::assertSame('2026-11-08T12:00:00+01:00', $sara->createdAt()->format(DATE_RFC3339));
-        self::assertNull($repository->findByEmail('mina@example.org'));
+        self::assertNull($repository->findByUsername('mina'));
     }
 
     public function testTheWriteLockLoadsTheAccountForUpdateInsideATransaction(): void

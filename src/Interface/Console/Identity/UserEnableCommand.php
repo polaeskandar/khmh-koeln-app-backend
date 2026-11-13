@@ -23,18 +23,18 @@ final readonly class UserEnableCommand
 
     public function __invoke(
         SymfonyStyle $io,
-        #[Argument(description: 'Email address of the account')]
-        string $email,
+        #[Argument(description: 'Username of the account')]
+        string $username,
     ): int {
         try {
-            ($this->enableUser)($email);
+            ($this->enableUser)($username);
         } catch (NotFound|RuleViolation $refused) {
             $io->error($refused->getMessage());
 
             return Command::FAILURE;
         }
 
-        $io->success(Text::format('Enabled %s.', $email)->toString());
+        $io->success(Text::format('Enabled %s.', $username)->toString());
 
         return Command::SUCCESS;
     }

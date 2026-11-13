@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\LessonWindow;
 use App\Context\Scheduling\Domain\ValueObject\PlannedDate;
@@ -29,10 +29,13 @@ final readonly class LessonOptions
     /**
      * @param list<PlannedDate> $dates
      * @param ReadableCollection<int, Lesson> $taken
-     * @param list<User> $preparers
      */
-    public static function of(LessonWindow $window, array $dates, ReadableCollection $taken, array $preparers): self
-    {
+    public static function of(
+        LessonWindow $window,
+        array $dates,
+        ReadableCollection $taken,
+        NamedAccounts $preparers,
+    ): self {
         $takenAt = Collections::firstPerKey($taken, keyOf: self::lessonKey(...));
 
         $optionOf = static fn (PlannedDate $date): LessonOption => new LessonOption(
@@ -43,7 +46,7 @@ final readonly class LessonOptions
         return new self(
             today: $window->today->toString(),
             options: new ArrayCollection($dates)->map($optionOf)->getValues(),
-            servants: new ArrayCollection($preparers)->map(AccountReference::of(...))->getValues(),
+            servants: AccountReference::listOf($preparers),
         );
     }
 

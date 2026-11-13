@@ -13,8 +13,8 @@ final readonly class DisableUserWorkflow
     ) {
     }
 
-    public function __invoke(string $email): void
+    public function __invoke(string $username): void
     {
-        $this->accounts->disable($email);
+        $this->accounts->disable($username);
     }
 }

@@ -12,8 +12,6 @@ final readonly class AccountDraft
     public function __construct(
         public Uuid $personId,
         public string $username,
-        public string $email,
-        public string $displayName,
         public Language $language,
     ) {
     }

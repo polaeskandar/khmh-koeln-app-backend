@@ -26,7 +26,7 @@ final readonly class StaffAccountResponse implements JsonSerializable
      * @return array{
      *     id: string,
      *     displayName: string,
-     *     email: string,
+     *     username: string,
      *     disabled: bool,
      *     roles: list<RoleSummary>,
      *     assignments: list<AssignmentView>,
@@ -40,7 +40,7 @@ final readonly class StaffAccountResponse implements JsonSerializable
         return [
             'id' => $account->id,
             'displayName' => $account->displayName,
-            'email' => $account->email,
+            'username' => $account->username,
             'disabled' => $account->disabled,
             'roles' => $account->duties->roles,
             'assignments' => $account->duties->assignments,

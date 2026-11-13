@@ -21,7 +21,7 @@ final class AssignmentsControllerTest extends ApiTestCase
     {
         [$sundaySchool, , $third, $youth] = $this->structure();
         $bishoy = $this->servant('bishoy@example.org', 'Bishoy Adel', 'servant');
-        $this->signInWithRoles('admin@example.org', 'administrator');
+        $this->signInNamed('admin@example.org', 'Sara Hanna', 'administrator');
 
         $this->jsonRequest('POST', '/api/accounts/' . $bishoy . '/assignments', [
             'serviceId' => $sundaySchool->id()->toRfc4122(),

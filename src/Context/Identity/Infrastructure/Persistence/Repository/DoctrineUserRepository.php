@@ -8,7 +8,6 @@ use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
-use App\Context\Identity\Domain\ValueObject\Email;
 use App\Context\Identity\Domain\ValueObject\Username;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Types\Model\ListOf;
@@ -86,14 +85,6 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
             DQL)->setParameters(['action' => $action, 'resource' => $resource]);
 
         return new ArrayCollection(ListOf::instances($query->getResult(), User::class));
-    }
-
-    #[Override]
-    public function findByEmail(string $email): ?User
-    {
-        return $this->entityManager
-            ->getRepository(User::class)
-            ->findOneBy(['profile.email.value' => Email::normalized($email)]);
     }
 
     #[Override]

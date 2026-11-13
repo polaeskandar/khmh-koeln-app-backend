@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Interface\Api\Identity;
 
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Domain\Entity\MemberLinks;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
@@ -85,11 +86,11 @@ final class MemberAccountsControllerTest extends ApiTestCase
 
     private function accountId(string $email): string
     {
-        return Type::of(
-            new Database(self::getContainer())
-                ->connection()
-                ->fetchOne('SELECT id::text FROM identity.app_user WHERE email = ?', [$email]),
-        )->toString();
+        return Type::of(new Database(self::getContainer())
+            ->connection()
+            ->fetchOne('SELECT id::text FROM identity.app_user WHERE username = ?', [Accounts::usernameOf(
+                $email,
+            )]))->toString();
     }
 
     /**

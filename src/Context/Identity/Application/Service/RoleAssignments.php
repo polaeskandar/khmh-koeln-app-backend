@@ -23,9 +23,9 @@ final readonly class RoleAssignments
     ) {
     }
 
-    public function give(string $email, string $roleName): void
+    public function give(string $username, string $roleName): void
     {
-        $user = $this->account($email);
+        $user = $this->account($username);
         $role = $this->role($roleName);
 
         RoleChange::ensureGivable($user, $role);
@@ -33,10 +33,10 @@ final readonly class RoleAssignments
         $this->users->save($user);
     }
 
-    public function take(string $email, string $roleName): void
+    public function take(string $username, string $roleName): void
     {
-        $this->administration->whileLocked(function () use ($email, $roleName): void {
-            $user = $this->account($email);
+        $this->administration->whileLocked(function () use ($username, $roleName): void {
+            $user = $this->account($username);
             $role = $this->role($roleName);
 
             if ($this->lastAdministrator->isLostWithout($user, $role)) {
@@ -49,9 +49,9 @@ final readonly class RoleAssignments
         });
     }
 
-    private function account(string $email): User
+    private function account(string $username): User
     {
-        return $this->users->findByEmail($email) ?? throw NotFound::of('account');
+        return $this->users->findByUsername($username) ?? throw NotFound::of('account');
     }
 
     private function role(string $name): Role

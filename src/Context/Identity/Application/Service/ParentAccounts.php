@@ -8,9 +8,11 @@ use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Repository\ActiveAccountRepositoryInterface;
 use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
+use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
-use Doctrine\Common\Collections\ReadableCollection;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class ParentAccounts
@@ -21,17 +23,19 @@ final readonly class ParentAccounts
         private UserRepositoryInterface $users,
         private RoleRepositoryInterface $roles,
         private ActiveAccountRepositoryInterface $activeAccounts,
+        private AccountNames $names,
+        private AccountLookup $accounts,
     ) {
     }
 
-    public function getByEmail(string $email): User
+    public function getByUsername(string $username): User
     {
-        return $this->users->findByEmail($email) ?? throw NotFound::of('account');
+        return $this->users->findByUsername($username) ?? throw NotFound::of('account');
     }
 
-    public function getActiveByEmail(string $email): User
+    public function getActiveByUsername(string $username): User
     {
-        $account = $this->getByEmail($email);
+        $account = $this->getByUsername($username);
 
         return $account->status()->isActive() ? $account : throw new RuleViolation('guardians.accountInactive');
     }
@@ -45,22 +49,36 @@ final readonly class ParentAccounts
 
     /**
      * @param list<Uuid> $ids
-     *
-     * @return ReadableCollection<int, User>
      */
-    public function listByIds(array $ids): ReadableCollection
+    public function namedByIds(array $ids): NamedAccounts
     {
-        return $this->users->findByIds($ids);
+        return $this->accounts->namedByIds($ids);
+    }
+
+    public function nameOf(User $account): string
+    {
+        return $this->accounts->nameOf($account);
     }
 
     /**
      * @param positive-int $limit
      *
-     * @return list<array{id: string, name: string, email: string}>
+     * @return list<array{id: string, name: string, username: string}> by name
      */
     public function listActive(int $limit): array
     {
-        return $this->activeAccounts->listed($limit);
+        $rows = $this->activeAccounts->listed($limit);
+        $names = $this->names->of($rows);
+        $sortKeyOf = AccountNames::sortKeys();
+
+        return Collections::sortedBy(
+            new ArrayCollection($rows)->map(static fn (array $row): array => [
+                'id' => $row['id'],
+                'name' => $names[$row['personId']] ?? '',
+                'username' => $row['username'],
+            ]),
+            keyOf: static fn (array $row): string => $sortKeyOf($row['name']),
+        );
     }
 
     public function giveParentRole(User $account): void

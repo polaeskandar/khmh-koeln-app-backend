@@ -15,7 +15,7 @@ final class RoleAssignmentsTest extends KernelTestCase
     {
         $this->fixtures()->account('sara@example.org');
 
-        $this->fixtures()->assignments()->give('sara@example.org', 'Servant');
+        $this->fixtures()->assignments()->give('sara', 'Servant');
 
         self::assertSame(['servant'], $this->fixtures()->roleKeysOf('sara@example.org'));
     }
@@ -27,7 +27,7 @@ final class RoleAssignmentsTest extends KernelTestCase
         $this->assertRefused('roles.alreadyHasRole', fn () => $this
             ->fixtures()
             ->assignments()
-            ->give('sara@example.org', 'Servant'));
+            ->give('sara', 'Servant'));
 
         self::assertSame(['servant'], $this->fixtures()->roleKeysOf('sara@example.org'));
     }
@@ -36,10 +36,7 @@ final class RoleAssignmentsTest extends KernelTestCase
     {
         $this->fixtures()->account('sara@example.org');
 
-        $this->assertRefused('roles.notHeld', fn () => $this
-            ->fixtures()
-            ->assignments()
-            ->take('sara@example.org', 'Servant'));
+        $this->assertRefused('roles.notHeld', fn () => $this->fixtures()->assignments()->take('sara', 'Servant'));
     }
 
     public function testTheLastActiveAdministratorKeepsTheRole(): void
@@ -57,7 +54,7 @@ final class RoleAssignmentsTest extends KernelTestCase
         $this->assertRefused('roles.lastAdministrator', fn () => $this
             ->fixtures()
             ->assignments()
-            ->take('admin@example.org', 'Administrator'));
+            ->take('admin', 'Administrator'));
 
         self::assertSame(['administrator'], $this->fixtures()->roleKeysOf('admin@example.org'));
     }
@@ -68,7 +65,7 @@ final class RoleAssignmentsTest extends KernelTestCase
         $this->fixtures()->account('other@example.org', [], 'administrator');
 
         self::assertFalse($this->fixtures()->lastAdministrator()->isKeptOnlyByAccount($admin));
-        $this->fixtures()->assignments()->take('admin@example.org', 'Administrator');
+        $this->fixtures()->assignments()->take('admin', 'Administrator');
 
         self::assertSame([], $this->fixtures()->roleKeysOf('admin@example.org'));
     }
@@ -77,7 +74,7 @@ final class RoleAssignmentsTest extends KernelTestCase
     {
         $this->fixtures()->account('admin@example.org', [], 'administrator', 'servant');
 
-        $this->fixtures()->assignments()->take('admin@example.org', 'Servant');
+        $this->fixtures()->assignments()->take('admin', 'Servant');
 
         self::assertSame(['administrator'], $this->fixtures()->roleKeysOf('admin@example.org'));
     }
@@ -86,15 +83,12 @@ final class RoleAssignmentsTest extends KernelTestCase
     {
         $this->fixtures()->account('sara@example.org');
 
-        $this->assertRefused('notFound.account', fn () => $this
-            ->fixtures()
-            ->assignments()
-            ->give('nobody@example.org', 'Servant'));
+        $this->assertRefused('notFound.account', fn () => $this->fixtures()->assignments()->give('nobody', 'Servant'));
 
         $this->assertRefused('notFound.role', fn () => $this
             ->fixtures()
             ->assignments()
-            ->take('sara@example.org', 'Choir Director'));
+            ->take('sara', 'Choir Director'));
     }
 
     private function assertRefused(string $code, callable $change): void

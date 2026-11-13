@@ -36,7 +36,6 @@ final class AccountProviderTest extends ApiTestCase
     {
         yield 'disabled' => [['disabled_at' => '2026-11-09 08:00:00+01'], 401];
         yield 'new password' => [['password_hash' => 'a-different-hash'], 401];
-        yield 'new display name' => [['display_name' => 'Christine A.'], 200];
         yield 'new language' => [['language' => 'ar'], 200];
     }
 }

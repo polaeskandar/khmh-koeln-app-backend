@@ -53,7 +53,12 @@ final class SessionsControllerTransitionsTest extends ApiTestCase
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
         $session = $this->session('2026-11-08');
-        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
+
+        new ServedGroups(self::getContainer())->everyService($this->signInNamed(
+            'servant@example.org',
+            'Sara Hanna',
+            'servant',
+        ));
 
         $this->post($session, 'close');
         $this->assertProblem(409, 'meetings.onlyActiveCanClose');

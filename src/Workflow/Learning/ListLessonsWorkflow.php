@@ -16,6 +16,7 @@ use App\Context\Scheduling\Application\Service\MeetingLookup;
 use App\Context\Scheduling\Domain\ValueObject\ArchivedStructure;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Problem\Model\Ids;
+use App\Platform\Access\Model\Group;
 use App\Workflow\Identity\Model\AccountReference;
 use App\Workflow\Identity\Model\AccountReferences;
 use App\Workflow\Learning\Model\LessonList;
@@ -51,19 +52,30 @@ final readonly class ListLessonsWorkflow
         $chosen = LessonTab::tryFrom($tab) ?? throw InvalidInput::field('tab', 'validation.invalidChoice');
         $listing = $this->lessons->listed($stage->id(), $chosen, $query);
         $shown = new ArrayCollection($listing->shown);
-        $preparers = $this->accounts->listActiveAllowedIn(Action::Update, Resource::Lessons, $group);
 
         return new LessonList(
             stage: LessonStageView::of($stage),
             today: $listing->today->toString(),
             tabs: $listing->tabs,
-            servants: new ArrayCollection($preparers)->map(AccountReference::of(...))->getValues(),
+            servants: $this->preparersIn($group),
             items: LessonRows::of(
                 $listing,
                 $this->meetingsOf($shown),
-                AccountReferences::of($this->accounts->listByIds(LessonRows::accountIdsOf($shown, $listing->helpers))),
+                AccountReferences::of($this->accounts->namedByIds(LessonRows::accountIdsOf($shown, $listing->helpers))),
             ),
         );
+    }
+
+    /**
+     * @return list<AccountReference>
+     */
+    private function preparersIn(Group $group): array
+    {
+        return AccountReference::listOf($this->accounts->named(new ArrayCollection($this->accounts->listActiveAllowedIn(
+            Action::Update,
+            Resource::Lessons,
+            $group,
+        ))));
     }
 
     /**

@@ -5,30 +5,22 @@ declare(strict_types=1);
 namespace App\Workflow\Identity\Model;
 
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 use App\Library\Collections\Model\Collections;
 use App\Library\Strings\Model\InputText;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class AccountReferences
 {
-    /**
-     * @param ReadableCollection<non-empty-string, User> $accounts
-     */
     private function __construct(
-        private ReadableCollection $accounts,
+        private NamedAccounts $accounts,
     ) {
     }
 
-    /**
-     * @param ReadableCollection<int, User> $accounts
-     */
-    public static function of(ReadableCollection $accounts): self
+    public static function of(NamedAccounts $accounts): self
     {
-        $keyOf = static fn (User $account): string => $account->id()->toRfc4122();
-
-        return new self(Collections::firstPerKey($accounts, keyOf: $keyOf));
+        return new self($accounts);
     }
 
     /**
@@ -38,25 +30,24 @@ final readonly class AccountReferences
      */
     public function byNameOf(array $ids): array
     {
-        $present = Collections::mapPresent(new ArrayCollection($ids), fn (Uuid $id): ?User => $this->accounts->get(
-            $id->toRfc4122(),
-        ));
+        $present = Collections::mapPresent(new ArrayCollection($ids), $this->accounts->find(...));
 
-        return new ArrayCollection(Collections::sortedBy($present, keyOf: self::nameKeyOf(...)))->map(
-            AccountReference::of(...),
-        )->getValues();
+        return new ArrayCollection(Collections::sortedBy(
+            $present,
+            keyOf: $this->nameKeyOf(...),
+        ))->map(fn (User $account): AccountReference => AccountReference::of($account, $this->accounts))->getValues();
     }
 
     public function referenceOf(?Uuid $id): ?AccountReference
     {
-        $account = $id === null ? null : $this->accounts->get($id->toRfc4122());
+        $account = $this->accounts->find($id);
 
-        return $account === null ? null : AccountReference::of($account);
+        return $account === null ? null : AccountReference::of($account, $this->accounts);
     }
 
-    private static function nameKeyOf(User $account): string
+    private function nameKeyOf(User $account): string
     {
-        $name = InputText::of($account->profile()->displayName->value)->lowered()->toString();
+        $name = InputText::of($this->accounts->nameOf($account))->lowered()->toString();
 
         return $name . ' ' . $account->id()->toRfc4122();
     }

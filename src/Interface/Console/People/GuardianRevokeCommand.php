@@ -26,13 +26,13 @@ final readonly class GuardianRevokeCommand
 
     public function __invoke(
         SymfonyStyle $io,
-        #[Argument(description: 'Email address of the parent account')]
-        string $email,
+        #[Argument(description: 'Username of the parent account')]
+        string $username,
         #[Argument(description: 'Id of the child whose access ends', name: 'personId')]
         ?string $personId = null,
     ): int {
         try {
-            $this->showOrRevoke($io, $email, $personId);
+            $this->showOrRevoke($io, $username, $personId);
         } catch (NotFound $unknown) {
             $io->error($unknown->getMessage());
 
@@ -42,21 +42,21 @@ final readonly class GuardianRevokeCommand
         return Command::SUCCESS;
     }
 
-    private function showOrRevoke(SymfonyStyle $io, string $email, ?string $personId): void
+    private function showOrRevoke(SymfonyStyle $io, string $username, ?string $personId): void
     {
         if ($personId === null) {
-            $this->show($io, $email);
+            $this->show($io, $username);
 
             return;
         }
 
-        ($this->revokeGuardian)($email, $personId);
-        $io->success(Text::format('%s no longer acts for the child.', $email)->toString());
+        ($this->revokeGuardian)($username, $personId);
+        $io->success(Text::format('%s no longer acts for the child.', $username)->toString());
     }
 
-    private function show(SymfonyStyle $io, string $email): void
+    private function show(SymfonyStyle $io, string $username): void
     {
-        $rows = new ArrayCollection(($this->listLinks)($email))->map(static fn (GuardianLink $link): array => [
+        $rows = new ArrayCollection(($this->listLinks)($username))->map(static fn (GuardianLink $link): array => [
             $link->name,
             $link->personId,
             $link->relationship,

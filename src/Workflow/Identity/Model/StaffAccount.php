@@ -14,7 +14,7 @@ final readonly class StaffAccount
     public function __construct(
         public string $id,
         public string $displayName,
-        public string $email,
+        public string $username,
         public bool $disabled,
         public StaffDuties $duties,
     ) {
@@ -28,7 +28,7 @@ final readonly class StaffAccount
         return new self(
             $member->id,
             $member->displayName,
-            $member->email,
+            $member->username,
             $member->disabled,
             new StaffDuties(
                 new ArrayCollection($member->roles)->map(

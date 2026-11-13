@@ -35,12 +35,12 @@ There is no account screen at launch; operators run these commands on the server
 
 | Command | Does |
 | --- | --- |
-| `app:user:create <username> <email> <firstName> <lastName> [--role=<name>] [--language=de]` | Creates a person record and the account that belongs to it, which signs in at once with its username (rules in the [data model](docs/data-model.md#accounts-and-roles)). Type the password twice or pipe it with `--password-stdin`. |
-| `app:privacy:export --person=UUID \| --account=UUID [--output=FILE]` | Writes everything stored about one member or account as JSON (Art. 15/20) to a file only you can read; prints only the file name. Never includes password hashes, tokens, sessions or other people's email addresses. |
+| `app:user:create <username> <firstName> <lastName> [--role=<name>] [--language=de]` | Creates a person record and the account that belongs to it, which signs in at once with its username (rules in the [data model](docs/data-model.md#accounts-and-roles)). Type the password twice or pipe it with `--password-stdin`. |
+| `app:privacy:export --person=UUID \| --account=UUID [--output=FILE]` | Writes everything stored about one member or account as JSON (Art. 15/20) to a file only you can read; prints only the file name. Never includes password hashes, tokens, sessions or other people's details. |
 | `app:privacy:erase-account <id>` (`:dry-run` to preview) | Erases an account (Art. 17): its roles and guardian links go; what it did for the church stays with the actor set to `null` ("a former account"). Refuses the last active administrator. Prints counts only. |
 | `app:privacy:erase-person <id>` (`:dry-run` to preview) | Erases a member (Art. 17) in one transaction: first raises the anonymous counters of every counted past session they were on or marked in, then deletes their attendance (corrections included), homework reports, guardian links, memberships and the person. Prints counts only. |
-| `app:user:role:add <email> <role>` / `app:user:role:remove <email> <role>` | Gives or takes a role by name. The last active account that can manage roles keeps that permission. |
-| `app:user:disable <email>` / `app:user:enable <email>` | Disables an account (it can't sign in, and its open sessions end for good) or enables it again. Repeating changes nothing. The last active administrator can't be disabled. |
+| `app:user:role:add <username> <role>` / `app:user:role:remove <username> <role>` | Gives or takes a role by name. The last active account that can manage roles keeps that permission. |
+| `app:user:disable <username>` / `app:user:enable <username>` | Disables an account (it can't sign in, and its open sessions end for good) or enables it again. Repeating changes nothing. The last active administrator can't be disabled. |
 
 ## Deployment
 
@@ -72,9 +72,9 @@ Parents see a child only through an approved guardian link. At launch operators 
 
 | Command | Does |
 | --- | --- |
-| `app:guardian:link <email> <personId> [--relationship=guardian]` | Links an enabled account to an active child and gives the account the Parent role. Repeating changes nothing. |
-| `app:guardian:revoke <email>` | Lists the account's children with their ids. |
-| `app:guardian:revoke <email> <personId>` | Ends the account's access to that child; the link stays as revoked. Repeating changes nothing. |
+| `app:guardian:link <username> <personId> [--relationship=guardian]` | Links an enabled account to an active child and gives the account the Parent role. Repeating changes nothing. |
+| `app:guardian:revoke <username>` | Lists the account's children with their ids. |
+| `app:guardian:revoke <username> <personId>` | Ends the account's access to that child; the link stays as revoked. Repeating changes nothing. |
 
 ## Member accounts
 

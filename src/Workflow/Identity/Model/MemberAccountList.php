@@ -27,7 +27,7 @@ final readonly class MemberAccountList
      * @param list<array{
      *     id: string,
      *     name: string,
-     *     email: string,
+     *     username: string,
      *     disabled: bool,
      *     isParent: bool,
      *     personId: string,
@@ -51,7 +51,7 @@ final readonly class MemberAccountList
      * @param list<array{
      *     id: string,
      *     name: string,
-     *     email: string,
+     *     username: string,
      *     disabled: bool,
      *     isParent: bool,
      *     personId: string,
@@ -76,7 +76,7 @@ final readonly class MemberAccountList
      * @param array{
      *     id: string,
      *     name: string,
-     *     email: string,
+     *     username: string,
      *     disabled: bool,
      *     isParent: bool,
      *     personId: string,
@@ -87,7 +87,7 @@ final readonly class MemberAccountList
     private static function itemOf(array $row, LinkedRecords $records): MemberAccountItem
     {
         return new MemberAccountItem(
-            new MemberAccountView($row['id'], $row['name'], $row['email'], $row['isParent'], $row['disabled']),
+            new MemberAccountView($row['id'], $row['name'], $row['username'], $row['isParent'], $row['disabled']),
             $records->viewOf(Uuid::fromString($row['personId'])),
             MemberAgeView::of($row['ageCheck'], $row['guardianConsentNote']),
         );

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Organization\Model;
 
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 use App\Context\Organization\Domain\Entity\StaffAssignment;
 use App\Workflow\Identity\Model\AccountReference;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -23,19 +24,25 @@ final readonly class ServiceServants
     }
 
     /**
-     * @param list<User> $servants by name
+     * @param NamedAccounts $servants by name
      * @param ReadableCollection<int, StaffAssignment> $assignments
-     * @param list<User> $assignable by name
+     * @param NamedAccounts $assignable by name
      */
-    public static function of(array $servants, ReadableCollection $assignments, array $assignable): self
+    public static function of(NamedAccounts $servants, ReadableCollection $assignments, NamedAccounts $assignable): self
     {
         $rowsOf = static fn (User $servant): array => $assignments
             ->filter(static fn (StaffAssignment $assignment): bool => $assignment->accountId()->equals($servant->id()))
-            ->map(static fn (StaffAssignment $assignment): ServiceServant => ServiceServant::of($assignment, $servant))
+            ->map(
+                static fn (StaffAssignment $assignment): ServiceServant => ServiceServant::of(
+                    $assignment,
+                    $servant,
+                    $servants,
+                ),
+            )
             ->getValues();
 
         return new self(
-            new ArrayCollection($servants)->reduce(
+            new ArrayCollection($servants->all())->reduce(
                 /**
                  * @param list<ServiceServant> $rows
                  *
@@ -44,7 +51,7 @@ final readonly class ServiceServants
                 static fn (array $rows, User $servant): array => [...$rows, ...$rowsOf($servant)],
                 initial: [],
             ),
-            new ArrayCollection($assignable)->map(AccountReference::of(...))->getValues(),
+            AccountReference::listOf($assignable),
         );
     }
 }

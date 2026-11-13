@@ -44,6 +44,6 @@ final readonly class OpenSessionWorkflow
             ),
         );
 
-        return SessionState::of($session, $this->accounts->findAccount($session->progress()->closed->by));
+        return SessionState::of($session, $this->accounts->namedByIds([$session->progress()->closed->by]));
     }
 }

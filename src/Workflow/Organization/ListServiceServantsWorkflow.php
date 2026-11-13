@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Organization;
 
 use App\Context\Identity\Application\Service\AccessCheck;
+use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Application\Service\ServingAccounts;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
@@ -14,6 +15,7 @@ use App\Context\Organization\Domain\Query\StaffAssignmentQueryInterface;
 use App\Library\Problem\Model\Ids;
 use App\Workflow\Organization\Model\ServiceServants;
 use App\Workflow\Organization\Model\StructureGroup;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class ListServiceServantsWorkflow
@@ -23,6 +25,7 @@ final readonly class ListServiceServantsWorkflow
         private ServiceWrites $services,
         private StaffAssignmentQueryInterface $assignments,
         private ServingAccounts $accounts,
+        private AccountLookup $lookup,
     ) {
     }
 
@@ -40,6 +43,10 @@ final readonly class ListServiceServantsWorkflow
             $assignments->map(static fn (StaffAssignment $assignment): Uuid => $assignment->accountId())->getValues(),
         );
 
-        return ServiceServants::of($servants, $assignments, $this->accounts->listActive());
+        return ServiceServants::of(
+            $this->lookup->named(new ArrayCollection($servants)),
+            $assignments,
+            $this->lookup->named(new ArrayCollection($this->accounts->listActive())),
+        );
     }
 }

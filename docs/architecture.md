@@ -282,9 +282,10 @@ church office in person, so there is no mailer, mail provider or email template.
 The inventory, processors, measures and the office's procedures are in [data-protection.md](data-protection.md).
 
 The app stores as little as the work needs: names, groups, attendance, homework reports, and for members
-and accounts an optional birth date and postal address. No photos and no grades. Staff see a member's
+an optional birth date and postal address. Accounts keep only a username, a password hash and a language; their
+name, birth date and address are their person's. No photos and no grades. Staff see a member's
 birth date and address only within their groups (administrators everywhere), parents their own
-children's; an account's own are visible to the person and to administrators. The data protection adviser
+children's. The data protection adviser
 confirms the purpose of birth dates and addresses before launch. Because belonging
 to a church's groups reveals a religious affiliation, all of it is treated as special-category data
 (DSGVO Art. 9): it never leaves the church, every request is checked against the roles, and parents only

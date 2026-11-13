@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Interface\Api\Learning;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\Learning\Domain\Entity\HomeworkTasks;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
@@ -30,8 +31,12 @@ final class LessonsControllerScopeTest extends ApiTestCase
         self::assertResponseIsSuccessful();
 
         self::assertSame(
-            [AssignedGroupsFixture::ADMIN, AssignedGroupsFixture::LEADER, AssignedGroupsFixture::SERVANT],
-            $this->emailsOf($this->column('servants', 'id')),
+            self::usernamesOf(
+                AssignedGroupsFixture::ADMIN,
+                AssignedGroupsFixture::LEADER,
+                AssignedGroupsFixture::SERVANT,
+            ),
+            $this->storedUsernamesOf($this->column('servants', 'id')),
         );
 
         $this->jsonRequest('GET', '/api/lessons/' . $third->id()->toRfc4122());
@@ -108,8 +113,8 @@ final class LessonsControllerScopeTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/stages/' . $groups->first->id()->toRfc4122() . '/lesson-options');
 
         self::assertSame(
-            [AssignedGroupsFixture::ADMIN, AssignedGroupsFixture::LEADER],
-            $this->emailsOf($this->column('servants', 'id')),
+            self::usernamesOf(AssignedGroupsFixture::ADMIN, AssignedGroupsFixture::LEADER),
+            $this->storedUsernamesOf($this->column('servants', 'id')),
         );
 
         $this->jsonRequest('POST', '/api/lessons/' . $first->id()->toRfc4122() . '/status', ['status' => 'ready']);
@@ -145,11 +150,11 @@ final class LessonsControllerScopeTest extends ApiTestCase
 
     private function idOf(string $email): string
     {
-        return Type::of(
-            new Database(self::getContainer())
-                ->connection()
-                ->fetchOne('SELECT id FROM identity.app_user WHERE email = ?', [$email]),
-        )->toString();
+        return Type::of(new Database(self::getContainer())
+            ->connection()
+            ->fetchOne('SELECT id FROM identity.app_user WHERE username = ?', [Accounts::usernameOf(
+                $email,
+            )]))->toString();
     }
 
     /**
@@ -157,15 +162,23 @@ final class LessonsControllerScopeTest extends ApiTestCase
      *
      * @return list<mixed>
      */
-    private function emailsOf(array $ids): array
+    private function storedUsernamesOf(array $ids): array
     {
         return new Database(self::getContainer())
             ->connection()
             ->fetchFirstColumn(
-                'SELECT email FROM identity.app_user WHERE id::text IN (?) ORDER BY email',
+                'SELECT username FROM identity.app_user WHERE id::text IN (?) ORDER BY username',
                 [$ids],
                 [ArrayParameterType::STRING],
             );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function usernamesOf(string ...$emails): array
+    {
+        return array_values(array_map(Accounts::usernameOf(...), $emails));
     }
 
     /**

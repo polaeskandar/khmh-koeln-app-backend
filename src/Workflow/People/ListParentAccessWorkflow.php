@@ -54,7 +54,7 @@ final readonly class ListParentAccessWorkflow
 
         return ParentAccessItems::of(
             $links,
-            $this->accounts->listByIds(ParentAccessItems::accountIdsOf($links)),
+            $this->accounts->namedByIds(ParentAccessItems::accountIdsOf($links)),
             $memberships,
             Placements::of(
                 $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),

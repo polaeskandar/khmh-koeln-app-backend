@@ -38,7 +38,7 @@ final class MemberHomeworkControllerCompletionTest extends ApiTestCase
         self::assertSame(
             1,
             $this->reportsWhere(
-                "undone_at IS NULL AND completed_by = (SELECT id FROM identity.app_user WHERE email = 'nevine@example.org')",
+                "undone_at IS NULL AND completed_by = (SELECT id FROM identity.app_user WHERE username = 'nevine')",
             ),
         );
 
@@ -49,7 +49,7 @@ final class MemberHomeworkControllerCompletionTest extends ApiTestCase
 
         self::assertSame(
             1,
-            $this->reportsWhere("undone_by = (SELECT id FROM identity.app_user WHERE email = 'nevine@example.org')"),
+            $this->reportsWhere("undone_by = (SELECT id FROM identity.app_user WHERE username = 'nevine')"),
         );
 
         self::assertSame(0, $this->reportsWhere('undone_at IS NULL'));

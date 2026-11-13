@@ -13,14 +13,14 @@ final readonly class RoleChange
     public static function ensureGivable(User $user, Role $role): void
     {
         if ($user->roles()->contains($role)) {
-            throw new RuleViolation('roles.alreadyHasRole', ['name' => $user->profile()->displayName->value]);
+            throw new RuleViolation('roles.alreadyHasRole', ['name' => $user->username()->value]);
         }
     }
 
     public static function ensureHeld(User $user, Role $role): void
     {
         if (!$user->roles()->contains($role)) {
-            throw new RuleViolation('roles.notHeld', ['name' => $user->profile()->displayName->value]);
+            throw new RuleViolation('roles.notHeld', ['name' => $user->username()->value]);
         }
     }
 }

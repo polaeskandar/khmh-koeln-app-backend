@@ -20,13 +20,8 @@ final readonly class GroupServant
     ) {
     }
 
-    public static function of(User $account, string $role, ServantGroups $groups): self
+    public static function of(User $account, string $name, string $role, ServantGroups $groups): self
     {
-        return new self(
-            $account->id()->toRfc4122(),
-            $account->profile()->displayName->value,
-            $role,
-            $groups->servedBy($account),
-        );
+        return new self($account->id()->toRfc4122(), $name, $role, $groups->servedBy($account));
     }
 }

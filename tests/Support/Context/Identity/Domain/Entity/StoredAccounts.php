@@ -20,9 +20,10 @@ final readonly class StoredAccounts
     ) {
     }
 
-    public function withEmail(string $email): User
+    public function withUsername(string $username): User
     {
-        $user = new DoctrineUserRepository(new Database($this->container)->entityManager())->findByEmail($email);
+        $user = new DoctrineUserRepository(new Database($this->container)->entityManager())->findByUsername($username);
+
         Assert::assertInstanceOf(User::class, $user);
 
         return $user;

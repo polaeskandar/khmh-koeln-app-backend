@@ -56,7 +56,7 @@ final readonly class ShowSessionWorkflow
         return new SessionDetail(
             today: $this->calendar->today()->toString(),
             session: $this->viewOf($session, $progress),
-            state: SessionState::of($session, $this->accounts->findAccount($session->progress()->closed->by)),
+            state: SessionState::of($session, $this->accounts->namedByIds([$session->progress()->closed->by])),
             schedule: ScheduleBrief::ofRecurring($session->schedule()),
             history: $history->getValues(),
         );
@@ -71,7 +71,7 @@ final readonly class ShowSessionWorkflow
 
         return HistoryEntry::listOf(
             $events,
-            ActorReferences::of($this->accounts->listByIds(ActorReferences::actorIdsOf($events))),
+            ActorReferences::of($this->accounts->namedByIds(ActorReferences::actorIdsOf($events))),
         );
     }
 

@@ -42,7 +42,7 @@ final class OwnDataControllerTest extends ApiTestCase
 
         self::assertResponseIsSuccessful();
         self::assertResponseHeaderSame('Content-Disposition', 'attachment; filename=khmk-my-data.json');
-        $this->assertJsonPath('account.email', 'christine@example.org');
+        $this->assertJsonPath('account.username', 'christine');
         self::assertSame($this->exportOf($servant), $this->responseJson());
     }
 

@@ -166,7 +166,7 @@ Sessions are stored in PostgreSQL and last `SESSION_LIFETIME` (30 days). The pro
 the session id.
 
 A session ends with sign-out, and also when the account is disabled or its password changes. Its next
-request gets 401 `auth.unauthenticated`. A new display name or language does not end it. Roles are read on
+request gets 401 `auth.unauthenticated`. A new name on the person record or a new language does not end it. Roles are read on
 every request, so a changed role takes effect without signing in again.
 
 **Origin check.** An unsafe request whose `Origin` is not the app's origin (`FRONTEND_URL`) or a configured
@@ -260,7 +260,7 @@ Any signed-in account, parents included. 401 `auth.unauthenticated` without a va
 
 | Member | Type |
 | --- | --- |
-| `account` | `{id, username, email, displayName, language}`; `language` is `en`, `de` or `ar` |
+| `account` | `{id, username, displayName, language}`; `displayName` is the name of the account's person (its display name, else first and last name); `language` is `en`, `de` or `ar` |
 | `roles` | `[{id, name}]`, by name |
 | `permissions` | `[{action, resource, scope}]`, every permission the account's roles grant, once each, by resource and action in the order of the catalog; `scope` is `church` when a church role grants it, else `assignedGroups` |
 | `assignments` | `[{service: ServiceRef, stage: StageRef \| null}]`, the groups the account serves in (see [Assigned groups](#assigned-groups)), by service name, the service itself first, then by stage position |
@@ -290,7 +290,6 @@ A servant (its `members`, `lessons` and `homework` permissions left out):
   "account": {
     "id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f01",
     "username": "daniel.mikhail",
-    "email": "daniel.mikhail@example.org",
     "displayName": "Daniel Mikhail",
     "language": "de"
   },
@@ -320,7 +319,6 @@ A parent:
   "account": {
     "id": "0192f3a4-7b1c-7d2e-8f3a-4b5c6d7e8f03",
     "username": "mariam.hanna",
-    "email": "mariam.hanna@example.org",
     "displayName": "Mariam Hanna",
     "language": "ar"
   },
@@ -346,7 +344,7 @@ in and read it on their next `GET /api/me`.
 | --- | --- |
 | No session | 401 `auth.unauthenticated` |
 | `language` missing, `null` or not `en`, `de`, `ar` | 422 `validation.invalidType` on `language` |
-| Any other member (`displayName`, `email`, …) | 422 `validation.unexpectedField` on it; nothing is saved |
+| Any other member (`displayName`, `username`, …) | 422 `validation.unexpectedField` on it; nothing is saved |
 
 #### `POST /api/me/password`
 
@@ -403,7 +401,7 @@ Read models embed these instead of repeating their own variants.
 | --- | --- |
 | `ServiceRef` | `{id, name, tone, archived}`; `tone` is 1–8, set once when the service is created, and picks its colour |
 | `StageRef` | `{id, name, position, archived}`; `position` is the display order within the service, from 0 |
-| `AccountRef` | `{id, name} \| null`; `null` means a former account (erased, D6) and the apps show "a former account" |
+| `AccountRef` | `{id, name} \| null`; `name` is the name of the account's person; `null` means a former account (erased, D6) and the apps show "a former account" |
 | `PersonRef` | `{id, firstName, lastName, displayName}`; `displayName` is the everyday name or `null` |
 | `LessonRef` | `{id, title, teachingDate}` |
 | `Counts` | `{present, rosterSize, rosterPresent, notMarked, notOnRoster}` |
@@ -808,7 +806,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | --- | --- | --- |
 | `roles.adminOnly` | – | Only administrators can change roles. |
 | `roles.chooseService` | – | Choose the service this role applies to. |
-| `roles.alreadyHasRole` | `name` | {name} already has this role. |
+| `roles.alreadyHasRole` | `name` | {name} already has this role. `name` is the account's username. |
 | `roles.ownAdminRole` | – | You cannot remove your own administrator role. Ask another administrator. |
 | `roles.stageOnlyForServants` | – | **New.** Field error on `stageId`: only servant roles can be narrowed to a stage. |
 | `roles.lastAdministrator` | – | **New.** 409: the last active account that can manage roles (`roles: update`) keeps that permission. |
@@ -816,7 +814,7 @@ The prototype's `errors.title.*` and `errors.people.duplicateTitle` are screen t
 | `roles.nameTaken` | `name` | **New.** Field error on `name`: a role called {name} already exists. |
 | `roles.unknown` | – | **New.** Field error on `role` or `roleIds`: no role has this name or id. |
 | `roles.chooseRole` | – | **New.** Field error on `roleIds`: choose at least one role. |
-| `roles.notHeld` | `name` | **New.** 409: {name} doesn't have this role. |
+| `roles.notHeld` | `name` | **New.** 409: {name} doesn't have this role. `name` is the account's username. |
 
 ### `assignments`
 
@@ -914,10 +912,6 @@ label is its own label, and the 120-character limit applies only to a label that
 
 | Code | Params | Meaning (English reference text) |
 | --- | --- | --- |
-| `accounts.nameRequired` | – | **New.** Field error on `displayName`: enter the name to show for the account. |
-| `accounts.emailRequired` | – | Enter your email address. |
-| `accounts.emailInvalid` | – | Enter an email address like name@example.org. |
-| `accounts.emailTaken` | – | There is already an account with this email address. |
 | `accounts.usernameRequired` | – | **New.** Field error: enter a username. |
 | `accounts.usernameTooShort` | `min` | **New.** Field error: a username has at least `min` (3) characters. |
 | `accounts.usernameInvalid` | – | **New.** Field error: use `a–z`, `0–9`, `.`, `_` or `-`, start with a letter, end with a letter or digit, and never put two of `._-` in a row. |
@@ -1026,7 +1020,7 @@ Settings for administrators: staff accounts, their roles and the groups they ser
 
 #### `GET /api/staff-accounts`
 
-`users: read`, else 403 `forbidden`. `{items: [{id, displayName, email, disabled, roles: [{id, name}], assignments:
+`users: read`, else 403 `forbidden`. `{items: [{id, displayName, username, disabled, roles: [{id, name}], assignments:
 [{id, service: ServiceRef, stage: StageRef | null}]}], today}`: accounts with a staff role (one that grants
 a permission outside `parentPortal`) or with no role, disabled ones last, then by name, at most 500; roles by name,
 assignments as in `GET /api/me`. Parent-only and member-only (no role and an age check recorded) accounts are
@@ -1086,9 +1080,9 @@ counts the accounts that have the role, disabled ones included.
 
 #### `GET /api/roles/{id}`
 
-`roles: read`. `{id, name, scope, permissions, createdAt, updatedAt, holders: [{id, displayName, email,
+`roles: read`. `{id, name, scope, permissions, createdAt, updatedAt, holders: [{id, displayName, username,
 disabled}], onlyWayToChangeRoles}`. `createdAt` and `updatedAt` are instants. `holders` are the accounts that have the role, by
-name ignoring case, disabled ones included. `onlyWayToChangeRoles` is true when no active account could change roles
+name in German collation, disabled ones included. `onlyWayToChangeRoles` is true when no active account could change roles
 without this role's `roles: update`: taking that permission from the role, or deleting it, answers 409
 `roles.lastAdministrator`. 404 `notFound.role`, also for an id that is not a UUID.
 
@@ -1101,7 +1095,7 @@ without this role's `roles: update`: taking that permission from the role, or de
   "createdAt": "2026-11-01T01:00:00+01:00",
   "updatedAt": "2026-11-01T01:00:00+01:00",
   "holders": [
-    {"id": "019a3f02-0000-7000-8000-000000000001", "displayName": "Bishoy Adel", "email": "bishoy@example.org", "disabled": false}
+    {"id": "019a3f02-0000-7000-8000-000000000001", "displayName": "Bishoy Adel", "username": "bishoy.adel", "disabled": false}
   ],
   "onlyWayToChangeRoles": false
 }
@@ -1140,7 +1134,7 @@ administration lock.
 #### `GET /api/member-accounts`
 
 `users: read`, else 403 `accounts.adminOnly`. → 200 `{today, items}`: the member accounts (an age check recorded) that hold
-no staff role (no permission outside `parentPortal`), by name in German collation, as `{id, name, email, isParent,
+no staff role (no permission outside `parentPortal`), by name in German collation, as `{id, name, username, isParent,
 disabled, member: {id, name, inactive, groups}, ageCheck, guardianConsentNote}`. `member.groups` are the record's current groups as `"Service"` or `"Service › Stage"`; `inactive` says the
 record is inactive. No password, privacy acceptance or session data.
 
@@ -1153,13 +1147,13 @@ The administrators' page for giving and revoking a parent's access to a child, t
 
 `users: read`, else 403 `forbidden`. `{items, accounts, today}`:
 
-- `items`: approved links as `{id, relationship, parent: {id, name, email}, child: {id, firstName, lastName,
+- `items`: approved links as `{id, relationship, parent: {id, name, username}, child: {id, firstName, lastName,
   displayName, groups}, approvedAt, approvedBy: AccountRef | null}`, by parent name, then the child's last and first
   name (German collation). `relationship` is `parent` or `guardian`; `groups` are the child's current memberships, as
   in the people directory; `approvedBy` is `null` for console links and once the account is gone. Revoked links
   are left out.
-- `accounts`: the accounts a link can name, `{id, name, email}` by name: not disabled, staff
-  included. Pending and disabled accounts are left out.
+- `accounts`: the accounts a link can name, `{id, name, username}` by name: not disabled, staff
+  included. Disabled accounts are left out.
 - At most 1000 links and 1000 accounts; there is no search or paging.
 
 #### `POST /api/guardian-links`
@@ -1259,7 +1253,7 @@ id that is not a UUID. Inside them only those who may assign in the service as a
 with an assignment to this service); anyone else → 403 `assignments.notAllowed`.
 
 → 200 `{servants: [{assignmentId, account: {id, name}, stage: StageRef | null}], assignable: [{id, name}]}`, without
-email addresses:
+usernames:
 
 - `servants`: one row per assignment to the service (`stage` `null`) or to one of its stages, archived stages
   included, of the active accounts with a role limited to assigned groups; by name, then the service itself first,
@@ -1983,7 +1977,7 @@ that names children: `{today, service: ServiceRef, stage: StageRef, homework, le
 - `counts` (also on the stage list's items) are `{assigned, completed, notCompleted, completedAfterDueDate,
   withoutParentAccount, withoutAccount, reportedTotal}` as in "Who a task is for" in `docs/data-model.md`;
   `withoutAccount` counts the in-stage people nobody can report for online.
-- No emails, guardian link ids, undo history or lesson notes.
+- No usernames, guardian link ids, undo history or lesson notes.
 
 ### Parent portal
 
@@ -2130,7 +2124,7 @@ is scheduled the account can't sign in, so this only shows a request that is ope
 #### `POST /api/me/erasure-request`
 
 Body `{password, note?}` → 201 `{receivedAt, erasesOn}`. It records an erasure request about the account in the
-office's log (`channel: app`, `requestedBy` the account's display name, `dueOn` one month later) with `erasesOn` =
+office's log (`channel: app`, `requestedBy` the name of the account's person, `dueOn` one month later) with `erasesOn` =
 church-today + 14 days, and ends every session and bearer token of the account at once (this one included: its next
 request gets 401). Until `erasesOn`, signing in answers 403 `auth.erasureScheduled {erasesOn}` and
 `POST /api/auth/erasure-cancellation` withdraws the request; on `erasesOn` the daily `app:privacy:erase-due` erases the
@@ -2181,7 +2175,7 @@ the request: a scheduled erasure or a withdrawal (or, before November 2026, a co
 #### `GET /api/data-requests/{id}`
 
 `{today, request, member: {id, firstName, lastName, displayName, status, memberships} | null, account: {id, name,
-email, roles} | null}`; 404 `notFound.request`.
+username, roles} | null}`; 404 `notFound.request`.
 
 #### `GET /api/data-requests/{id}/erasure`
 

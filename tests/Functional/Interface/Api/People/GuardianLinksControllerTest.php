@@ -34,7 +34,7 @@ final class GuardianLinksControllerTest extends ApiTestCase
 
         self::assertResponseStatusCodeSame(201);
         $this->assertJsonPath('relationship', 'parent');
-        $this->assertJsonPath('parent', ['id' => $hoda, 'name' => 'Hoda Mikhail', 'email' => 'hoda@example.org']);
+        $this->assertJsonPath('parent', ['id' => $hoda, 'name' => 'Hoda Mikhail', 'username' => 'hoda']);
         $this->assertJsonPath('child.id', $kiro);
         $this->assertJsonPath('child.groups.0.stage.name', '3rd Class');
         $this->assertJsonPath('approvedAt', '2026-11-08T10:00:00+01:00');
@@ -111,7 +111,7 @@ final class GuardianLinksControllerTest extends ApiTestCase
         $this->assertFieldError('relationship', 'validation.invalidChoice', ['choices' => '"parent", "guardian"']);
 
         $this->jsonRequest('GET', self::PATH);
-        self::assertSame(['admin@example.org', 'hoda@example.org'], $this->accountEmails());
+        self::assertSame(['admin', 'hoda'], $this->accountUsernames());
     }
 
     public function testOnlyAdministratorsManageLinks(): void
@@ -200,17 +200,17 @@ final class GuardianLinksControllerTest extends ApiTestCase
     /**
      * @return list<string>
      */
-    private function accountEmails(): array
+    private function accountUsernames(): array
     {
-        $emails = array_map(
+        $usernames = array_map(
             static fn (mixed $account): string => Type::of(
-                JsonBody::asArray($account, 'account')['email'] ?? null,
+                JsonBody::asArray($account, 'account')['username'] ?? null,
             )->toString(),
             JsonBody::asArray($this->responseJson()['accounts'] ?? null, 'accounts'),
         );
 
-        sort($emails);
+        sort($usernames);
 
-        return $emails;
+        return $usernames;
     }
 }

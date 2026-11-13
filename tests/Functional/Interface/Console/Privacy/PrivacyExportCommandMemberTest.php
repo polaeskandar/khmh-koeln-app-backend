@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Interface\Console\Privacy;
 
 use App\Library\Types\Model\Type;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Domain\Entity\MemberLinks;
 use App\Tests\Support\Context\Learning\Domain\Entity\CopticCourse;
 use App\Tests\Support\Database;
@@ -87,11 +88,11 @@ final class PrivacyExportCommandMemberTest extends KernelTestCase
 
     private function accountOf(string $email): string
     {
-        return Type::of(
-            new Database(self::getContainer())
-                ->connection()
-                ->fetchOne('SELECT id::text FROM identity.app_user WHERE email = ?', [$email]),
-        )->toString();
+        return Type::of(new Database(self::getContainer())
+            ->connection()
+            ->fetchOne('SELECT id::text FROM identity.app_user WHERE username = ?', [Accounts::usernameOf(
+                $email,
+            )]))->toString();
     }
 
     private function export(string $account): int

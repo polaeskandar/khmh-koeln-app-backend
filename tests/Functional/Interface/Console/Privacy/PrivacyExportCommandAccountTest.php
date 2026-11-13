@@ -54,7 +54,7 @@ final class PrivacyExportCommandAccountTest extends KernelTestCase
         self::assertSame(
             [
                 'id',
-                'email',
+                'username',
                 'name',
                 'language',
                 'createdAt',
@@ -66,7 +66,7 @@ final class PrivacyExportCommandAccountTest extends KernelTestCase
             array_keys($account),
         );
 
-        self::assertSame('hoda@example.org', $account['email'] ?? null);
+        self::assertSame('hoda', $account['username'] ?? null);
         self::assertSame(['Parent'], $account['roles'] ?? null);
 
         self::assertSame(

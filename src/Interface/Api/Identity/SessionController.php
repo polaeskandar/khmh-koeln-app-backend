@@ -22,8 +22,8 @@ final readonly class SessionController
     #[OA\Post(summary: 'Auth sign in.', security: [])]
     #[OA\RequestBody(
         required: true,
-        content: new OA\JsonContent(required: ['email', 'password'], properties: [
-            new OA\Property(property: 'email', type: 'string'),
+        content: new OA\JsonContent(required: ['username', 'password'], properties: [
+            new OA\Property(property: 'username', type: 'string'),
             new OA\Property(property: 'password', type: 'string'),
         ]),
     )]

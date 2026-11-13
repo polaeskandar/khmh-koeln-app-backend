@@ -33,10 +33,10 @@ final class UserRoleRemoveCommandTest extends KernelTestCase
         $this->account('daniel@example.org', 'servant');
         $tester = $this->tester();
 
-        self::assertSame(Command::SUCCESS, $tester->execute(['email' => 'daniel@example.org', 'role' => 'Servant']));
+        self::assertSame(Command::SUCCESS, $tester->execute(['username' => 'daniel', 'role' => 'Servant']));
 
         self::assertSame(0, $this->roleCount());
-        self::assertStringContainsString('Took the role Servant from daniel@example.org.', $tester->getDisplay());
+        self::assertStringContainsString('Took the role Servant from daniel.', $tester->getDisplay());
     }
 
     #[DataProvider('refusals')]
@@ -45,7 +45,7 @@ final class UserRoleRemoveCommandTest extends KernelTestCase
         $this->account('daniel@example.org', $held);
         $tester = $this->tester();
 
-        self::assertSame(Command::FAILURE, $tester->execute(['email' => 'daniel@example.org', 'role' => $role]));
+        self::assertSame(Command::FAILURE, $tester->execute(['username' => 'daniel', 'role' => $role]));
 
         self::assertStringContainsString($code, $tester->getDisplay());
         self::assertSame(1, $this->roleCount());
@@ -64,7 +64,7 @@ final class UserRoleRemoveCommandTest extends KernelTestCase
 
         $this->expectException(DriverException::class);
 
-        $tester->execute(['email' => 'daniel@example.org', 'role' => 'Administrator']);
+        $tester->execute(['username' => 'daniel', 'role' => 'Administrator']);
     }
 
     /**

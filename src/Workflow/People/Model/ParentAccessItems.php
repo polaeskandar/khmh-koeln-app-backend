@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\People\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 use App\Context\People\Domain\Entity\GuardianRelationship;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\Entity\Person;
@@ -20,11 +20,10 @@ final readonly class ParentAccessItems
     private const string COLLATION = 'de';
 
     /**
-     * @param ReadableCollection<non-empty-string, User> $accounts
      * @param ReadableCollection<int, Membership> $memberships
      */
     private function __construct(
-        private ReadableCollection $accounts,
+        private NamedAccounts $accounts,
         private ReadableCollection $memberships,
         private Placements $placements,
     ) {
@@ -32,19 +31,18 @@ final readonly class ParentAccessItems
 
     /**
      * @param ReadableCollection<int, GuardianRelationship> $links
-     * @param ReadableCollection<int, User> $accounts the parents and approvers
+     * @param NamedAccounts $accounts the parents and approvers
      * @param ReadableCollection<int, Membership> $memberships the children's current memberships
      *
      * @return list<ParentAccessItem>
      */
     public static function of(
         ReadableCollection $links,
-        ReadableCollection $accounts,
+        NamedAccounts $accounts,
         ReadableCollection $memberships,
         Placements $placements,
     ): array {
-        $keyed = Collections::firstPerKey($accounts, keyOf: static fn (User $user): string => $user->id()->toRfc4122());
-        $items = new self($keyed, $memberships, $placements);
+        $items = new self($accounts, $memberships, $placements);
         $collator = new Collator(self::COLLATION);
 
         return Collections::sortedBy(
@@ -84,7 +82,7 @@ final readonly class ParentAccessItems
 
     private function itemOf(GuardianRelationship $link): ?ParentAccessItem
     {
-        $parent = $this->accounts->get($link->accountId()->toRfc4122());
+        $parent = $this->accounts->find($link->accountId());
 
         if ($parent === null) {
             return null;
@@ -95,7 +93,7 @@ final readonly class ParentAccessItems
         return new ParentAccessItem(
             $link->id()->toRfc4122(),
             $link->relationship(),
-            ParentAccountView::of($parent),
+            ParentAccountView::of($parent, $this->accounts),
             DirectoryEntry::of(
                 $child,
                 $this->placements->groupsOf($this->memberships->filter(

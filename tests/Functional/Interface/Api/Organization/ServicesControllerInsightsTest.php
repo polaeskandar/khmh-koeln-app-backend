@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Interface\Api\Organization;
 
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
@@ -85,7 +86,7 @@ final class ServicesControllerInsightsTest extends ApiTestCase
     {
         $id = new Database(self::getContainer())
             ->connection()
-            ->fetchOne('SELECT id FROM identity.app_user WHERE email = ?', [$email]);
+            ->fetchOne('SELECT id FROM identity.app_user WHERE username = ?', [Accounts::usernameOf($email)]);
 
         self::assertIsString($id);
 

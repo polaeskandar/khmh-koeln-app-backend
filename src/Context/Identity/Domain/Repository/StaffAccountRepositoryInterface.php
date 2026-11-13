@@ -9,7 +9,7 @@ interface StaffAccountRepositoryInterface
     /**
      * @param positive-int $limit
      *
-     * @return list<array{id: string, displayName: string, email: string, disabled: bool}>
+     * @return list<array{id: string, username: string, personId: string, disabled: bool}> enabled first, by username
      */
     public function listed(int $limit): array;
 

@@ -53,7 +53,7 @@ final readonly class MarkPresentWorkflow
         $mark = $recorded->mark;
 
         return new MarkResult(
-            MarkView::of($mark, $this->accounts->findAccount($mark->recordedBy())),
+            MarkView::of($mark, $this->accounts->namedByIds([$mark->recordedBy()])),
             $recorded->created,
         );
     }

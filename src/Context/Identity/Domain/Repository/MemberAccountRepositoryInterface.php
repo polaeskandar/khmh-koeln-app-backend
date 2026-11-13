@@ -18,14 +18,13 @@ interface MemberAccountRepositoryInterface
     /**
      * @return list<array{
      *     id: string,
-     *     name: string,
-     *     email: string,
+     *     username: string,
      *     disabled: bool,
      *     isParent: bool,
      *     personId: string,
      *     ageCheck: string|null,
      *     guardianConsentNote: string|null,
-     * }> the linked accounts without a staff role, by name
+     * }> the linked accounts without a staff role, by username
      */
     public function listed(): array;
 }

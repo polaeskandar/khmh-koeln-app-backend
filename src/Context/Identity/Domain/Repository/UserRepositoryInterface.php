@@ -14,8 +14,6 @@ interface UserRepositoryInterface
 {
     public function save(User $user): void;
 
-    public function findByEmail(string $email): ?User;
-
     public function findByUsername(string $username): ?User;
 
     public function find(Uuid $id): ?User;

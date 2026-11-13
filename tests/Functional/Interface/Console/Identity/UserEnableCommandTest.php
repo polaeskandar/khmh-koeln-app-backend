@@ -27,7 +27,7 @@ final class UserEnableCommandTest extends KernelTestCase
 
         $tester = new CommandTester(new Application(self::bootKernel())->find('app:user:enable'));
 
-        self::assertSame(Command::SUCCESS, $tester->execute(['email' => 'daniel@example.org']));
+        self::assertSame(Command::SUCCESS, $tester->execute(['username' => 'daniel']));
 
         self::assertSame(
             ['disabled_at' => null, 'auth_version' => 3],

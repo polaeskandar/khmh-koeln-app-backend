@@ -25,15 +25,15 @@ final readonly class GuardianLinkCommand
 
     public function __invoke(
         SymfonyStyle $io,
-        #[Argument(description: 'Email address of the parent account')]
-        string $email,
+        #[Argument(description: 'Username of the parent account')]
+        string $username,
         #[Argument(description: 'Id of the child', name: 'personId')]
         string $personId,
         #[Option(description: 'parent or guardian')]
         string $relationship = 'parent',
     ): int {
         try {
-            ($this->linkGuardian)($email, $personId, $relationship);
+            ($this->linkGuardian)($username, $personId, $relationship);
         } catch (InvalidInput $invalid) {
             self::report($io, $invalid);
 
@@ -44,7 +44,7 @@ final readonly class GuardianLinkCommand
             return Command::FAILURE;
         }
 
-        $io->success(Text::format('%s can act for the child.', $email)->toString());
+        $io->success(Text::format('%s can act for the child.', $username)->toString());
 
         return Command::SUCCESS;
     }

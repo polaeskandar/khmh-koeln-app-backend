@@ -71,17 +71,20 @@ except where the statement opens or closes its block. Consecutive one-line state
 blank lines never follow each other.
 
 ```php
-$email = Email::of($command->email);
-$displayName = DisplayName::of($command->displayName);
+$name = Username::of($draft->username);
 
-if ($this->users->findByEmail($email->value) !== null) {
-    throw InvalidInput::field('email', 'accounts.emailTaken');
+if ($this->users->findByUsername($name->value) !== null) {
+    throw new RuleViolation('accounts.usernameTaken');
 }
 
-$user = User::approved(
-    new Profile($email, $displayName, $command->language),
-    passwordHash: $this->passwordHash($command->password),
-    approvedAt: $this->calendar->now(),
+$user = new User(
+    $draft->personId,
+    $name,
+    $draft->language,
+    passwordHash: $this->hasher->hash(PlainPassword::of($password)),
+    status: AccountStatus::active(),
+    registration: Registration::none(),
+    roles: $this->rolesNamed($role),
 );
 
 $this->users->save($user);
@@ -162,7 +165,7 @@ like an unknown one, with the same `notFound.stage`; where a malformed id gets t
 answer instead, the workflow takes `Ids::toUuidOrNull()` and the context decides. The workflow parses an id where
 the id was first used, after the permission check, so the order of the answers stays the same. Only `<Subject>Choices`
 take the request's strings, because resolving them is their job. Free text stays `string`. A value object exists when a value has rules or a meaning its type
-can't carry (`Email`, `LocalDate`, `Tenure`), not for every scalar. No boolean flags (Mago
+can't carry (`Username`, `LocalDate`, `Tenure`), not for every scalar. No boolean flags (Mago
 `no-boolean-flag-parameter`), no callback that stands in for one, and no sentinel values (`''` for "none"): a
 choice between behaviours is two methods or an enum.
 
@@ -314,7 +317,7 @@ Each rule has one authoritative place, in the layer that owns it:
   collects them with `InvalidInput::all()`, in the order the API reports them, so one answer names every broken
   field (`HomeworkDraft` with `HomeworkRule`, `RecurrenceRule::ensureValid()` with its four fields).
 - A class goes to `Domain/Validation` when it is a rule, not a value: `ArchiveRule` holds nothing and checks a
-  service or stage it is given. A value object that checks its own value stays one (`PlainPassword`, `Email`), and
+  service or stage it is given. A value object that checks its own value stays one (`PlainPassword`, `Username`), and
   so does one that carries facts another context handed over and checks them (`StructureUse::ensureServiceUnused()`).
 - A one-line check that only one place needs stays where it is (in the value object or the service).
 - Codes and their order are the API (`docs/api.md`); moving a rule keeps both.
