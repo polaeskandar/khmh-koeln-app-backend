@@ -7,19 +7,19 @@ namespace App\Workflow\Organization;
 use App\Context\Identity\Application\Service\AccessCheck;
 use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Meetings\Application\Service\ServiceMeetings;
-use App\Context\Meetings\Domain\Query\StructureUsageQueryInterface;
-use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Enum\ServiceFilter;
 use App\Context\People\Application\Service\Attendees;
+use App\Context\Scheduling\Application\Service\ServiceMeetings;
+use App\Context\Scheduling\Domain\Query\StructureUsageQueryInterface;
+use App\Context\Scheduling\Domain\ValueObject\ArchivedStructure;
 use App\Library\Problem\Exception\InvalidInput;
 use App\Library\Time\Client\Calendar;
-use App\Workflow\Meetings\Model\SessionTallies;
 use App\Workflow\Organization\Model\RecentAttendance;
 use App\Workflow\Organization\Model\ServiceInsight;
 use App\Workflow\Organization\Model\ServiceInsights;
+use App\Workflow\Scheduling\Model\SessionTallies;
 
 final readonly class ListServiceInsightsWorkflow
 {

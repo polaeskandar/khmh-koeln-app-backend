@@ -7,12 +7,12 @@ namespace App\Tests\Functional\Workflow\Learning\Model;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\LessonText;
 use App\Context\Learning\Domain\ValueObject\MeetingLink;
-use App\Context\Meetings\Application\Service\MeetingLookup;
-use App\Context\Meetings\Domain\Enum\SessionStatus;
-use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
+use App\Context\Scheduling\Application\Service\MeetingLookup;
+use App\Context\Scheduling\Domain\Enum\SessionStatus;
+use App\Context\Scheduling\Domain\ValueObject\ArchivedStructure;
 use App\Library\Time\Model\LocalDate;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use App\Workflow\Learning\Model\MeetingViews;
 use App\Workflow\Learning\Model\NoMeeting;
@@ -36,7 +36,7 @@ final class MeetingViewsTest extends KernelTestCase
         $schedules->session($sunday, '2026-11-08');
         $schedules->session($sunday, '2026-11-22', "status = 'canceled', cancel_reason = 'Holiday'");
         $database = new Database(self::getContainer());
-        $database->connection()->executeStatement('UPDATE meetings.meeting_schedule SET active = false WHERE id = ?', [$inactive->id()->toRfc4122()]);
+        $database->connection()->executeStatement('UPDATE scheduling.schedule SET active = false WHERE id = ?', [$inactive->id()->toRfc4122()]);
         $database->entityManager()->clear();
 
         $lessons = new ArrayCollection([

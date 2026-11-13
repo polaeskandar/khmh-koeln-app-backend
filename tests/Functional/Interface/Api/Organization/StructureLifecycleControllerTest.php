@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Organization;
 
-use App\Context\Meetings\Domain\Entity\Schedule;
-use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
+use App\Context\Scheduling\Domain\Entity\Schedule;
+use App\Context\Scheduling\Domain\Entity\Session;
 use App\Library\Types\Model\Integers;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 use Symfony\Component\Uid\Uuid;
@@ -80,7 +80,7 @@ final class StructureLifecycleControllerTest extends ApiTestCase
 
         self::assertSame(0, $this->numberOf('SELECT count(*) FROM organization.service WHERE archived_at IS NOT NULL'));
         self::assertSame(0, $this->numberOf('SELECT count(*) FROM organization.stage WHERE archived_at IS NOT NULL'));
-        self::assertSame(1, $this->numberOf('SELECT count(*) FROM meetings.meeting_schedule WHERE active'));
+        self::assertSame(1, $this->numberOf('SELECT count(*) FROM scheduling.schedule WHERE active'));
     }
 
     public function testALeaderArchivesAndRestoresAStage(): void
@@ -147,7 +147,7 @@ final class StructureLifecycleControllerTest extends ApiTestCase
 
         new Database(self::getContainer())
             ->connection()
-            ->update('meetings.meeting_schedule', ['active' => 'false'], ['id' => $paused->id()->toRfc4122()]);
+            ->update('scheduling.schedule', ['active' => 'false'], ['id' => $paused->id()->toRfc4122()]);
 
         new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('servant@example.org', 'servant'));
 
@@ -172,9 +172,9 @@ final class StructureLifecycleControllerTest extends ApiTestCase
         $connection = new Database(self::getContainer())->connection();
 
         return [
-            $connection->fetchOne('SELECT active FROM meetings.meeting_schedule WHERE id = ?', [$schedule->id()->toRfc4122()])
+            $connection->fetchOne('SELECT active FROM scheduling.schedule WHERE id = ?', [$schedule->id()->toRfc4122()])
                 === true,
-            Type::of($connection->fetchOne('SELECT status FROM meetings.meeting_session WHERE id = ?', [$session->id()->toRfc4122()]))->toString(),
+            Type::of($connection->fetchOne('SELECT status FROM scheduling.session WHERE id = ?', [$session->id()->toRfc4122()]))->toString(),
         ];
     }
 

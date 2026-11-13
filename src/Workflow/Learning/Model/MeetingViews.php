@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Workflow\Learning\Model;
 
 use App\Context\Learning\Domain\Entity\Lesson;
-use App\Context\Meetings\Domain\Entity\Schedule;
-use App\Context\Meetings\Domain\Entity\Session;
-use App\Context\Meetings\Domain\ValueObject\ArchivedStructure;
+use App\Context\Scheduling\Domain\Entity\Schedule;
+use App\Context\Scheduling\Domain\Entity\Session;
+use App\Context\Scheduling\Domain\ValueObject\ArchivedStructure;
 use App\Library\Collections\Model\Collections;
 use App\Library\Time\Model\LocalDate;
 use Doctrine\Common\Collections\ReadableCollection;

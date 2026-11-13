@@ -7,7 +7,7 @@ namespace App\Workflow\Learning\Model;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\LessonWindow;
-use App\Context\Meetings\Domain\ValueObject\PlannedDate;
+use App\Context\Scheduling\Domain\ValueObject\PlannedDate;
 use App\Library\Collections\Model\Collections;
 use App\Workflow\Identity\Model\AccountReference;
 use Doctrine\Common\Collections\ArrayCollection;

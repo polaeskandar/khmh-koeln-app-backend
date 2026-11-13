@@ -63,7 +63,7 @@ final class StructureLifecycleControllerLocksTest extends ApiTestCase
         ]);
 
         self::assertResponseStatusCodeSame(201);
-        $this->assertLockedBefore(self::SHARED_SERVICE, 'INSERT INTO meetings.meeting_schedule');
+        $this->assertLockedBefore(self::SHARED_SERVICE, 'INSERT INTO scheduling.schedule');
     }
 
     public function testALessonIsCreatedUnderAShareLockOnItsStagesService(): void
@@ -95,10 +95,7 @@ final class StructureLifecycleControllerLocksTest extends ApiTestCase
 
         self::assertResponseStatusCodeSame(204);
 
-        $this->assertLockedBefore(
-            'FROM organization.service WHERE id = ? FOR UPDATE',
-            'FROM meetings.meeting_schedule',
-        );
+        $this->assertLockedBefore('FROM organization.service WHERE id = ? FOR UPDATE', 'FROM scheduling.schedule');
     }
 
     private function assertLockedBefore(string $lock, string $statement): void

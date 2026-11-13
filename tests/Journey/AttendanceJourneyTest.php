@@ -180,7 +180,7 @@ final class AttendanceJourneyTest extends ApiTestCase
 
         $sessions = new Database(self::getContainer())
             ->connection()
-            ->fetchOne("SELECT count(*) FROM meetings.meeting_session WHERE occurrence_date = '2026-11-15'");
+            ->fetchOne("SELECT count(*) FROM scheduling.session WHERE occurrence_date = '2026-11-15'");
 
         self::assertIsInt($sessions);
 

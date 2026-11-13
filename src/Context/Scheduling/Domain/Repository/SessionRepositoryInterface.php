@@ -1,0 +1,74 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Context\Scheduling\Domain\Repository;
+
+use App\Context\Scheduling\Domain\Entity\Schedule;
+use App\Context\Scheduling\Domain\Entity\Session;
+use App\Context\Scheduling\Domain\Entity\SessionEvent;
+use App\Context\Scheduling\Domain\ValueObject\Actor;
+use App\Context\Scheduling\Domain\ValueObject\GenerationResult;
+use App\Library\Time\Model\LocalDate;
+use DateTimeImmutable;
+use Doctrine\Common\Collections\ReadableCollection;
+use Symfony\Component\Uid\Uuid;
+
+interface SessionRepositoryInterface
+{
+    public function find(Uuid $id): ?Session;
+
+    public function findOn(Schedule $schedule, LocalDate $date): ?Session;
+
+    public function append(SessionEvent $event): void;
+
+    /**
+     * @template T of object
+     *
+     * @param callable(Session): T $work
+     *
+     * @return T
+     */
+    public function withWriteLock(Uuid $id, callable $work): object;
+
+    /**
+     * @return ReadableCollection<int, SessionEvent>
+     */
+    public function historyOf(Session $session): ReadableCollection;
+
+    /**
+     * @param callable(Schedule): list<LocalDate> $datesOf
+     */
+    public function createMissing(
+        Uuid $scheduleId,
+        callable $datesOf,
+        Actor $actor,
+        DateTimeImmutable $at,
+    ): GenerationResult;
+
+    /**
+     * @param ReadableCollection<int, Schedule> $schedules
+     *
+     * @return ReadableCollection<int, Session>
+     */
+    public function ofSchedulesBetween(
+        ReadableCollection $schedules,
+        LocalDate $from,
+        LocalDate $to,
+    ): ReadableCollection;
+
+    /**
+     * @param ReadableCollection<int, Schedule> $schedules
+     * @param list<LocalDate> $dates
+     *
+     * @return ReadableCollection<int, Session>
+     */
+    public function ofSchedulesOn(ReadableCollection $schedules, array $dates): ReadableCollection;
+
+    /**
+     * @param ReadableCollection<int, Schedule> $schedules
+     *
+     * @return ReadableCollection<array-key, int>
+     */
+    public function countsBySchedule(ReadableCollection $schedules): ReadableCollection;
+}

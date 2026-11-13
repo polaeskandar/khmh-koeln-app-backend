@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Learning;
 
-use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Domain\Entity\Stage;
+use App\Context\Scheduling\Domain\Entity\Schedule;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
 use App\Tests\Support\Logs;
@@ -197,7 +197,7 @@ final class LessonOptionsControllerTest extends ApiTestCase
 
         new Database(self::getContainer())
             ->connection()
-            ->update('meetings.meeting_schedule', ['active' => 'false'], ['id' => $old->id()->toRfc4122()]);
+            ->update('scheduling.schedule', ['active' => 'false'], ['id' => $old->id()->toRfc4122()]);
 
         return [$third, $class];
     }

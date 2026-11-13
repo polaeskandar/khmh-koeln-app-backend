@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Workflow\People\Model;
 
-use App\Context\Meetings\Domain\ValueObject\Roster;
 use App\Context\People\Domain\Entity\Membership;
+use App\Context\Scheduling\Domain\ValueObject\Roster;
 
 final readonly class RosterSeats
 {

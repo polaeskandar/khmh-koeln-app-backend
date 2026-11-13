@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Workflow\People\Model;
 
 use App\Context\Learning\Domain\ValueObject\TaughtLesson;
-use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\People\Domain\Entity\Membership;
+use App\Context\Scheduling\Domain\Entity\Schedule;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\ReadableCollection;
 

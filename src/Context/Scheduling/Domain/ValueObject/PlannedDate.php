@@ -1,0 +1,58 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Context\Scheduling\Domain\ValueObject;
+
+use App\Context\Scheduling\Domain\Entity\Schedule;
+use App\Context\Scheduling\Domain\Entity\Session;
+use App\Context\Scheduling\Domain\Enum\SessionStatus;
+use App\Library\Time\Model\LocalDate;
+use Doctrine\Common\Collections\ArrayCollection;
+
+final readonly class PlannedDate
+{
+    public const string PLANNED = 'planned';
+
+    private const array UPCOMING = [SessionStatus::Scheduled->value, SessionStatus::Active->value, self::PLANNED];
+
+    private function __construct(
+        public Schedule $schedule,
+        public LocalDate $date,
+        public string $status,
+        public ?string $sessionId,
+        public SessionPlan $plan,
+    ) {
+    }
+
+    public static function planned(Schedule $schedule, LocalDate $date): self
+    {
+        return new self($schedule, $date, self::PLANNED, sessionId: null, plan: SessionPlan::of($schedule));
+    }
+
+    public static function ofSession(Session $session): self
+    {
+        return new self(
+            $session->schedule(),
+            $session->occurrenceDate(),
+            $session->progress()->status->value,
+            $session->id()->toRfc4122(),
+            $session->plan(),
+        );
+    }
+
+    public function isUpcoming(): bool
+    {
+        return new ArrayCollection(self::UPCOMING)->contains($this->status);
+    }
+
+    public function key(): string
+    {
+        return $this->schedule->id()->toRfc4122() . '|' . $this->date->toString();
+    }
+
+    public function sortKey(): string
+    {
+        return $this->date->toString() . ' ' . $this->plan->timeSlot->startTime->toString();
+    }
+}

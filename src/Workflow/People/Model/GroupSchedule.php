@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Workflow\People\Model;
 
-use App\Context\Meetings\Domain\Entity\Schedule;
-use App\Workflow\Meetings\Model\ScheduleTiming;
+use App\Context\Scheduling\Domain\Entity\Schedule;
+use App\Workflow\Scheduling\Model\ScheduleTiming;
 
 final readonly class GroupSchedule
 {

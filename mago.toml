@@ -26,7 +26,7 @@ no-redundant-variable = { enabled = true }
 no-unused-closure-capture = { enabled = true }
 no-parameter-shadowing = { enabled = true }
 no-assign-in-argument = { enabled = true }
-no-service-state-mutation = { enabled = true, exclude-namespaces = ["App\\Context\\Identity\\Domain\\Entity\\", "App\\Context\\Learning\\Domain\\Entity\\", "App\\Context\\Meetings\\Domain\\Entity\\", "App\\Context\\Organization\\Domain\\Entity\\", "App\\Context\\People\\Domain\\Entity\\", "App\\Context\\Privacy\\Domain\\Entity\\", "App\\Library\\Persistence\\Mapping\\", "App\\Platform\\OpenApi\\Service\\", "App\\Tests\\"] }
+no-service-state-mutation = { enabled = true, exclude-namespaces = ["App\\Context\\Identity\\Domain\\Entity\\", "App\\Context\\Learning\\Domain\\Entity\\", "App\\Context\\Scheduling\\Domain\\Entity\\", "App\\Context\\Organization\\Domain\\Entity\\", "App\\Context\\People\\Domain\\Entity\\", "App\\Context\\Privacy\\Domain\\Entity\\", "App\\Library\\Persistence\\Mapping\\", "App\\Platform\\OpenApi\\Service\\", "App\\Tests\\"] }
 prefer-self-return-type = { enabled = true }
 variable-name = { enabled = true }
 method-name = { enabled = true }
@@ -94,18 +94,18 @@ allow-from = ["App\\Context\\People\\Infrastructure\\**", "App\\Tests\\**"]
 reason = "Only the context's own Infrastructure uses its Infrastructure; the rest goes through Domain contracts."
 
 [[guard.perimeter.restrictions]]
-dependency = "App\\Context\\Meetings\\**"
-allow-from = ["App\\Context\\Meetings\\**", "App\\Workflow\\**", "App\\Interface\\**", "App\\Tests\\**"]
+dependency = "App\\Context\\Scheduling\\**"
+allow-from = ["App\\Context\\Scheduling\\**", "App\\Workflow\\**", "App\\Interface\\**", "App\\Tests\\**"]
 reason = "A context never uses another context; only Workflow uses the contexts, and Interface names their enums."
 
 [[guard.perimeter.restrictions]]
-dependency = "App\\Context\\Meetings\\Domain\\Repository\\**"
-allow-from = ["App\\Context\\Meetings\\**", "App\\Tests\\**"]
+dependency = "App\\Context\\Scheduling\\Domain\\Repository\\**"
+allow-from = ["App\\Context\\Scheduling\\**", "App\\Tests\\**"]
 reason = "Workflows go through the context's application services, never straight to its repositories."
 
 [[guard.perimeter.restrictions]]
-dependency = "App\\Context\\Meetings\\Infrastructure\\**"
-allow-from = ["App\\Context\\Meetings\\Infrastructure\\**", "App\\Tests\\**"]
+dependency = "App\\Context\\Scheduling\\Infrastructure\\**"
+allow-from = ["App\\Context\\Scheduling\\Infrastructure\\**", "App\\Tests\\**"]
 reason = "Only the context's own Infrastructure uses its Infrastructure; the rest goes through Domain contracts."
 
 [[guard.perimeter.restrictions]]

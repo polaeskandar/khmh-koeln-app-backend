@@ -98,7 +98,7 @@ only with a parent's or guardian's agreement. Younger children never have accoun
   reordering, archiving and restoring stages, and archiving and restoring the service, always decide on what the
   previous write committed, never on a copy loaded before the lock.
 - **Archiving** a service (`ArchiveServiceWorkflow`) or a stage (`ArchiveStageWorkflow`) runs in the structure lock.
-  Meetings' `SchedulePauses` locks the scheduled and active sessions of its schedules; while one is active the
+  Scheduling's `SchedulePauses` locks the scheduled and active sessions of its schedules; while one is active the
   archive is refused, otherwise the schedules are deactivated in the same transaction. Opening a session checks
   that its service and stage are not archived under the session lock, so an archive and an opening wait for each
   other. Restoring leaves the schedules inactive.
@@ -108,7 +108,7 @@ only with a parent's or guardian's agreement. Younger children never have accoun
   importing members, creating a schedule or a one-off session, and creating a lesson. Deleting a service or a stage
   (`DeleteServiceWorkflow`, `DeleteStageWorkflow`) holds the structure lock, so it waits for those writes and they
   wait for it; a write that waited then finds the service or stage gone.
-- **Deleting** is for a service or stage created by mistake. Under the structure lock, Meetings' `ScheduleRemovals`
+- **Deleting** is for a service or stage created by mistake. Under the structure lock, Scheduling's `ScheduleRemovals`
   locks the schedules of the service or stage (so the generator can't add a session meanwhile), counts their
   sessions and, without any, removes them; Learning counts the lessons and People the memberships. Any of the three
   refuses the deletion and the transaction rolls back.
@@ -145,16 +145,16 @@ statements, whatever the number of sessions: one `rostersOn` for the sessions wi
 read of the current marks' (session, person) pairs. Both results are grouped in one pass. Open rosters have no
 roster ids.
 
-## Meetings and attendance
+## Scheduling and attendance
 
 | Table | Purpose | Key rules |
 | --- | --- | --- |
-| `meeting_schedule` | A meeting that repeats: weekly (every n weeks on chosen weekdays) or monthly (the nth or last weekday every n months). Start and end time, place, roster mode. | `roster_mode` is `expected` (the stage or service roster is expected) or `open` (no roster; anyone can be marked present). Inactive schedules stop creating sessions. |
-| `meeting_session` | One meeting of a schedule on one date. It keeps its own title, place, start and end time and roster mode, copied from the schedule when it is created. | Unique `(schedule_id, occurrence_date)`, so the generator can't create it twice. A schedule edit copies its new values to the sessions that are still `scheduled` from church-today on; started, closed, canceled and earlier sessions keep theirs, so history and attendance counts stay as they were. |
+| `schedule` | A meeting that repeats: weekly (every n weeks on chosen weekdays) or monthly (the nth or last weekday every n months). Start and end time, place, roster mode. | `roster_mode` is `expected` (the stage or service roster is expected) or `open` (no roster; anyone can be marked present). Inactive schedules stop creating sessions. |
+| `session` | One meeting of a schedule on one date. It keeps its own title, place, start and end time and roster mode, copied from the schedule when it is created. | Unique `(schedule_id, occurrence_date)`, so the generator can't create it twice. A schedule edit copies its new values to the sessions that are still `scheduled` from church-today on; started, closed, canceled and earlier sessions keep theirs, so history and attendance counts stay as they were. |
 | `session_event` | The session's history: created, opened, closed, reopened, canceled, edited, with who and an optional note. | Append-only. |
 | `attendance` | A "present" mark. | At most one current mark per session and person (`removed_at` null). A correction sets `removed_at`, `removed_by` and a reason. There are no absence rows: not marked present is not the same as absent. |
 
-`meetings.attendance` (`Attendance`, part of Meetings): `session_id`, a foreign key to `meeting_session` with
+`scheduling.attendance` (`Attendance`, part of Scheduling): `session_id`, a foreign key to `session` with
 RESTRICT, so a session with marks can't be deleted; `person_id` (People), a plain id without a foreign key;
 `recorded_at`, `recorded_by` and the `Removal` (`removed_at`, `removed_by`, `removal_reason` ≤200, trimmed, blank →
 null). The account columns are nulled by the erasure process (D6). No foreign key crosses schemas, so whatever
@@ -162,19 +162,19 @@ deletes a person must first check for marks. Partial UNIQUE `attendance_current_
 WHERE removed_at IS NULL`; CHECKs: removal fields only on a removed mark, `removed_at >= recorded_at`. Indexes on
 `session_id` and `person_id`. Attendance writes must run in the session write lock
 (`SessionRepositoryInterface::withWriteLock()`): one transaction holding `SELECT … FOR UPDATE` on the
-`meeting_session` row, so marks, opening, closing and canceling are serialized per session. The lock reloads the
+`session` row, so marks, opening, closing and canceling are serialized per session. The lock reloads the
 session from its row, so the work sees what is stored even when the request loaded the session before.
 
-The meeting tables live in the `meetings` schema. A schedule's `Recurrence` is `frequency` (`weekly` or
+The meeting tables live in the `scheduling` schema. A schedule's `Recurrence` is `frequency` (`weekly` or
 `monthly`), `interval` (1–52 weeks when weekly, 1–52 months when monthly), `weekdays` (a bitmask of ISO weekdays, Monday = 1 … Sunday = 64, so 1–127),
 `month_week` (1–4 or -1 for the last; set exactly when monthly, and then with exactly one weekday) and
 `starts_on`/`ends_on` (`ends_on >= starts_on`). CHECKs also keep names non-blank, `end_time >
 start_time`, `cancel_reason` only on canceled sessions, `closed_at` exactly on
 completed ones and `opened_at` on active and completed ones. `session_event` is append-only:
-`by_generator` marks the generator's actor-less `created` events. Foreign keys inside Meetings are
+`by_generator` marks the generator's actor-less `created` events. Foreign keys inside Scheduling are
 `RESTRICT`: a schedule with sessions and a session with history can't be deleted. `service_id`, `stage_id` (on the schedule) and the actor columns (`opened_by`, `closed_by`,
 `actor_id`) are plain ids without foreign keys; the workflows check them, and the erasure process (#82)
-nulls the actor columns. Indexes: `meeting_session (occurrence_date)`, `session_event (session_id, occurred_at)`. Every session belongs
+nulls the actor columns. Indexes: `session (occurrence_date)`, `session_event (session_id, occurred_at)`. Every session belongs
 to a schedule and sessions are not moved. A one-off session (`CreateOneOffSessionWorkflow`) gets its own hidden
 schedule: `one_off = true`, inactive (`CHECK (NOT one_off OR NOT active)`) and recurring once on its date, so its
 roster, times and title live where every other session reads them. The generator skips it because it is inactive,
@@ -189,7 +189,7 @@ the generator skips that date.
 
 ### Session generation
 
-`GenerateSessionsWorkflow` asks Organization for the archived services and stages, then Meetings'
+`GenerateSessionsWorkflow` asks Organization for the archived services and stages, then Scheduling's
 `SessionGenerator` creates the sessions of today and tomorrow for generating schedules (active, on a service and
 stage that are not archived) on the dates their recurrence occurs; `generateFor()` does the same for one schedule.
 Per schedule, one transaction locks the schedule row, skips the dates that already have a session and persists
@@ -277,7 +277,7 @@ roles and the groups they serve in (`staff_assignment`), and deletes the service
 | `homework_completion` | A report that one person did one task, by an approved guardian or by the member's own account. | At most one current report per task and person (`undone_at` null). Reporting twice keeps the first report, whoever made it. Undo sets `undone_at` and `undone_by`. Only an approved guardian of the person or the account linked to the person's own record can report, and only while the task is published. |
 | `guardian_relationship` | Links a parent account to a child: `parent` or `guardian`. In the `people` schema. | `approved` → `revoked` (the row stays). Only administrators create links. At most one non-revoked link per account and child (partial UNIQUE `(user_id, person_id) WHERE status <> 'revoked'`). `person_id` references `person` with `ON DELETE CASCADE`; `user_id`, `approved_by` and `revoked_by` are plain account ids (no foreign keys across schemas): deleting or erasing an account deletes its links in the workflow (#82). CHECKs on `relationship`, `status` and `(status = 'revoked') = (revoked_at IS NOT NULL)`. |
 
-`learning.lesson` (`Lesson`): `stage_id` (Organization) and `schedule_id` (Meetings) are plain ids without foreign
+`learning.lesson` (`Lesson`): `stage_id` (Organization) and `schedule_id` (Scheduling) are plain ids without foreign
 keys, checked by the workflows; `teaching_date`; `responsible_id` is an account id nulled by the erasure process
 (D6). Text: `title` ≤160, `summary` ≤1000, `passage` ≤200, `memory_verse` ≤500; plan: `objectives`,
 `teaching_points`, `activities`, `notes` ≤4000 each; `materials` is a jsonb list of `{url, label}` (≤10 rows,
@@ -399,7 +399,7 @@ workflow inside a transaction that always rolls back:
 1. People's `PersonErasures` locks the person row and hands every `PersonReferences`
    (`Platform\Privacy\Contract`) an `ErasedPerson`: their names, memberships, last group and a way to ask
    which roster slots they were on.
-2. Meetings' `PersonTraces` finds the counted sessions they were on the roster of or marked present at.
+2. Scheduling's `PersonTraces` finds the counted sessions they were on the roster of or marked present at.
    Each session's counters are raised in the database (`erased_present = erased_present + 1`), not from a
    loaded session, so two erasures that share a session both count. Then it deletes the attendance marks.
 3. Privacy's `PersonTraces` leaves every request about the member with only `erased_subject_kind` `member` and
@@ -454,7 +454,7 @@ sweeps the contexts once more after the commit (an erasure request once more aft
 rerun on an erased account sweeps again before it reports `notFound.account`.
 
 **Past totals stay right.** A session's counts ("12 of 14 present") would shrink when someone is erased.
-Three counters on `meeting_session` keep them: `erased_roster`, `erased_present` and
+Three counters on `session` keep them: `erased_roster`, `erased_present` and
 `erased_roster_present`, increased for every completed, active or past session the person was on the roster
 of or marked present at. The counts add them; the lists no longer show the person.
 

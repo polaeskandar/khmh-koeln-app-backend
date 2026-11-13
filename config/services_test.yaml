@@ -15,7 +15,7 @@ services:
     App\Context\Learning\Application\Service\LessonMeetings:
         public: true
 
-    App\Context\Meetings\Application\Service\MeetingLookup:
+    App\Context\Scheduling\Application\Service\MeetingLookup:
         public: true
 
     App\Tests\Support\Platform\Errors\RecordingTransport:

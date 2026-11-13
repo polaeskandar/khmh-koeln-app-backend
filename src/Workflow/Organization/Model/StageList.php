@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Workflow\Organization\Model;
 
-use App\Context\Meetings\Domain\ValueObject\StructureImpact;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
+use App\Context\Scheduling\Domain\ValueObject\StructureImpact;
 use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class StageList

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Interface\Api\Organization;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
-use App\Context\Meetings\Domain\Entity\Session;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\People\Domain\Entity\Person;
+use App\Context\Scheduling\Domain\Entity\Attendance;
+use App\Context\Scheduling\Domain\Entity\Session;
 use App\Tests\Support\ApiTestCase;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
 use DateTimeImmutable;
@@ -60,7 +60,7 @@ final class ServicesControllerTrendTest extends ApiTestCase
 
         new Database(self::getContainer())
             ->connection()
-            ->update('meetings.meeting_schedule', ['roster_mode' => 'open'], ['id' => $open->id()->toRfc4122()]);
+            ->update('scheduling.schedule', ['roster_mode' => 'open'], ['id' => $open->id()->toRfc4122()]);
 
         $this->marked(
             $schedules->session($open, '2026-11-07', self::DONE . ", roster_mode = 'open'"),

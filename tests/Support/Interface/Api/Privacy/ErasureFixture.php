@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Interface\Api\Privacy;
 
-use App\Context\Meetings\Domain\Entity\Attendance;
-use App\Context\Meetings\Domain\Entity\Schedule;
-use App\Context\Meetings\Domain\ValueObject\Removal;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Domain\Entity\Person;
@@ -16,13 +13,16 @@ use App\Context\Privacy\Domain\Enum\RequestKind;
 use App\Context\Privacy\Domain\ValueObject\Deadlines;
 use App\Context\Privacy\Domain\ValueObject\Receipt;
 use App\Context\Privacy\Domain\ValueObject\RequestSubject;
+use App\Context\Scheduling\Domain\Entity\Attendance;
+use App\Context\Scheduling\Domain\Entity\Schedule;
+use App\Context\Scheduling\Domain\ValueObject\Removal;
 use App\Library\Time\Model\LocalDate;
 use App\Library\Types\Model\Integers;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use DateTimeImmutable;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -98,7 +98,7 @@ final readonly class ErasureFixture
 
         new Database($this->container)
             ->connection()
-            ->executeStatement('UPDATE meetings.meeting_session SET ' . self::CANCELED . ' WHERE id = ?', [
+            ->executeStatement('UPDATE scheduling.session SET ' . self::CANCELED . ' WHERE id = ?', [
                 $reason,
                 $session->id()->toRfc4122(),
             ]);

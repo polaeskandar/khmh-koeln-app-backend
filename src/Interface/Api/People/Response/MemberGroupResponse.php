@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\People\Response;
 
-use App\Workflow\Meetings\Model\RecurrenceSummary;
 use App\Workflow\Organization\Model\ServiceReference;
 use App\Workflow\Organization\Model\StageSummary;
 use App\Workflow\People\Model\GroupSchedule;
 use App\Workflow\People\Model\LastLesson;
 use App\Workflow\People\Model\MemberGroup;
+use App\Workflow\Scheduling\Model\RecurrenceSummary;
 use Doctrine\Common\Collections\ArrayCollection;
 use JsonSerializable;
 use Override;

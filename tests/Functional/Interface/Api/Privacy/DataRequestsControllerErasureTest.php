@@ -17,8 +17,8 @@ final class DataRequestsControllerErasureTest extends ApiTestCase
     use ClockSensitiveTrait;
 
     private const string NOTES = <<<'SQL'
-        SELECT (SELECT count(cancel_reason) FROM meetings.meeting_session)
-             + (SELECT count(removal_reason) FROM meetings.attendance)
+        SELECT (SELECT count(cancel_reason) FROM scheduling.session)
+             + (SELECT count(removal_reason) FROM scheduling.attendance)
              + (SELECT count(notes) FROM learning.lesson)
         SQL;
 

@@ -9,10 +9,10 @@ use App\Library\Types\Model\Integers;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use Symfony\Component\Uid\Uuid;
 
@@ -131,7 +131,7 @@ final class StructureLifecycleControllerDeleteTest extends ApiTestCase
         $connection = new Database(self::getContainer())->connection();
 
         return array_map(static fn (string $table): int => Integers::of($connection->fetchOne('SELECT count(*) FROM '
-        . $table)), ['organization.service', 'organization.stage', 'meetings.meeting_schedule']);
+        . $table)), ['organization.service', 'organization.stage', 'scheduling.schedule']);
     }
 
     /**

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Workflow\People\Model;
 
-use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Domain\Entity\Service;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Context\People\Domain\Entity\Membership;
 use App\Context\People\Domain\ValueObject\Family;
+use App\Context\Scheduling\Domain\Entity\Schedule;
 use App\Library\Collections\Model\Collections;
 use App\Library\Strings\Model\InputText;
 use App\Library\Strings\Model\Text;

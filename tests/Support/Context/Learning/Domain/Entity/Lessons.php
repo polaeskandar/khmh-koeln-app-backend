@@ -7,11 +7,11 @@ namespace App\Tests\Support\Context\Learning\Domain\Entity;
 use App\Context\Learning\Domain\Entity\Lesson;
 use App\Context\Learning\Domain\ValueObject\LessonText;
 use App\Context\Learning\Domain\ValueObject\MeetingLink;
-use App\Context\Meetings\Domain\Entity\Schedule;
 use App\Context\Organization\Domain\Entity\Stage;
+use App\Context\Scheduling\Domain\Entity\Schedule;
 use App\Library\Time\Model\LocalDate;
-use App\Tests\Support\Context\Meetings\Domain\Entity\Schedules;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
+use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 

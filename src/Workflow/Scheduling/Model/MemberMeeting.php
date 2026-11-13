@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Workflow\Scheduling\Model;
+
+use App\Context\Scheduling\Domain\ValueObject\PlannedDate;
+use App\Library\Strings\Model\Text;
+use App\Workflow\People\Model\MemberRoster;
+
+final readonly class MemberMeeting
+{
+    public function __construct(
+        public string $key,
+        public string $status,
+        public MeetingTime $time,
+        public MeetingGroup $group,
+    ) {
+    }
+
+    public static function of(PlannedDate $date, MemberRoster $roster): self
+    {
+        $plannedKey = Text::format('%s:%s', $date->schedule->id()->toRfc4122(), $date->date->toString());
+
+        return new self(
+            $date->sessionId ?? $plannedKey->toString(),
+            $date->status,
+            MeetingTime::of($date),
+            MeetingGroup::of($date, $roster),
+        );
+    }
+
+    public function sortKey(): string
+    {
+        return Text::format('%s|%s|%s', $this->time->date, $this->time->startTime, $this->group->group)->toString();
+    }
+}

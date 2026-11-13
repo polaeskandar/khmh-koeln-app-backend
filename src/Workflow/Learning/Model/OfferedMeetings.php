@@ -6,7 +6,7 @@ namespace App\Workflow\Learning\Model;
 
 use App\Context\Learning\Domain\ValueObject\MeetingLink;
 use App\Context\Learning\Domain\ValueObject\OfferedMeeting;
-use App\Context\Meetings\Domain\ValueObject\MeetingSlot;
+use App\Context\Scheduling\Domain\ValueObject\MeetingSlot;
 
 final readonly class OfferedMeetings
 {

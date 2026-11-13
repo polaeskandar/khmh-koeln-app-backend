@@ -66,12 +66,12 @@ framework:
                             published: homework.notArchived
         session_lifecycle:
             type: state_machine
-            supports: App\Context\Meetings\Domain\Entity\Session
+            supports: App\Context\Scheduling\Domain\Entity\Session
             marking_store:
-                service: App\Context\Meetings\Infrastructure\Lifecycle\SessionMarkingStore
+                service: App\Context\Scheduling\Infrastructure\Lifecycle\SessionMarkingStore
             events_to_dispatch: []
             initial_marking: scheduled
-            places: App\Context\Meetings\Domain\Enum\SessionStatus::*
+            places: App\Context\Scheduling\Domain\Enum\SessionStatus::*
             transitions:
                 open:
                     from: [scheduled, active]
