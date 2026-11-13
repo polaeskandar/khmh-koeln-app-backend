@@ -13,8 +13,8 @@ final readonly class GiveRoleWorkflow
     ) {
     }
 
-    public function __invoke(string $email, string $role): void
+    public function __invoke(string $username, string $role): void
     {
-        $this->assignments->give($email, $role);
+        $this->assignments->give($username, $role);
     }
 }

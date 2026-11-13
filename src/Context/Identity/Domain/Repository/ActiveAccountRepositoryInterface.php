@@ -9,7 +9,7 @@ interface ActiveAccountRepositoryInterface
     /**
      * @param positive-int $limit
      *
-     * @return list<array{id: string, name: string, email: string}>
+     * @return list<array{id: string, username: string, personId: string}> by username
      */
     public function listed(int $limit): array;
 }

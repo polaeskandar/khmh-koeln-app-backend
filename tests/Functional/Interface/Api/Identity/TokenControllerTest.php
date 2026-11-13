@@ -48,7 +48,7 @@ final class TokenControllerTest extends ApiTestCase
         $this->withToken($token, 'GET', '/api/me');
 
         self::assertResponseIsSuccessful();
-        $this->assertJsonPath('account.email', self::EMAIL);
+        $this->assertJsonPath('account.username', Accounts::usernameOf(self::EMAIL));
         self::assertFalse($this->browser()->getResponse()->headers->has('Set-Cookie'));
         self::assertSame($sessions, $this->numberOf('SELECT count(*) FROM public.sessions'));
     }
@@ -79,7 +79,7 @@ final class TokenControllerTest extends ApiTestCase
         $this->assertProblem(401, 'auth.unauthenticated');
 
         $fresh = $this->issued();
-        $this->console(['command' => 'app:user:disable', 'email' => self::EMAIL]);
+        $this->console(['command' => 'app:user:disable', 'username' => Accounts::usernameOf(self::EMAIL)]);
         $this->withToken($fresh, 'GET', '/api/me');
         $this->assertProblem(401, 'auth.unauthenticated');
 

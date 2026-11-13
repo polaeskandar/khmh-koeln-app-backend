@@ -8,7 +8,6 @@ final readonly class NewAccountDetails
 {
     public function __construct(
         public string $username,
-        public string $email,
         public string $firstName,
         public string $lastName,
         public string $language,

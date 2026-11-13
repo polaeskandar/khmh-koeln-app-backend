@@ -22,10 +22,10 @@ final readonly class AccountLifecycle
     ) {
     }
 
-    public function disable(string $email): void
+    public function disable(string $username): void
     {
-        $this->administration->whileLocked(function () use ($email): void {
-            $user = $this->getByEmail($email);
+        $this->administration->whileLocked(function () use ($username): void {
+            $user = $this->getByUsername($username);
 
             if ($this->lastAdministrator->isKeptOnlyByAccount($user)) {
                 throw new RuleViolation('roles.lastAdministrator');
@@ -37,16 +37,16 @@ final readonly class AccountLifecycle
         });
     }
 
-    public function enable(string $email): void
+    public function enable(string $username): void
     {
-        $user = $this->getByEmail($email);
+        $user = $this->getByUsername($username);
 
         $user->changeStatus($user->status()->enabled());
         $this->users->save($user);
     }
 
-    private function getByEmail(string $email): User
+    private function getByUsername(string $username): User
     {
-        return $this->users->findByEmail($email) ?? throw NotFound::of('account');
+        return $this->users->findByUsername($username) ?? throw NotFound::of('account');
     }
 }

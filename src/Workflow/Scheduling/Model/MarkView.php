@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Scheduling\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 use App\Context\Scheduling\Domain\Entity\Attendance;
 use App\Workflow\Identity\Model\AccountReference;
 use DateTimeImmutable;
@@ -20,14 +20,16 @@ final readonly class MarkView
     ) {
     }
 
-    public static function of(Attendance $mark, ?User $recorder): self
+    public static function of(Attendance $mark, NamedAccounts $accounts): self
     {
+        $recorder = $accounts->find($mark->recordedBy());
+
         return new self(
             $mark->id()->toRfc4122(),
             $mark->sessionId()->toRfc4122(),
             $mark->personId()->toRfc4122(),
             $mark->recordedAt(),
-            $recorder === null ? null : AccountReference::of($recorder),
+            $recorder === null ? null : AccountReference::of($recorder, $accounts),
         );
     }
 }

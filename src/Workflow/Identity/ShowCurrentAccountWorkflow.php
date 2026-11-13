@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Identity;
 
+use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Application\Service\CurrentAccounts;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Organization\Application\Service\StructureLookup;
@@ -32,6 +33,7 @@ final readonly class ShowCurrentAccountWorkflow
         private MemberRecords $records,
         private StructureLookup $structure,
         private StaffAssignmentQueryInterface $assignments,
+        private AccountLookup $lookup,
     ) {
     }
 
@@ -40,7 +42,7 @@ final readonly class ShowCurrentAccountWorkflow
         $user = $this->accounts->get(Uuid::fromString($userId));
 
         return new CurrentAccount(
-            account: AccountSummary::of($user),
+            account: AccountSummary::of($user, $this->lookup->nameOf($user)),
             access: new AccountAccess(
                 roles: self::rolesOf($user),
                 permissions: new ArrayCollection($this->accounts->grantsOf($user))->map(

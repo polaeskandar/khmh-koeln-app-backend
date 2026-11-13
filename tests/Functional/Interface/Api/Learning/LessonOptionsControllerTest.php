@@ -101,11 +101,16 @@ final class LessonOptionsControllerTest extends ApiTestCase
         [$third, $class] = $this->thirdClass();
         $lessons = new Lessons(self::getContainer());
         $lessons->stored($third, $class, '2026-11-15');
-        new ServedGroups(self::getContainer())->everyService($this->signInWithRoles('daniel@example.org', 'servant'));
+
+        new ServedGroups(self::getContainer())->everyService($this->signInNamed(
+            'daniel@example.org',
+            'Daniel Michael',
+            'servant',
+        ));
 
         $this->jsonRequest('GET', $this->options($third));
         $few = count(new Logs(self::getContainer())->containing('SELECT'));
-        self::assertSame(['Sara Hanna'], $this->servantNames());
+        self::assertSame(['Daniel Michael'], $this->servantNames());
 
         foreach (['2026-11-22', '2026-11-29', '2026-12-06', '2026-12-13'] as $date) {
             $lessons->stored($third, $class, $date);

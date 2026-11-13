@@ -54,7 +54,11 @@ final readonly class ListLessonOptionsWorkflow
             $window,
             $dates,
             $this->takenIn(self::scheduleIdsOf($dates), $window, $edited),
-            $this->accounts->listActiveAllowedIn(Action::Update, Resource::Lessons, $group),
+            $this->accounts->named(new ArrayCollection($this->accounts->listActiveAllowedIn(
+                Action::Update,
+                Resource::Lessons,
+                $group,
+            ))),
         );
     }
 

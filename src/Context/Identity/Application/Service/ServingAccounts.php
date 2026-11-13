@@ -9,19 +9,16 @@ use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\RoleScope;
 use App\Context\Identity\Domain\Repository\RoleHolderRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
-use App\Library\Collections\Model\Collections;
 use App\Library\Problem\Exception\NotFound;
-use Collator;
 use Doctrine\Common\Collections\ReadableCollection;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class ServingAccounts
 {
-    private const string COLLATION = 'de';
-
     public function __construct(
         private UserRepositoryInterface $users,
         private RoleHolderRepositoryInterface $holders,
+        private AccountLookup $accounts,
     ) {
     }
 
@@ -37,7 +34,7 @@ final readonly class ServingAccounts
      */
     public function listActiveAmong(array $ids): array
     {
-        return self::byName(
+        return $this->byName(
             $this->users
                 ->findByIds($ids)
                 ->filter(
@@ -55,7 +52,7 @@ final readonly class ServingAccounts
      */
     public function listActive(): array
     {
-        return self::byName($this->holders->activeHoldersIn(RoleScope::AssignedGroups));
+        return $this->byName($this->holders->activeHoldersIn(RoleScope::AssignedGroups));
     }
 
     /**
@@ -63,13 +60,8 @@ final readonly class ServingAccounts
      *
      * @return list<User>
      */
-    private static function byName(ReadableCollection $users): array
+    private function byName(ReadableCollection $users): array
     {
-        $collator = new Collator(self::COLLATION);
-
-        $nameKeyOf =
-            static fn (User $user): string => (string) $collator->getSortKey($user->profile()->displayName->value);
-
-        return Collections::sortedBy($users, keyOf: $nameKeyOf);
+        return $this->accounts->named($users)->byName();
     }
 }

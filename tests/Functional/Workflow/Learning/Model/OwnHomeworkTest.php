@@ -157,7 +157,7 @@ final class OwnHomeworkTest extends KernelTestCase
             $book,
             AudienceAccounts::of(
                 $book,
-                self::service(AccountLookup::class)->listByIds(TaskAudiences::accountIdsOf($book, $reports)),
+                self::service(AccountLookup::class)->namedByIds(TaskAudiences::accountIdsOf($book, $reports)),
                 self::service(AccountLookup::class)->listOwnAccountsOf($book->personIds()),
             ),
         );

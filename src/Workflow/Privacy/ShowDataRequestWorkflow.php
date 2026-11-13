@@ -44,20 +44,21 @@ final readonly class ShowDataRequestWorkflow
         $subject = $request->subject();
         $requests = [$request];
 
+        $accounts = $this->accounts->namedByIds(DataRequestRows::accountIdsOf($requests));
+
         $rows = DataRequestRows::of(
             $requests,
             $this->people->findByIds(DataRequestRows::personIdsOf($requests)),
-            $this->accounts->listByIds(DataRequestRows::accountIdsOf($requests)),
+            $accounts,
         );
 
         $person = $subject->personId === null ? null : $this->people->find($subject->personId);
-        $account = $subject->accountId === null ? null : $this->accounts->findAccount($subject->accountId);
 
         return new DataRequestDetail(
             $this->calendar->today()->toString(),
             $rows[0] ?? throw NotFound::of('request'),
             RequestMember::of($person, $person === null ? [] : $this->membershipsOf($person)),
-            RequestAccount::of($account),
+            RequestAccount::of($accounts->find($subject->accountId), $accounts),
         );
     }
 

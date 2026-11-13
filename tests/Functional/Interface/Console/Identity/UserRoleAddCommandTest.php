@@ -15,15 +15,15 @@ use Symfony\Component\Uid\Uuid;
 
 final class UserRoleAddCommandTest extends KernelTestCase
 {
-    public function testTheRoleIsGivenByEmailAndNameInAnyCase(): void
+    public function testTheRoleIsGivenByUsernameAndNameInAnyCase(): void
     {
         $this->account('daniel@example.org');
         $tester = $this->tester();
 
-        self::assertSame(Command::SUCCESS, $tester->execute(['email' => 'Daniel@Example.org', 'role' => 'servant']));
+        self::assertSame(Command::SUCCESS, $tester->execute(['username' => 'Daniel', 'role' => 'servant']));
 
         self::assertSame(['servant'], $this->roleKeys());
-        self::assertStringContainsString('Gave Daniel@Example.org the role servant.', $tester->getDisplay());
+        self::assertStringContainsString('Gave Daniel the role servant.', $tester->getDisplay());
     }
 
     /**
@@ -39,7 +39,10 @@ final class UserRoleAddCommandTest extends KernelTestCase
         $this->account('daniel@example.org', $columns);
         $tester = $this->tester();
 
-        self::assertSame(Command::FAILURE, $tester->execute(['email' => $email, 'role' => $role]));
+        self::assertSame(Command::FAILURE, $tester->execute([
+            'username' => Accounts::usernameOf($email),
+            'role' => $role,
+        ]));
 
         self::assertStringContainsString($code, $tester->getDisplay());
         self::assertSame([], $this->roleKeys());
@@ -50,7 +53,7 @@ final class UserRoleAddCommandTest extends KernelTestCase
      */
     public static function refusals(): iterable
     {
-        yield 'unknown email' => ['nobody@example.org', 'Servant', [], 'notFound.account'];
+        yield 'unknown username' => ['nobody@example.org', 'Servant', [], 'notFound.account'];
         yield 'unknown role' => ['daniel@example.org', 'Deacon', [], 'notFound.role'];
     }
 

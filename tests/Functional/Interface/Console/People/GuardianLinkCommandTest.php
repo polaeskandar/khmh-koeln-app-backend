@@ -24,7 +24,7 @@ final class GuardianLinkCommandTest extends KernelTestCase
             self::assertSame(
                 Command::SUCCESS,
                 $this->tester()->execute([
-                    'email' => 'Mariam@Example.org',
+                    'username' => 'Mariam',
                     'personId' => $child->id()->toRfc4122(),
                 ]),
                 (string) $run,
@@ -52,7 +52,7 @@ final class GuardianLinkCommandTest extends KernelTestCase
         $tester = $this->tester();
 
         $status = $tester->execute([
-            'email' => 'mariam@example.org',
+            'username' => 'mariam',
             'personId' => $personId ?? $child->id()->toRfc4122(),
         ]);
 
@@ -86,7 +86,7 @@ final class GuardianLinkCommandTest extends KernelTestCase
         $tester = $this->tester();
 
         $status = $tester->execute([
-            'email' => 'mariam@example.org',
+            'username' => 'mariam',
             'personId' => $child->id()->toRfc4122(),
             '--relationship' => 'uncle',
         ]);

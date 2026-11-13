@@ -35,7 +35,7 @@ final readonly class AccountDataResponse implements JsonSerializable
      *     exportedAt: DateTimeImmutable,
      *     account: array{
      *         id: string,
-     *         email: string,
+     *         username: string,
      *         name: string,
      *         language: Language,
      *         createdAt: DateTimeImmutable,
@@ -68,7 +68,7 @@ final readonly class AccountDataResponse implements JsonSerializable
     /**
      * @return array{
      *     id: string,
-     *     email: string,
+     *     username: string,
      *     name: string,
      *     language: Language,
      *     createdAt: DateTimeImmutable,
@@ -81,7 +81,7 @@ final readonly class AccountDataResponse implements JsonSerializable
     {
         return [
             'id' => $account->identity->id,
-            'email' => $account->identity->email,
+            'username' => $account->identity->username,
             'name' => $account->identity->name,
             'language' => $account->identity->language,
             'createdAt' => $account->moments->createdAt,

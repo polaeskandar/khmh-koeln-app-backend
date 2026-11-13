@@ -49,7 +49,7 @@ final readonly class GiveParentAccessWorkflow
 
         $grant = new AccessGrant(
             $parent->id(),
-            $parent->profile()->displayName->value,
+            $this->accounts->nameOf($parent),
             GuardianKind::tryFrom($relationship) ?? throw InvalidInput::field(
                 'relationship',
                 'validation.invalidChoice',
@@ -75,7 +75,7 @@ final readonly class GiveParentAccessWorkflow
 
         return ParentAccessItems::of(
             $links,
-            $this->accounts->listByIds(ParentAccessItems::accountIdsOf($links)),
+            $this->accounts->namedByIds(ParentAccessItems::accountIdsOf($links)),
             $memberships,
             Placements::of(
                 $this->structure->listServices(DirectoryEntries::serviceIdsOf($memberships)),

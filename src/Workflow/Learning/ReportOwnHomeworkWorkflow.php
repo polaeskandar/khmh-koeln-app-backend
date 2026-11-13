@@ -38,7 +38,7 @@ final readonly class ReportOwnHomeworkWorkflow
             Ids::toUuidOrNull($homeworkId),
         ));
 
-        return ReportResult::of($outcome, $this->accounts->findAccount($outcome->completedBy), $viewer);
+        return ReportResult::of($outcome, $this->accounts->namedByIds([$outcome->completedBy]), $viewer);
     }
 
     private function reportedOnLockedTask(Uuid $personId, Uuid $viewer, ?Uuid $homeworkId): CompletionOutcome

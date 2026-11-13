@@ -12,22 +12,13 @@ final readonly class AccountSummary
     public function __construct(
         public string $id,
         public string $username,
-        public string $email,
         public string $displayName,
         public Language $language,
     ) {
     }
 
-    public static function of(User $user): self
+    public static function of(User $user, string $name): self
     {
-        $profile = $user->profile();
-
-        return new self(
-            $user->id()->toRfc4122(),
-            $user->username()->value,
-            $profile->email->value,
-            $profile->displayName->value,
-            $profile->language,
-        );
+        return new self($user->id()->toRfc4122(), $user->username()->value, $name, $user->language());
     }
 }

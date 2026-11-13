@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Scheduling\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 use App\Context\Scheduling\Domain\Entity\SessionEvent;
 use App\Library\Collections\Model\Collections;
 use App\Workflow\Identity\Model\AccountReference;
@@ -13,20 +13,14 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class ActorReferences
 {
-    /**
-     * @param ReadableCollection<non-empty-string, User> $accounts
-     */
     private function __construct(
-        private ReadableCollection $accounts,
+        private NamedAccounts $accounts,
     ) {
     }
 
-    /**
-     * @param ReadableCollection<int, User> $accounts
-     */
-    public static function of(ReadableCollection $accounts): self
+    public static function of(NamedAccounts $accounts): self
     {
-        return new self(Collections::firstPerKey($accounts, keyOf: self::key(...)));
+        return new self($accounts);
     }
 
     /**
@@ -44,17 +38,8 @@ final readonly class ActorReferences
 
     public function actorOf(SessionEvent $event): ?AccountReference
     {
-        $actorId = $event->actor()->accountId?->toRfc4122();
-        $account = $actorId === null ? null : $this->accounts->get($actorId);
+        $account = $this->accounts->find($event->actor()->accountId);
 
-        return $account === null ? null : AccountReference::of($account);
-    }
-
-    /**
-     * @return non-empty-string
-     */
-    private static function key(User $user): string
-    {
-        return $user->id()->toRfc4122();
+        return $account === null ? null : AccountReference::of($account, $this->accounts);
     }
 }

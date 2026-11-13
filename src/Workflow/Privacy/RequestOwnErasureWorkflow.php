@@ -35,10 +35,7 @@ final readonly class RequestOwnErasureWorkflow
         $id = Uuid::fromString($accountId);
         $this->passwords->ensureOwn($id, $password, field: 'password');
 
-        $requestedBy = ($this->accounts->findAccount($id) ?? throw NotFound::of('account'))
-            ->profile()
-            ->displayName
-            ->value;
+        $requestedBy = $this->accounts->nameOf($this->accounts->findAccount($id) ?? throw NotFound::of('account'));
 
         return $this->transactions->run(function () use ($id, $requestedBy, $note): ScheduledOwnErasure {
             $scheduled = $this->requests->schedule($id, $requestedBy, $note);

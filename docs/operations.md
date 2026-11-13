@@ -34,7 +34,7 @@ it is deployed is not part of this repository.
 | Session-mode connections (no transaction pooler between the app and the database) | Must | `LOCK_DSN` advisory lock of the hourly generator (#53) and PHP sessions in PostgreSQL (#14) |
 | At least two connections per PHP worker, plus the Messenger worker and the scheduled commands | Must | Doctrine plus the session handler per request |
 | TLS `verify-full` for Doctrine, the session handler and `LOCK_DSN`, unless the private network is the only route | Must | Data in transit, DSGVO Art. 32 |
-| Server logs kept ≤ 14 days with `log_error_verbosity = terse` | Must | Unique violations would log emails (D6) |
+| Server logs kept ≤ 14 days with `log_error_verbosity = terse` | Must | Unique violations would log usernames and names (D6) |
 | Daily encrypted backups in the EU, kept 30 days and restored only at the host, never on a laptop; after a restore the erasure ledger is replayed before the app reopens | Must | [Data protection](data-protection.md#erasure-ledger) |
 
 ## Scheduled commands
@@ -84,7 +84,7 @@ with `clearNotes: true` does, and closes the request with the counts. It runs on
 ## First administrators
 
 An empty database has no account. After migrating it, create each administrator with
-`php bin/console app:user:create <username> <email> <firstName> <lastName> --role=administrator`, typing the password twice (or piping
+`php bin/console app:user:create <username> <firstName> <lastName> --role=administrator`, typing the password twice (or piping
 it with `--password-stdin`), and hand it over in person.
 
 ## Importing members
@@ -149,7 +149,7 @@ The production `TRUSTED_HOSTS`, with the probe hosts added at the end:
 ^(app\.khmk-koeln\.com|localhost|127\.0\.0\.1|<probe host>)$
 ```
 
-Sign-in limits (5 attempts per email and client, 25 per client, per 15 minutes) are kept in the
+Sign-in limits (5 attempts per username and client, 25 per client, per 15 minutes) are kept in the
 `cache.rate_limiter` pool, which is the application cache on the local filesystem. That is right for one API
 instance. A second instance needs a shared pool (Redis, or the database through `cache.adapter.doctrine_dbal`),
 or each instance counts on its own.

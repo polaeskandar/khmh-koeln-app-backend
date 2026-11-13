@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\Privacy\Domain\Entity\DataRequest;
 use App\Library\Collections\Model\Collections;
@@ -17,11 +17,10 @@ final readonly class DataRequestRows
 {
     /**
      * @param ReadableCollection<non-empty-string, Person> $people
-     * @param ReadableCollection<non-empty-string, User> $accounts
      */
     private function __construct(
         private ReadableCollection $people,
-        private ReadableCollection $accounts,
+        private NamedAccounts $accounts,
         private AccountReferences $references,
     ) {
     }
@@ -29,15 +28,14 @@ final readonly class DataRequestRows
     /**
      * @param list<DataRequest> $requests
      * @param ReadableCollection<int, Person> $people
-     * @param ReadableCollection<int, User> $accounts
      *
      * @return list<DataRequestRow>
      */
-    public static function of(array $requests, ReadableCollection $people, ReadableCollection $accounts): array
+    public static function of(array $requests, ReadableCollection $people, NamedAccounts $accounts): array
     {
         $rows = new self(
             Collections::firstPerKey($people, keyOf: static fn (Person $person): string => $person->id()->toRfc4122()),
-            Collections::firstPerKey($accounts, keyOf: static fn (User $user): string => $user->id()->toRfc4122()),
+            $accounts,
             AccountReferences::of($accounts),
         );
 

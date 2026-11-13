@@ -15,7 +15,7 @@ use Override;
 final readonly class DoctrineStaffAccountRepository implements StaffAccountRepositoryInterface
 {
     private const string LISTED = <<<'SQL'
-        SELECT u.id::text AS id, u.display_name AS name, u.email, u.disabled_at IS NOT NULL AS disabled
+        SELECT u.id::text AS id, u.username, u.person_id::text AS person, u.disabled_at IS NOT NULL AS disabled
         FROM identity.app_user u
         WHERE (u.age_check IS NULL AND NOT EXISTS (SELECT 1 FROM identity.user_role ur WHERE ur.user_id = u.id))
           OR EXISTS (
@@ -24,7 +24,7 @@ final readonly class DoctrineStaffAccountRepository implements StaffAccountRepos
             JOIN identity.permission p ON p.id = rp.permission_id
             WHERE ur.user_id = u.id AND p.resource <> 'parentPortal'
           )
-        ORDER BY disabled, lower(u.display_name), u.id
+        ORDER BY disabled, u.username
         LIMIT :limit
         SQL;
 
@@ -43,7 +43,7 @@ final readonly class DoctrineStaffAccountRepository implements StaffAccountRepos
     /**
      * @param positive-int $limit
      *
-     * @return list<array{id: string, displayName: string, email: string, disabled: bool}>
+     * @return list<array{id: string, username: string, personId: string, disabled: bool}>
      */
     #[Override]
     public function listed(int $limit): array
@@ -58,8 +58,8 @@ final readonly class DoctrineStaffAccountRepository implements StaffAccountRepos
 
         return new ArrayCollection($rows)->map(static fn (array $row): array => [
             'id' => Type::of($row['id'] ?? null)->toString(),
-            'displayName' => Type::of($row['name'] ?? null)->toString(),
-            'email' => Type::of($row['email'] ?? null)->toString(),
+            'username' => Type::of($row['username'] ?? null)->toString(),
+            'personId' => Type::of($row['person'] ?? null)->toString(),
             'disabled' => ($row['disabled'] ?? false) === true,
         ])->getValues();
     }

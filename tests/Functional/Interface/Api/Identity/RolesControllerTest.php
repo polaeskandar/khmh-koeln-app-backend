@@ -146,17 +146,17 @@ final class RolesControllerTest extends ApiTestCase
                 'createdAt' => '2026-11-01T01:00:00+01:00',
                 'updatedAt' => '2026-11-01T01:00:00+01:00',
                 'holders' => [
-                    ['id' => $adel, 'displayName' => 'Adel Fahmy', 'email' => 'adel@example.org', 'disabled' => false],
+                    ['id' => $adel, 'displayName' => 'Adel Fahmy', 'username' => 'adel', 'disabled' => false],
                     [
                         'id' => $bishoy,
                         'displayName' => 'bishoy Adel',
-                        'email' => 'bishoy@example.org',
+                        'username' => 'bishoy',
                         'disabled' => false,
                     ],
                     [
                         'id' => $zeina,
                         'displayName' => 'Zeina Gerges',
-                        'email' => 'zeina@example.org',
+                        'username' => 'zeina',
                         'disabled' => true,
                     ],
                 ],

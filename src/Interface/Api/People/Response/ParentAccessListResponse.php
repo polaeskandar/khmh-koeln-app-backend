@@ -10,7 +10,7 @@ final readonly class ParentAccessListResponse
 {
     /**
      * @param list<ParentAccessItemResponse> $items
-     * @param list<array{id: string, name: string, email: string}> $accounts
+     * @param list<array{id: string, name: string, username: string}> $accounts
      */
     public function __construct(
         public array $items,

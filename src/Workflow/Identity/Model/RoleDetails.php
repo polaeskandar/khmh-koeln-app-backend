@@ -8,7 +8,8 @@ use App\Context\Identity\Domain\Entity\Role;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Enum\RoleScope;
 use App\Context\Identity\Domain\ValueObject\Access;
-use Doctrine\Common\Collections\ReadableCollection;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
+use Doctrine\Common\Collections\ArrayCollection;
 
 final readonly class RoleDetails
 {
@@ -25,14 +26,15 @@ final readonly class RoleDetails
 
     /**
      * @param list<Access> $grants
-     * @param ReadableCollection<int, User> $holders
      */
-    public static function of(Role $role, array $grants, ReadableCollection $holders, bool $onlyWayToChangeRoles): self
+    public static function of(Role $role, array $grants, NamedAccounts $holders, bool $onlyWayToChangeRoles): self
     {
         return new self(
             RoleDefinition::of($role, $grants),
             $role->scope(),
-            $holders->map(RoleHolder::of(...))->getValues(),
+            new ArrayCollection($holders->byName())->map(
+                static fn (User $holder): RoleHolder => RoleHolder::of($holder, $holders),
+            )->getValues(),
             $onlyWayToChangeRoles,
         );
     }

@@ -34,7 +34,7 @@ final readonly class ListDataRequestsWorkflow
         $rows = DataRequestRows::of(
             $requests,
             $this->people->findByIds(DataRequestRows::personIdsOf($requests)),
-            $this->accounts->listByIds(DataRequestRows::accountIdsOf($requests)),
+            $this->accounts->namedByIds(DataRequestRows::accountIdsOf($requests)),
         );
 
         return DataRequestList::of($rows, $this->calendar->today()->toString());

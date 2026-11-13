@@ -11,13 +11,13 @@ final readonly class RoleHolderResponse
     public function __construct(
         public string $id,
         public string $displayName,
-        public string $email,
+        public string $username,
         public bool $disabled,
     ) {
     }
 
     public static function of(RoleHolder $holder): self
     {
-        return new self($holder->id, $holder->displayName, $holder->email, $holder->disabled);
+        return new self($holder->id, $holder->displayName, $holder->username, $holder->disabled);
     }
 }

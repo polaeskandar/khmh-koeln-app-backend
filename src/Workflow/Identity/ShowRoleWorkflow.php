@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Identity;
 
 use App\Context\Identity\Application\Service\AccessCheck;
+use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Application\Service\LastAdministrator;
 use App\Context\Identity\Application\Service\PermissionCatalog;
 use App\Context\Identity\Domain\Enum\Action;
@@ -22,6 +23,7 @@ final readonly class ShowRoleWorkflow
         private RoleQueryInterface $roles,
         private RoleHolderQueryInterface $holders,
         private LastAdministrator $lastAdministrator,
+        private AccountLookup $accounts,
     ) {
     }
 
@@ -34,7 +36,7 @@ final readonly class ShowRoleWorkflow
         return RoleDetails::of(
             $role,
             PermissionCatalog::grantsOf($role),
-            $this->holders->listHoldersOf($role),
+            $this->accounts->named($this->holders->listHoldersOf($role)),
             onlyWayToChangeRoles: $this->lastAdministrator->isKeptOnlyByRole($role),
         );
     }

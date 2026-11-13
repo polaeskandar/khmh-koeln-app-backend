@@ -15,7 +15,7 @@ final class MeControllerTest extends ApiTestCase
 
     public function testTheAccountComesWithItsRolesPermissionsAndExactlyTheDocumentedKeys(): void
     {
-        $id = $this->signInWithRoles('daniel@example.org', 'servant', 'parent');
+        $id = $this->signInNamed('daniel@example.org', 'Daniel Michael', 'servant', 'parent');
 
         $this->jsonRequest('GET', '/api/me');
 
@@ -28,8 +28,7 @@ final class MeControllerTest extends ApiTestCase
             [
                 'id' => $id,
                 'username' => 'daniel',
-                'email' => 'daniel@example.org',
-                'displayName' => 'Sara Hanna',
+                'displayName' => 'Daniel Michael',
                 'language' => 'de',
             ],
             $body['account'] ?? null,

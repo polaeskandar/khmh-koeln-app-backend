@@ -21,7 +21,7 @@ final class GuardianRevokeCommandTest extends KernelTestCase
         $families->link($account, $child);
         $tester = new CommandTester(new Application(self::bootKernel())->find('app:guardian:revoke'));
 
-        self::assertSame(Command::SUCCESS, $tester->execute(['email' => 'mariam@example.org']));
+        self::assertSame(Command::SUCCESS, $tester->execute(['username' => 'mariam']));
         self::assertStringContainsString($child->id()->toRfc4122(), $tester->getDisplay());
         self::assertStringContainsString('Kirollos Iskander', $tester->getDisplay());
 
@@ -29,7 +29,7 @@ final class GuardianRevokeCommandTest extends KernelTestCase
             self::assertSame(
                 Command::SUCCESS,
                 $tester->execute([
-                    'email' => 'mariam@example.org',
+                    'username' => 'mariam',
                     'personId' => $child->id()->toRfc4122(),
                 ]),
                 (string) $run,
@@ -48,7 +48,7 @@ final class GuardianRevokeCommandTest extends KernelTestCase
     {
         $tester = new CommandTester(new Application(self::bootKernel())->find('app:guardian:revoke'));
 
-        self::assertSame(Command::FAILURE, $tester->execute(['email' => 'nobody@example.org']));
+        self::assertSame(Command::FAILURE, $tester->execute(['username' => 'nobody']));
     }
 
     public function testAnUnknownChildFailsAndARevokeIsConfirmed(): void
@@ -60,17 +60,17 @@ final class GuardianRevokeCommandTest extends KernelTestCase
         $tester = new CommandTester(new Application(self::bootKernel())->find('app:guardian:revoke'));
 
         self::assertSame(Command::FAILURE, $tester->execute([
-            'email' => 'mariam@example.org',
+            'username' => 'mariam',
             'personId' => 'not-a-uuid',
         ]));
 
         self::assertStringContainsString('notFound.person', $tester->getDisplay());
 
         self::assertSame(Command::SUCCESS, $tester->execute([
-            'email' => 'mariam@example.org',
+            'username' => 'mariam',
             'personId' => $child->id()->toRfc4122(),
         ]));
 
-        self::assertStringContainsString('mariam@example.org no longer acts for the child.', $tester->getDisplay());
+        self::assertStringContainsString('mariam no longer acts for the child.', $tester->getDisplay());
     }
 }

@@ -12,7 +12,7 @@ final readonly class StaffMember
     public function __construct(
         public string $id,
         public string $displayName,
-        public string $email,
+        public string $username,
         public bool $disabled,
         public array $roles,
     ) {

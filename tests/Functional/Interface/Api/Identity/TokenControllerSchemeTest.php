@@ -22,7 +22,7 @@ final class TokenControllerSchemeTest extends ApiTestCase
         foreach (['bearer', 'BEARER', 'Bearer'] as $scheme) {
             $this->withToken($scheme . ' ' . $token, 'GET', '/api/me');
             self::assertResponseIsSuccessful();
-            $this->assertJsonPath('account.email', self::EMAIL);
+            $this->assertJsonPath('account.username', Accounts::usernameOf(self::EMAIL));
         }
     }
 

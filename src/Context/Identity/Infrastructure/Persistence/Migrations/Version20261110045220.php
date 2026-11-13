@@ -25,15 +25,10 @@ final class Version20261110045220 extends AbstractMigration
                     FROM identity.role
                     GROUP BY normalize(name_key, NFC)
                     HAVING count(DISTINCT name_key) > 1
-                    UNION ALL
-                    SELECT 'account ' || string_agg(id::text, ' and account ' ORDER BY id)
-                    FROM identity.app_user
-                    GROUP BY normalize(email, NFC)
-                    HAVING count(DISTINCT email) > 1
                   ) AS twin;
 
                   IF twins IS NOT NULL THEN
-                    RAISE EXCEPTION 'Composed to NFC, these role names or emails would be the same: %', twins
+                    RAISE EXCEPTION 'Composed to NFC, these role names would be the same: %', twins
                       USING HINT = 'Rename all but one of each, then migrate again.';
                   END IF;
                 END
@@ -43,9 +38,6 @@ final class Version20261110045220 extends AbstractMigration
                 UPDATE identity.role
                 SET name = normalize(name, NFC), name_key = normalize(name_key, NFC)
                 WHERE name IS NOT NFC NORMALIZED OR name_key IS NOT NFC NORMALIZED
-            SQL);
-        $this->addSql(<<<'SQL'
-                UPDATE identity.app_user SET email = normalize(email, NFC) WHERE email IS NOT NFC NORMALIZED
             SQL);
     }
 

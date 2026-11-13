@@ -14,7 +14,7 @@ use Symfony\Component\Uid\Uuid;
 
 final class UserTest extends KernelTestCase
 {
-    public function testAnEmailBelongsToOneAccount(): void
+    public function testAUsernameBelongsToOneAccount(): void
     {
         $this->database()->connection()->insert('identity.app_user', Accounts::row());
 
@@ -41,12 +41,9 @@ final class UserTest extends KernelTestCase
      */
     public static function violations(): iterable
     {
-        yield 'email in mixed case' => [['email' => 'Sara@example.org']];
-        yield 'email with spaces' => [['email' => ' sara@example.org']];
-        yield 'blank display name' => [['display_name' => '  ']];
+        yield 'username in mixed case' => [['username' => 'Sara']];
+        yield 'username with spaces' => [['username' => ' sara']];
         yield 'unknown language' => [['language' => 'fr']];
-        yield 'street only' => [['street' => 'Domstraße 1']];
-        yield 'no city' => [['street' => 'Domstraße 1', 'postal_code' => '50667']];
         yield 'unknown age check' => [['person_id' => Uuid::v7()->toRfc4122(), 'age_check' => 'adult']];
 
         yield 'note without an age check' => [['guardian_consent_note' => 'Mother agreed.']];
@@ -77,20 +74,6 @@ final class UserTest extends KernelTestCase
         self::assertSame(1, $connection->fetchOne('SELECT count(*) FROM identity.app_user'));
     }
 
-    public function testAnAccountWithAFullAddressIsAccepted(): void
-    {
-        $this
-            ->database()
-            ->connection()
-            ->insert('identity.app_user', Accounts::row([
-                'street' => 'Domstraße 1',
-                'postal_code' => '50667',
-                'city' => 'Köln',
-            ]));
-
-        self::assertSame(1, $this->database()->connection()->fetchOne('SELECT count(*) FROM identity.app_user'));
-    }
-
     /**
      * @param array<string, string|null> $columns
      */
@@ -99,7 +82,7 @@ final class UserTest extends KernelTestCase
     {
         $this->database()->connection()->insert('identity.app_user', Accounts::row($columns));
 
-        $user = new DoctrineUserRepository($this->database()->entityManager())->findByEmail('sara@example.org');
+        $user = new DoctrineUserRepository($this->database()->entityManager())->findByUsername('sara');
 
         self::assertSame($active, $user?->status()->isActive());
     }

@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Workflow\People\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 use App\Context\People\Domain\Entity\GuardianRelationship;
 use App\Workflow\Identity\Model\AccountReference;
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ReadableCollection;
 
 final readonly class AccessApproval
 {
@@ -18,14 +17,10 @@ final readonly class AccessApproval
     ) {
     }
 
-    /**
-     * @param ReadableCollection<non-empty-string, User> $accounts
-     */
-    public static function of(GuardianRelationship $link, ReadableCollection $accounts): self
+    public static function of(GuardianRelationship $link, NamedAccounts $accounts): self
     {
-        $approvedBy = $link->approvedBy();
-        $approver = $approvedBy === null ? null : $accounts->get($approvedBy->toRfc4122());
+        $approver = $accounts->find($link->approvedBy());
 
-        return new self($link->approvedAt(), $approver === null ? null : AccountReference::of($approver));
+        return new self($link->approvedAt(), $approver === null ? null : AccountReference::of($approver, $accounts));
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflow\Organization;
 
 use App\Context\Identity\Application\Service\AccessCheck;
+use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Application\Service\ServingAccounts;
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Organization\Application\Service\AssignmentChanges;
@@ -20,6 +21,7 @@ final readonly class AssignStaffWorkflow
         private ServingAccounts $accounts,
         private PlacementChoices $placements,
         private AssignmentChanges $changes,
+        private AccountLookup $lookup,
     ) {
     }
 
@@ -41,10 +43,6 @@ final readonly class AssignStaffWorkflow
         $group = $this->placements->chosen($serviceId, $stageId, fieldPrefix: '');
         $this->access->requireAssigningIn(StructureGroup::ofPlacement($group));
 
-        return AssignmentView::of($this->changes->assign(
-            $account->id(),
-            $account->profile()->displayName->value,
-            $group,
-        ));
+        return AssignmentView::of($this->changes->assign($account->id(), $this->lookup->nameOf($account), $group));
     }
 }

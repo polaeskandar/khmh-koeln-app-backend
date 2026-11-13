@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Scheduling\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 use App\Context\Scheduling\Domain\Entity\Session;
 use App\Context\Scheduling\Domain\Enum\SessionStatus;
 use App\Workflow\Identity\Model\AccountReference;
@@ -21,9 +21,11 @@ final readonly class SessionState
     ) {
     }
 
-    public static function of(Session $session, ?User $closer): self
+    public static function of(Session $session, NamedAccounts $accounts): self
     {
-        return self::referencing($session, $closer === null ? null : AccountReference::of($closer));
+        $closer = $accounts->find($session->progress()->closed->by);
+
+        return self::referencing($session, $closer === null ? null : AccountReference::of($closer, $accounts));
     }
 
     public static function referencing(Session $session, ?AccountReference $closedBy): self

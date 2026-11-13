@@ -34,6 +34,6 @@ final readonly class ReopenSessionWorkflow
 
         $session = $this->lifecycle->reopen($found->id(), Uuid::fromString($accountId), $reason);
 
-        return SessionState::of($session, $this->accounts->findAccount($session->progress()->closed->by));
+        return SessionState::of($session, $this->accounts->namedByIds([$session->progress()->closed->by]));
     }
 }

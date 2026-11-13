@@ -14,10 +14,10 @@ use Override;
 final readonly class DoctrineActiveAccountRepository implements ActiveAccountRepositoryInterface
 {
     private const string LISTED = <<<'SQL'
-        SELECT id::text AS id, display_name AS name, email
+        SELECT id::text AS id, username, person_id::text AS person
         FROM identity.app_user
         WHERE disabled_at IS NULL
-        ORDER BY lower(display_name), id
+        ORDER BY username
         LIMIT :limit
         SQL;
 
@@ -29,7 +29,7 @@ final readonly class DoctrineActiveAccountRepository implements ActiveAccountRep
     /**
      * @param positive-int $limit
      *
-     * @return list<array{id: string, name: string, email: string}>
+     * @return list<array{id: string, username: string, personId: string}>
      */
     #[Override]
     public function listed(int $limit): array
@@ -42,8 +42,8 @@ final readonly class DoctrineActiveAccountRepository implements ActiveAccountRep
 
         return new ArrayCollection($rows)->map(static fn (array $row): array => [
             'id' => Type::of($row['id'] ?? null)->toString(),
-            'name' => Type::of($row['name'] ?? null)->toString(),
-            'email' => Type::of($row['email'] ?? null)->toString(),
+            'username' => Type::of($row['username'] ?? null)->toString(),
+            'personId' => Type::of($row['person'] ?? null)->toString(),
         ])->getValues();
     }
 }

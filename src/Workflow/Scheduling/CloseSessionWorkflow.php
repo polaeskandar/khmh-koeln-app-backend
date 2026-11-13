@@ -34,6 +34,6 @@ final readonly class CloseSessionWorkflow
 
         $session = $this->lifecycle->close($found->id(), Uuid::fromString($accountId));
 
-        return SessionState::of($session, $this->accounts->findAccount($session->progress()->closed->by));
+        return SessionState::of($session, $this->accounts->namedByIds([$session->progress()->closed->by]));
     }
 }

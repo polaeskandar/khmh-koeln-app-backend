@@ -59,7 +59,7 @@ final class StaffAccountsControllerTest extends ApiTestCase
         $memberToo = new Rosters(self::getContainer())->person('Marina', 'Tawfik');
         new MemberLinks(self::getContainer())->link($nevine, $member->id()->toRfc4122());
         new MemberLinks(self::getContainer())->link($marina, $memberToo->id()->toRfc4122());
-        $this->signInWithRoles('admin@example.org', 'administrator');
+        $this->signInNamed('admin@example.org', 'Sara Hanna', 'administrator');
 
         $this->jsonRequest('GET', '/api/staff-accounts');
 
@@ -85,7 +85,7 @@ final class StaffAccountsControllerTest extends ApiTestCase
             ['id' => self::SERVANT_ROLE, 'name' => 'Servant'],
         ]);
 
-        $this->assertJsonPath('items.0.email', 'bishoy@example.org');
+        $this->assertJsonPath('items.0.username', 'bishoy');
         $this->assertJsonPath('items.0.assignments', []);
         $this->assertJsonPath('items.3.roles', []);
     }

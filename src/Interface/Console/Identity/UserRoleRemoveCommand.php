@@ -23,20 +23,20 @@ final readonly class UserRoleRemoveCommand
 
     public function __invoke(
         SymfonyStyle $io,
-        #[Argument(description: 'Email address of the account')]
-        string $email,
+        #[Argument(description: 'Username of the account')]
+        string $username,
         #[Argument(description: 'Name of the role, for example "Servant"')]
         string $role,
     ): int {
         try {
-            ($this->takeRole)($email, $role);
+            ($this->takeRole)($username, $role);
         } catch (NotFound|RuleViolation $refused) {
             $io->error($refused->getMessage());
 
             return Command::FAILURE;
         }
 
-        $io->success(Text::format('Took the role %s from %s.', $role, $email)->toString());
+        $io->success(Text::format('Took the role %s from %s.', $role, $username)->toString());
 
         return Command::SUCCESS;
     }

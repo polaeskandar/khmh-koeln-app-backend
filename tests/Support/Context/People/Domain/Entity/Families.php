@@ -26,10 +26,12 @@ final readonly class Families
     {
         $id = Uuid::v7()->toRfc4122();
 
-        $this
-            ->database()
-            ->connection()
-            ->insert('identity.app_user', Accounts::row(['id' => $id, 'email' => $email, ...$columns]));
+        $connection = $this->database()->connection();
+
+        $connection->insert(
+            'identity.app_user',
+            Accounts::row(Accounts::named($connection, ['id' => $id, 'email' => $email, ...$columns])),
+        );
 
         new RoleGrants($this->container)->grant($id, ...$roles);
 

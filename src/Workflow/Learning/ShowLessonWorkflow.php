@@ -73,7 +73,7 @@ final readonly class ShowLessonWorkflow
         $lesson = $reading->lesson;
         $lessons = new ArrayCollection([$lesson]);
 
-        $accounts = AccountReferences::of($this->accounts->listByIds(LessonRows::accountIdsOf(
+        $accounts = AccountReferences::of($this->accounts->namedByIds(LessonRows::accountIdsOf(
             $lessons,
             $reading->helpers,
         )));

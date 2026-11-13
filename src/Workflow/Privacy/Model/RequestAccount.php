@@ -6,6 +6,7 @@ namespace App\Workflow\Privacy\Model;
 
 use App\Context\Identity\Domain\Entity\Role;
 use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 
 final readonly class RequestAccount
 {
@@ -15,23 +16,21 @@ final readonly class RequestAccount
     public function __construct(
         public string $id,
         public string $name,
-        public string $email,
+        public string $username,
         public array $roles,
     ) {
     }
 
-    public static function of(?User $user): ?self
+    public static function of(?User $user, NamedAccounts $names): ?self
     {
         if ($user === null) {
             return null;
         }
 
-        $profile = $user->profile();
-
         return new self(
             $user->id()->toRfc4122(),
-            $profile->displayName->value,
-            $profile->email->value,
+            $names->nameOf($user),
+            $user->username()->value,
             $user
                 ->roles()
                 ->map(static fn (Role $role): string => $role->name()->value)

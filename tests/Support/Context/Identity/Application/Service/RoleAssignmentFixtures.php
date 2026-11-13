@@ -29,18 +29,20 @@ final readonly class RoleAssignmentFixtures
     {
         $id = Uuid::v7()->toRfc4122();
 
-        $this
-            ->database()
-            ->connection()
-            ->insert('identity.app_user', Accounts::row([
+        $connection = $this->database()->connection();
+
+        $connection->insert(
+            'identity.app_user',
+            Accounts::row(Accounts::named($connection, [
                 'id' => $id,
                 'email' => $email,
                 ...$columns,
-            ]));
+            ])),
+        );
 
         new RoleGrants($this->container)->grant($id, ...$roles);
 
-        $user = $this->service(UserRepositoryInterface::class)->findByEmail($email);
+        $user = $this->service(UserRepositoryInterface::class)->findByUsername(Accounts::usernameOf($email));
         Assert::assertInstanceOf(User::class, $user);
 
         return $user;
@@ -55,7 +57,9 @@ final readonly class RoleAssignmentFixtures
             ->database()
             ->connection()
             ->fetchFirstColumn('SELECT r.name_key FROM identity.user_role ur JOIN identity.role r ON r.id = ur.role_id '
-            . 'JOIN identity.app_user u ON u.id = ur.user_id WHERE u.email = ? ORDER BY r.name_key', [$email]);
+            . 'JOIN identity.app_user u ON u.id = ur.user_id WHERE u.username = ? ORDER BY r.name_key', [Accounts::usernameOf(
+                $email,
+            )]);
 
         return array_map(strval(...), $keys);
     }

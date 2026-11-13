@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Identity;
 
+use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Application\Service\MemberCheck;
 use App\Context\Identity\Application\Service\ServingAccounts;
 use App\Context\Organization\Application\Service\StructureLookup;
@@ -25,6 +26,7 @@ final readonly class ListMemberServantsWorkflow
         private StructureLookup $structure,
         private StaffAssignmentQueryInterface $assignments,
         private ServingAccounts $accounts,
+        private AccountLookup $lookup,
     ) {
     }
 
@@ -43,7 +45,7 @@ final readonly class ListMemberServantsWorkflow
         );
 
         return GroupServants::of(
-            new ArrayCollection($staff),
+            $this->lookup->named(new ArrayCollection($staff)),
             ServantGroups::of(
                 $record->currentMemberships(),
                 $this->structure->listServices($serviceIds),

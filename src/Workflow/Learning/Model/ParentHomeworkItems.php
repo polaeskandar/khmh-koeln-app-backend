@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Learning\Model;
 
-use App\Context\Identity\Domain\Entity\User;
+use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 use App\Context\Learning\Domain\ValueObject\VisibleTask;
 use App\Context\Organization\Domain\Entity\Stage;
 use App\Library\Collections\Model\Collections;
@@ -16,26 +16,20 @@ final readonly class ParentHomeworkItems
 {
     /**
      * @param ReadableCollection<string, Stage> $stages
-     * @param ReadableCollection<string, User> $reporters
      */
     private function __construct(
         private ReadableCollection $stages,
-        private ReadableCollection $reporters,
+        private NamedAccounts $reporters,
         private Uuid $viewerId,
     ) {
     }
 
     /**
      * @param ReadableCollection<int, Stage> $stages
-     * @param ReadableCollection<int, User> $reporters
      */
-    public static function of(ReadableCollection $stages, ReadableCollection $reporters, Uuid $viewerId): self
+    public static function of(ReadableCollection $stages, NamedAccounts $reporters, Uuid $viewerId): self
     {
-        return new self(
-            Collections::firstPerKey($stages, keyOf: self::stageKey(...)),
-            Collections::firstPerKey($reporters, keyOf: self::userKey(...)),
-            $viewerId,
-        );
+        return new self(Collections::firstPerKey($stages, keyOf: self::stageKey(...)), $reporters, $viewerId);
     }
 
     /**
@@ -74,6 +68,7 @@ final readonly class ParentHomeworkItems
     {
         $task = $visible->task;
         $reporterId = self::reporterIdOf($visible);
+        $reporter = $this->reporters->find($reporterId);
 
         return new ParentHomeworkItem(
             ParentTaskView::of($task, $this->stages->get($task->stageId()->toRfc4122())?->name()->value),
@@ -81,7 +76,7 @@ final readonly class ParentHomeworkItems
                 done: $visible->isDone(),
                 completedAt: $visible->report?->completedAt(),
                 completedByYou: $reporterId?->equals($this->viewerId) === true,
-                completedBy: $this->reporters->get($reporterId?->toRfc4122() ?? '')?->profile()->displayName->value,
+                completedBy: $reporter === null ? null : $this->reporters->nameOf($reporter),
             ),
         );
     }
@@ -94,10 +89,5 @@ final readonly class ParentHomeworkItems
     private static function stageKey(Stage $stage): string
     {
         return $stage->id()->toRfc4122();
-    }
-
-    private static function userKey(User $user): string
-    {
-        return $user->id()->toRfc4122();
     }
 }

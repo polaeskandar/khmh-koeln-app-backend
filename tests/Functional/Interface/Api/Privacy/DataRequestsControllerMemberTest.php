@@ -35,10 +35,7 @@ final class DataRequestsControllerMemberTest extends ApiTestCase
 
         self::assertResponseIsSuccessful();
 
-        self::assertSame(
-            0,
-            $this->numberOf("SELECT count(*) FROM identity.app_user WHERE email = 'nevine@example.org'"),
-        );
+        self::assertSame(0, $this->numberOf("SELECT count(*) FROM identity.app_user WHERE username = 'nevine'"));
 
         self::assertSame(0, $this->numberOf(
             'SELECT count(*) FROM people.membership WHERE person_id = ?',
@@ -58,7 +55,7 @@ final class DataRequestsControllerMemberTest extends ApiTestCase
         $account = Type::of(
             new Database(self::getContainer())
                 ->connection()
-                ->fetchOne("SELECT id::text FROM identity.app_user WHERE email = 'nevine@example.org'"),
+                ->fetchOne("SELECT id::text FROM identity.app_user WHERE username = 'nevine'"),
         )->toString();
 
         $kernel = $this->browser()->getKernel();

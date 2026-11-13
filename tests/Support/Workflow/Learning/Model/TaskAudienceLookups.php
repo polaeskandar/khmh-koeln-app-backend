@@ -50,7 +50,7 @@ final readonly class TaskAudienceLookups
 
         $accounts = AudienceAccounts::of(
             $book,
-            $this->service(AccountLookup::class)->listByIds(TaskAudiences::accountIdsOf($book, $reports)),
+            $this->service(AccountLookup::class)->namedByIds(TaskAudiences::accountIdsOf($book, $reports)),
             $this->service(AccountLookup::class)->listOwnAccountsOf($book->personIds()),
         );
 

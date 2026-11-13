@@ -6,9 +6,7 @@ namespace App\Context\Identity\Domain\Entity;
 
 use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\ValueObject\AccountStatus;
-use App\Context\Identity\Domain\ValueObject\PersonalDetails;
 use App\Context\Identity\Domain\ValueObject\PersonLink;
-use App\Context\Identity\Domain\ValueObject\Profile;
 use App\Context\Identity\Domain\ValueObject\Registration;
 use App\Context\Identity\Domain\ValueObject\Username;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
@@ -22,7 +20,6 @@ use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'app_user', schema: 'identity')]
-#[ORM\UniqueConstraint(name: 'app_user_email_unique', columns: ['email'])]
 #[ORM\UniqueConstraint(name: 'app_user_username_unique', columns: ['username'])]
 #[ORM\UniqueConstraint(name: 'app_user_person_unique', columns: ['person_id'])]
 final class User extends CreatedAtEntity
@@ -34,17 +31,14 @@ final class User extends CreatedAtEntity
     #[ORM\Embedded(Username::class, columnPrefix: false)]
     private Username $username;
 
-    #[ORM\Embedded(Profile::class, columnPrefix: false)]
-    private Profile $profile;
+    #[ORM\Column(name: 'language', length: 2, enumType: Language::class)]
+    private Language $language;
 
     #[ORM\Column(name: 'password_hash', length: 255)]
     private string $passwordHash;
 
     #[ORM\Embedded(Registration::class, columnPrefix: false)]
     private Registration $registration;
-
-    #[ORM\Embedded(PersonalDetails::class, columnPrefix: false)]
-    private PersonalDetails $personalDetails;
 
     #[ORM\Embedded(AccountStatus::class, columnPrefix: false)]
     private AccountStatus $status;
@@ -70,7 +64,7 @@ final class User extends CreatedAtEntity
     public function __construct(
         Uuid $personId,
         Username $username,
-        Profile $profile,
+        Language $language,
         string $passwordHash,
         AccountStatus $status,
         Registration $registration,
@@ -79,10 +73,9 @@ final class User extends CreatedAtEntity
         $this->id = Uuid::v7();
         $this->person = PersonLink::to($personId);
         $this->username = $username;
-        $this->profile = $profile;
+        $this->language = $language;
         $this->passwordHash = $passwordHash;
         $this->registration = $registration;
-        $this->personalDetails = PersonalDetails::none();
         $this->status = $status;
         $this->roles = new ArrayCollection($roles);
     }
@@ -97,9 +90,9 @@ final class User extends CreatedAtEntity
         return $this->username;
     }
 
-    public function profile(): Profile
+    public function language(): Language
     {
-        return $this->profile;
+        return $this->language;
     }
 
     public function passwordHash(): string
@@ -110,11 +103,6 @@ final class User extends CreatedAtEntity
     public function registration(): Registration
     {
         return $this->registration;
-    }
-
-    public function personalDetails(): PersonalDetails
-    {
-        return $this->personalDetails;
     }
 
     public function status(): AccountStatus
@@ -129,7 +117,7 @@ final class User extends CreatedAtEntity
 
     public function changeLanguage(Language $language): void
     {
-        $this->profile = new Profile($this->profile->email, $this->profile->displayName, $language);
+        $this->language = $language;
     }
 
     public function changeStatus(AccountStatus $status): void

@@ -52,7 +52,7 @@ final readonly class ShowAttendanceOverviewWorkflow
         $closed = OverviewSessions::unarchived($this->recentlyClosed($archivedIds), $archived);
         $all = new ArrayCollection([...$todays->getValues(), ...$earlier->getValues(), ...$closed->getValues()]);
         $references = $this->referencesOf($all);
-        $closers = AccountReferences::of($this->accounts->listByIds(OverviewSessions::closerIdsOf($all)));
+        $closers = AccountReferences::of($this->accounts->namedByIds(OverviewSessions::closerIdsOf($all)));
         $cardOf = fn (Session $session): OverviewCard => $this->cardOf($session, $references, $closers);
 
         return AttendanceOverview::of(

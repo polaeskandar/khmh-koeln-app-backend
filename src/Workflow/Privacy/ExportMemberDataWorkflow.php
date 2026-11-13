@@ -64,6 +64,6 @@ final readonly class ExportMemberDataWorkflow
     {
         $links = $this->guardians->listForChild($person);
 
-        return LinkRow::parentsOf($links, $this->accounts->listByIds(LinkRow::accountIdsOf($links)));
+        return LinkRow::parentsOf($links, $this->accounts->namedByIds(LinkRow::accountIdsOf($links)));
     }
 }

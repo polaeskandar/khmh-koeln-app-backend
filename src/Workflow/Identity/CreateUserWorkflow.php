@@ -33,7 +33,7 @@ final readonly class CreateUserWorkflow
 
         return $this->transactions->run(function () use ($details, $name, $language, $password, $role): string {
             $person = $this->people->create($name, placement: null)->person;
-            $draft = new AccountDraft($person->id(), $details->username, $details->email, $name->fullName(), $language);
+            $draft = new AccountDraft($person->id(), $details->username, $language);
 
             return $this->accounts->create($draft, $password, $role)->toRfc4122();
         });

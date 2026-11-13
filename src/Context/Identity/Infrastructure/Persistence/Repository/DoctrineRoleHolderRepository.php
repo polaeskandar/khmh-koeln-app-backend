@@ -26,7 +26,7 @@ final readonly class DoctrineRoleHolderRepository implements RoleHolderRepositor
         JOIN u.roles r
         WHERE r.name.key = :key
           AND u.status.disabledAt IS NULL
-        ORDER BY u.profile.displayName.value, u.id
+        ORDER BY u.username.value
         DQL;
 
     private const string HOLDERS_IN = <<<'DQL'
@@ -37,11 +37,11 @@ final readonly class DoctrineRoleHolderRepository implements RoleHolderRepositor
         DQL;
 
     private const string HOLDERS_OF = <<<'DQL'
-        SELECT u, LOWER(u.profile.displayName.value) AS HIDDEN sortName
+        SELECT u
         FROM App\Context\Identity\Domain\Entity\User u
         JOIN u.roles r
         WHERE r = :role
-        ORDER BY sortName, u.id
+        ORDER BY u.username.value
         DQL;
 
     private const string COUNTS = <<<'SQL'
