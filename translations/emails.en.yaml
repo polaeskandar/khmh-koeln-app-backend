@@ -1,4 +1,0 @@
-layout.greeting: 'Hello %name%,'
-layout.signature: 'Your KHMK Köln team'
-test.subject: 'Test message from KHMK Köln'
-test.body: 'This message confirms that emails from the app reach you.'

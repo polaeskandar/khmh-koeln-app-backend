@@ -343,7 +343,7 @@ A parent:
 #### `PUT /api/me/language`
 
 Any signed-in account. Body `{language: en|de|ar}`, the whole resource (the account's language is the only thing
-it changes itself) → 200 with the `GET /api/me` body, already showing the new language. Emails use it; other sessions stay signed
+it changes itself) → 200 with the `GET /api/me` body, already showing the new language; other sessions stay signed
 in and read it on their next `GET /api/me`.
 
 ```json

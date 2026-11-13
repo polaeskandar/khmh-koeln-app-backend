@@ -9,9 +9,6 @@ services:
     App\Library\Time\Client\Calendar:
         public: true
 
-    App\Context\Identity\Application\Service\AccountMailer:
-        public: true
-
     App\Context\Learning\Application\Service\LessonMeetings:
         public: true
 
