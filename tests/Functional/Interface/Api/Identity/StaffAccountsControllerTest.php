@@ -10,14 +10,12 @@ use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\JsonBody;
-use Symfony\Bundle\FrameworkBundle\Test\MailerAssertionsTrait;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 use Symfony\Component\Uid\Uuid;
 
 final class StaffAccountsControllerTest extends ApiTestCase
 {
     use ClockSensitiveTrait;
-    use MailerAssertionsTrait;
 
     private const string SERVANT_ROLE = '019a3f00-0000-7000-8000-000000000003';
 

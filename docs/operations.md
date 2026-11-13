@@ -17,7 +17,7 @@ it is deployed is not part of this repository.
 | Migrations run as a one-off command before new code serves requests, never on start (§ Migrations) | Must | `app:migrations:migrate` |
 | The Messenger worker, `php bin/console messenger:consume async`, with the API's code and environment, restarted when it stops | Should | No message is routed to `async` yet; the first one makes it a Must |
 | The scheduled commands (§ Scheduled commands), each with an alert on a non-zero exit | Must | Sessions and erasures |
-| Secrets passed as environment variables from a secret store, never in the repository or a build | Must | `APP_SECRET`, `DATABASE_URL`, `MAILER_DSN` (#41) |
+| Secrets passed as environment variables from a secret store, never in the repository or a build | Must | `APP_SECRET`, `DATABASE_URL` (#41) |
 | Logs kept 14 days (to be confirmed by the data protection adviser) | Must | D6, #112 |
 | An uptime check on `GET /api/health/ready` from outside, with alerts; `GET /api/health` never touches the database | Must | [API contract](api.md#health) |
 
@@ -119,7 +119,7 @@ php bin/console app:members:import members.csv           # imports in one transa
 The variables the application reads. `EnvironmentVariablesAreDocumentedTest` fails for one that the
 configuration or the code reads and this table lacks; `APP_DEBUG` is read by the kernel itself. `.env` holds
 development defaults, and values set in the environment win, so production sets every variable it needs, at least
-`APP_SECRET`, `DATABASE_URL`, `DEFAULT_URI`, `MAILER_DSN`, `TRUSTED_HOSTS` and `TRUSTED_PROXIES` (empty when no
+`APP_SECRET`, `DATABASE_URL`, `DEFAULT_URI`, `TRUSTED_HOSTS` and `TRUSTED_PROXIES` (empty when no
 proxy forwards requests). Secrets live only in the host's secret store, never in the repository; the Symfony
 secrets vault is not used.
 
@@ -138,8 +138,6 @@ secrets vault is not used.
 | `MOBILE_APP_ORIGINS` | `capacitor://localhost,https://localhost` | No | Comma-separated origins of the iOS and Android apps: their preflights allow `Authorization` and `Content-Type` without credentials. They are not allowed to send cookie requests. |
 | `API_TOKEN_LIFETIME` | `P90D` | No | How long a bearer token from `POST /api/auth/tokens` lasts, as an ISO 8601 duration |
 | `TRUSTED_PROXIES` | `10.0.0.0/8` or `REMOTE_ADDR` | No | Only the reverse proxy's address or private range. Its `X-Forwarded-For`, `-Proto` and `-Port` are trusted, so sign-in limits count the real client; `X-Forwarded-Host` is not, so the proxy passes the public `Host` through. Empty: forwarded headers are ignored. |
-| `MAILER_DSN` | `mailgun+api://KEY:DOMAIN@default?region=eu` | Yes | Where email goes. Production: Mailgun's EU region (with a DPA, Art. 28) through `symfony/mailgun-mailer`. `.env` and tests use `null://null` (nothing is sent); `.env.dev` uses `log://default`, which writes each email (recipient, subject, text) to stderr instead of sending it. `bin/console app:mail:test <email>` checks the setting with a real account. |
-| `MAILER_FROM` | `KHMK Köln <no-reply@khmk-koeln.com>` | No | Sender of every email. The sending domain needs Mailgun's SPF and DKIM records. |
 | `TRUSTED_HOSTS` | see below | No | Production only: a regular expression of the `Host` values the API answers; anything else gets 400. Add the host every health probe sends (`127.0.0.1` for a probe on the same machine). Empty turns the check off, so production must set it. |
 | `DEFAULT_URI` | `https://app.khmk-koeln.com` | No | Base URL for links generated outside a request (console) |
 | `SENTRY_DSN` | empty, or `https://<key>@<host>/<project>` | Yes | Error tracking for 5xx responses (Sentry's EU region or a self-hosted GlitchTip). Empty, the default: no event is ever built. Set it only once the service's data processing agreement is signed. |
@@ -167,8 +165,7 @@ record arrives. Console processes also write through the `console` handler, unbu
 verbosity they run with (the worker's `-vv` writes info records). Personal data must therefore never reach a
 record at all:
 
-- `RedactingProcessor` runs on every channel before any handler, in `prod` and `test` (in `dev` the mail log
-  stays readable). It replaces the value of any context or `extra` key that names personal or secret data (`q`,
+- `RedactingProcessor` runs on every channel before any handler, in `prod` and `test`. It replaces the value of any context or `extra` key that names personal or secret data (`q`,
   and any key containing `email`, `password`, `token`, `cookie`, `name`, `note`, `params`, `secret`,
   `authorization` or `reason`) with `[redacted]`, at any depth; diagnostic keys such as `token_class` and
   `firewall_name` stay. A `command` keeps its name and loses its arguments.

@@ -153,27 +153,6 @@
             "config/packages/lock.yaml"
         ]
     },
-    "symfony/mailer": {
-        "version": "8.1",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "4.3",
-            "ref": "710cae90ab3e5d3f4a747e9ce6ae33299d7ae83b"
-        },
-        "files": [
-            "config/packages/mailer.yaml"
-        ]
-    },
-    "symfony/mailgun-mailer": {
-        "version": "8.1",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "4.4",
-            "ref": "808e7052971863a6b94df61807f41a71d480885b"
-        }
-    },
     "symfony/maker-bundle": {
         "version": "1.68",
         "recipe": {
@@ -256,19 +235,6 @@
         "files": [
             "config/packages/translation.yaml",
             "translations/.gitignore"
-        ]
-    },
-    "symfony/twig-bundle": {
-        "version": "8.1",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "6.4",
-            "ref": "06dacf16872358cb1f2494e089070ff2d045233a"
-        },
-        "files": [
-            "config/packages/twig.yaml",
-            "templates/base.html.twig"
         ]
     },
     "symfony/uid": {
