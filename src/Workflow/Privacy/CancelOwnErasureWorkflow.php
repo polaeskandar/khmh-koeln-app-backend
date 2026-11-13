@@ -20,9 +20,9 @@ final readonly class CancelOwnErasureWorkflow
     ) {
     }
 
-    public function __invoke(string $email, #[SensitiveParameter] string $password): bool
+    public function __invoke(string $username, #[SensitiveParameter] string $password): bool
     {
-        $accountId = $this->passwords->findAccountWith($email, $password);
+        $accountId = $this->passwords->findAccountWith($username, $password);
 
         if ($accountId === null) {
             return false;

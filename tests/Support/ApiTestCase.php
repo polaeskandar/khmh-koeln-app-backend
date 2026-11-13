@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Support;
 
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Platform\OpenApi\ResponseContract;
@@ -69,7 +70,10 @@ abstract class ApiTestCase extends WebTestCase
 
     protected function signInAs(string $email, #[SensitiveParameter] string $secret): void
     {
-        $response = $this->jsonRequest('POST', '/api/auth/sign-in', ['email' => $email, 'password' => $secret]);
+        $response = $this->jsonRequest('POST', '/api/auth/sign-in', [
+            'username' => Accounts::usernameOf($email),
+            'password' => $secret,
+        ]);
 
         self::assertSame(Response::HTTP_NO_CONTENT, $response->getStatusCode(), (string) $response->getContent());
     }

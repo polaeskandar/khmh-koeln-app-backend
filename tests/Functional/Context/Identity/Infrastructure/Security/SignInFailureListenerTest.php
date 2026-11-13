@@ -11,7 +11,6 @@ use App\Tests\Support\Context\Identity\Infrastructure\Security\SpyPasswordHasher
 use App\Tests\Support\Logs;
 use Monolog\Level;
 use Monolog\LogRecord;
-use PHPUnit\Framework\Attributes\DataProvider;
 
 final class SignInFailureListenerTest extends ApiTestCase
 {
@@ -20,14 +19,14 @@ final class SignInFailureListenerTest extends ApiTestCase
         new SignInAccounts(self::getContainer())->add('christine.adel@example.org');
 
         $unknown = (string) $this->jsonRequest('POST', '/api/auth/sign-in', [
-            'email' => 'mina.hanna@example.org',
+            'username' => 'mina.hanna',
             'password' => SignInAccounts::TYPED,
         ])->getContent();
 
         $this->assertProblem(401, 'auth.invalidCredentials');
 
         $wrong = (string) $this->jsonRequest('POST', '/api/auth/sign-in', [
-            'email' => 'christine.adel@example.org',
+            'username' => 'christine.adel',
             'password' => SignInAccounts::MISTYPED,
         ])->getContent();
 
@@ -39,7 +38,7 @@ final class SignInFailureListenerTest extends ApiTestCase
     public function testAnUnknownEmailCostsOneFreshPasswordCheck(): void
     {
         $this->jsonRequest('POST', '/api/auth/sign-in', [
-            'email' => 'mina.hanna@example.org',
+            'username' => 'mina.hanna',
             'password' => SignInAccounts::MISTYPED,
         ]);
 
@@ -50,36 +49,25 @@ final class SignInFailureListenerTest extends ApiTestCase
         self::assertFalse($spy->getPasswordHasher(SecurityUser::class)->needsRehash($verified[0] ?? ''));
     }
 
-    /**
-     * @param array<string, string|null> $status
-     */
-    #[DataProvider('statuses')]
-    public function testOnlyTheRightPasswordRevealsTheAccountStatus(array $status, string $code): void
+    public function testAnUnknownUsernameAWrongPasswordAndADisabledAccountAnswerAlike(): void
     {
-        new SignInAccounts(self::getContainer())->add('christine.adel@example.org', $status);
+        $accounts = new SignInAccounts(self::getContainer());
+        $accounts->add('christine.adel@example.org');
+        $accounts->add('mina.hanna@example.org', ['disabled_at' => '2026-11-09 08:00:00+01']);
+        $answers = [];
 
-        $this->jsonRequest('POST', '/api/auth/sign-in', [
-            'email' => 'christine.adel@example.org',
-            'password' => SignInAccounts::MISTYPED,
-        ]);
+        foreach ([
+            ['nobody',         SignInAccounts::TYPED],
+            ['christine.adel', SignInAccounts::MISTYPED],
+            ['mina.hanna',     SignInAccounts::TYPED],
+        ] as [$username, $password]) {
+            $this->jsonRequest('POST', '/api/auth/sign-in', ['username' => $username, 'password' => $password]);
+            $this->assertProblem(401, 'auth.invalidCredentials');
+            self::assertSame([], $this->browser()->getResponse()->headers->getCookies());
+            $answers[] = (string) $this->browser()->getResponse()->getContent();
+        }
 
-        $this->assertProblem(401, 'auth.invalidCredentials');
-
-        $this->jsonRequest('POST', '/api/auth/sign-in', [
-            'email' => 'christine.adel@example.org',
-            'password' => SignInAccounts::TYPED,
-        ]);
-
-        $this->assertProblem(403, $code);
-        self::assertSame([], $this->browser()->getResponse()->headers->getCookies());
-    }
-
-    /**
-     * @return iterable<string, array{array<string, string|null>, string}>
-     */
-    public static function statuses(): iterable
-    {
-        yield 'disabled' => [['disabled_at' => '2026-11-09 08:00:00+01'], 'auth.disabled'];
+        self::assertCount(1, array_unique($answers));
     }
 
     /**

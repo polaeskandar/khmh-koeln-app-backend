@@ -9,7 +9,7 @@ use SensitiveParameter;
 final readonly class CancelErasureRequest
 {
     public function __construct(
-        public ?string $email = null,
+        public ?string $username = null,
         #[SensitiveParameter]
         public ?string $password = null,
     ) {

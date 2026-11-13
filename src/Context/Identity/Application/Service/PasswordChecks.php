@@ -61,9 +61,9 @@ final readonly class PasswordChecks
         $this->refuseWrongPassword($user->id(), $field);
     }
 
-    public function findAccountWith(string $email, #[SensitiveParameter] string $password): ?Uuid
+    public function findAccountWith(string $username, #[SensitiveParameter] string $password): ?Uuid
     {
-        return $this->credentials->accountWith($email, $password);
+        return $this->credentials->accountWith($username, $password);
     }
 
     private function refuseWrongPassword(Uuid $accountId, string $field): never

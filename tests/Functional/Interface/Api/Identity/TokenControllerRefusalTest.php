@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Interface\Api\Identity;
 
 use App\Library\Types\Model\Integers;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Database;
@@ -29,7 +30,7 @@ final class TokenControllerRefusalTest extends ApiTestCase
             $this->account($columns);
         }
 
-        $body = ['email' => self::EMAIL, 'password' => $password];
+        $body = ['username' => Accounts::usernameOf(self::EMAIL), 'password' => $password];
         $this->jsonRequest('POST', '/api/auth/sign-in', $body);
         $cookie = [$this->browser()->getResponse()->getStatusCode(), $this->browser()->getResponse()->getContent()];
         $this->jsonRequest('POST', '/api/auth/tokens', [...$body, 'deviceName' => 'iPad']);
@@ -59,11 +60,20 @@ final class TokenControllerRefusalTest extends ApiTestCase
 
         foreach (range(start: 1, end: 5) as $attempt) {
             $path = ($attempt % 2) === 0 ? '/api/auth/sign-in' : '/api/auth/tokens';
-            $this->jsonRequest('POST', $path, ['email' => self::EMAIL, 'password' => SignInAccounts::MISTYPED]);
+
+            $this->jsonRequest('POST', $path, [
+                'username' => Accounts::usernameOf(self::EMAIL),
+                'password' => SignInAccounts::MISTYPED,
+            ]);
+
             $this->assertProblem(401, 'auth.invalidCredentials');
         }
 
-        $this->jsonRequest('POST', '/api/auth/tokens', ['email' => self::EMAIL, 'password' => SignInAccounts::TYPED]);
+        $this->jsonRequest('POST', '/api/auth/tokens', [
+            'username' => Accounts::usernameOf(self::EMAIL),
+            'password' => SignInAccounts::TYPED,
+        ]);
+
         $this->assertProblem(429, 'auth.tooManyAttempts');
         self::assertTrue($this->browser()->getResponse()->headers->has('Retry-After'));
     }

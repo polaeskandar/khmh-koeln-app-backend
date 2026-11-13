@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Interface\Console\Identity;
 
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Lock\OtherSession;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
@@ -53,8 +54,12 @@ final class UserDisableCommandTest extends ApiTestCase
         $this->jsonRequest('GET', '/api/me');
         $this->assertProblem(401, 'auth.unauthenticated');
 
-        $this->jsonRequest('POST', '/api/auth/sign-in', ['email' => self::EMAIL, 'password' => SignInAccounts::TYPED]);
-        $this->assertProblem(403, 'auth.disabled');
+        $this->jsonRequest('POST', '/api/auth/sign-in', [
+            'username' => Accounts::usernameOf(self::EMAIL),
+            'password' => SignInAccounts::TYPED,
+        ]);
+
+        $this->assertProblem(401, 'auth.invalidCredentials');
     }
 
     public function testEnablingRestoresSignInButNotTheOldSession(): void

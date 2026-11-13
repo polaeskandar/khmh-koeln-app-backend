@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Interface\Api\Identity;
 
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Database;
 use Symfony\Component\BrowserKit\Cookie;
@@ -25,7 +26,12 @@ final class PasswordControllerTest extends ApiTestCase
             self::assertResponseIsSuccessful();
 
             $this->browser()->getCookieJar()->clear();
-            $this->jsonRequest('POST', '/api/auth/sign-in', ['email' => $email, 'password' => SignInAccounts::TYPED]);
+
+            $this->jsonRequest('POST', '/api/auth/sign-in', [
+                'username' => Accounts::usernameOf($email),
+                'password' => SignInAccounts::TYPED,
+            ]);
+
             $this->assertProblem(401, 'auth.invalidCredentials');
             $this->signInAs($email, self::NEW);
             $this->browser()->getCookieJar()->clear();

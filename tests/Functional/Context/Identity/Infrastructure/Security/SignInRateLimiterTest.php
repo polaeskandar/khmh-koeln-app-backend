@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Context\Identity\Infrastructure\Security;
 
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use Override;
 use Symfony\Component\HttpFoundation\Request;
@@ -109,6 +110,11 @@ final class SignInRateLimiterTest extends ApiTestCase
      */
     private function tryToSignIn(string $email, #[\SensitiveParameter] string $secret, array $headers = []): void
     {
-        $this->jsonRequest('POST', '/api/auth/sign-in', ['email' => $email, 'password' => $secret], $headers);
+        $this->jsonRequest(
+            'POST',
+            '/api/auth/sign-in',
+            ['username' => Accounts::usernameOf($email), 'password' => $secret],
+            $headers,
+        );
     }
 }

@@ -15,7 +15,7 @@ final class SessionControllerTest extends ApiTestCase
         $id = new SignInAccounts(self::getContainer())->add('christine.adel@example.org');
 
         $response = $this->jsonRequest('POST', '/api/auth/sign-in', [
-            'email' => '  Christine.Adel@Example.org ',
+            'username' => '  Christine.Adel ',
             'password' => SignInAccounts::TYPED,
         ]);
 
@@ -56,7 +56,7 @@ final class SessionControllerTest extends ApiTestCase
     public function testABodyWithoutStringCredentialsIsAnInvalidRequest(): void
     {
         $this->jsonRequest('POST', '/api/auth/sign-in', [
-            'email' => 'christine.adel@example.org',
+            'username' => 'christine.adel',
             'password' => [SignInAccounts::TYPED],
         ]);
 

@@ -42,12 +42,13 @@ final class ErasureCancellationController extends AbstractController
         CancelErasureRequest $cancellation,
         CancelOwnErasureWorkflow $cancelOwnErasure,
     ): Response {
-        $email = InputText::of($cancellation->email)->trimmed()->lowered()->toString();
+        $username = InputText::of($cancellation->username)->trimmed()->compatibilityComposed()->lowered()->toString();
         $client = $request->getClientIp() ?? '';
         $this->ensureAccepted($this->clients->create($client)->consume());
-        $this->ensureAccepted($this->accounts->create(Text::format('%s-%s', $email, $client)->toString())->consume());
+        $limit = $this->accounts->create(Text::format('%s-%s', $username, $client)->toString())->consume();
+        $this->ensureAccepted($limit);
 
-        if (!$cancelOwnErasure($email, $cancellation->password ?? '')) {
+        if (!$cancelOwnErasure($username, $cancellation->password ?? '')) {
             throw new UnauthorizedHttpException('Cookie', 'auth.invalidCredentials');
         }
 

@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Context\Privacy\Domain\Entity;
 use App\Context\Privacy\Domain\Enum\RequestKind;
 use App\Library\Types\Model\Type;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
@@ -292,7 +293,7 @@ final class DataRequestLifecycleTest extends ApiTestCase
     private function withdraw(): void
     {
         $this->jsonRequest('POST', '/api/auth/erasure-cancellation', [
-            'email' => self::EMAIL,
+            'username' => Accounts::usernameOf(self::EMAIL),
             'password' => SignInAccounts::TYPED,
         ]);
     }

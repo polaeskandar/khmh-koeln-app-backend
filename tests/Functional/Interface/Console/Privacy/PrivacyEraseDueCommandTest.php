@@ -117,7 +117,7 @@ final class PrivacyEraseDueCommandTest extends ApiTestCase
         $this->schedule('hoda@example.org');
 
         $this->jsonRequest('POST', '/api/auth/erasure-cancellation', [
-            'email' => 'hoda@example.org',
+            'username' => 'hoda',
             'password' => SignInAccounts::TYPED,
         ]);
 

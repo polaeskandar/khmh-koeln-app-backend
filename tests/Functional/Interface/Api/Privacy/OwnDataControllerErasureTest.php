@@ -102,7 +102,7 @@ final class OwnDataControllerErasureTest extends ApiTestCase
         $this->signInWithRoles('hoda@example.org', 'parent');
 
         $this->jsonRequest('POST', '/api/auth/tokens', [
-            'email' => 'hoda@example.org',
+            'username' => 'hoda',
             'password' => SignInAccounts::TYPED,
         ]);
 

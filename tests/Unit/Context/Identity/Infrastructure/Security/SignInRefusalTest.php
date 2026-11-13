@@ -26,10 +26,10 @@ final class SignInRefusalTest extends TestCase
 
     public function testAnAccountStatusKeepsItsCode(): void
     {
-        $refusal = SignInRefusal::of(new CustomUserMessageAccountStatusException('auth.disabled'));
+        $refusal = SignInRefusal::of(new CustomUserMessageAccountStatusException('auth.erasureScheduled'));
 
         self::assertInstanceOf(Forbidden::class, $refusal);
-        self::assertSame('auth.disabled', $refusal->getMessage());
+        self::assertSame('auth.erasureScheduled', $refusal->getMessage());
         self::assertSame([], $refusal->params);
     }
 
