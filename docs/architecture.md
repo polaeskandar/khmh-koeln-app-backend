@@ -418,6 +418,19 @@ Parents tick a task off for their child, and members with an account of their ow
 possible, and both see the same report. Staff see who reported what. There are no grades, scores or
 rankings, and the wording stays gentle ("Was due yesterday", never "overdue").
 
+### Board answers of November 2026
+
+The board answered the questions the redesign left open (#353). Each answer either confirms the default the code
+was built on or names the issue that changes it.
+
+| Question | Answer | Consequence |
+| --- | --- | --- |
+| Planning year | The Gregorian and the Coptic calendar, not the school year. | An annual plan keeps covering a Gregorian calendar year (#388); the Coptic calendar supplies the feasts and occasions that planning suggests (#400–#403). |
+| Planning reminder | From 1 October. | Planners are reminded from 1 October until next year's plan is confirmed (#399). |
+| Feast cancellation | The Lord's major feasts, Holy Week and church events. | A service's automatic days without sessions are the verified Lord's major feasts and Holy Week, plus the church events marked as suggested for it (#402). The Lord's minor feasts, fasts and public holidays don't suggest a day off. |
+| Temporary password expiry | None. | A temporary password from the church office doesn't expire; the person replaces it after the first sign-in (#364, #365). |
+| Members and sessions | Not for now. | The member portal stops listing the sessions of the member's groups (#421); it keeps their groups, lessons and tasks. |
+
 ## Open questions for tickets
 
 - Sign-in: email links remain an option for parents besides passwords.
