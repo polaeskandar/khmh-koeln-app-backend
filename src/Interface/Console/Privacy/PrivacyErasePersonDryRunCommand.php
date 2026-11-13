@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Interface\Console\Privacy;
 
 use App\Library\Problem\Exception\NotFound;
+use App\Library\Problem\Exception\RuleViolation;
 use App\Platform\Doctrine\Contract\Transactions;
 use App\Workflow\Privacy\ErasePersonWorkflow;
 use App\Workflow\Privacy\Model\PersonErasureCounts;
@@ -29,8 +30,8 @@ final readonly class PrivacyErasePersonDryRunCommand
     {
         try {
             $counts = $this->transactions->rehearse(fn (): PersonErasureCounts => ($this->erasePerson)($person));
-        } catch (NotFound $missing) {
-            $io->error($missing->getMessage());
+        } catch (NotFound|RuleViolation $refused) {
+            $io->error($refused->getMessage());
 
             return Command::FAILURE;
         }

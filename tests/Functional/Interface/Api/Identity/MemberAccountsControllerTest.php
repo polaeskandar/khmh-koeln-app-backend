@@ -13,9 +13,7 @@ use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Database;
 use App\Tests\Support\JsonBody;
-use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
-use Symfony\Component\Uid\Uuid;
 
 final class MemberAccountsControllerTest extends ApiTestCase
 {
@@ -47,45 +45,6 @@ final class MemberAccountsControllerTest extends ApiTestCase
         $this->signInWithRoles('christine@example.org', 'service_leader');
         $this->jsonRequest('GET', '/api/member-accounts');
         $this->assertProblem(403, 'accounts.adminOnly');
-    }
-
-    public function testUnlinkingAMemberOnlyAccountLeavesItWithoutTheMemberPortal(): void
-    {
-        self::mockTime('2026-11-08T12:08:00+01:00');
-        $this->members();
-        $this->signInAs('nevine.boulos@example.org', SignInAccounts::TYPED);
-        $nevineSession = $this->browser()->getCookieJar()->all();
-        $this->browser()->getCookieJar()->clear();
-        $this->signInWithRoles('mariam@example.org', 'administrator');
-        $nevineAccount = $this->accountId('nevine.boulos@example.org');
-
-        $this->jsonRequest('POST', '/api/member-accounts/' . $nevineAccount . '/unlink', []);
-        self::assertResponseStatusCodeSame(204);
-        $this->jsonRequest('POST', '/api/member-accounts/' . $nevineAccount . '/unlink', []);
-        $this->assertProblem(409, 'accounts.notLinked');
-        $this->jsonRequest('POST', '/api/member-accounts/' . Uuid::v7()->toRfc4122() . '/unlink', []);
-        $this->assertProblem(404, 'notFound.user');
-
-        $this->restore($nevineSession);
-        $this->jsonRequest('GET', '/api/member/groups');
-        $this->assertProblem(403, 'forbidden');
-    }
-
-    public function testUnlinkingAParentKeepsTheParentPortal(): void
-    {
-        self::mockTime('2026-11-08T12:08:00+01:00');
-        $this->members();
-        $this->signInWithRoles('mariam@example.org', 'administrator');
-
-        $this->jsonRequest('POST', '/api/member-accounts/' . $this->accountId('hoda@example.org') . '/unlink', []);
-        self::assertResponseStatusCodeSame(204);
-
-        $this->browser()->getCookieJar()->clear();
-        $this->signInAs('hoda@example.org', SignInAccounts::TYPED);
-        $this->jsonRequest('GET', '/api/me');
-        $this->assertJsonPath('member', null);
-        $this->jsonRequest('GET', '/api/parent/children');
-        self::assertResponseIsSuccessful();
     }
 
     /**
@@ -122,19 +81,6 @@ final class MemberAccountsControllerTest extends ApiTestCase
         $links->link($servant, $rosters->person('Daniel', 'Michael')->id()->toRfc4122());
 
         return ['nevine' => $ids['Nevine']];
-    }
-
-    /**
-     * @param array<array-key, Cookie> $cookies
-     */
-    private function restore(array $cookies): void
-    {
-        $jar = $this->browser()->getCookieJar();
-        $jar->clear();
-
-        foreach ($cookies as $cookie) {
-            $jar->set($cookie);
-        }
     }
 
     private function accountId(string $email): string

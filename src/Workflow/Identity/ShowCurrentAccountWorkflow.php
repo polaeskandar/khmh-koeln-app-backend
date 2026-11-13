@@ -58,7 +58,7 @@ final readonly class ShowCurrentAccountWorkflow
 
     private function memberOf(User $user): ?MemberSummary
     {
-        $personId = $user->member()->personId;
+        $personId = $user->person()->isMember() ? $user->personId() : null;
 
         if ($personId === null) {
             return null;

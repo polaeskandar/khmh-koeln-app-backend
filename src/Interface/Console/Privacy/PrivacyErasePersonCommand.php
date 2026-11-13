@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Interface\Console\Privacy;
 
 use App\Library\Problem\Exception\NotFound;
+use App\Library\Problem\Exception\RuleViolation;
 use App\Workflow\Privacy\ErasePersonWorkflow;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -26,8 +27,8 @@ final readonly class PrivacyErasePersonCommand
     {
         try {
             $counts = ($this->erasePerson)($person);
-        } catch (NotFound $missing) {
-            $io->error($missing->getMessage());
+        } catch (NotFound|RuleViolation $refused) {
+            $io->error($refused->getMessage());
 
             return Command::FAILURE;
         }

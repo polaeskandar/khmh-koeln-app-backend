@@ -9,9 +9,6 @@ use App\Tests\Support\Context\Identity\Domain\Entity\MemberLinks;
 use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\HttpKernel\KernelInterface;
 
 final class MemberCheckTest extends ApiTestCase
 {
@@ -50,27 +47,6 @@ final class MemberCheckTest extends ApiTestCase
         $this->signInAs('daniel@example.org', SignInAccounts::TYPED);
         $this->jsonRequest('GET', self::PROBE);
         $this->assertProblem(403, 'forbidden');
-    }
-
-    public function testUnlinkingClosesThePortalOnTheNextRequestWithoutSigningOut(): void
-    {
-        [$nevine] = $this->linked('nevine@example.org');
-        new RoleGrants(self::getContainer())->grant($nevine, 'parent');
-        $this->signInAs('nevine@example.org', SignInAccounts::TYPED);
-        $this->jsonRequest('GET', self::PROBE);
-        self::assertResponseIsSuccessful();
-
-        $kernel = $this->browser()->getKernel();
-        self::assertInstanceOf(KernelInterface::class, $kernel);
-
-        new CommandTester(new Application($kernel)->find('app:member:unlink'))->execute([
-            'email' => 'nevine@example.org',
-        ]);
-
-        $this->jsonRequest('GET', self::PROBE);
-        $this->assertProblem(403, 'forbidden');
-        $this->jsonRequest('GET', '/api/me');
-        self::assertResponseIsSuccessful();
     }
 
     /**

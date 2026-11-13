@@ -258,12 +258,14 @@ parent or guardian (DSGVO Art. 8): the administrator records how the age was che
 Staff and parents can be members too: a mother who takes the Coptic course keeps her parent portal and gets her
 own groups next to it.
 
+Every account belongs to exactly one person record (#363): the office creates the person with the account, or picks an
+existing one, and the link never changes. A member account is one whose age check is recorded; it opens the member
+portal for that person.
+
 Members receive their own groups, when and where they meet, their servants, the last lesson's passage and
 memory verse, the next two weeks' meetings (canceled ones without the reason) and the published homework of
 their stages, which they tick off themselves. They never see attendance, notes for the servants, cancel
-reasons, lesson plans or other members. Only an administrator sets or removes the link (`GET /api/member-accounts`,
-`POST /api/member-accounts/{id}/unlink`, or the console); an account that is only a member's keeps signing in
-without the member portal when its link is removed.
+reasons, lesson plans or other members.
 
 ### Three languages, right to left included
 
@@ -328,7 +330,7 @@ assignments; a service leader assigns servants within the services it leads. The
 
 Parents see only the children an administrator linked to their account (#23), and receive only what they
 need: published homework, the passage and memory verse, never lesson plans, notes, attendance or other
-families. The member portal needs no permission: it is open to an active account linked to a member record and
+families. The member portal needs no permission: it is open to an active member account and
 shows only that record's own groups and homework, so a staff or parent account can be a member as well. The
 frontend only hides what a person can't do; the API checks every request. People's `GuardianVoter` grants
 `ACT_FOR_CHILD` on a child to an account with an approved guardian link. It checks only the link, because a

@@ -13,9 +13,9 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class DoctrinePersonTraceRepository implements PersonTraceRepositoryInterface
 {
-    private const string UNLINK = <<<'SQL'
-        UPDATE identity.app_user SET person_id = NULL, age_check = NULL, guardian_consent_note = NULL
-        WHERE person_id = :person
+    private const string FORGET_CONSENT = <<<'SQL'
+        UPDATE identity.app_user SET age_check = NULL, guardian_consent_note = NULL
+        WHERE person_id = :person AND age_check IS NOT NULL
         SQL;
 
     private const string LINKED_ACCOUNT = 'SELECT id::text FROM identity.app_user WHERE person_id = :person';
@@ -28,7 +28,7 @@ final readonly class DoctrinePersonTraceRepository implements PersonTraceReposit
     #[Override]
     public function forget(Uuid $personId): int
     {
-        return Integers::of($this->entityManager->getConnection()->executeStatement(self::UNLINK, [
+        return Integers::of($this->entityManager->getConnection()->executeStatement(self::FORGET_CONSENT, [
             'person' => $personId->toRfc4122(),
         ]));
     }

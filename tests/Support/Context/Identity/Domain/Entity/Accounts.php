@@ -19,6 +19,7 @@ final readonly class Accounts
     public static function active(string $email, string $passwordHash = 'not-a-real-hash'): User
     {
         return new User(
+            Uuid::v7(),
             Username::of(self::usernameOf($email)),
             new Profile(Email::of($email), DisplayName::of('Sara Hanna'), Language::German),
             passwordHash: $passwordHash,
@@ -40,6 +41,7 @@ final readonly class Accounts
         return [
             'id' => Uuid::v7()->toRfc4122(),
             'username' => self::usernameOf($email),
+            'person_id' => Uuid::v7()->toRfc4122(),
             'email' => $email,
             'display_name' => 'Sara Hanna',
             'password_hash' => 'not-a-real-hash',

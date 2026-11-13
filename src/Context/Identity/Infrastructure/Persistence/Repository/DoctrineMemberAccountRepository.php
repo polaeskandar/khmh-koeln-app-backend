@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Context\Identity\Infrastructure\Persistence\Repository;
 
-use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Repository\MemberAccountRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use App\Library\Types\Model\Type;
@@ -26,7 +25,7 @@ final readonly class DoctrineMemberAccountRepository implements MemberAccountRep
           ) AS parent,
           u.person_id::text AS person, u.age_check, u.guardian_consent_note AS note
         FROM identity.app_user u
-        WHERE u.person_id IS NOT NULL
+        WHERE u.age_check IS NOT NULL
           AND NOT EXISTS (
             SELECT 1 FROM identity.user_role ur
             JOIN identity.role_permission rp ON rp.role_id = ur.role_id
@@ -39,12 +38,6 @@ final readonly class DoctrineMemberAccountRepository implements MemberAccountRep
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
-    }
-
-    #[Override]
-    public function holderOf(Uuid $personId): ?User
-    {
-        return $this->entityManager->getRepository(User::class)->findOneBy(['member.personId' => $personId]);
     }
 
     /**
@@ -61,6 +54,7 @@ final readonly class DoctrineMemberAccountRepository implements MemberAccountRep
             ->select('person_id::text AS person', 'id::text AS account')
             ->from('identity.app_user')
             ->where('person_id IN (:people)')
+            ->andWhere('age_check IS NOT NULL')
             ->andWhere('disabled_at IS NULL')
             ->setParameter(
                 'people',

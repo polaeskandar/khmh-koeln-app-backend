@@ -62,15 +62,6 @@ final readonly class AccountLookup
         return $id === null ? null : $this->users->find($id);
     }
 
-    public function findAccountOrHolder(?Uuid $accountId, ?Uuid $personId): ?User
-    {
-        if ($accountId !== null) {
-            return $this->users->find($accountId);
-        }
-
-        return $personId === null ? null : $this->members->holderOf($personId);
-    }
-
     /**
      * @return list<User>
      */

@@ -20,10 +20,7 @@ use App\Tests\Support\Context\People\Domain\Entity\Rosters;
 use App\Tests\Support\Context\Scheduling\Domain\Entity\Schedules;
 use App\Tests\Support\Database;
 use DateTimeImmutable;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
-use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Uid\Uuid;
 
 final class MemberJourneyTest extends ApiTestCase
@@ -63,7 +60,6 @@ final class MemberJourneyTest extends ApiTestCase
         $this->assertMinaSeesOnlyHisOwnGroups($task, $thirdTask);
         $this->jsonRequest('PUT', '/api/member/homework/' . $task . '/completion', []);
         self::assertResponseStatusCodeSame(201);
-        $minaSession = $this->browser()->getCookieJar()->all();
         $this->browser()->getCookieJar()->clear();
 
         $this->signInAs(self::PETER, SignInAccounts::TYPED);
@@ -71,8 +67,6 @@ final class MemberJourneyTest extends ApiTestCase
         $this->assertJsonPath('rows.0.done', true);
         $this->assertJsonPath('rows.0.ownAccount', true);
         $this->assertJsonPath('rows.0.reportedBySelf', true);
-
-        $this->removeMinasLink($minaSession);
     }
 
     /**
@@ -117,17 +111,12 @@ final class MemberJourneyTest extends ApiTestCase
 
     private function createAndLinkMinasAccount(string $youth): void
     {
-        new SignInAccounts(self::getContainer())->add(self::MINA, ['display_name' => 'Mina Hanna']);
-        $link = new CommandTester(new Application(self::$kernel ?? self::bootKernel())->find('app:member:link'));
-
-        $link->execute([
-            'email' => self::MINA,
-            'personId' => $youth,
-            '--age' => 'guardian-consent',
-            '--note' => 'Father agreed.',
+        new SignInAccounts(self::getContainer())->add(self::MINA, [
+            'display_name' => 'Mina Hanna',
+            'person_id' => $youth,
+            'age_check' => 'guardianConsent',
+            'guardian_consent_note' => 'Father agreed.',
         ]);
-
-        $link->assertCommandIsSuccessful();
     }
 
     private function prepareAdvancedHomework(Stage $advanced, Schedule $saturday, string $peter): string
@@ -169,46 +158,5 @@ final class MemberJourneyTest extends ApiTestCase
         $random = (string) $this->browser()->getResponse()->getContent();
         $this->jsonRequest('GET', '/api/member/homework/' . $thirdTask);
         self::assertSame($random, (string) $this->browser()->getResponse()->getContent());
-    }
-
-    /**
-     * @param array<array-key, Cookie> $minaSession
-     */
-    private function removeMinasLink(array $minaSession): void
-    {
-        $this->restore($minaSession);
-        $this->jsonRequest('GET', '/api/member/homework');
-        self::assertResponseIsSuccessful();
-        $this->browser()->getCookieJar()->clear();
-
-        $this->signInAs(self::MARIAM, SignInAccounts::TYPED);
-        $this->jsonRequest('POST', '/api/member-accounts/' . $this->minaAccount() . '/unlink', []);
-        self::assertResponseStatusCodeSame(204);
-
-        $this->restore($minaSession);
-        $this->jsonRequest('GET', '/api/member/homework');
-        $this->assertProblem(403, 'forbidden');
-    }
-
-    /**
-     * @param array<array-key, Cookie> $cookies
-     */
-    private function restore(array $cookies): void
-    {
-        $jar = $this->browser()->getCookieJar();
-        $jar->clear();
-
-        foreach ($cookies as $cookie) {
-            $jar->set($cookie);
-        }
-    }
-
-    private function minaAccount(): string
-    {
-        return Type::of(
-            new Database(self::getContainer())
-                ->connection()
-                ->fetchOne('SELECT id::text FROM identity.app_user WHERE email = ?', [self::MINA]),
-        )->toString();
     }
 }

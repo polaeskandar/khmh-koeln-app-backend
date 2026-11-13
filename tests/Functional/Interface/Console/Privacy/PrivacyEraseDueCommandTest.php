@@ -90,7 +90,7 @@ final class PrivacyEraseDueCommandTest extends ApiTestCase
         self::mockTime('2026-11-08T10:00:00+01:00');
         $families = new Families(self::getContainer());
         $child = $families->child('Mina');
-        $parent = new SignInAccounts(self::getContainer())->add('hoda@example.org');
+        $parent = new SignInAccounts(self::getContainer())->addWithPerson('hoda@example.org');
         new RoleGrants(self::getContainer())->grant($parent, 'parent');
         $families->link($parent, $child);
         $this->schedule('hoda@example.org');
@@ -113,7 +113,7 @@ final class PrivacyEraseDueCommandTest extends ApiTestCase
     public function testACancelledErasureIsLeftAlone(): void
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
-        new SignInAccounts(self::getContainer())->add('hoda@example.org');
+        new SignInAccounts(self::getContainer())->addWithPerson('hoda@example.org');
         $this->schedule('hoda@example.org');
 
         $this->jsonRequest('POST', '/api/auth/erasure-cancellation', [
@@ -134,11 +134,11 @@ final class PrivacyEraseDueCommandTest extends ApiTestCase
         self::mockTime('2026-11-08T10:00:00+01:00');
         $accounts = new SignInAccounts(self::getContainer());
         $grants = new RoleGrants(self::getContainer());
-        $leaving = $accounts->add('admin@example.org');
-        $other = $accounts->add('mariam@example.org');
+        $leaving = $accounts->addWithPerson('admin@example.org');
+        $other = $accounts->addWithPerson('mariam@example.org');
         $grants->grant($leaving, 'administrator');
         $grants->grant($other, 'administrator');
-        $accounts->add('hoda@example.org');
+        $accounts->addWithPerson('hoda@example.org');
         $this->schedule('admin@example.org');
         $this->schedule('hoda@example.org');
 
@@ -164,7 +164,7 @@ final class PrivacyEraseDueCommandTest extends ApiTestCase
     public function testADryRunChangesNothing(): void
     {
         self::mockTime('2026-11-08T10:00:00+01:00');
-        new SignInAccounts(self::getContainer())->add('hoda@example.org');
+        new SignInAccounts(self::getContainer())->addWithPerson('hoda@example.org');
         $this->schedule('hoda@example.org');
 
         self::mockTime('2026-11-22T03:30:00+01:00');
