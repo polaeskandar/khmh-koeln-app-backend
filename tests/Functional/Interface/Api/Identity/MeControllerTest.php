@@ -25,7 +25,13 @@ final class MeControllerTest extends ApiTestCase
         self::assertNull($body['member'] ?? null);
 
         self::assertSame(
-            ['id' => $id, 'email' => 'daniel@example.org', 'displayName' => 'Sara Hanna', 'language' => 'de'],
+            [
+                'id' => $id,
+                'username' => 'daniel',
+                'email' => 'daniel@example.org',
+                'displayName' => 'Sara Hanna',
+                'language' => 'de',
+            ],
             $body['account'] ?? null,
         );
 

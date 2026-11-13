@@ -9,6 +9,7 @@ use App\Context\Identity\Domain\Enum\Action;
 use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\Email;
+use App\Context\Identity\Domain\ValueObject\Username;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Types\Model\ListOf;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -93,6 +94,14 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
         return $this->entityManager
             ->getRepository(User::class)
             ->findOneBy(['profile.email.value' => Email::normalized($email)]);
+    }
+
+    #[Override]
+    public function findByUsername(string $username): ?User
+    {
+        return $this->entityManager
+            ->getRepository(User::class)
+            ->findOneBy(['username.value' => Username::normalized($username)]);
     }
 
     #[Override]

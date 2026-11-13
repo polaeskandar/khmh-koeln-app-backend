@@ -11,6 +11,7 @@ final readonly class AccountResponse
 {
     public function __construct(
         public string $id,
+        public string $username,
         public string $email,
         public string $displayName,
         public Language $language,
@@ -19,6 +20,6 @@ final readonly class AccountResponse
 
     public static function of(AccountSummary $account): self
     {
-        return new self($account->id, $account->email, $account->displayName, $account->language);
+        return new self($account->id, $account->username, $account->email, $account->displayName, $account->language);
     }
 }
