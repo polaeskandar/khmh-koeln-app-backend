@@ -14,14 +14,20 @@ final class Version20261113150145 extends AbstractMigration
     public function up(Schema $schema): void
     {
         $this->addSql(<<<'SQL'
-                UPDATE people.person p
-                SET birth_date = COALESCE(p.birth_date, u.birth_date),
-                  street = CASE WHEN p.street IS NULL AND u.street IS NOT NULL THEN u.street ELSE p.street END,
-                  postal_code = CASE WHEN p.street IS NULL AND u.street IS NOT NULL THEN u.postal_code ELSE p.postal_code END,
-                  city = CASE WHEN p.street IS NULL AND u.street IS NOT NULL THEN u.city ELSE p.city END
-                FROM identity.app_user u
-                WHERE u.person_id = p.id
-                  AND (u.birth_date IS NOT NULL OR u.street IS NOT NULL)
+                DO $$
+                BEGIN
+                  IF to_regclass('people.person') IS NOT NULL THEN
+                    UPDATE people.person p
+                    SET birth_date = COALESCE(p.birth_date, u.birth_date),
+                      street = CASE WHEN p.street IS NULL AND u.street IS NOT NULL THEN u.street ELSE p.street END,
+                      postal_code = CASE WHEN p.street IS NULL AND u.street IS NOT NULL THEN u.postal_code ELSE p.postal_code END,
+                      city = CASE WHEN p.street IS NULL AND u.street IS NOT NULL THEN u.city ELSE p.city END
+                    FROM identity.app_user u
+                    WHERE u.person_id = p.id
+                      AND (u.birth_date IS NOT NULL OR u.street IS NOT NULL);
+                  END IF;
+                END
+                $$
             SQL);
         $this->addSql('DROP INDEX identity.app_user_email_unique');
         $this->addSql('ALTER TABLE identity.app_user DROP email');
