@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Entity\User;
-use App\Context\Identity\Domain\Interface\AdministrationLockInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Time\Model\LocalDate;
+use App\Platform\Access\Contract\Administration;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class ErasureSchedules
 {
     public function __construct(
         private UserRepositoryInterface $users,
-        private LastAdministrator $lastAdministrator,
-        private AdministrationLockInterface $administration,
+        private Administration $administration,
         private ApiTokens $apiTokens,
     ) {
     }
@@ -25,7 +24,7 @@ final readonly class ErasureSchedules
     {
         $this->administration->whileLocked(function () use ($accountId, $erasesOn): void {
             $this->users->withWriteLock($accountId, function (User $user) use ($erasesOn): void {
-                if ($this->lastAdministrator->isKeptOnlyByAccount($user)) {
+                if ($this->administration->isLastAdministrator($user->id())) {
                     throw new RuleViolation('roles.lastAdministrator');
                 }
 

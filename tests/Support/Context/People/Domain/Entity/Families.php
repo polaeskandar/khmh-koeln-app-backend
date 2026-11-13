@@ -6,8 +6,8 @@ namespace App\Tests\Support\Context\People\Domain\Entity;
 
 use App\Context\People\Domain\Entity\Person;
 use App\Context\People\Domain\ValueObject\PersonName;
+use App\Tests\Support\Context\Access\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
-use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Database;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Uid\Uuid;

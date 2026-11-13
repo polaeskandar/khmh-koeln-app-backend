@@ -41,7 +41,7 @@ namespaces, and calls go one way: **Interface → Workflow → Context**.
 | --- | --- |
 | `App\Interface` | Entry points and the shapes they exchange, nothing else: `Api/<Area>/<Name>Controller`, `Api/<Area>/Request/<Name>Request` (the `#[MapRequestPayload]` DTOs with their `#[Assert]` constraints, strings and lists only), `Api/<Area>/Response/<Name>Response` (the JSON an endpoint answers, built with `::of()` from a workflow model), `Console/<Area>/<Name>Command` and `Console/<Area>/Request/<Name>Request`. An `<Area>` is the context the endpoint or command belongs to, so `Api/` and `Console/` mirror `Context/`: the parent and member portals' homework is in `Api/Learning`, their children and groups in `Api/People`. Interface calls workflows only; of a context it names nothing but the enums in `Domain/Enum`, so a response can type a field with the enum its values come from. A dry run wraps the workflow in the `Transactions` platform contract. |
 | `App\Workflow` | One class per process: `<Area>/<Verb><Subject>Workflow`, its `<Area>` the context it mainly serves (the same folders as `Context/`), run through its only public method `__invoke()`. A workflow sequences the application services of one or more contexts, holds the transaction when several writes must succeed together, checks access, and maps what the contexts return to its models in `<Area>/Model/` (final readonly, scalars, the contexts' enums, lists and other models). It is the only code that uses the contexts. |
-| `App\Context` | The bounded contexts: `Identity`, `Organization`, `People`, `Scheduling` (schedules, sessions and their attendance marks), `Learning`, `Privacy` (data protection requests). Each has `Application/Service` (the business logic), `Domain` (the model: `Entity`, `ValueObject`, `Enum`, `Validation` (the rules that weigh values and entities against each other), `Repository` interfaces, the `Query` interfaces workflows read through, the `Interface` contracts that its `Infrastructure` implements, `Exception`, `Attribute`) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations such as `Lifecycle`, the marking stores and guards of the context's state machines). |
+| `App\Context` | The bounded contexts: `Access` (roles, permissions and the access checks), `Identity` (accounts, sign-in and passwords), `Organization`, `People`, `Scheduling` (schedules, sessions and their attendance marks), `Learning`, `Privacy` (data protection requests). Each has `Application/Service` (the business logic), `Domain` (the model: `Entity`, `ValueObject`, `Enum`, `Validation` (the rules that weigh values and entities against each other), `Repository` interfaces, the `Query` interfaces workflows read through, the `Interface` contracts that its `Infrastructure` implements, `Exception`, `Attribute`) and `Infrastructure` (Doctrine repositories, migrations, Symfony integrations such as `Lifecycle`, the marking stores and guards of the context's state machines). |
 | `App\Library` | Business-agnostic packages, each split into `Client`, `Model` and `Exception` (and `Mapping` for Doctrine mapped superclasses that entities extend); they wrap PHP's native functions once for the rest of the application where no library class covers them (see [Code style](code-style.md#8-libraries-and-native-functions)): `Strings` (`Text`, `InputText`, `NameKey`, `ComposedForm`), `Types` (`Type`), `Collections` (`Collections`, next to Doctrine's collections), `Files` (`CsvFiles`, `PrivateFiles`), `Console` (`HiddenPrompt`), `Problem` (the coded exceptions, and `Ids`, which turns an id a request sends into a `Uuid` or into the `notFound.<thing>` it answers), `Time` (`LocalDate`, `LocalTime`, `Calendar`, on Carbon), `Persistence` (the `CreatedAtEntity` and `TimestampedEntity` mapped superclasses). Packages never use each other (`mago guard`); a package keeps only the methods something uses, and missing ones are added with their first caller. |
 | `App\Platform` | The runtime: `Kernel`, `Migration`, `Health` (the `/api/health` probes with their own `Controller` and `Response`), `Http`, `Logging`, `OpenApi` (describes the response classes for `docs/openapi.json`, which its `Controller` serves at `/api/openapi.json` in the dev and test environments), `Lifecycle` (the `Transitions` contract that applies a state machine's transition and turns a refusal into its code), and the contracts the contexts share, such as `Privacy`'s `AccountReferences` (every context forgets an erased account through it). Each module splits into `Contract` (interfaces the rest may use), `Service`, `Model` and `Command`. |
 
@@ -72,7 +72,7 @@ Rules, enforced by `mago guard` and the tests in `tests/Architecture`:
 - Erasure fans out through the tagged contracts in `Platform\Privacy\Contract`: People's `PersonErasures` hands
   every `PersonReferences` (each context's `PersonTraces`) the `ErasedPerson` to forget and asks every
   `PersonNotes` for the free-text notes that may name them; Identity's `AccountErasures` sweeps every
-  `AccountReferences` (each context's `AccountTraces`).
+  `AccountReferences` (each context's `AccountTraces`; Access's `AccessTraces` deletes the account's roles).
 - A context never uses another context. Only a context's own `Infrastructure` uses its `Infrastructure`.
   When a rule of one context needs another context's facts, the workflow reads them and hands them over in
   the receiving context's own value object: `OfferedMeetings` maps Scheduling's `MeetingSlot` into Learning's
@@ -126,7 +126,7 @@ Naming:
 
 Persistence (ADR 0004 of `bisort-console`):
 
-- Each context owns one PostgreSQL schema (`identity`, `organization`, `people`, `scheduling`, `learning`,
+- Each context owns one PostgreSQL schema (`access`, `identity`, `organization`, `people`, `scheduling`, `learning`,
   `privacy`) and its own migration history (`<context>_migration_versions`). Its migrations live in
   `src/Context/<Context>/Infrastructure/Persistence/Migrations`.
 - Every folder `src/Context/<Context>` is a context; its schema is the lower-case name. Migrations are
@@ -339,14 +339,24 @@ token always belongs to an active account: Identity refuses disabled accounts at
 sessions on the next request.
 
 A workflow that needs a permission states it as its first step:
-`$this->access->require(Action::Update, Resource::Services)` (`Context\Identity\Application\Service\AccessCheck`).
-`AccessCheck` asks Symfony's authorization checker, and `AccessVoter` grants the `Access` when the account,
-reloaded on every request, is active and one of its roles has the permission; otherwise 403 `forbidden`. A role,
+`$this->access->require(Action::Update, Resource::Services)` (`Context\Access\Application\Service\AccessCheck`).
+`AccessCheck` asks Symfony's authorization checker, and `AccessVoter` grants the `Access` when the account is
+enabled and one of its roles, read on every request, has the permission; otherwise 403 `forbidden`. A role,
 permission or assignment change applies on the next request, without a new sign-in.
+
+Roles and permissions live in the Access context (schema `access`); accounts live in Identity. Access stores an
+account only by its id (`access.user_role.user_id`, no foreign key across schemas). The two meet through Platform
+contracts, so neither uses the other: Access asks Identity's `ActiveAccountIds` which accounts are enabled and
+which no requested erasure waits for (`Platform\Access\Contract\ActiveAccounts`), and Identity asks Access's
+`LastAdministrator` for the administration lock, whether an account is the last one that can change roles, and how
+many roles it held, when it disables, erases or schedules the erasure of an account
+(`Platform\Access\Contract\Administration`). Lists that join both (staff and member accounts, role holders,
+lesson preparers, a service's servants) are joined by their workflow: Access answers the account ids, Identity
+the enabled accounts and their names.
 
 Data of a group is checked against the group too, and `AccessCheck` is the one place that does it.
 `requireScope(Action, Resource)` answers a `GroupScope` (`Platform\Access\Model`): church-wide when a church role
-grants the permission, else the account's assigned groups, which Identity reads through the Platform contract
+grants the permission, else the account's assigned groups, which Access reads through the Platform contract
 `StaffGroups` that Organization implements, so neither context uses the other. `GroupScope::covers()` is the only
 rule for whether a group is covered. Workflows use it three ways: `requireIn()` answers 404 for a single item
 outside the groups (as the parent portal does for other families), `requireChosen()` refuses a group named in a

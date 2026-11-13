@@ -6,7 +6,6 @@ namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Entity\User;
 use App\Context\Identity\Domain\Repository\ActiveAccountRepositoryInterface;
-use App\Context\Identity\Domain\Repository\RoleRepositoryInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\NamedAccounts;
 use App\Library\Collections\Model\Collections;
@@ -17,11 +16,8 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class ParentAccounts
 {
-    public const string PARENT_ROLE = 'Parent';
-
     public function __construct(
         private UserRepositoryInterface $users,
-        private RoleRepositoryInterface $roles,
         private ActiveAccountRepositoryInterface $activeAccounts,
         private AccountNames $names,
         private AccountLookup $accounts,
@@ -79,17 +75,5 @@ final readonly class ParentAccounts
             ]),
             keyOf: static fn (array $row): string => $sortKeyOf($row['name']),
         );
-    }
-
-    public function giveParentRole(User $account): void
-    {
-        $parent = $this->roles->findByName(self::PARENT_ROLE) ?? throw NotFound::of('role');
-
-        if ($account->roles()->contains($parent)) {
-            return;
-        }
-
-        $account->assign($parent);
-        $this->users->save($account);
     }
 }

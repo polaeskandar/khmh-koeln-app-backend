@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Identity;
 
+use App\Context\Access\Application\Service\RoleHolders;
 use App\Context\Identity\Application\Service\AccountLookup;
 use App\Context\Identity\Application\Service\MemberCheck;
 use App\Context\Identity\Application\Service\ServingAccounts;
@@ -27,6 +28,7 @@ final readonly class ListMemberServantsWorkflow
         private StaffAssignmentQueryInterface $assignments,
         private ServingAccounts $accounts,
         private AccountLookup $lookup,
+        private RoleHolders $holders,
     ) {
     }
 
@@ -41,7 +43,9 @@ final readonly class ListMemberServantsWorkflow
         $covering = $this->assignments->listCovering($serviceIds, $stageIds);
 
         $staff = $this->accounts->listActiveAmong(
-            $covering->map(static fn (StaffAssignment $assignment): Uuid => $assignment->accountId())->getValues(),
+            $this->holders->servingInGroupsAmong(
+                $covering->map(static fn (StaffAssignment $assignment): Uuid => $assignment->accountId())->getValues(),
+            ),
         );
 
         return GroupServants::of(

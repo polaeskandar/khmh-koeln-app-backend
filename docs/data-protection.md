@@ -13,8 +13,8 @@ account is assigned to; parents see only their own approved children.
 | Table | Personal fields | Purpose | Who sees it | Retention | On erasure |
 | --- | --- | --- | --- | --- | --- |
 | `identity.app_user` | username, the person it belongs to, language, password hash, privacy acceptance, disable date, the date a requested erasure is due | Accounts for staff, parents and members (the name, birth date and address are the person's) | Administrators; the account itself | While the account is used; open (office) | `erase-account`: deleted |
-| `identity.user_role` | which account has which role | Access control | Administrators | With the account | Deleted with the account |
-| `identity.role`, `identity.permission`, `identity.role_permission` | none | Access rules | Administrators | Permanent | – |
+| `access.user_role` | which account has which role | Access control | Administrators | With the account | Deleted with the account |
+| `access.role`, `access.permission`, `access.role_permission` | none | Access rules | Administrators | Permanent | – |
 | `identity.api_token` | hashed token, its account, device name, created, last used, expiry and revocation | Signing in the iOS and Android apps | Nobody (hashes only) | 90 days (`API_TOKEN_LIFETIME`), or until revoked | Deleted with the account |
 | `organization.service`, `organization.stage` | none | Services and classes | Staff | Permanent | – |
 | `organization.staff_assignment` | which account serves in which service or stage, since when | Limiting servants and service leaders to the groups they serve in | Administrators; service leaders for their services; the account itself (`GET /api/me`); members, for the servants of their own groups (`GET /api/member/servants`) | While the account serves there; removed by an administrator or a service leader | Deleted with the account |

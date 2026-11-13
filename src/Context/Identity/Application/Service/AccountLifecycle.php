@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Entity\User;
-use App\Context\Identity\Domain\Interface\AdministrationLockInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Library\Problem\Exception\NotFound;
 use App\Library\Problem\Exception\RuleViolation;
 use App\Library\Time\Client\Calendar;
+use App\Platform\Access\Contract\Administration;
 
 final readonly class AccountLifecycle
 {
     public function __construct(
         private UserRepositoryInterface $users,
-        private LastAdministrator $lastAdministrator,
-        private AdministrationLockInterface $administration,
+        private Administration $administration,
         private ApiTokens $apiTokens,
         private Calendar $calendar,
     ) {
@@ -27,7 +26,7 @@ final readonly class AccountLifecycle
         $this->administration->whileLocked(function () use ($username): void {
             $user = $this->getByUsername($username);
 
-            if ($this->lastAdministrator->isKeptOnlyByAccount($user)) {
+            if ($this->administration->isLastAdministrator($user->id())) {
                 throw new RuleViolation('roles.lastAdministrator');
             }
 

@@ -11,9 +11,6 @@ use App\Context\Identity\Domain\ValueObject\Registration;
 use App\Context\Identity\Domain\ValueObject\Username;
 use App\Library\Persistence\Mapping\CreatedAtEntity;
 use App\Library\Time\Model\LocalDate;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\ReadableCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
@@ -49,18 +46,6 @@ final class User extends CreatedAtEntity
     #[ORM\Column(name: 'erases_on', type: 'local_date', nullable: true)]
     private ?LocalDate $erasesOn = null;
 
-    /**
-     * @var Collection<int, Role>
-     */
-    #[ORM\ManyToMany(targetEntity: Role::class)]
-    #[ORM\JoinTable(name: 'user_role', schema: 'identity')]
-    #[ORM\JoinColumn(name: 'user_id', onDelete: 'CASCADE')]
-    #[ORM\InverseJoinColumn(name: 'role_id', onDelete: 'CASCADE')]
-    private Collection $roles;
-
-    /**
-     * @param list<Role> $roles
-     */
     public function __construct(
         Uuid $personId,
         Username $username,
@@ -68,7 +53,6 @@ final class User extends CreatedAtEntity
         string $passwordHash,
         AccountStatus $status,
         Registration $registration,
-        array $roles,
     ) {
         $this->id = Uuid::v7();
         $this->person = PersonLink::to($personId);
@@ -77,7 +61,6 @@ final class User extends CreatedAtEntity
         $this->passwordHash = $passwordHash;
         $this->registration = $registration;
         $this->status = $status;
-        $this->roles = new ArrayCollection($roles);
     }
 
     public function id(): Uuid
@@ -143,23 +126,5 @@ final class User extends CreatedAtEntity
     public function changeErasure(?LocalDate $erasesOn): void
     {
         $this->erasesOn = $erasesOn;
-    }
-
-    /**
-     * @return ReadableCollection<int, Role>
-     */
-    public function roles(): ReadableCollection
-    {
-        return $this->roles;
-    }
-
-    public function assign(Role $role): void
-    {
-        $this->roles->add($role);
-    }
-
-    public function unassign(Role $role): void
-    {
-        $this->roles->removeElement($role);
     }
 }

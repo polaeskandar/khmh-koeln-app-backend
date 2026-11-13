@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Identity;
 
+use App\Context\Access\Application\Service\RoleAssignments;
 use App\Context\Identity\Application\Service\NewAccounts;
 use App\Context\Identity\Domain\Enum\Language;
 use App\Context\Identity\Domain\ValueObject\AccountDraft;
@@ -19,6 +20,7 @@ final readonly class CreateUserWorkflow
         private PersonWrites $people,
         private NewAccounts $accounts,
         private Transactions $transactions,
+        private RoleAssignments $roles,
     ) {
     }
 
@@ -35,7 +37,10 @@ final readonly class CreateUserWorkflow
             $person = $this->people->create($name, placement: null)->person;
             $draft = new AccountDraft($person->id(), $details->username, $language);
 
-            return $this->accounts->create($draft, $password, $role)->toRfc4122();
+            $id = $this->accounts->create($draft, $password);
+            $this->roles->giveToNewAccount($id, $role);
+
+            return $id->toRfc4122();
         });
     }
 }

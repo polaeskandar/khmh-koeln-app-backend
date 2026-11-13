@@ -11,7 +11,7 @@ use App\Context\Learning\Domain\ValueObject\Materials;
 use App\Context\People\Domain\Entity\Person;
 use App\Context\Scheduling\Domain\Entity\Attendance;
 use App\Context\Scheduling\Domain\ValueObject\Removal;
-use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
+use App\Tests\Support\Context\Access\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Learning\Domain\Entity\Lessons;
 use App\Tests\Support\Context\Learning\Domain\Entity\Reports;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;

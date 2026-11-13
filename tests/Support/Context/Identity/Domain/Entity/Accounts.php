@@ -26,7 +26,6 @@ final readonly class Accounts
             passwordHash: $passwordHash,
             status: AccountStatus::active(),
             registration: Registration::none(),
-            roles: [],
         );
     }
 

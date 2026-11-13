@@ -5,19 +5,18 @@ declare(strict_types=1);
 namespace App\Context\Identity\Application\Service;
 
 use App\Context\Identity\Domain\Entity\User;
-use App\Context\Identity\Domain\Interface\AdministrationLockInterface;
 use App\Context\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Context\Identity\Domain\ValueObject\AccountErased;
 use App\Library\Problem\Exception\RuleViolation;
+use App\Platform\Access\Contract\Administration;
 use LogicException;
 use Symfony\Component\Uid\Uuid;
 
 final readonly class AccountRemovals
 {
     public function __construct(
-        private AdministrationLockInterface $administration,
+        private Administration $administration,
         private UserRepositoryInterface $users,
-        private LastAdministrator $lastAdministrator,
         private AccountSweeps $sweeps,
     ) {
     }
@@ -37,11 +36,14 @@ final readonly class AccountRemovals
 
     private function removed(User $user): AccountErased
     {
-        if ($this->lastAdministrator->isKeptOnlyByAccount($user)) {
+        if ($this->administration->isLastAdministrator($user->id())) {
             throw new RuleViolation('roles.lastAdministrator');
         }
 
-        $erased = new AccountErased($user->roles()->count(), $this->sweeps->sweep($user->id()));
+        $erased = new AccountErased(
+            $this->administration->countRolesOf($user->id()),
+            $this->sweeps->sweep($user->id()),
+        );
 
         $this->users->remove($user);
 

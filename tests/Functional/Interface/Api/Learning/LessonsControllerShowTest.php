@@ -125,7 +125,7 @@ final class LessonsControllerShowTest extends ApiTestCase
         $connection = new Database(self::getContainer())->connection();
         $roleId = Uuid::v7()->toRfc4122();
 
-        $connection->insert('identity.role', [
+        $connection->insert('access.role', [
             'id' => $roleId,
             'name' => 'Lesson reader',
             'name_key' => 'lesson_reader',
@@ -133,8 +133,8 @@ final class LessonsControllerShowTest extends ApiTestCase
             'updated_at' => '2026-11-01 12:00:00+01',
         ]);
 
-        $connection->executeStatement('INSERT INTO identity.role_permission (role_id, permission_id) '
-        . "SELECT ?, id FROM identity.permission WHERE action = 'read' AND resource = 'lessons'", [$roleId]);
+        $connection->executeStatement('INSERT INTO access.role_permission (role_id, permission_id) '
+        . "SELECT ?, id FROM access.permission WHERE action = 'read' AND resource = 'lessons'", [$roleId]);
     }
 
     /**

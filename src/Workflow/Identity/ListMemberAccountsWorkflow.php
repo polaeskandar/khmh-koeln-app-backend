@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Workflow\Identity;
 
-use App\Context\Identity\Application\Service\AccessCheck;
+use App\Context\Access\Application\Service\AccessCheck;
+use App\Context\Access\Application\Service\RoleHolders;
+use App\Context\Access\Domain\Enum\Action;
+use App\Context\Access\Domain\Enum\Resource;
 use App\Context\Identity\Application\Service\MemberAccounts;
-use App\Context\Identity\Domain\Enum\Action;
-use App\Context\Identity\Domain\Enum\Resource;
 use App\Context\Organization\Application\Service\StructureLookup;
 use App\Context\People\Application\Service\PersonDirectory;
 use App\Library\Time\Client\Calendar;
@@ -23,6 +24,7 @@ final readonly class ListMemberAccountsWorkflow
         private PersonDirectory $directory,
         private StructureLookup $structure,
         private Calendar $calendar,
+        private RoleHolders $holders,
     ) {
     }
 
@@ -30,7 +32,7 @@ final readonly class ListMemberAccountsWorkflow
     {
         $this->access->require(Action::Read, Resource::Users, refusal: 'accounts.adminOnly');
 
-        $rows = $this->accounts->listed();
+        $rows = $this->accounts->listed($this->holders->staff(), $this->holders->parents());
         $people = $this->directory->records(MemberAccountList::personIdsOf($rows));
         $memberships = $this->directory->listCurrentMembershipsOf($people);
 

@@ -7,6 +7,7 @@ namespace App\Context\Identity\Application\Service;
 use App\Context\Identity\Domain\Repository\MemberAccountRepositoryInterface;
 use App\Library\Collections\Model\Collections;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Uid\Uuid;
 
 final readonly class MemberAccounts
 {
@@ -17,6 +18,9 @@ final readonly class MemberAccounts
     }
 
     /**
+     * @param list<Uuid> $staff the accounts with a staff role
+     * @param list<Uuid> $parents the accounts with a role in the parent portal
+     *
      * @return list<array{
      *     id: string,
      *     name: string,
@@ -28,9 +32,9 @@ final readonly class MemberAccounts
      *     guardianConsentNote: string|null,
      * }> the linked accounts without a staff role, by name
      */
-    public function listed(): array
+    public function listed(array $staff, array $parents): array
     {
-        $rows = $this->members->listed();
+        $rows = $this->members->listed($staff, $parents);
         $names = $this->names->of($rows);
         $sortKeyOf = AccountNames::sortKeys();
 

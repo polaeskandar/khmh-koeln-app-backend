@@ -1,0 +1,50 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Workflow\Access;
+
+use App\Context\Access\Application\Service\AccessCheck;
+use App\Context\Access\Application\Service\LastAdministrator;
+use App\Context\Access\Application\Service\PermissionCatalog;
+use App\Context\Access\Application\Service\RoleWrites;
+use App\Context\Access\Domain\Enum\Action;
+use App\Context\Access\Domain\Enum\Resource;
+use App\Context\Access\Domain\Query\RoleHolderQueryInterface;
+use App\Context\Access\Domain\Query\RoleQueryInterface;
+use App\Context\Identity\Application\Service\AccountLookup;
+use App\Library\Problem\Exception\NotFound;
+use App\Library\Problem\Model\Ids;
+use App\Workflow\Access\Model\RoleDetails;
+
+final readonly class EditRoleWorkflow
+{
+    public function __construct(
+        private AccessCheck $access,
+        private RoleWrites $definitions,
+        private RoleQueryInterface $roles,
+        private RoleHolderQueryInterface $holders,
+        private LastAdministrator $lastAdministrator,
+        private AccountLookup $accounts,
+    ) {
+    }
+
+    /**
+     * @param list<array{action: string|null, resource: string|null}> $permissions
+     */
+    public function __invoke(string $id, string $name, ?string $scope, array $permissions): RoleDetails
+    {
+        $this->access->require(Action::Update, Resource::Roles, refusal: 'roles.adminOnly');
+
+        $roleId = Ids::toUuid($id, notFound: 'role');
+        $this->definitions->edit($roleId, $name, $scope, $permissions);
+        $role = $this->roles->find($roleId) ?? throw NotFound::of('role');
+
+        return RoleDetails::of(
+            $role,
+            PermissionCatalog::grantsOf($role),
+            $this->accounts->namedByIds($this->holders->listHoldersOf($role)),
+            onlyWayToChangeRoles: $this->lastAdministrator->isKeptOnlyByRole($role),
+        );
+    }
+}

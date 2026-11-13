@@ -21,7 +21,7 @@ services:
     App\Tests\Support\Context\Identity\Infrastructure\Security\SessionProbeController:
         tags: [controller.service_arguments]
 
-    App\Tests\Support\Context\Identity\Application\Service\AccessProbeController:
+    App\Tests\Support\Context\Access\Application\Service\AccessProbeController:
         tags: [controller.service_arguments]
 
     App\Tests\Support\Context\Identity\Application\Service\MemberProbeController:

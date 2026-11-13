@@ -9,7 +9,7 @@ use App\Context\People\Infrastructure\Persistence\Repository\DoctrineAccountTrac
 use App\Context\Privacy\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as PrivacyTraces;
 use App\Context\Scheduling\Infrastructure\Persistence\Repository\DoctrineAccountTraceRepository as MeetingTraces;
 use App\Library\Types\Model\Type;
-use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
+use App\Tests\Support\Context\Access\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Organization\Domain\Entity\ServedGroups;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Families;
@@ -27,6 +27,7 @@ final class PrivacyEraseAccountCommandTest extends KernelTestCase
     use ClockSensitiveTrait;
 
     private const array OWNED = [
+        'access.user_role.user_id',
         'people.guardian_relationship.user_id',
         'organization.registration_service.account_id',
         'organization.staff_assignment.account_id',
@@ -106,7 +107,7 @@ final class PrivacyEraseAccountCommandTest extends KernelTestCase
             $connection->fetchOne('SELECT count(*) FROM learning.homework_completion WHERE completed_by IS NULL'),
         );
 
-        self::assertSame(0, $connection->fetchOne('SELECT count(*) FROM identity.user_role WHERE user_id = ?', [
+        self::assertSame(0, $connection->fetchOne('SELECT count(*) FROM access.user_role WHERE user_id = ?', [
             $parent,
         ]));
 

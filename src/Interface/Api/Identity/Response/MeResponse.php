@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Interface\Api\Identity\Response;
 
+use App\Interface\Api\Access\Response\RoleResponse;
 use App\Workflow\Identity\Model\CurrentAccount;
 use App\Workflow\Organization\Model\AssignedGroup;
 use Doctrine\Common\Collections\ArrayCollection;

@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Workflow\Privacy\Model;
 
-use App\Context\Identity\Domain\Entity\Role;
+use App\Context\Access\Domain\Entity\Role;
 use App\Context\Identity\Domain\Entity\User;
+use Doctrine\Common\Collections\ArrayCollection;
 
 final readonly class AccountRecord
 {
@@ -20,16 +21,18 @@ final readonly class AccountRecord
     ) {
     }
 
-    public static function of(User $user, string $name): self
+    /**
+     * @param list<Role> $roles
+     */
+    public static function of(User $user, string $name, array $roles): self
     {
         return new self(
             identity: AccountIdentity::of($user, $name),
             moments: AccountMoments::of($user),
             privacy: PrivacyAcceptance::of($user),
-            roles: $user
-                ->roles()
-                ->map(static fn (Role $role): string => $role->name()->value)
-                ->getValues(),
+            roles: new ArrayCollection(
+                $roles,
+            )->map(static fn (Role $role): string => $role->name()->value)->getValues(),
         );
     }
 }

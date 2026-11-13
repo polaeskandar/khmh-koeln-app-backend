@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Workflow\Identity\Model;
 
-use App\Context\Identity\Domain\Enum\Action;
-use App\Context\Identity\Domain\Enum\Resource;
-use App\Context\Identity\Domain\Enum\RoleScope;
-use App\Context\Identity\Domain\ValueObject\Grant;
+use App\Context\Access\Domain\Enum\Action;
+use App\Context\Access\Domain\Enum\Resource;
+use App\Context\Access\Domain\Enum\RoleScope;
+use App\Context\Access\Domain\ValueObject\Grant;
 
 final readonly class AccountPermission
 {

@@ -6,8 +6,8 @@ namespace App\Tests\Functional\Interface\Api\Identity;
 
 use App\Context\People\Domain\Entity\Person;
 use App\Tests\Support\ApiTestCase;
+use App\Tests\Support\Context\Access\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Domain\Entity\MemberLinks;
-use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Context\Organization\Domain\Entity\Structure;
 use App\Tests\Support\Context\People\Domain\Entity\Rosters;

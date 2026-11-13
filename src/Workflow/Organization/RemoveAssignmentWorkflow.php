@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Workflow\Organization;
 
-use App\Context\Identity\Application\Service\AccessCheck;
+use App\Context\Access\Application\Service\AccessCheck;
 use App\Context\Organization\Application\Service\AssignmentChanges;
 use App\Context\Organization\Domain\Query\StaffAssignmentQueryInterface;
 use App\Library\Problem\Exception\NotFound;

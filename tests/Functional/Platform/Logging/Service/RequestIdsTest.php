@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Platform\Logging\Service;
 
 use App\Tests\Support\ApiTestCase;
-use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
+use App\Tests\Support\Context\Access\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Infrastructure\Security\SignInAccounts;
 use App\Tests\Support\Logs;
 use Symfony\Component\Uid\Uuid;

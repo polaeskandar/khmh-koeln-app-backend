@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 final class SourceLayoutTest extends TestCase
 {
-    public const array CONTEXTS = ['Identity', 'Learning', 'Organization', 'People', 'Privacy', 'Scheduling'];
+    public const array CONTEXTS = ['Access', 'Identity', 'Learning', 'Organization', 'People', 'Privacy', 'Scheduling'];
 
     private const array TOP_LEVEL_NAMESPACES = ['Context', 'Interface', 'Library', 'Platform', 'Workflow'];
 

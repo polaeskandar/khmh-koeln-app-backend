@@ -38,9 +38,7 @@ final class UserCreateCommandRoleTest extends KernelTestCase
             ['Administrator'],
             new Database(self::getContainer())
                 ->connection()
-                ->fetchFirstColumn(
-                    'SELECT r.name FROM identity.user_role ur JOIN identity.role r ON r.id = ur.role_id',
-                ),
+                ->fetchFirstColumn('SELECT r.name FROM access.user_role ur JOIN access.role r ON r.id = ur.role_id'),
         );
     }
 

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Context\Identity\Application\Service;
 
+use App\Context\Access\Application\Service\RoleHolders;
+use App\Context\Access\Domain\Enum\Action;
+use App\Context\Access\Domain\Enum\Resource;
 use App\Context\Identity\Application\Service\AccountLookup;
-use App\Context\Identity\Domain\Enum\Action;
-use App\Context\Identity\Domain\Enum\Resource;
+use App\Tests\Support\Context\Access\Domain\Entity\RoleGrants;
 use App\Tests\Support\Context\Identity\Domain\Entity\Accounts;
-use App\Tests\Support\Context\Identity\Domain\Entity\RoleGrants;
 use App\Tests\Support\Database;
-use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Uid\Uuid;
 
@@ -25,13 +25,13 @@ final class AccountLookupTest extends KernelTestCase
         $this->account('Mariam Hanna', [], 'parent');
         $this->account('Mina Iskander', ['disabled_at' => '2026-11-09 12:00:00+01'], 'servant');
 
-        $lookup = $this->lookup();
-        $allowed = $lookup->listActiveAllowedTo(Action::Update, Resource::Lessons);
-        $named = $lookup->named(new ArrayCollection($allowed));
+        $holders = self::getContainer()->get(RoleHolders::class);
+        self::assertInstanceOf(RoleHolders::class, $holders);
+        $named = $this->lookup()->activeNamedByIds($holders->thatCan(Action::Update, Resource::Lessons));
 
         self::assertSame(
             ['Bishoy Fahmy', 'Christine Adel', 'Daniel Michael', 'Ölga Bishara'],
-            array_map($named->nameOf(...), $allowed),
+            array_map($named->nameOf(...), $named->byName()),
         );
     }
 
